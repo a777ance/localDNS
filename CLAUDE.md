@@ -37,6 +37,10 @@ The README's "Known issues and TODOs" section reflects deliberate choices or liv
 
 Keep `README.md` and `SETUP.md` in sync with any config changes. Docs drift is a primary failure mode for this kind of project. If you change a config, update the docs that describe it in the same commit.
 
+## Unbound cache persistence
+
+Cache persistence is implemented as four load-bearing pieces: `systemd/unbound.service.d/override.conf` (load cache on start, dump on stop), `systemd/unbound-cache-dump.timer` + `systemd/unbound-cache-dump.service` (hourly independent dump), and `scripts/unbound-cache-dump` + `scripts/unbound-cache-load`. All parts are required — do not remove any one without understanding the whole mechanism.
+
 ## AMD Carrizo GPU udev rule
 
 `udev/99-amdgpu-performance.rules` is load-bearing for headless remote desktop performance. The Carrizo APU aggressively downclocks GPU without it. Do not remove or simplify it.

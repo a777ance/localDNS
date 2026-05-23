@@ -1,0 +1,8 @@
+[Unit]
+Description=Dump Unbound cache
+Requires=unbound.service
+After=unbound.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/unbound-cache-dump

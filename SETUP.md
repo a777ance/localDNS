@@ -67,6 +67,34 @@ Current configs are organized as Unbound drop-ins under `/etc/unbound/unbound.co
 
 Caching strategy: aggressive. `serve-expired: yes` with a 90-day expired-TTL means clients get instant responses from cache even when upstream is slow or unreachable, with background refresh. Cache sizes (512m rrset, 256m msg) are generous for a 4 GB host but well within budget given Unbound's actual memory use.
 
+### Cache persistence
+
+Unbound's in-memory cache is dumped to disk hourly and restored at boot, so warm-cache performance survives reboots.
+
+**Install scripts:**
+```bash
+sudo cp scripts/unbound-cache-dump scripts/unbound-cache-load /usr/local/bin/
+sudo chmod +x /usr/local/bin/unbound-cache-dump /usr/local/bin/unbound-cache-load
+sudo mkdir -p /var/lib/unbound/cache
+```
+
+**Install drop-in and units:**
+```bash
+sudo mkdir -p /etc/systemd/system/unbound.service.d/
+sudo cp systemd/unbound.service.d/override.conf /etc/systemd/system/unbound.service.d/
+sudo cp systemd/unbound-cache-dump.timer systemd/unbound-cache-dump.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now unbound-cache-dump.timer
+```
+
+The drop-in (`override.conf`) hooks `unbound-cache-load` into Unbound's start sequence (2 s after start, to let the socket settle) and `unbound-cache-dump` into its stop. The timer provides an additional hourly dump independent of service restarts.
+
+**Verify:**
+```bash
+systemctl status unbound-cache-dump.timer
+# Should show active (waiting); NEXT trigger ~10 min after boot
+```
+
 ## Part 2: Pi-hole (Docker)
 
 Pi-hole runs as a single container with named volumes for persistence.
@@ -190,5 +218,5 @@ After everything is up:
 ## Operational notes
 
 - Pi-hole's blocklists update weekly by default via cron inside the container
-- Unbound caches survive restart of the service but not reboot; first queries after reboot will be slower until cache warms
+- Unbound's DNS cache is persisted to disk hourly and restored at boot; see the cache persistence section in Part 1
 - The named Docker volumes (`pihole_data`, `dnsmasq_data`) persist all Pi-hole state across container recreations — backup is just `docker run --rm -v pihole_data:/data busybox tar czf - /data > pihole-backup.tar.gz`

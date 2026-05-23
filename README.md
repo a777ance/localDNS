@@ -22,7 +22,7 @@ Off-the-shelf DNS (ISP resolver, public 8.8.8.8 / 1.1.1.1) means a third party s
 ▼
 [ Root + authoritative DNS servers ]
 
-Pi-hole runs in a Docker container with named volumes for persistent configuration. It forwards non-blocked queries to Unbound, which performs full recursive resolution from the root servers, caches results, and validates DNSSEC signatures.
+Pi-hole runs in a Docker container with named volumes for persistent configuration. It forwards non-blocked queries to Unbound, which performs full recursive resolution from the root servers, caches results, and validates DNSSEC signatures. Unbound's DNS cache is dumped to disk hourly and on service stop, then restored at boot — warm-cache query performance is preserved across reboots. Cache persistence is implemented via a systemd timer, a service drop-in, and two scripts under `scripts/`.
 
 ## Hardware
 
@@ -36,6 +36,11 @@ Pi-hole runs in a Docker container with named volumes for persistent configurati
 |------|---------|
 | `pihole/docker-compose.yml` | Pi-hole container definition with named volumes and Unbound upstream |
 | `unbound/` | Unbound configuration drop-ins: tuning, performance, DNSSEC, remote control |
+| `scripts/unbound-cache-dump` | Atomically writes Unbound's live cache to disk |
+| `scripts/unbound-cache-load` | Restores the cache dump into Unbound at start |
+| `systemd/unbound.service.d/override.conf` | Drop-in wiring cache load into Unbound start and dump into stop |
+| `systemd/unbound-cache-dump.timer` | Triggers hourly cache dump, starting 10 min after boot |
+| `systemd/unbound-cache-dump.service` | One-shot service called by the timer |
 | `systemd/gpu-performance.service` | Forces AMD GPU to high-performance state at boot (see Notes) |
 | `udev/99-amdgpu-performance.rules` | Re-asserts GPU performance level on driver events |
 

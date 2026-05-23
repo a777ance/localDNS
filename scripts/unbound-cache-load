@@ -1,0 +1,3 @@
+#!/bin/bash
+[ -f /var/lib/unbound/cache/cache.dump ] && \
+  /usr/sbin/unbound-control load_cache < /var/lib/unbound/cache/cache.dump
