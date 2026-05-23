@@ -156,7 +156,7 @@ The AMD Carrizo APU in the t630 aggressively downclocks its iGPU when no display
 - NoMachine sessions visibly freeze and stutter
 - `cat /sys/class/drm/card*/device/pp_dpm_sclk` shows the GPU pinned at the lowest power state (200 MHz) even when active
 
-### Three-part fix
+### Four-part fix
 
 **1. Kernel boot parameters** — edit `/etc/default/grub`:
 GRUB_CMDLINE_LINUX_DEFAULT="quiet amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1"
@@ -174,7 +174,15 @@ sudo systemctl enable --now gpu-performance.service
 ```
 This forces the GPU to `high` performance level at boot.
 
-**3. Udev rule** (`udev/99-amdgpu-performance.rules`) — copy in:
+**3. Systemd service** (`systemd/cpu-performance.service`) — copy in:
+```bash
+sudo cp systemd/cpu-performance.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now cpu-performance.service
+```
+This forces all CPU cores to the `performance` scaling governor at boot, preventing the kernel from downclocking the CPU when load is low.
+
+**4. Udev rule** (`udev/99-amdgpu-performance.rules`) — copy in:
 ```bash
 sudo cp udev/99-amdgpu-performance.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules

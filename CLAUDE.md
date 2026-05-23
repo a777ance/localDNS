@@ -41,9 +41,14 @@ Keep `README.md` and `SETUP.md` in sync with any config changes. Docs drift is a
 
 Cache persistence is implemented as four load-bearing pieces: `systemd/unbound.service.d/override.conf` (load cache on start, dump on stop), `systemd/unbound-cache-dump.timer` + `systemd/unbound-cache-dump.service` (hourly independent dump), and `scripts/unbound-cache-dump` + `scripts/unbound-cache-load`. All parts are required — do not remove any one without understanding the whole mechanism.
 
-## AMD Carrizo GPU udev rule
+## AMD Carrizo hardware remediation
 
-`udev/99-amdgpu-performance.rules` is load-bearing for headless remote desktop performance. The Carrizo APU aggressively downclocks GPU without it. Do not remove or simplify it.
+The Carrizo APU aggressively downclocks both GPU and CPU in headless operation, crippling NoMachine performance. All four components are load-bearing — do not remove any without understanding the full mechanism.
+
+1. **GRUB parameters** (`/etc/default/grub`): `amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1` — keeps GPU power management on, disables runtime PM, limits CPU sleep depth.
+2. **`systemd/gpu-performance.service`** — forces the GPU to `high` performance level at boot.
+3. **`systemd/cpu-performance.service`** — forces all CPU cores to the `performance` scaling governor at boot.
+4. **`udev/99-amdgpu-performance.rules`** — re-asserts GPU performance level on DRM events; the critical re-trigger for hotplug and runtime PM transitions.
 
 ## Verification commands (non-destructive)
 

@@ -42,6 +42,7 @@ Pi-hole runs in a Docker container with named volumes for persistent configurati
 | `systemd/unbound-cache-dump.timer` | Triggers hourly cache dump, starting 10 min after boot |
 | `systemd/unbound-cache-dump.service` | One-shot service called by the timer |
 | `systemd/gpu-performance.service` | Forces AMD GPU to high-performance state at boot (see Notes) |
+| `systemd/cpu-performance.service` | Forces CPU scaling governor to `performance` at boot (see Notes) |
 | `udev/99-amdgpu-performance.rules` | Re-asserts GPU performance level on driver events |
 
 ## Reproduction
@@ -74,11 +75,12 @@ MIT
 
 ### Carrizo headless GPU throttling
 
-The AMD Carrizo APU in the t630 aggressively downclocks its iGPU when no display is detected, which crippled NoMachine remote desktop performance. Three-part remediation:
+The AMD Carrizo APU in the t630 aggressively downclocks its iGPU when no display is detected, which crippled NoMachine remote desktop performance. Four-part remediation:
 
 1. **Kernel parameters** in `/etc/default/grub`: `amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1`
-2. **systemd service** writes `high` to `power_dpm_force_performance_level` at boot
-3. **udev rule** re-asserts `high` on `add|change` events to the DRM subsystem, catching display hotplug and runtime PM transitions that would otherwise re-throttle the GPU
+2. **GPU systemd service** writes `high` to `power_dpm_force_performance_level` at boot
+3. **CPU systemd service** forces all cores to the `performance` scaling governor at boot
+4. **udev rule** re-asserts `high` on `add|change` events to the DRM subsystem, catching display hotplug and runtime PM transitions that would otherwise re-throttle the GPU
 
 The udev rule is what actually keeps the fix stable across a session — the service alone fires once and isn't re-triggered when the kernel re-evaluates power state later.
 
