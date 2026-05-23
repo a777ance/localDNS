@@ -1,0 +1,25 @@
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "8080:80/tcp"
+    environment:
+      TZ: "America/New_York"
+      # Upstream DNS — points to Unbound recursive resolver
+      # Use 172.17.0.1#5335 if Unbound runs on the Docker host
+      # Use 127.0.0.1#5335 if Unbound runs inside this container
+      PIHOLE_DNS_: "127.0.0.1#5335"
+      WEBPASSWORD: "CHANGE_ME"
+      DNSMASQ_USER: "pihole"
+      FTL_CMD: "no-daemon"
+    volumes:
+      - pihole_data:/etc/pihole
+      - dnsmasq_data:/etc/dnsmasq.d
+
+volumes:
+  pihole_data:
+  dnsmasq_data:

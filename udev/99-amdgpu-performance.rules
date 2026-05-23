@@ -1,0 +1,2 @@
+ACTION=="add|change", SUBSYSTEM=="drm", KERNEL=="card[0-9]*", ATTR{device/power_dpm_force_performance_level}="high"
+

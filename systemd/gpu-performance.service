@@ -1,0 +1,11 @@
+[Unit]
+Description=Force AMD GPU to high performance
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'echo high > /sys/class/drm/card*/device/power_dpm_force_performance_level'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
