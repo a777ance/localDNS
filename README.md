@@ -41,24 +41,29 @@ Pi-hole runs in a Docker container with named volumes for persistent configurati
 
 ## Reproduction
 
-Assumes a clean Ubuntu 24.04 install on the target host.
+See [SETUP.md](SETUP.md) for a complete walkthrough of how this system was built and verified.
+
+Quick reference for an experienced operator:
 
 ```bash
-# Install Unbound
-sudo apt update
-sudo apt install -y unbound
-
-# Drop in configuration
+sudo apt install -y unbound docker.io docker-compose-v2
 sudo cp unbound/*.conf /etc/unbound/unbound.conf.d/
 sudo systemctl restart unbound
-
-# Install Docker, then bring up Pi-hole
-cd pihole
-cp docker-compose.yml.example docker-compose.yml  # then set WEBPASSWORD
-docker compose up -d
+cd pihole && docker compose up -d
 ```
 
-Point your router's DHCP DNS option at the t630's IP. Done.
+This skips DNSSEC anchor setup, root hints, firewall, and the GPU remediation — read SETUP.md for those.
+
+## Known issues and TODOs
+
+- **Unbound config overlap.** The drop-in files contain multiple `server:` sections with overlapping keys (`num-threads`, cache sizes, TTL settings). Unbound merges them and it works, but the layout is messy. Planned cleanup: consolidate into a single `server.conf` and `performance.conf`, drop `ttl-override.conf`.
+- **`ttl-override.conf` contradicts its own comments.** Comments describe a 1-hour floor and 24-hour ceiling; values set both to 86400 (24h). Will be reconciled during the consolidation above.
+- **Pi-hole upstream DNS value.** The committed compose file has `PIHOLE_DNS_=127.0.0.1#5335`, which is the value from the running container but doesn't match the host-side Unbound architecture. Likely should be `172.17.0.1#5335`. Under investigation.
+- **No `.env` separation.** `WEBPASSWORD` is set inline in the compose file as `CHANGE_ME`. Will move to a gitignored `.env` file in a future commit.
+
+## License
+
+MIT
 
 ## Notes
 

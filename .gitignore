@@ -1,0 +1,14 @@
+# Secrets and local-only files
+.env
+*.env
+secrets/
+
+# Editor scratch
+*~
+*.swp
+.vscode/
+.idea/
+
+# OS metadata
+.DS_Store
+Thumbs.db
