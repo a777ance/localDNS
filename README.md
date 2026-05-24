@@ -1,92 +1,118 @@
 # localDNS
-Self-hosted recursive DNS wit Pi-hole and Unbound on Ubuntu, running on an HP t630 thin client
 
-# localDNS
+Self-hosted recursive DNS with Pi-hole and Unbound on Ubuntu, running on an HP t630 thin client.
 
-Self-hosted recursive DNS for a small home and small-business network. Pi-hole handles ad/tracker blocking and acts as the LAN's DNS server; Unbound runs alongside as a recursive resolver so queries go directly to root and authoritative servers instead of an upstream provider. Runs on an HP t630 thin client under Ubuntu 24.04 LTS.
+## What it does
 
-## Why
-
-Off-the-shelf DNS (ISP resolver, public 8.8.8.8 / 1.1.1.1) means a third party sees every name your network looks up. Pointing Pi-hole at a local Unbound instance instead of an external resolver removes that observation point. Blocklists handle ads and trackers at the network edge so every device benefits without per-device configuration.
-
-## Architecture
-
+LAN clients send DNS queries to Pi-hole, which handles ad/tracker blocking and query logging. Non-blocked queries are forwarded to Unbound, which performs full recursive resolution from the root servers, validates DNSSEC signatures, and caches results. No upstream DNS provider — every query goes directly to authoritative servers.
 [ LAN clients ]
 │  port 53
 ▼
-[ Pi-hole (Docker) ]──── blocklists, query logging, web UI :8080
+[ Pi-hole (Docker) ] ── blocklists, query logging, web UI :8080
 │  port 5335
 ▼
-[ Unbound (host) ]────── recursive resolution, DNSSEC validation
+[ Unbound (host) ] ──── recursive resolution, DNSSEC validation, cache
 │
 ▼
 [ Root + authoritative DNS servers ]
+Uptime Kuma monitors the stack and other LAN services at port 3001.
 
-Pi-hole runs in a Docker container with named volumes for persistent configuration. It forwards non-blocked queries to Unbound, which performs full recursive resolution from the root servers, caches results, and validates DNSSEC signatures. Unbound's DNS cache is dumped to disk hourly and on service stop, then restored at boot — warm-cache query performance is preserved across reboots. Cache persistence is implemented via a systemd timer, a service drop-in, and two scripts under `scripts/`.
+## Why
+
+Off-the-shelf DNS (ISP resolver, 8.8.8.8, 1.1.1.1) means a third party sees every name your network looks up. A local Unbound instance removes that observation point entirely. Pi-hole blocklists handle ads and trackers at the network edge so every device benefits without per-device configuration.
 
 ## Hardware
 
-- HP t630 thin client (AMD Carrizo APU, 4 GB RAM, 16 GB eMMC)
-- Ubuntu 24.04.4 LTS
-- Wired Gigabit Ethernet
+- HP t630 thin client (AMD Carrizo GX-420GI quad-core APU, 4 GB RAM, 16 GB eMMC)
+- Ubuntu 24.04.4 LTS, kernel 6.17 series
+- Wired Gigabit Ethernet, Wi-Fi disabled
 
 ## Repository contents
 
 | Path | Purpose |
-|------|---------|
-| `pihole/docker-compose.yml` | Pi-hole container definition with named volumes and Unbound upstream |
-| `unbound/` | Unbound configuration drop-ins: tuning, performance, DNSSEC, remote control |
-| `scripts/unbound-cache-dump` | Atomically writes Unbound's live cache to disk |
-| `scripts/unbound-cache-load` | Restores the cache dump into Unbound at start |
-| `systemd/unbound.service.d/override.conf` | Drop-in wiring cache load into Unbound start and dump into stop |
-| `systemd/unbound-cache-dump.timer` | Triggers hourly cache dump, starting 10 min after boot |
+| ---- | ------- |
+| `pihole/docker-compose.yml` | Pi-hole container with named volumes and Unbound upstream |
+| `uptime-kuma/docker-compose.yml` | Uptime Kuma monitoring container |
+| `unbound/server.conf` | Interface, port, access control, security hardening |
+| `unbound/tuning.conf` | Cache sizes, threads, TTL policy, serve-expired |
+| `unbound/remote-control.conf` | Unix socket for unbound-control |
+| `unbound/root-auto-trust-anchor-file.conf` | DNSSEC trust anchor path |
+| `scripts/unbound-cache-dump` | Atomically writes Unbound cache to disk |
+| `scripts/unbound-cache-load` | Restores cache dump into Unbound at start |
+| `systemd/unbound.service.d/override.conf` | Hooks cache load/dump into Unbound start/stop |
+| `systemd/unbound-cache-dump.timer` | Triggers hourly cache dump, 10 min after boot |
 | `systemd/unbound-cache-dump.service` | One-shot service called by the timer |
-| `systemd/gpu-performance.service` | Forces AMD GPU to high-performance state at boot (see Notes) |
-| `systemd/cpu-performance.service` | Forces CPU scaling governor to `performance` at boot (see Notes) |
-| `udev/99-amdgpu-performance.rules` | Re-asserts GPU performance level on driver events |
+| `systemd/gpu-performance.service` | Forces AMD GPU to high-performance state at boot |
+| `systemd/cpu-performance.service` | Forces CPU governor to performance at boot |
+| `udev/99-amdgpu-performance.rules` | Re-asserts GPU performance level on DRM events |
+| `ufw/setup.sh` | Firewall rules — all services restricted to LAN |
+| `nomachine/server.cfg` | NoMachine server configuration |
 
 ## Reproduction
 
-See [SETUP.md](SETUP.md) for a complete walkthrough of how this system was built and verified.
+See [SETUP.md](SETUP.md) for the full walkthrough.
 
-Quick reference for an experienced operator:
+Quick reference:
 
 ```bash
-sudo apt install -y unbound docker.io docker-compose-v2
+# Unbound
+sudo apt install -y unbound
 sudo cp unbound/*.conf /etc/unbound/unbound.conf.d/
-sudo systemctl restart unbound
+sudo cp scripts/unbound-cache-{dump,load} /usr/local/bin/
+sudo chmod +x /usr/local/bin/unbound-cache-{dump,load}
+sudo mkdir -p /etc/systemd/system/unbound.service.d
+sudo cp systemd/unbound.service.d/override.conf /etc/systemd/system/unbound.service.d/
+sudo cp systemd/unbound-cache-dump.{timer,service} /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now unbound unbound-cache-dump.timer
+
+# Docker CE — see SETUP.md Part 2 for repo setup
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Pi-hole
 cd pihole && docker compose up -d
+
+# Uptime Kuma
+mkdir -p ~/uptime-kuma
+cp uptime-kuma/docker-compose.yml ~/uptime-kuma/
+cd ~/uptime-kuma && docker compose up -d
+
+# Firewall
+sudo bash ufw/setup.sh
+
+# GPU remediation (Carrizo-specific)
+sudo cp systemd/gpu-performance.service systemd/cpu-performance.service /etc/systemd/system/
+sudo cp udev/99-amdgpu-performance.rules /etc/udev/rules.d/
+sudo systemctl daemon-reload
+sudo systemctl enable --now gpu-performance cpu-performance
+sudo udevadm control --reload-rules
+sudo udevadm trigger --subsystem-match=drm
 ```
 
-This skips DNSSEC anchor setup, root hints, firewall, and the GPU remediation — read SETUP.md for those.
+## Known issues
 
-## Known issues and TODOs
+- **Pi-hole upstream DNS.** `PIHOLE_DNS_=127.0.0.1#5335` came off the running container and works in production. The architecturally correct value for Docker bridge networking is `172.17.0.1#5335`. Under investigation.
+- **WEBPASSWORD inline.** Set as `CHANGE_ME` in the compose file. Moving to a gitignored `.env` is planned.
+- **Root hints freshness.** `/var/lib/unbound/root.hints` is not auto-updated; refresh manually when needed: `sudo curl -o /var/lib/unbound/root.hints https://www.internic.net/domain/named.root`
 
-- **Unbound config overlap.** The drop-in files contain multiple `server:` sections with overlapping keys (`num-threads`, cache sizes, TTL settings). Unbound merges them and it works, but the layout is messy. Planned cleanup: consolidate into a single `server.conf` and `performance.conf`, drop `ttl-override.conf`.
-- **`ttl-override.conf` contradicts its own comments.** Comments describe a 1-hour floor and 24-hour ceiling; values set both to 86400 (24h). Will be reconciled during the consolidation above.
-- **Pi-hole upstream DNS value.** The committed compose file has `PIHOLE_DNS_=127.0.0.1#5335`, which is the value from the running container but doesn't match the host-side Unbound architecture. Likely should be `172.17.0.1#5335`. Under investigation.
-- **No `.env` separation.** `WEBPASSWORD` is set inline in the compose file as `CHANGE_ME`. Will move to a gitignored `.env` file in a future commit.
+## Remote desktop
 
-## License
+Three remote access methods are installed for administering the t630:
 
-MIT
+- **NoMachine** (port 4000) — primary, NX protocol, best performance
+- **xrdp** (port 3389) — RDP fallback for Windows native clients
+- **x2goserver** — alternative for low-bandwidth connections
 
-## Notes
+All restricted to LAN via UFW.
 
-### Carrizo headless GPU throttling
+## Notes: Carrizo headless GPU throttling
 
-The AMD Carrizo APU in the t630 aggressively downclocks its iGPU when no display is detected, which crippled NoMachine remote desktop performance. Four-part remediation:
+The AMD Carrizo APU aggressively downclocks its iGPU with no display attached, crippling NoMachine performance. Four-part fix:
 
-1. **Kernel parameters** in `/etc/default/grub`: `amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1`
-2. **GPU systemd service** writes `high` to `power_dpm_force_performance_level` at boot
-3. **CPU systemd service** forces all cores to the `performance` scaling governor at boot
-4. **udev rule** re-asserts `high` on `add|change` events to the DRM subsystem, catching display hotplug and runtime PM transitions that would otherwise re-throttle the GPU
-
-The udev rule is what actually keeps the fix stable across a session — the service alone fires once and isn't re-triggered when the kernel re-evaluates power state later.
-
-### Secrets
-
-`WEBPASSWORD` in the compose file is a placeholder. Set it to a real value at deployment, or pass via `.env` file (gitignored). The Unbound configs do not contain keys; `remote-control.conf` references stock paths that Unbound creates locally with `unbound-control-setup`.
+1. **GRUB** — `amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1`
+2. **gpu-performance.service** — writes `high` to `power_dpm_force_performance_level` at boot
+3. **cpu-performance.service** — sets all cores to `performance` governor at boot
+4. **udev rule** — re-asserts GPU level on every DRM event (the critical re-trigger)
 
 ## License
 

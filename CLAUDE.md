@@ -1,67 +1,64 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working with this repository.
 
 ## Project posture
 
-This repo is a working-state snapshot of a self-hosted DNS stack running on an HP t630 thin client. It serves two purposes: a portfolio artifact demonstrating self-hosted DNS competence, and a known-good rollback target.
+Working-state snapshot of a self-hosted DNS and monitoring stack on an HP t630. Two purposes: portfolio artifact and rollback target.
 
-**The live t630 is the source of truth.** Pi-hole and Unbound are running in production and serve the whole home network. This repo is not deployment automation — edits here do not affect the running system until manually deployed:
+**The live t630 is the source of truth.** Nothing here affects the running system until manually deployed:
 
-- Unbound configs: `sudo cp unbound/*.conf /etc/unbound/unbound.conf.d/ && sudo systemctl restart unbound`
+- Unbound: `sudo cp unbound/*.conf /etc/unbound/unbound.conf.d/ && sudo systemctl restart unbound`
 - Pi-hole: `cd pihole && docker compose up -d`
+- Uptime Kuma: `cd ~/uptime-kuma && docker compose up -d`
+- UFW: `sudo bash ufw/setup.sh`
+- NoMachine: `sudo cp nomachine/server.cfg /usr/NX/etc/server.cfg && sudo /usr/NX/bin/nxserver --restart`
 
 ## Working philosophy
 
-Move the system toward truth, goodness, and elegance — distilled, competent, honest. Welcome changes that improve clarity, correctness, or simplicity. Reject churn.
+Move toward truth, goodness, and elegance. Welcome clarity and correctness. Reject churn.
 
-- Risk is acceptable as long as a fallback snapshot exists in git history.
-- Every commit to `main` must leave the repo in a state where `SETUP.md` would reproduce a working system on a clean Ubuntu 24.04 install.
+- Every commit to `main` must leave SETUP.md able to reproduce a working system on clean Ubuntu 24.04.
 - Use feature branches for half-finished work.
 
 ## Load-bearing known issues
 
-The README's "Known issues and TODOs" section reflects deliberate choices or live-system realities — not a backlog to eagerly fix. Before proposing fixes to documented known issues, confirm the approach in conversation first.
-
 | Issue | Status |
-|-------|--------|
-| `PIHOLE_DNS_=127.0.0.1#5335` in compose file | Came off the running container and works in production. Do not change without verifying what the live Pi-hole actually resolves through. |
-| Overlapping `server:` sections across Unbound drop-in files | Messy but functional. Consolidation should be a deliberate refactor, not an incidental edit. |
-| `ttl-override.conf` sets both floor and ceiling to 86400 | Real contradiction, but the live system has run on it for weeks without issue. |
+| ----- | ------ |
+| `PIHOLE_DNS_=127.0.0.1#5335` | Works in production. Do not change without verifying live Pi-hole upstream. |
+| `WEBPASSWORD` inline | Placeholder only. Do not commit real credentials. |
 
-## Secrets posture
+## Unbound config structure
 
-`WEBPASSWORD` in `pihole/docker-compose.yml` must remain `CHANGE_ME` in the repo. Moving secrets to a gitignored `.env` file is on the TODO list but not yet implemented — do not implement it as an incidental change.
+Four drop-ins, loaded alphabetically:
 
-## Documentation discipline
+- `server.conf` — interface, port, access control, hardening
+- `tuning.conf` — **single source of truth** for all performance/caching values
+- `remote-control.conf` — Unix socket
+- `root-auto-trust-anchor-file.conf` — DNSSEC anchor
 
-Keep `README.md` and `SETUP.md` in sync with any config changes. Docs drift is a primary failure mode for this kind of project. If you change a config, update the docs that describe it in the same commit.
+Do not reintroduce `performance.conf` or `ttl-override.conf`. They were consolidated into `tuning.conf`.
 
-## Unbound cache persistence
+## Firewall
 
-Cache persistence is implemented as four load-bearing pieces: `systemd/unbound.service.d/override.conf` (load cache on start, dump on stop), `systemd/unbound-cache-dump.timer` + `systemd/unbound-cache-dump.service` (hourly independent dump), and `scripts/unbound-cache-dump` + `scripts/unbound-cache-load`. All parts are required — do not remove any one without understanding the whole mechanism.
+All services are LAN-only (`192.168.0.0/16`). `ufw/setup.sh` is canonical. Do not open any port to Anywhere.
 
-## AMD Carrizo hardware remediation
+## AMD Carrizo remediation
 
-The Carrizo APU aggressively downclocks both GPU and CPU in headless operation, crippling NoMachine performance. All four components are load-bearing — do not remove any without understanding the full mechanism.
+Four load-bearing pieces — all required:
 
-1. **GRUB parameters** (`/etc/default/grub`): `amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1` — keeps GPU power management on, disables runtime PM, limits CPU sleep depth.
-2. **`systemd/gpu-performance.service`** — forces the GPU to `high` performance level at boot.
-3. **`systemd/cpu-performance.service`** — forces all CPU cores to the `performance` scaling governor at boot.
-4. **`udev/99-amdgpu-performance.rules`** — re-asserts GPU performance level on DRM events; the critical re-trigger for hotplug and runtime PM transitions.
+1. GRUB: `amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1`
+2. `systemd/gpu-performance.service`
+3. `systemd/cpu-performance.service`
+4. `udev/99-amdgpu-performance.rules` — the critical re-trigger on DRM events
 
-## Verification commands (non-destructive)
+## Verification
 
 ```bash
-# Validate Unbound config syntax before restarting
 unbound-checkconf
-
-# Confirm Unbound resolves with DNSSEC
 dig @127.0.0.1 -p 5335 example.com +dnssec
-
-# Validate compose file syntax
 docker compose -f pihole/docker-compose.yml config
-
-# Confirm Pi-hole container is healthy
 docker ps
+cat /sys/class/drm/card*/device/power_dpm_force_performance_level
+sudo ufw status verbose
 ```
