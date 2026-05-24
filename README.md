@@ -3,7 +3,7 @@
 
 Most home networks hide everything inside one sealed gateway.  It looks simple, but it’s full of bundled subsystems you can’t see or control.  This project takes the opposite approach:
 
-**MORE individual pieces but fewer secrets and better performance across the WHOLE NETWORK (All your devices benefit, less congenstion, less telemtry, lower electricy bills, less latency.**
+**MORE individual pieces but fewer secrets and better performance across the WHOLE NETWORK (All your devices benefit, less congenstion, less telemtry, lower electricy bills, less latency).**
 
 localDNS is the first layer of that unbundled network edge, but this is the beginning:
 ```
@@ -148,6 +148,26 @@ This is not retro computing.
 It’s practical computing.
 
 Repository Map
+| Path                                      | Purpose                                                                 |
+|-------------------------------------------|-------------------------------------------------------------------------|
+| `pihole/docker-compose.yml`               | Pi-hole container configuration with named volumes and Unbound mapping |
+| `uptime-kuma/docker-compose.yml`          | Uptime Kuma monitoring stack for LAN services                          |
+| `unbound/server.conf`                     | Core Unbound daemon configuration: interfaces, ACLs, ports, security   |
+| `unbound/tuning.conf`                     | Performance tuning: threads, cache sizes, TTL policy, serve-expired    |
+| `unbound/remote-control.conf`             | Secure local `unbound-control` socket configuration                    |
+| `unbound/root-auto-trust-anchor-file.conf`| DNSSEC trust anchor configuration                                      |
+| `scripts/unbound-cache-dump`              | Dumps Unbound’s in-memory cache to disk                                |
+| `scripts/unbound-cache-load`              | Restores cache into Unbound at startup                                 |
+| `systemd/unbound.service.d/override.conf` | Hooks cache load/dump into service lifecycle                           |
+| `systemd/unbound-cache-dump.timer`        | Automated hourly cache backup timer                                    |
+| `systemd/unbound-cache-dump.service`      | One-shot worker for cache backup                                       |
+| `systemd/gpu-performance.service`         | Forces AMD GPU into high-performance mode at boot                      |
+| `systemd/cpu-performance.service`         | Locks CPU governor to performance mode                                 |
+| `udev/99-amdgpu-performance.rules`        | Reasserts GPU performance profile on DRM/hotplug events                |
+| `ufw/setup.sh`                            | LAN-only firewall configuration (RFC1918 restricted)                   |
+| `nomachine/server.cfg`                    | NoMachine remote desktop configuration                                 |
+| `network-context.md`                      | Network topology, router bindings, addressing, WAN rules               |
+
 
 Deployment
 
@@ -162,7 +182,7 @@ See:
     
 ---
 
-# ✅ **3. LONG VERSION (FULL DESIGN DOCUMENT)**  
+# ✅ **FULL DESIGN**  
 
 ```markdown
 # localDNS — Full Design Document  
