@@ -271,9 +271,3 @@ Verify on a client: `nslookup example.com` — server should show `192.168.1.118
 - Uptime Kuma data: back up `~/uptime-kuma/data/` directly
 - Refresh root hints periodically: `sudo curl -o /var/lib/unbound/root.hints https://www.internic.net/domain/named.root && sudo systemctl restart unbound`
 
-```bash
-sudo apt install -y xrdp
-sudo adduser xrdp ssl-cert
-sudo systemctl restart xrdp
-
-

@@ -84,3 +84,4 @@ RDP fallback), x2goserver (low-bandwidth alternative). All LAN-only via UFW.
 ## License
 
 MIT
+
