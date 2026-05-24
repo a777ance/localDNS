@@ -90,3 +90,4 @@ routes to Unbound on the host. This is the whole point — no third-party resolv
 ever sees the query.
 | NAT Filtering | Secured | Blocks unsolicited inbound packets |
 | Disable SIP ALG | Yes | SIP ALG causes VoIP problems; disabled by default |
+
