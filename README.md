@@ -1,138 +1,375 @@
+# localDNS  
+### A clearer, quieter, more understandable home network.
+
+Most home networks hide everything inside one sealed gateway.  It looks simple, but it’s full of bundled subsystems you can’t see or control.  This project takes the opposite approach:
+
+**MORE individual pieces but fewer secrets and better performance across the WHOLE NETWORK (All your devices benefit, less congenstion, less telemtry, lower electricy bills, less latency.**
+
+localDNS is the first layer of that unbundled network edge, but this is the beginning:
+```
+- Pi‑hole for filtering  
+- Unbound for recursive DNS  
+- A thin client for compute  
+- A modern Wi‑Fi radio for signal  
+- An older router chassis for stability  
+- No cloud dependencies  
+- No bundled telemetry  
+- No hidden behavior  
+
+Each part is small, visible, and replaceable.  Each part does one job to the best of its ability.  Together, they form a home network that is faster, quieter, and easier to trust.
+```
+This is not minimalism.  This is clarity.
+
+# localDNS  
+### Decomposition for homeowner control and agency.
+
+Modern gateways bundle everything into a single opaque appliance: DNS, Wi‑Fi, firewall, telemetry, analytics, cloud sync, mesh coordination, and more.  
+You get one button: “Apply.” Everything else is hidden.
+
+This project takes a different path. The **Cyborg** router that serves you, you don't serve it.
+
+Instead of one big mysterious box at a premium price, your network is **unbundled** into clear, understandable components which you are free to swap out at any time:
+
+- **Pi‑hole** — filtering at the edge  
+- **Unbound** — recursive DNS with DNSSEC  
+- **Thin client** — dedicated compute  
+- **Wi‑Fi radio** — modern RF performance  
+- **Router chassis** — stable, predictable hardware  
+- **UFW** — explicit firewalling  
+- **Uptime Kuma** — monitoring  
+- **Remote access** — LAN‑only, transparent  
+
+More pieces, yes — but each one is:
+
+- small  
+- visible  
+- replaceable  
+- inspectable  
+- predictable  
+
+This is **clarity through decomposition**.
+
+When each function stands alone:
+
+- failures are easier to diagnose  
+- upgrades are easier to perform  
+- security boundaries are easier to define  
+- performance is easier to tune  
+- behavior is easier to understand  
+
+And because every household uses different hardware, the result is a **heterogeneous ecosystem** that is naturally more resilient than uniform consumer mesh systems.
+
+---
+
+## The Membrane Architecture (Plain Language)
+
+In biology, the membrane decides what gets in and what stays out.  
+It filters early so the inside doesn’t have to work as hard.
+
+localDNS applies the same idea:
+
+- tracking domains are dropped before they reach devices  
+- telemetry never loads  
+- unnecessary scripts never execute  
+- browsers stay lighter  
+- battery life improves  
+- the network stays quieter  
+
+Filtering at the edge keeps the inside simple.
+
+---
+
+## Zero‑Byte Drop Framework
+
+Dropping unwanted domains at DNS means:
+
+- no request  
+- no payload  
+- no parsing  
+- no CPU cost  
+- no battery drain  
+
+```text
+[ Web Request ]
+      │
+      ▼
+┌───────────────┐     Blocked      ┌───────────────────────────────┐
+│  MEMBRANE     │ ───────────────> │ 0.0.0.0 (Zero-byte Drop)      │
+│ (Pi-hole Edge)│                  │ - No JS parsed by client      │
+└───────────────┘                  │ - Zero CPU / battery overhead │
+      │                            └───────────────────────────────┘
+  Allowed
+      │
+      ▼
+┌──────────────────────────────┐
+│ UNBOUND RECURSIVE DNS CORE   │ ──(DNSSEC)──> [ Internet Root ]
+└──────────────────────────────┘
+```
+This isn’t about blocking ads.
+It’s about reducing noise so the network behaves predictably.
+Hardware Philosophy
+
+A cyborg router is built from:
+
+    Older router chassis: $free–$100
+
+    Modern Wi‑Fi radio: ~$25
+
+    Thin client: ~$80
+
+    DNS filtering layer: $0
+
+    Cloud dependencies: none
+
+    Extra antivirus: not required
+
+    Mesh system: not needed
+
+Old hardware provides stability.
+New hardware provides capability.
+Linux provides transparency.
+localDNS provides the membrane.
+
+The result is a home network that is:
+
+    less fragile
+
+    more resilient
+
+    easier to maintain
+
+    easier to trust
+
+    cheaper to build
+
+This is not retro computing.
+It’s practical computing.
+
+Repository Map
+
+Deployment
+
+See:
+
+    SETUP.md — provisioning, configuration, kernel tuning
+
+    network-context.md — topology, addressing, firewalling
+
+    CLAUDE.md — structural guidelines
+
+    
+---
+
+# ✅ **3. LONG VERSION (FULL DESIGN DOCUMENT)**  
 
 ```markdown
-# localDNS
+# localDNS — Full Design Document  
+### A decomposed, transparent, homeowner‑controlled network edge.
 
-Self-hosted recursive DNS with Pi-hole and Unbound on Ubuntu, running on an HP t630 thin client.
+## 1. Philosophy
 
-Automated Home Lab Infrastructure: 
-- Self-hosted recursive DNS cluster
-- Dockerized Pi-hole
-- Unbound native running on a hardened Ubuntu Thin Client, which is positioned to leverage AI/LLM in the future to further harden the network edge *planned*.
+Most home networks today are built around a sealed gateway.  
+It appears simple, but internally it is a dense bundle of subsystems:
 
-```text
-[ LAN Client ] ──(DNS Query: Port 53)──> [ Pi-hole Container ]
-                                                 │
-                                     (If Not Cached: Port 5335)
-                                                 │
-                                                 ▼
-[ GitHub / Internet ] <──(DNSSEC)── [ Unbound Recursive DNS ]
-```
+- DNS  
+- DHCP  
+- Wi‑Fi  
+- firewall  
+- NAT  
+- telemetry  
+- analytics  
+- cloud sync  
+- mesh coordination  
+- firmware layers  
+- vendor services  
 
----
+All fused together.  
+All opaque.  
+All unmodifiable.
 
-## 🧬 Engineering Paradigm: The Membrane Architecture
+The homeowner becomes a passive user of a black box.
 
-In cell biology, the nucleus houses the architectural blueprint, but **the cell membrane is where the active intelligence of the system resides.** The lipid bilayer is an active, selectively permeable gatekeeper. Embedded with specialized receptor proteins, it continuously scans, filters, and decides exactly what external elements are permitted to cross the cellular boundary to interact with internal machinery.
+This project takes the opposite approach:
 
-This infrastructure platform translates that biological optimization into network engineering. Life on the network edge must be adaptable, resilient, and intelligent. By pushing systematic filtering directly to the **network edge (the membrane)**, we eliminate the need for downstream internal clients to waste processing resources on toxic or bloated data payloads.
+**Increase the number of components.  
+Decrease the amount of mystery.**
 
----
+Each function becomes its own part:
 
-## ⚡ The Core Objective: Systematic Anti-Bloat
+- DNS filtering  
+- recursive resolution  
+- routing  
+- Wi‑Fi radio  
+- compute  
+- firewall  
+- monitoring  
+- remote access  
 
-Off-the-shelf DNS means a third party observes and tracks every name your network requests. A local Unbound instance removes that observation point completely. Concurrently, modern web traffic is heavily bloated—up to **35% of all outbound WAN queries** consist of unoptimized tracking networks, behavioral scripts, and telemetry engines. This forces local browser clients to exhaust CPU cycles parsing, compiling, and executing extraneous JavaScript, resulting in rendering latency and local resource exhaustion.
+More pieces, but each one is:
 
-This architecture establishes a **Zero-Byte Drop Framework** right at the network membrane:
+- small  
+- visible  
+- replaceable  
+- inspectable  
+- predictable  
 
-```text
-[ LAN clients ]
-       │  port 53  (pushed via router DHCP)
-       ▼
-[ Pi-hole (Docker) ] ─── Blocklists, query logging, web UI :8080
-       │                 * Selective Permeability: Telemetry dropped instantly
-       │                 * Zero-byte drop: No tracking JS parsed by client
-       │  172.17.0.1:5335  (Docker bridge → host)
-       ▼
-[ Unbound (host) ] ───── Recursive resolution, DNSSEC validation, cache
-       │                 * No upstream DNS provider (No 8.8.8.8, 1.1.1.1, or ISP)
-       ▼
-[ Root + authoritative DNS servers ]
-```
+This is **decomposition for the sake of homeowner agency**.
 
-* **Selective Permeability:** Telemetry and advertising domains are intercepted and dropped at the interface boundary before the payload can infect the client. The browser encounters a clean, zero-overhead network error and skips execution entirely.
-* **Network Metabolism Hardening:** Future engineering use cases include local AI/LLM wrappers built into this network interface layer to dynamically evaluate anomalous DNS behavior patterns and provide heuristic, self-healing network hardening *in progress*.
-
----
-
-## 🛠️ Infrastructure Isolation & Hardware Specs
-
-To minimize latency and overhead across core system components, execution environments are strictly isolated:
-
-* **Docker Container for Pi-hole:** Isolates massive third-party blocklist ingestion, gravity database generation, and web UI administration.
-* **Native Linux Service for Unbound:** Tied directly to the host kernel to eliminate container network bridge overhead during complex recursive tracking, cache lookups, and crypto-heavy DNSSEC validation loops.
-
-### Platform Hardware
-
-* **Chassis:** HP t630 Thin Client  
-* **Compute:** AMD Carrizo GX-420GI quad-core CPU, 4 GB RAM, 16 GB eMMC storage  
-* **OS / Kernel:** Ubuntu 24.04.4 LTS, Linux kernel 6.17 series  
-* **Physical Network:** Wired Gigabit Ethernet, bound via static DHCP reservation on Netgear R7000 router  
+A network made of many small, honest parts is easier to understand and easier to trust than one big mysterious one.
 
 ---
 
-## 📂 Repository Contents
+## 2. The Membrane Architecture
 
-| Path | Purpose |
-| --- | --- |
-| `pihole/docker-compose.yml` | Pi-hole container configuration with named volumes and Unbound mapping. |
-| `uptime-kuma/docker-compose.yml` | Uptime Kuma orchestration; monitors the stack and local LAN services at port 3001. |
-| `unbound/server.conf` | Core daemon configuration: interface bounds, ports, network access control, security tweaks. |
-| `unbound/tuning.conf` | Thread optimizations, precise cache memory limits, customized TTL policy, serve-expired flags. |
-| `unbound/remote-control.conf` | Secure Unix socket provisioning for running local `unbound-control` tasks. |
-| `unbound/root-auto-trust-anchor-file.conf` | Cryptographic anchoring directory path for inline DNSSEC validation. |
-| `scripts/unbound-cache-dump` | Custom maintenance script that atomically writes the active Unbound memory cache to disk. |
-| `scripts/unbound-cache-load` | Restores the saved cache dump back into Unbound memory space on daemon initialization. |
-| `systemd/unbound.service.d/override.conf` | Systemd drop-in hooks that trigger cache load/dump routines alongside service start/stop events. |
-| `systemd/unbound-cache-dump.timer` | Automated hourly backup timer configuration, offset to execute starting 10 minutes past boot. |
-| `systemd/unbound-cache-dump.service` | One-shot system service worker invoked by the tracking backup timer. |
-| `systemd/gpu-performance.service` | Forces the host AMD GPU execution state to maximum performance profiles at initial boot. |
-| `systemd/cpu-performance.service` | Hardens host compute capabilities by binding the CPU scaling governor to performance profiles. |
-| `udev/99-amdgpu-performance.rules` | Persistent rule structure that re-asserts the high-performance GPU states on hotplug/DRM events. |
-| `ufw/setup.sh` | Local firewall deployment script: restricts access to all services strictly to local subnets. |
-| `nomachine/server.cfg` | Enterprise remote frame-buffer access configuration for NoMachine instances. |
-| `network-context.md` | Core structural documentation: router topologies, upstream interfaces, and configuration maps. |
+In biology, the membrane is where decisions happen.  
+It filters early so the inside stays simple.
+
+localDNS applies the same principle:
+
+- telemetry is dropped at the edge  
+- tracking domains never resolve  
+- unnecessary scripts never execute  
+- browsers stay lighter  
+- devices stay cooler  
+- the network stays quieter  
+
+Filtering early reduces complexity everywhere else.
 
 ---
 
-## 🛠️ Headless GPU Optimization (Carrizo Throttling)
+## 3. Zero‑Byte Drop Framework
 
-The AMD Carrizo iGPU exhibits a known hardware limitation where it downclocks aggressively when booting without an active display attached. This hardware throttling severely limits remote desktop frame calculation rendering.
+Dropping unwanted domains at DNS eliminates:
 
-This repository implements a cohesive, four-part mitigation matrix to override this behavior:
+- CPU overhead  
+- memory churn  
+- battery drain  
+- bandwidth waste  
+- page‑rendering delays  
 
-1. **GRUB Kernel Arguments:** Configures initial video outputs and disables active runtime power savings.  
-2. **GPU Performance Service:** Directly binds the power profile interface state (`power_dpm_force_performance_level -> high`).  
-3. **CPU Governor Service:** Sets underlying processor hardware threads to run at constant performance frequencies.  
-4. **Udev Ruleset:** The critical architectural keystone. It catches system-level DRM graphics wake events post-boot and forcefully re-injects the performance override profiles before the hardware throttles.  
+The client never sees the payload.  
+The browser never parses the script.  
+The device never pays the cost.
 
----
-
-## 🌐 Remote Desktop Access Modes
-
-To facilitate secure headless administration across varied network environments, three local access pathways are maintained, completely firewalled from the WAN via UFW rules:
-
-* **NoMachine (Port 4000):** Primary administrative protocol utilizing hardware-accelerated H.264 frame streaming.  
-* **xrdp (Port 3389):** Native RDP fallback layer for standard desktop management compatibility.  
-* **x2goserver:** Low-bandwidth, SSH-tunneled alternative designed for high-latency connections.  
+This is not ad‑blocking.  
+This is **network metabolism optimization**.
 
 ---
 
-## ⚠️ Known Issues & Operational Context
+## 4. Unbundled Architecture
 
-* **Insecure Inline Credentials:** `WEBPASSWORD` variable is declared raw inside `pihole/docker-compose.yml`. Transitioning this workflow to a gitignored `.env` file structure is planned.  
-* **Post-Deployment Upstream Sync:** The initial container initialization locks Pi-hole to `127.0.0.1#5335`. Administrators must manually navigate to the web administration panel (`Settings → DNS`) after the stack fires up and change this target setting to `172.17.0.1#5335` to hit the internal bridge gateway. See `network-context.md`.  
-* **Manual Root Hints Maintenance:** Root domain files are static. The environment requires manual execution updates via:  
-  `sudo curl -o /var/lib/unbound/root.hints https://www.internic.net/domain/named.root`
+Two execution layers:
 
----
+| Component      | Execution layer      | Rationale                                                                 |
+| -------------- | -------------------- | ------------------------------------------------------------------------- |
+| Pi‑hole Edge   | Docker container     | Isolates blocklist ingestion, gravity updates, and UI management.         |
+| Unbound Core   | Native Linux service | Avoids bridge overhead; improves recursive resolution and DNSSEC latency. |
 
-## 🚀 Reproduction & Deployment
-
-For a comprehensive, end-to-end hardware provisioning walkthrough, configuration recipes, and step-by-step verification commands, refer to the step-by-step documentation file: **SETUP.md**.
+This separation keeps responsibilities clear and performance predictable.
 
 ---
 
-## 📄 License
+## 5. Hardware Model: The Cyborg Router
 
-This architecture is open-source software licensed under the terms of the **MIT License**.
-```
+A hybrid system built from:
+
+- **Older router chassis** — stable, predictable  
+- **Modern Wi‑Fi radio** — fast, efficient  
+- **Thin client** — reliable compute  
+- **Linux** — transparent control  
+- **localDNS** — intelligent membrane  
+
+Cost:
+
+- Router chassis: $free–$100  
+- Wi‑Fi radio: ~$25  
+- Thin client: ~$80  
+- DNS layer: $0  
+
+This is not a compromise.  
+It is a deliberate design choice.
+
+---
+
+## 6. Ecosystem Resilience
+
+When many people build their own cyborg routers, each one is different:
+
+- different hardware  
+- different radios  
+- different distros  
+- different configurations  
+
+This creates a **heterogeneous ecosystem** that is naturally resistant to large‑scale automated exploitation.
+
+Uniform systems fail together.  
+Diverse systems fail independently.
+
+---
+
+## 7. Hardening
+
+- UFW restricted to RFC1918  
+- CPU governor locked to performance  
+- AMD GPU forced into high‑performance mode  
+- Uptime Kuma monitoring  
+- Automated cache dumps and restores  
+- No WAN‑exposed services  
+
+Everything is local.  
+Everything is explicit.
+
+---
+
+## 8. Headless GPU Optimization
+
+The AMD Carrizo iGPU downclocks when headless.  
+Mitigation includes:
+
+1. GRUB kernel arguments  
+2. GPU performance service  
+3. CPU governor service  
+4. Udev rules to reapply performance settings  
+
+This ensures stable remote desktop performance.
+
+---
+
+## 9. Remote Access
+
+LAN‑only:
+
+- NoMachine  
+- xrdp  
+- x2go  
+
+No cloud.  
+No WAN exposure.
+
+---
+
+## 10. Repository Contents
+
+(…your full table goes here…)
+
+---
+
+## 11. Deployment
+
+See:
+
+- **SETUP.md**  
+- **network-context.md**  
+- **CLAUDE.md**
+
+---
+
+## 12. Closing Principle
+
+A home network should not be a sealed appliance.  
+It should be a set of small, understandable parts that work together cleanly.
+
+**Decomposition is not complexity.  
+Decomposition is clarity.  
+And clarity gives the homeowner control.**
+
