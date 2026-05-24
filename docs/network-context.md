@@ -88,3 +88,5 @@ None of the preset upstream servers (Google, Cloudflare, Quad9, etc.) are enable
 All upstream resolution goes through the custom entry (`172.17.0.1#5335`), which
 routes to Unbound on the host. This is the whole point — no third-party resolver
 ever sees the query.
+| NAT Filtering | Secured | Blocks unsolicited inbound packets |
+| Disable SIP ALG | Yes | SIP ALG causes VoIP problems; disabled by default |
