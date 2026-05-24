@@ -4,12 +4,15 @@ Self-hosted recursive DNS with Pi-hole and Unbound on Ubuntu, running on an HP t
 
 ## What it does
 
-LAN clients send DNS queries to Pi-hole, which handles ad/tracker blocking and query logging. Non-blocked queries are forwarded to Unbound, which performs full recursive resolution from the root servers, validates DNSSEC signatures, and caches results. No upstream DNS provider — every query goes directly to authoritative servers.
+LAN clients send DNS queries directly to Pi-hole, which handles ad/tracker blocking
+and query logging. Non-blocked queries go to Unbound, which performs full recursive
+resolution from the root servers, validates DNSSEC, and caches results. No upstream
+DNS provider — no 8.8.8.8, no 1.1.1.1, no ISP resolver.
 [ LAN clients ]
-│  port 53
+│  port 53  (pushed via router DHCP)
 ▼
 [ Pi-hole (Docker) ] ── blocklists, query logging, web UI :8080
-│  port 5335
+│  172.17.0.1:5335  (Docker bridge → host)
 ▼
 [ Unbound (host) ] ──── recursive resolution, DNSSEC validation, cache
 │
@@ -19,13 +22,16 @@ Uptime Kuma monitors the stack and other LAN services at port 3001.
 
 ## Why
 
-Off-the-shelf DNS (ISP resolver, 8.8.8.8, 1.1.1.1) means a third party sees every name your network looks up. A local Unbound instance removes that observation point entirely. Pi-hole blocklists handle ads and trackers at the network edge so every device benefits without per-device configuration.
+Off-the-shelf DNS means a third party sees every name your network looks up.
+A local Unbound instance removes that observation point. Pi-hole blocklists handle
+ads and trackers at the network edge — every device benefits without per-device
+configuration.
 
 ## Hardware
 
-- HP t630 thin client (AMD Carrizo GX-420GI quad-core APU, 4 GB RAM, 16 GB eMMC)
+- HP t630 thin client (AMD Carrizo GX-420GI quad-core, 4 GB RAM, 16 GB eMMC)
 - Ubuntu 24.04.4 LTS, kernel 6.17 series
-- Wired Gigabit Ethernet, Wi-Fi disabled
+- Wired Gigabit Ethernet, static via DHCP reservation on Netgear R7000
 
 ## Repository contents
 
@@ -40,79 +46,40 @@ Off-the-shelf DNS (ISP resolver, 8.8.8.8, 1.1.1.1) means a third party sees ever
 | `scripts/unbound-cache-dump` | Atomically writes Unbound cache to disk |
 | `scripts/unbound-cache-load` | Restores cache dump into Unbound at start |
 | `systemd/unbound.service.d/override.conf` | Hooks cache load/dump into Unbound start/stop |
-| `systemd/unbound-cache-dump.timer` | Triggers hourly cache dump, 10 min after boot |
+| `systemd/unbound-cache-dump.timer` | Hourly cache dump, starting 10 min after boot |
 | `systemd/unbound-cache-dump.service` | One-shot service called by the timer |
 | `systemd/gpu-performance.service` | Forces AMD GPU to high-performance state at boot |
 | `systemd/cpu-performance.service` | Forces CPU governor to performance at boot |
 | `udev/99-amdgpu-performance.rules` | Re-asserts GPU performance level on DRM events |
 | `ufw/setup.sh` | Firewall rules — all services restricted to LAN |
 | `nomachine/server.cfg` | NoMachine server configuration |
+| `docs/network-context.md` | Router config, Pi-hole DNS settings, and rationale |
 
 ## Reproduction
 
 See [SETUP.md](SETUP.md) for the full walkthrough.
 
-Quick reference:
-
-```bash
-# Unbound
-sudo apt install -y unbound
-sudo cp unbound/*.conf /etc/unbound/unbound.conf.d/
-sudo cp scripts/unbound-cache-{dump,load} /usr/local/bin/
-sudo chmod +x /usr/local/bin/unbound-cache-{dump,load}
-sudo mkdir -p /etc/systemd/system/unbound.service.d
-sudo cp systemd/unbound.service.d/override.conf /etc/systemd/system/unbound.service.d/
-sudo cp systemd/unbound-cache-dump.{timer,service} /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now unbound unbound-cache-dump.timer
-
-# Docker CE — see SETUP.md Part 2 for repo setup
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-# Pi-hole
-cd pihole && docker compose up -d
-
-# Uptime Kuma
-mkdir -p ~/uptime-kuma
-cp uptime-kuma/docker-compose.yml ~/uptime-kuma/
-cd ~/uptime-kuma && docker compose up -d
-
-# Firewall
-sudo bash ufw/setup.sh
-
-# GPU remediation (Carrizo-specific)
-sudo cp systemd/gpu-performance.service systemd/cpu-performance.service /etc/systemd/system/
-sudo cp udev/99-amdgpu-performance.rules /etc/udev/rules.d/
-sudo systemctl daemon-reload
-sudo systemctl enable --now gpu-performance cpu-performance
-sudo udevadm control --reload-rules
-sudo udevadm trigger --subsystem-match=drm
-```
-
 ## Known issues
 
-- **Pi-hole upstream DNS.** `PIHOLE_DNS_=127.0.0.1#5335` came off the running container and works in production. The architecturally correct value for Docker bridge networking is `172.17.0.1#5335`. Under investigation.
-- **WEBPASSWORD inline.** Set as `CHANGE_ME` in the compose file. Moving to a gitignored `.env` is planned.
-- **Root hints freshness.** `/var/lib/unbound/root.hints` is not auto-updated; refresh manually when needed: `sudo curl -o /var/lib/unbound/root.hints https://www.internic.net/domain/named.root`
-
-## Remote desktop
-
-Three remote access methods are installed for administering the t630:
-
-- **NoMachine** (port 4000) — primary, NX protocol, best performance
-- **xrdp** (port 3389) — RDP fallback for Windows native clients
-- **x2goserver** — alternative for low-bandwidth connections
-
-All restricted to LAN via UFW.
+- **WEBPASSWORD inline.** Set as `CHANGE_ME` in `pihole/docker-compose.yml`.
+  Moving to a gitignored `.env` is planned.
+- **Pi-hole upstream must be set in UI after first deploy.** The compose env var
+  sets `127.0.0.1#5335` on first run. Change it to `172.17.0.1#5335` in
+  Settings → DNS after the container starts. See `docs/network-context.md`.
+- **Root hints not auto-refreshed.** Refresh manually:
+  `sudo curl -o /var/lib/unbound/root.hints https://www.internic.net/domain/named.root`
 
 ## Notes: Carrizo headless GPU throttling
 
-The AMD Carrizo APU aggressively downclocks its iGPU with no display attached, crippling NoMachine performance. Four-part fix:
+The AMD Carrizo iGPU downclocks aggressively with no display attached, killing
+NoMachine performance. Four-part fix in this repo: GRUB kernel params, GPU systemd
+service, CPU systemd service, and udev rule. All four are required — the udev rule
+is the critical re-trigger for DRM events after boot.
 
-1. **GRUB** — `amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1`
-2. **gpu-performance.service** — writes `high` to `power_dpm_force_performance_level` at boot
-3. **cpu-performance.service** — sets all cores to `performance` governor at boot
-4. **udev rule** — re-asserts GPU level on every DRM event (the critical re-trigger)
+## Remote desktop
+
+Three access methods installed: NoMachine (port 4000, primary), xrdp (port 3389,
+RDP fallback), x2goserver (low-bandwidth alternative). All LAN-only via UFW.
 
 ## License
 
