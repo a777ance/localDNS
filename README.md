@@ -16,9 +16,11 @@ localDNS is the first layer of that unbundled network edge, but this is the begi
 - No bundled telemetry  
 - No hidden behavior  
 
-Each part is small, visible, and replaceable.  Each part does one job to the best of its ability.  Together, they form a home network that is faster, quieter, and easier to trust.
+Each part is small, visible, and replaceable.
+Each part does one job to the best of its ability.
+Together, they form a home network that is faster, quieter, and zero-trust.
 ```
-This is not minimalism.  This is clarity.
+This is not minimalism.  This is not maximalism.  This is clarity.
 
 # localDNS  
 ### Decomposition for homeowner control and agency.
@@ -26,7 +28,7 @@ This is not minimalism.  This is clarity.
 Modern gateways bundle everything into a single opaque appliance: DNS, Wi‑Fi, firewall, telemetry, analytics, cloud sync, mesh coordination, and more.  
 You get one button: “Apply.” Everything else is hidden.
 
-This project takes a different path. The **Cyborg** router that serves you, you don't serve it.
+This project takes a different path. The **Cyborg** router that serves you, not the other way around.
 
 Instead of one big mysterious box at a premium price, your network is **unbundled** into clear, understandable components which you are free to swap out at any time:
 
