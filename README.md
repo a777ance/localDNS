@@ -2,12 +2,25 @@
 
 Self-hosted recursive DNS with Pi-hole and Unbound on Ubuntu, running on an HP t630 thin client.
 
+Automated Home Lab Infrastructure: 
+- Self-hosted recursive DNS cluster
+- Dockerized Pi-hole
+- Unbound native running on a hardened Ubuntu Thin Client, which is positioned to leverage AI/LLM in the future to further harden the network edge *planned*.
+
+[ LAN Client ] ──(DNS Query: Port 53)──> [ Pi-hole Container ]
+                                                 │
+                                     (If Not Cached: Port 5335)
+                                                 │
+                                                 ▼
+[ GitHub / Internet ] <──(DNSSEC)── [ Unbound Recursive DNS ]
+
 ## What it does
 
 LAN clients send DNS queries directly to Pi-hole, which handles ad/tracker blocking
 and query logging. Non-blocked queries go to Unbound, which performs full recursive
-resolution from the root servers, validates DNSSEC, and caches results. No upstream
-DNS provider — no 8.8.8.8, no 1.1.1.1, no ISP resolver.
+resolution from the root servers, validates DNSSEC, and caches results. 
+*****No upstream DNS provider — no 8.8.8.8, no 1.1.1.1, no ISP resolver. No need!
+
 [ LAN clients ]
 │  port 53  (pushed via router DHCP)
 ▼
@@ -22,10 +35,16 @@ Uptime Kuma monitors the stack and other LAN services at port 3001.
 
 ## Why
 
+LIFE ON THE NETWORK EDGE should be adaptable and resilient, and intelligent.
+
 Off-the-shelf DNS means a third party sees every name your network looks up.
 A local Unbound instance removes that observation point. Pi-hole blocklists handle
 ads and trackers at the network edge — every device benefits without per-device
 configuration.
+
+- Unbound over standard upstream DNS (privacy, preventing ISP hijacking, DNSSEC validation)
+- Docker container for Pi-hole but a native service for Unbound (minimizing container network bridge overhead for core recursive queries)
+- future use cases include local AI/LLM wrappers built into this network metabolism *in progress*
 
 ## Hardware
 
