@@ -85,9 +85,41 @@ block queries from Docker containers and other non-directly-attached interfaces.
 ### No preset upstream servers checked
 
 None of the preset upstream servers (Google, Cloudflare, Quad9, etc.) are enabled.
-All upstream resolution goes through the custom entry (`172.17.0.1#5335`), which
+All upstream resolution goes through the custom entry (`172.17.0.
+1#5335`), which
 routes to Unbound on the host. This is the whole point — no third-party resolver
 ever sees the query.
 | NAT Filtering | Secured | Blocks unsolicited inbound packets |
 | Disable SIP ALG | Yes | SIP ALG causes VoIP problems; disabled by default |
+
+________________
+
+Uptime Kuma — Monitoring
+
+Uptime Kuma runs in Docker on port 3001 and monitors Unbound via a DNS monitor 
+querying 127.0.0.1:5335.
+
+WHY network_mode: host — NOT A BRIDGE NETWORK
+
+Uptime Kuma's docker-compose.yml uses network_mode: host, which removes Docker's 
+network isolation and places the container directly on the host network stack. This 
+is required because Ubuntu 22.04 uses nftables as its firewall backend. Legacy 
+iptables rules don't affect the active ruleset, and the INPUT chain has a default 
+DROP policy. As a result, Docker bridge IPs (172.17.0.1, 172.18.0.1) are not 
+reachable from host processes or other containers on arbitrary ports like 5335 — 
+even with explicit UFW allow rules added.
+
+With network_mode: host, Uptime Kuma shares the host network stack and reaches 
+Unbound at 127.0.0.1:5335 directly, the same way any native host process would.
+
+Consequence: the ports: mapping is removed from the compose file. Uptime Kuma 
+remains available at port 3001 — it binds directly on the host interface rather 
+than through Docker's port mapping layer.
+
+Monitor configuration (Uptime Kuma → Edit Monitor):
+  Type:            DNS
+  Hostname:        google.com
+  Resolver Server: 127.0.0.1
+  Port:            5335
+  Record Type:     A
 
