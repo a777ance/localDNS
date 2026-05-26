@@ -3,8 +3,7 @@ services:
     image: louislam/uptime-kuma:1
     container_name: uptime-kuma
     restart: unless-stopped
-    ports:
-      - "3001:3001"
+    network_mode: host
     volumes:
       - ./data:/app/data
     environment:
