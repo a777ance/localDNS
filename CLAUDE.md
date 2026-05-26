@@ -14,6 +14,7 @@ system until manually deployed:
 - Pi-hole: `cd pihole && docker compose up -d`
 - Uptime Kuma: `cd ~/uptime-kuma && docker compose up -d`
 - UFW: `sudo bash ufw/setup.sh`
+- WireGuard: `sudo bash wireguard/setup.sh`
 - NoMachine: `sudo cp nomachine/server.cfg /usr/NX/etc/server.cfg && sudo /usr/NX/bin/nxserver --restart`
 
 ## Working philosophy
@@ -38,7 +39,8 @@ for all performance/caching values. Do not reintroduce `performance.conf` or
 ## Firewall
 
 All services LAN-only (`192.168.0.0/16`). `ufw/setup.sh` is canonical.
-Do not open any port to Anywhere.
+Exception: UDP 51820 (WireGuard) is open to Anywhere — access is gated by
+public-key cryptography, not IP filtering. All other ports remain LAN-only.
 
 ## Pi-hole upstream DNS
 
@@ -61,6 +63,7 @@ dig @127.0.0.1 -p 5335 example.com +dnssec
 docker ps
 cat /sys/class/drm/card*/device/power_dpm_force_performance_level
 sudo ufw status verbose
+sudo wg show
 ```
 
 

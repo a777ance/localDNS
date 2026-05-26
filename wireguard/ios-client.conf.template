@@ -1,0 +1,14 @@
+# WireGuard iOS client config — full tunnel through t630.
+# DO NOT commit real keys. This is a reference template only.
+# Run wireguard/setup.sh — it writes the real config and prints a QR code.
+
+[Interface]
+PrivateKey = <CLIENT_PRIVATE_KEY>
+Address    = 10.8.0.2/32
+DNS        = 10.8.0.1
+
+[Peer]
+PublicKey           = <SERVER_PUBLIC_KEY>
+Endpoint            = <YOUR_STATIC_PUBLIC_IP>:51820
+AllowedIPs          = 0.0.0.0/0, ::/0
+PersistentKeepalive = 25
