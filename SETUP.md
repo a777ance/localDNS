@@ -246,6 +246,32 @@ sudo apt install -y x2goserver x2goserver-xsession
 Set the router's primary DNS to `192.168.1.118` (see Part 0). Renew DHCP leases.
 Verify on a client: `nslookup example.com` — server should show `192.168.1.118`.
 
+
+## Part 9: Uptime Kuma — Observability
+
+Uptime Kuma provides LAN service monitoring. It watches Home Router (HTTP ping), 
+Pi-hole (HTTP), and Unbound (DNS query). It runs as a Docker container with 
+network_mode: host — required because Ubuntu 22.04's nftables backend makes Docker 
+bridge IPs unreachable on arbitrary ports, even with UFW rules in place.
+
+INSTALL:
+  cd ~/uptime-kuma
+  docker compose up -d
+
+The compose file (uptime-kuma/docker-compose.yml) uses network_mode: host and 
+omits ports: — Uptime Kuma is available at http://<t630-ip>:3001.
+
+UNBOUND MONITOR CONFIGURATION:
+After first login, add a DNS monitor:
+  Name:            Unbound
+  Type:            DNS
+  Hostname:        google.com
+  Resolver Server: 127.0.0.1
+  Port:            5335
+  Record Type:     A
+
+127.0.0.1 works here (unlike Pi-hole's 172.17.0.1#5335 setup) because Uptime Kuma 
+is on the host network — 127.0.0.1 is the host loopback, where Unbound listens.
 ---
 
 ## Verification checklist
