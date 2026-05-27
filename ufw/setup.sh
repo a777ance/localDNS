@@ -5,7 +5,7 @@ WG="10.8.0.0/24"
 ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
-ufw default deny routed
+ufw default allow routed  # required for WireGuard to forward peer traffic out enp1s0
 # LAN services
 ufw allow in from "$LAN" to any port 53 proto tcp
 ufw allow in from "$LAN" to any port 53 proto udp

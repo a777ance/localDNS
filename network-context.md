@@ -155,9 +155,10 @@ validation work on cellular identically to LAN.
 | ListenPort | `51820` |
 | Phone peer AllowedIPs | `10.8.0.2/32` |
 
-PostUp/PreDown manage iptables MASQUERADE and FORWARD rules directly — these
-bypass UFW's `deny routed` default for this specific tunnel without loosening
-the broader routed policy.
+PostUp/PreDown manage only the MASQUERADE (nat table). FORWARD rules are not
+in wg0.conf — UFW handles forwarding via `ufw default allow routed` in setup.sh.
+See "UFW + WireGuard forwarding" below for why raw iptables FORWARD rules here
+caused a silent failure.
 
 ### IP forwarding
 
@@ -197,4 +198,105 @@ from the internet for the handshake to complete.
 - dnsleaktest.com from phone on cellular (VPN on) shows `47.14.39.51 / Spectrum
   Belchertown` — correct, because the phone exits through the home Spectrum
   connection, not a third-party VPN provider
+
+### Does the router need a DHCP or DNS reservation for WireGuard peers?
+
+No. The router has no role in WireGuard addressing. Peer IPs (10.8.0.x) are
+assigned by the WireGuard server via `AllowedIPs` in wg0.conf — the router
+never sees the 10.8.0.0/24 subnet at all. Do not create a DHCP reservation for
+VPN peers.
+
+---
+
+## WireGuard: UFW forwarding — what went wrong and why
+
+### The failure
+
+When a second peer (Jesse's Mac) was added, their internet stopped working after
+connecting. The tunnel handshaked successfully and `ping 10.8.0.1` worked, but
+`ping 1.1.1.1` failed — traffic was entering the tunnel but not getting out to
+the internet.
+
+### Root cause
+
+`wg0.conf` had PostUp lines that added raw iptables FORWARD rules:
+```
+iptables -A FORWARD -i wg0 -o enp1s0 -j ACCEPT
+iptables -A FORWARD -i enp1s0 -o wg0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+```
+
+UFW owns the filter FORWARD chain. When `ufw default deny routed` is set,
+UFW inserts a DROP rule at the top of the FORWARD chain. Manually appended
+`-A FORWARD` rules land after UFW's DROP, so they are never reached. The
+FORWARD chain policy was effectively DROP regardless of the PostUp rules.
+
+`sudo iptables -L FORWARD -v` confirmed: policy DROP, 0 bytes matched by the
+ACCEPT rules.
+
+### The fix
+
+Two changes — both required:
+
+1. **Remove FORWARD rules from wg0.conf PostUp.** UFW should own forwarding,
+   not raw iptables added by WireGuard.
+
+2. **Change `ufw default deny routed` to `ufw default allow routed`** in
+   `ufw/setup.sh`. This sets `DEFAULT_FORWARD_POLICY=ACCEPT`, which allows all
+   forwarding through the t630. Combined with the existing LAN firewall
+   restrictions on incoming ports, this is safe: the t630 is not a public
+   router, and the only forwarded traffic will be from WireGuard peers that
+   authenticated with a valid private key.
+
+MASQUERADE stays in PostUp — UFW does not manage the nat table, so PostUp
+is the correct and only place for it.
+
+---
+
+## WireGuard peer onboarding — what not to do
+
+Lessons from adding Jesse's Mac as a peer (May 2026).
+
+### Use the App Store app, not Homebrew
+
+**macOS:** Install WireGuard from the **Mac App Store**. Do not use
+`brew install wireguard-tools`.
+
+The App Store version uses macOS's Network Extension framework — the proper
+OS-level VPN path. It has a GUI, generates keys for you, and routes traffic
+correctly. Homebrew installs `wg-quick`, a shell script that requires `sudo`,
+has had routing issues on modern macOS, and does not integrate with the system
+VPN stack.
+
+**iOS:** WireGuard is already from the App Store.
+
+### Peer config mistakes that break everything
+
+| Mistake | Symptom | Correct value |
+| ------- | ------- | ------------- |
+| `DNS = 172.17.0.1:5335` | DNS fails silently; "internet doesn't work" even when routing is fine. WireGuard's DNS field is IP only — no port. Also, `172.17.0.1` is the Docker bridge gateway on the server host and is unreachable from outside. | `DNS = 10.8.0.1` |
+| `Address = 10.8.0.7/24` | Client claims ownership of the entire `10.8.0.0/24` subnet on its wg0 interface; causes routing weirdness. | `Address = 10.8.0.7/32` — client owns only its own IP |
+| `AllowedIPs = 10.8.0.0/24` | Split-tunnel: web traffic bypasses the VPN. Tunnel shows "connected," whatismyip.com shows real cellular IP — indistinguishable from VPN being off. | `AllowedIPs = 0.0.0.0/0, ::/0` for full tunnel |
+| No `PersistentKeepalive` | Tunnel silently drops after a few minutes of idle when peer is behind NAT (home router, cellular). | `PersistentKeepalive = 25` |
+
+### How to verify the tunnel is actually working
+
+Do not trust "Connected" status alone. Run these in order:
+
+```
+ping 10.8.0.1        # tunnel is up (layer 3 to server wg0 interface)
+ping 1.1.1.1         # NAT/forwarding is working (traffic exits to internet)
+ping google.com      # DNS is working
+```
+
+Failure at each step points to a different layer. If `ping 1.1.1.1` works
+but `ping google.com` fails, the tunnel and routing are fine — only DNS is
+broken (check the `DNS =` line in the peer config).
+
+### Pi-hole must accept queries from the wg0 subnet
+
+Pi-hole's Settings → DNS must have **"Permit all origins"** checked. Without
+it, Pi-hole refuses queries from `10.8.0.x` addresses (VPN peers are not on
+the LAN subnet). This is safe because UFW blocks port 53 from outside
+`192.168.0.0/16` and `10.8.0.0/24` — Pi-hole is not exposed to the internet
+regardless of this setting.
 
