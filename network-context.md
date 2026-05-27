@@ -123,3 +123,78 @@ Monitor configuration (Uptime Kuma → Edit Monitor):
   Port:            5335
   Record Type:     A
 
+---
+
+## WireGuard VPN
+
+The t630 runs a WireGuard server that tunnels the phone back to the home network
+from anywhere on cellular or untrusted Wi-Fi.
+
+### Topology
+
+```
+iPhone (cellular or any Wi-Fi)
+  │  WireGuard tunnel (UDP 51820)
+  ▼
+t630 wg0 interface — 10.8.0.1/24
+  │  NAT / IP forward → enp1s0
+  ▼
+Spectrum WAN (47.14.39.51) → internet
+```
+
+DNS for tunnel clients points to `10.8.0.1` (the wg0 interface), which is
+reachable because Pi-hole binds to `0.0.0.0:53` via Docker port mapping. All
+phone DNS therefore flows through Pi-hole + Unbound — ad-blocking and DNSSEC
+validation work on cellular identically to LAN.
+
+### Server config: wireguard/wg0.conf
+
+| Parameter | Value |
+| --------- | ----- |
+| Interface address | `10.8.0.1/24` |
+| ListenPort | `51820` |
+| Phone peer AllowedIPs | `10.8.0.2/32` |
+
+PostUp/PreDown manage iptables MASQUERADE and FORWARD rules directly — these
+bypass UFW's `deny routed` default for this specific tunnel without loosening
+the broader routed policy.
+
+### IP forwarding
+
+Required in `/etc/sysctl.conf`:
+```
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+```
+Apply without reboot: `sudo sysctl -p`
+
+### Phone client (WireGuard iOS)
+
+| Setting | Value |
+| ------- | ----- |
+| Endpoint | `47.14.39.51:51820` |
+| DNS | `10.8.0.1` |
+| AllowedIPs | `0.0.0.0/0, ::/0` (full tunnel) |
+| On-Demand | Cellular + Wi-Fi, no SSID exclusions |
+
+No SSID exclusions — the tunnel stays on even at home. The home-Wi-Fi loop
+(phone → wg0 → enp1s0 → router → back) adds negligible latency for browsing
+and avoids the operational complexity of per-SSID rules.
+
+### Why port 51820 is open to Anywhere
+
+Every other service in `ufw/setup.sh` is restricted to `192.168.0.0/16`.
+WireGuard is the single exception: the phone connects from Spectrum Mobile
+cellular, which is a public IP outside the LAN. The port must be reachable
+from the internet for the handshake to complete.
+
+### Verified behavior
+
+- Transfer counters in the WireGuard iOS app increment during browsing → tunnel
+  is carrying traffic, not just "connected"
+- Speed on cellular through tunnel: ~185 Mbps down / 92 Mbps up, 15 ms ping
+  (Spectrum 2:1 down/up ratio, vs. the 10:1 ratio of 6 months prior)
+- dnsleaktest.com from phone on cellular (VPN on) shows `47.14.39.51 / Spectrum
+  Belchertown` — correct, because the phone exits through the home Spectrum
+  connection, not a third-party VPN provider
+

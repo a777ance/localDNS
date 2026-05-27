@@ -15,6 +15,7 @@ system until manually deployed:
 - Uptime Kuma: `cd ~/uptime-kuma && docker compose up -d`
 - UFW: `sudo bash ufw/setup.sh`
 - NoMachine: `sudo cp nomachine/server.cfg /usr/NX/etc/server.cfg && sudo /usr/NX/bin/nxserver --restart`
+- WireGuard: `sudo cp wireguard/wg0.conf /etc/wireguard/wg0.conf && sudo systemctl restart wg-quick@wg0`
 
 ## Working philosophy
 
@@ -38,7 +39,9 @@ for all performance/caching values. Do not reintroduce `performance.conf` or
 ## Firewall
 
 All services LAN-only (`192.168.0.0/16`). `ufw/setup.sh` is canonical.
-Do not open any port to Anywhere.
+One intentional exception: port 51820/UDP (WireGuard) is open to Anywhere —
+the phone connects from cellular, so this cannot be LAN-restricted. Everything
+else remains LAN-only.
 
 ## Pi-hole upstream DNS
 

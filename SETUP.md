@@ -168,7 +168,82 @@ sudo bash ufw/setup.sh
 All services LAN-only (`192.168.0.0/16`): DNS 53, Unbound 5335, Pi-hole UI 8080,
 Uptime Kuma 3001, SSH 22, xrdp 3389, NoMachine 4000, mDNS 5353.
 
+Port 51820/UDP (WireGuard) is open to Anywhere — the phone connects from cellular
+and cannot be LAN-restricted. This is the single intended exception.
+
 The script resets and rebuilds all rules from scratch — safe to re-run.
+
+---
+
+## Part 5a: WireGuard VPN
+
+WireGuard tunnels the phone's traffic back to the home network from anywhere on
+cellular or untrusted Wi-Fi. DNS goes through Pi-hole, so ad-blocking and DNSSEC
+work identically on cellular.
+
+### Install
+
+```bash
+sudo apt install -y wireguard
+```
+
+### Enable IP forwarding
+
+```bash
+sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
+sudo bash -c 'echo "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl.conf'
+sudo sysctl -p
+```
+
+### Generate server keys
+
+```bash
+wg genkey | sudo tee /etc/wireguard/server.key | wg pubkey | sudo tee /etc/wireguard/server.pub
+sudo chmod 600 /etc/wireguard/server.key
+```
+
+### Deploy config
+
+```bash
+sudo cp wireguard/wg0.conf /etc/wireguard/wg0.conf
+sudo chmod 600 /etc/wireguard/wg0.conf
+```
+
+Edit `/etc/wireguard/wg0.conf`:
+- Replace `REPLACE_WITH_SERVER_PRIVATE_KEY` with the contents of `/etc/wireguard/server.key`
+- Replace `REPLACE_WITH_PHONE_PUBLIC_KEY` with the phone's WireGuard public key
+
+### Enable and start
+
+```bash
+sudo systemctl enable --now wg-quick@wg0
+sudo wg show   # verify interface up, peer listed
+```
+
+### Phone client (WireGuard iOS)
+
+Create a tunnel in the iOS WireGuard app with:
+
+| Field | Value |
+| ----- | ----- |
+| Server endpoint | `47.14.39.51:51820` |
+| DNS | `10.8.0.1` |
+| Allowed IPs | `0.0.0.0/0, ::/0` |
+| On-Demand | Cellular + Wi-Fi enabled, no SSID exclusions |
+
+The server public key to enter in the phone config comes from `/etc/wireguard/server.pub`.
+The phone's public key (generated in the iOS app) goes into `wg0.conf` as the peer `PublicKey`.
+
+### Verify
+
+```bash
+sudo wg show            # peer listed, handshake time recent after phone connects
+ping 10.8.0.2           # phone responds when tunnel active
+```
+
+On the phone: WireGuard app → tap tunnel name → Transfer counters should increment
+while browsing. Run dnsleaktest.com — should show your Spectrum IP (home exit), not
+a cellular carrier IP.
 
 ---
 
@@ -284,7 +359,8 @@ is on the host network — 127.0.0.1 is the host loopback, where Unbound listens
 - [ ] Pi-hole Settings → DNS shows `172.17.0.1#5335` as custom upstream
 - [ ] Blocked domain (`doubleclick.net`) → `0.0.0.0` from a client
 - [ ] `cat /sys/class/drm/card*/device/power_dpm_force_performance_level` → `high`
-- [ ] `sudo ufw status verbose` — all ports show `192.168.0.0/16`, none say `Anywhere`
+- [ ] `sudo ufw status verbose` — all ports show `192.168.0.0/16` except 51820/udp which shows `Anywhere`
+- [ ] `sudo wg show` — wg0 interface up, iPhone peer listed
 - [ ] `systemctl status unbound-cache-dump.timer` — active (waiting)
 
 ---
