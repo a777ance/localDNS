@@ -23,10 +23,13 @@ set -euo pipefail
 
 IFACE="${1:-enp1s0}"
 
-# 90% of measured ISP upload (~100 Mbps). Keeping the cap slightly below line
-# rate forces the OS queue (CAKE) to be the bottleneck instead of the modem's
-# unmanaged FIFO. Adjust if your line speed changes.
-UPLOAD_MBPS=90
+# 90% of measured ISP upload (94.3 Mbps on Wi-Fi through VPN → raw WAN ~98–100 Mbps).
+# Must be BELOW the ISP ceiling so CAKE's queue fills before the modem's unmanaged
+# FIFO — that's what keeps latency flat under load.
+# Verify: tc -s qdisc show dev enp1s0 — "drop" counter increments under sustained
+# upload load, confirming CAKE is the bottleneck, not the modem.
+# Adjust here if your line speed changes, then redeploy: sudo bash cake/setup.sh
+UPLOAD_MBPS=85
 
 # Remove any existing root qdisc so this script is idempotent.
 tc qdisc del dev "$IFACE" root 2>/dev/null || true

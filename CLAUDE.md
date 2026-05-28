@@ -28,7 +28,7 @@ manually deployed.
 ## Network topology
 
 ```
-ISP (Spectrum ~180/100 Mbps)
+ISP (Spectrum ~200/100 Mbps asymmetric)
   │
   └── Netgear R7000     192.168.1.1    main router (routing, NAT, DHCP, WAN)
         │
@@ -140,7 +140,7 @@ dig @127.0.0.1 -p 5335 example.com +dnssec   # 'ad' flag = DNSSEC working
 docker ps                                       # pihole + uptime-kuma both Up
 sudo wg show                                    # wg0 up, peers listed
 sudo ufw status verbose                         # 51820/udp Anywhere; all else LAN
-tc qdisc show dev enp1s0                        # cake bandwidth 90Mbit
+tc qdisc show dev enp1s0                        # cake bandwidth 85Mbit
 cat /sys/class/drm/card*/device/power_dpm_force_performance_level  # high
 ```
 
@@ -159,10 +159,3 @@ clean Ubuntu 24.04. Use feature branches for half-finished work.
 - **network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
 
----
-
-## See also
-
-- **[a777ance/claude-code-homelab](https://github.com/a777ance/claude-code-homelab)** — the setup guide
-  that walks through creating a repo like this one from scratch, including Claude Code in VS Code,
-  GitHub Actions deploys, and best practices. This repo is the case study referenced throughout that guide.
