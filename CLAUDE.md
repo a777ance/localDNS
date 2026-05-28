@@ -19,7 +19,7 @@ manually deployed.
 
 ## Hardware
 
-- **HP t630** — AMD Carrizo GX-420GI quad-core, 4 GB RAM, 16 GB eMMC
+- **HP t630** — AMD Carrizo GX-420GI quad-core, 16 GB RAM, 16 GB eMMC
 - **OS:** Ubuntu 24.04.4 LTS, kernel 6.17 series
 - **NIC:** `enp1s0` (wired only — Wi-Fi disabled)
 
@@ -128,6 +128,7 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 | ----- | ------ |
 | `WEBPASSWORD` in pihole compose | Placeholder — do not commit real credentials |
 | Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
+| WireGuard peers 10.8.0.4 and 10.8.0.5 | Present in live wg0.conf but not documented — identify devices and add to peer table |
 
 ---
 
@@ -157,3 +158,11 @@ clean Ubuntu 24.04. Use feature branches for half-finished work.
 - **SETUP.md** — full step-by-step reproduction guide
 - **network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
+
+---
+
+## See also
+
+- **[a777ance/claude-code-homelab](https://github.com/a777ance/claude-code-homelab)** — the setup guide
+  that walks through creating a repo like this one from scratch, including Claude Code in VS Code,
+  GitHub Actions deploys, and best practices. This repo is the case study referenced throughout that guide.
