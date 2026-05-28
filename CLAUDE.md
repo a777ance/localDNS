@@ -19,7 +19,7 @@ manually deployed.
 
 ## Hardware
 
-- **HP t630** — AMD Carrizo GX-420GI quad-core, 4 GB RAM, 16 GB eMMC
+- **HP t630** — AMD Carrizo GX-420GI quad-core, 16 GB RAM, 16 GB eMMC
 - **OS:** Ubuntu 24.04.4 LTS, kernel 6.17 series
 - **NIC:** `enp1s0` (wired only — Wi-Fi disabled)
 
