@@ -128,6 +128,7 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 | ----- | ------ |
 | `WEBPASSWORD` in pihole compose | Placeholder — do not commit real credentials |
 | Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
+| WireGuard peers 10.8.0.4 and 10.8.0.5 | Present in live wg0.conf but not documented — identify devices and add to peer table |
 
 ---
 
