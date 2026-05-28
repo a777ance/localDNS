@@ -185,9 +185,10 @@ Create two Push monitors:
 | --- | --- | --- |
 | Packet Loss – Router (LAN) | 60s | 2 |
 | Packet Loss – Internet (1.1.1.1) | 60s | 2 |
+| CAKE SQM | 60s | 2 |
 
 After saving each, copy the push URL (token only, strip `?status=…` from
-the end) into `scripts/packet-loss-monitor.sh`.
+the end) into the corresponding script.
 
 ### Packet loss monitoring script
 
@@ -212,6 +213,27 @@ The script sends 50 pings per check (10 seconds) so it fits comfortably in
 the 60-second window. Loss % is placed in the `ping` field so Uptime Kuma
 graphs it over time. `status=down` fires when loss exceeds `THRESHOLD`
 (default 15% — lower to 5% once router hardware is stable).
+
+### CAKE monitoring script
+
+```bash
+cp scripts/cake-monitor.sh ~/cake-monitor.sh
+chmod +x ~/cake-monitor.sh
+# Edit: fill in PUSH_URL token
+nano ~/cake-monitor.sh
+# Test manually:
+~/cake-monitor.sh
+# Then add to crontab:
+crontab -e
+```
+
+Add to crontab (on the same line as the packet loss monitor):
+```
+* * * * * /home/USERNAME/cake-monitor.sh
+```
+
+Reports `up` with the active bandwidth (e.g. `cake active @ 90Mbit`) or
+`down` if the qdisc is missing or the service is stopped.
 
 **Threshold guidance:**
 

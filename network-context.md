@@ -194,6 +194,7 @@ Full monitor stack, with rationale for each layer:
 | Home Router | HTTP | `http://192.168.1.1` | — | Confirms gateway is up |
 | Packet Loss – Router | Push | (script pushes) | — | LAN packet loss %; `status=down` above threshold |
 | Packet Loss – Internet | Push | (script pushes) | — | WAN packet loss %; distinguishes LAN vs ISP problems |
+| CAKE SQM | Push | (script pushes) | — | Confirms CAKE qdisc is active on enp1s0; message shows live bandwidth |
 
 **Diagnostic logic:** if Pi-hole Full Chain goes red but Unbound Basic stays
 green, the break is specifically in the Pi-hole → Unbound link, not Unbound
