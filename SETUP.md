@@ -338,6 +338,56 @@ Each failure level points to a different problem. See network-context.md
 
 ---
 
+## Part 5b: CAKE SQM (upload bufferbloat for VPN clients)
+
+CAKE (Common Applications Kept Enhanced) is a Linux queueing discipline that
+eliminates bufferbloat by making the OS queue the bottleneck before the modem's
+unmanaged FIFO. This matters when VPN clients are uploading through the tunnel —
+without it, upload latency spikes to 400–800 ms under load.
+
+**Scope:** CAKE on the t630 shapes traffic on `enp1s0` egress — all traffic the
+t630 forwards toward the router/internet. This covers upload bufferbloat for all
+WireGuard VPN clients. It does NOT help download bufferbloat for general LAN
+devices (laptops, phones on Wi-Fi) — those go through the Netgear directly. For
+whole-network bufferbloat, the Netgear R7000 needs SQM via DD-WRT or FreshTomato.
+
+### Install
+
+```bash
+sudo apt install -y iproute2   # tc is in iproute2; already present on Ubuntu 24.04
+
+sudo cp cake/setup.sh /usr/local/sbin/cake-setup.sh
+sudo chmod 755 /usr/local/sbin/cake-setup.sh
+sudo cp systemd/cake.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now cake
+```
+
+### Tune bandwidth cap
+
+Open `cake/setup.sh` and adjust `UPLOAD_MBPS` to 90% of your measured ISP upload
+speed. Default is `90` (for a ~100 Mbps upload line). Re-run the install step after
+changing.
+
+### Verify
+
+```bash
+systemctl status cake
+tc qdisc show dev enp1s0   # should show "cake" with bandwidth and options
+```
+
+Run a speed test from a WireGuard-connected device before and after. Upload loaded
+ping should drop from 400–800 ms to under 100 ms.
+
+### Live stats
+
+```bash
+# Per-flow queue stats (updates every 1s)
+watch -n1 tc -s qdisc show dev enp1s0
+```
+
+---
+
 ## Part 6: GPU throttling remediation (Carrizo-specific)
 
 The Carrizo iGPU downclocks to ~200 MHz with no display attached, making NoMachine
@@ -437,6 +487,7 @@ must use `172.17.0.1#5335` to reach the host.
 - [ ] `cat /sys/class/drm/card*/device/power_dpm_force_performance_level` → `high`
 - [ ] `sudo ufw status verbose` — all ports show `192.168.0.0/16` except 51820/udp which shows `Anywhere`
 - [ ] `sudo wg show` — wg0 interface up, iPhone peer listed
+- [ ] `tc qdisc show dev enp1s0` — shows `cake` qdisc with `bandwidth 90Mbit`
 - [ ] `systemctl status unbound-cache-dump.timer` — active (waiting)
 - [ ] Uptime Kuma: all DNS monitors green (Unbound-Basic, Unbound-DNSSEC, Pi-hole-FullChain)
 - [ ] Uptime Kuma: packet loss monitors receiving heartbeats every ~60s (`crontab -l` confirms job is set)

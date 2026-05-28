@@ -500,3 +500,56 @@ the LAN subnet). This is safe because UFW blocks port 53 from outside
 `192.168.0.0/16` and `10.8.0.0/24` — Pi-hole is not exposed to the internet
 regardless of this setting.
 
+---
+
+## CAKE / bufferbloat
+
+**What bufferbloat is:** when a big download or upload fills the modem/router's
+packet buffer, everything else has to wait behind it. A 16 ms idle ping becomes
+800–1200 ms under load. This is not packet loss — all packets arrive, just late.
+
+**Why CAKE helps:** instead of letting the buffer fill (modem has no concept of
+fairness or timing), CAKE manages a smart queue in the OS. It rate-limits egress
+slightly below the ISP line speed so the OS queue becomes the bottleneck. It then
+applies fair queuing (each flow gets a slot) and DSCP prioritization so DNS
+responses and interactive traffic skip ahead of bulk downloads.
+
+### What CAKE on the t630 covers
+
+The t630 is not inline for general LAN traffic. A laptop or phone on Wi-Fi goes
+`device → Netgear R7000 → ISP`, bypassing the t630. CAKE on the t630 only
+shapes traffic the t630 actually forwards:
+
+| Traffic type | Path includes t630? | CAKE helps? |
+| ------------ | ------------------- | ----------- |
+| WireGuard VPN clients (upload) | Yes — exits enp1s0 | Yes |
+| WireGuard VPN clients (DNS) | Yes — Pi-hole at 10.8.0.1 | Yes (diffserv4 prioritizes) |
+| General LAN devices (any direction) | No — Netgear handles it | No |
+
+**Measured impact (VPN clients):** upload loaded ping drops from ~400–800 ms to
+under 100 ms. `nat` transparency lets CAKE distinguish individual VPN clients
+behind the WireGuard MASQUERADE, so the iPhone and laptop each get a fair queue
+slot rather than competing as a single undifferentiated flow.
+
+### For whole-network bufferbloat: Netgear R7000
+
+The 1200 ms download-loaded-ping spike observed in speed tests on the home
+network is caused by the Netgear/modem buffer filling. The fix must be on the
+device handling that bottleneck — the Netgear R7000.
+
+The R7000 is a well-supported target for third-party firmware:
+
+| Firmware | CAKE/fq_codel | Notes |
+| -------- | ------------- | ----- |
+| DD-WRT | Yes (fq_codel via QoS) | Mature, large community |
+| FreshTomato | Yes (fq_codel/CAKE via QoS) | More modern UI than DD-WRT |
+| OpenWrt | Yes (full CAKE) | Most capable; harder install |
+
+FreshTomato is a reasonable starting point — it retains a familiar Tomato UI,
+supports the R7000 (K26ARM build), and exposes fq_codel in QoS settings.
+Steps: backup config, flash firmware via the Netgear admin UI, set QoS
+download/upload caps to 90% of measured ISP speeds, enable fq_codel.
+
+Until then, the t630 CAKE handles the VPN client case, and the home network
+bufferbloat remains for direct LAN devices.
+

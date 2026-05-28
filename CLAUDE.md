@@ -16,6 +16,7 @@ system until manually deployed:
 - UFW: `sudo bash ufw/setup.sh`
 - NoMachine: `sudo cp nomachine/server.cfg /usr/NX/etc/server.cfg && sudo /usr/NX/bin/nxserver --restart`
 - WireGuard: `sudo cp wireguard/wg0.conf /etc/wireguard/wg0.conf && sudo systemctl restart wg-quick@wg0`
+- CAKE: `sudo cp cake/setup.sh /usr/local/sbin/cake-setup.sh && sudo chmod 755 /usr/local/sbin/cake-setup.sh && sudo cp systemd/cake.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now cake`
 
 ## Working philosophy
 
