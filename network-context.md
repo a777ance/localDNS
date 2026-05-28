@@ -253,11 +253,11 @@ the handshake to complete.
 
 - Transfer counters in the WireGuard iOS app increment during browsing → tunnel
   is carrying traffic, not just "connected"
-- Speed on cellular through tunnel: ~185 Mbps down / 92 Mbps up, 15 ms ping
-  (ISP 2:1 down/up ratio, vs. the 10:1 ratio of 6 months prior)
-- dnsleaktest.com from phone on cellular (VPN on) shows the home WAN IP —
-  correct, because the phone exits through the home connection, not a
-  third-party VPN provider
+- Speed on home Wi-Fi through tunnel (CAKE active, Waveform test): 78.5 Mbps↓ /
+  81.8 Mbps↑ — symmetric at the CAKE cap. Responsiveness: idle 14 ms, loaded
+  16 ms↓ / 11 ms↑, jitter 5/5/1 ms, 0.00% packet loss
+- dnsleaktest.com from phone (VPN on) shows the home WAN IP — correct, because
+  the phone exits through the home connection, not a third-party VPN provider
 
 ### Does the router need a DHCP or DNS reservation for WireGuard peers?
 
@@ -512,10 +512,11 @@ shapes traffic the t630 actually forwards:
 | WireGuard VPN clients (DNS) | Yes — Pi-hole at 10.8.0.1 | Yes (diffserv4 prioritizes) |
 | General LAN devices (any direction) | No — Netgear handles it | No |
 
-**Measured impact (VPN clients):** upload loaded ping drops from ~400–800 ms to
-under 100 ms. `nat` transparency lets CAKE distinguish individual VPN clients
-behind the WireGuard MASQUERADE, so the iPhone and laptop each get a fair queue
-slot rather than competing as a single undifferentiated flow.
+**Measured impact (VPN clients):** under load, upload latency holds at 11 ms and
+download at 16 ms (idle baseline 14 ms) — essentially no bufferbloat. Previous
+unmanaged state was ~400–800 ms loaded. `nat` transparency lets CAKE distinguish
+individual VPN clients behind the WireGuard MASQUERADE, so the iPhone and laptop
+each get a fair queue slot rather than competing as a single undifferentiated flow.
 
 ### For whole-network bufferbloat: Netgear R7000
 

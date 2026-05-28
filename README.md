@@ -120,6 +120,7 @@ No cloud. No WAN exposure. SSH is also reachable from WireGuard peers via `ssh u
 | `systemd/cake.service` | CAKE systemd service |
 | `nomachine/server.cfg` | NoMachine remote desktop config |
 | `scripts/packet-loss-monitor.sh` | Cron-driven packet loss monitor feeding Uptime Kuma |
+| `scripts/cake-monitor.sh` | Cron-driven CAKE qdisc health monitor feeding Uptime Kuma |
 
 ---
 

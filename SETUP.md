@@ -27,7 +27,7 @@ The `1.1.1.1` secondary is a resilience choice: if the t630 goes down the networ
 stays online, losing ad-blocking until the t630 recovers. Removing it would take
 the entire network offline on t630 reboots.
 
-See `docs/network-context.md` for full router setting rationale.
+See `network-context.md` for full router setting rationale.
 
 ---
 
@@ -185,7 +185,7 @@ Create two Push monitors:
 | --- | --- | --- |
 | Packet Loss – Router (LAN) | 60s | 2 |
 | Packet Loss – Internet (1.1.1.1) | 60s | 2 |
-| CAKE SQM | 60s | 2 |
+| CAKE SQM | 90s | 2 |
 
 After saving each, copy the push URL (token only, strip `?status=…` from
 the end) into the corresponding script.
@@ -219,7 +219,7 @@ graphs it over time. `status=down` fires when loss exceeds `THRESHOLD`
 ```bash
 cp scripts/cake-monitor.sh ~/cake-monitor.sh
 chmod +x ~/cake-monitor.sh
-# Edit: fill in PUSH_URL token
+# Edit: fill in PUSH_URL token (strip the query string — keep only the base URL)
 nano ~/cake-monitor.sh
 # Test manually:
 ~/cake-monitor.sh
@@ -232,8 +232,12 @@ Add to crontab (on the same line as the packet loss monitor):
 * * * * * /home/USERNAME/cake-monitor.sh
 ```
 
-Reports `up` with the active bandwidth (e.g. `cake active @ 90Mbit`) or
-`down` if the qdisc is missing or the service is stopped.
+**Push monitor setting:** set Heartbeat Interval to **90s** in Uptime Kuma, not 60s.
+The cron fires every 60s but scheduling jitter can push the heartbeat to second 61–62;
+a 90s window absorbs that without false "down" flaps.
+
+Reports `up` with the active bandwidth (e.g. `cake_active_85Mbit`) or
+`down` if the qdisc is not present on the interface.
 
 **Threshold guidance:**
 
@@ -387,9 +391,10 @@ sudo systemctl enable --now cake
 
 ### Tune bandwidth cap
 
-Open `cake/setup.sh` and adjust `UPLOAD_MBPS` to 90% of your measured ISP upload
-speed. Default is `90` (for a ~100 Mbps upload line). Re-run the install step after
-changing.
+Open `cake/setup.sh` and adjust `UPLOAD_MBPS` to 90% of your measured ISP upload.
+Current value is `85` (90% of ~94 Mbps measured on Spectrum ~200/100). Keep the cap
+below the ISP ceiling so CAKE's queue fills before the modem's FIFO. Re-run the
+install step after changing.
 
 ### Verify
 
@@ -398,8 +403,9 @@ systemctl status cake
 tc qdisc show dev enp1s0   # should show "cake" with bandwidth and options
 ```
 
-Run a speed test from a WireGuard-connected device before and after. Upload loaded
-ping should drop from 400–800 ms to under 100 ms.
+Run a speed test from a WireGuard-connected device before and after. With CAKE active,
+upload loaded latency should hold near idle baseline (measured result: 11 ms loaded vs
+14 ms idle). Without CAKE, expect 400–800 ms under load.
 
 ### Live stats
 
@@ -509,7 +515,7 @@ must use `172.17.0.1#5335` to reach the host.
 - [ ] `cat /sys/class/drm/card*/device/power_dpm_force_performance_level` → `high`
 - [ ] `sudo ufw status verbose` — all ports show `192.168.0.0/16` except 51820/udp which shows `Anywhere`
 - [ ] `sudo wg show` — wg0 interface up, iPhone peer listed
-- [ ] `tc qdisc show dev enp1s0` — shows `cake` qdisc with `bandwidth 90Mbit`
+- [ ] `tc qdisc show dev enp1s0` — shows `cake` qdisc with `bandwidth 85Mbit`
 - [ ] `systemctl status unbound-cache-dump.timer` — active (waiting)
 - [ ] Uptime Kuma: all DNS monitors green (Unbound-Basic, Unbound-DNSSEC, Pi-hole-FullChain)
 - [ ] Uptime Kuma: packet loss monitors receiving heartbeats every ~60s (`crontab -l` confirms job is set)
