@@ -23,6 +23,8 @@ ufw allow in from "$LAN" to any port 4000 proto tcp
 ufw allow in from "$LAN" to any port 4000 proto udp
 ufw allow in from "$LAN" to any port 5353 proto udp
 ufw allow in from "$LAN" to any port 3001 proto tcp
+# Docker bridge: allow Pi-hole container to reach Unbound on host at 5335
+ufw allow in on docker0 to any port 5335
 # WireGuard: listen port open to Anywhere (phone connects from cellular)
 ufw allow in to any port 51820 proto udp
 # WireGuard tunnel clients: allow DNS so the phone reaches Pi-hole at 10.8.0.1
