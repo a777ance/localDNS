@@ -1,3 +1,5 @@
 #!/bin/bash
+# Deploys to: /usr/local/bin/unbound-cache-dump  (chmod +x)
+# Called by: systemd/unbound-cache-dump.service and unbound.service.d/override.conf (on stop)
 /usr/sbin/unbound-control dump_cache > /var/lib/unbound/cache/cache.dump.tmp \
   && mv /var/lib/unbound/cache/cache.dump.tmp /var/lib/unbound/cache/cache.dump

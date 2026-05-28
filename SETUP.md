@@ -14,7 +14,7 @@ Before touching the t630, configure the router so the t630 has a stable address
 and the network is ready to use it as DNS.
 
 **DHCP reservation:** Reserve `192.168.1.118` for the t630's MAC address
-(`7C:D3:0A:77:93:AE`) in the router's LAN setup. This gives the t630 a stable
+(`<T630-MAC>`) in the router's LAN setup. This gives the t630 a stable
 address without a static IP on the OS side.
 
 **DNS for LAN clients:** Set the router's primary DNS to `192.168.1.118` (the t630)
@@ -157,6 +157,71 @@ cd ~/uptime-kuma && docker compose up -d
 Web UI at `http://192.168.1.118:3001`. Create an admin account on first run.
 Data persists in `~/uptime-kuma/data/` (bind mount — back this directory up directly).
 
+### Monitor configuration
+
+Add these monitors after first login. They provide layered DNS visibility and
+packet loss tracking. See network-context.md "Uptime Kuma monitors" for the
+diagnostic logic behind each one.
+
+**DNS monitors (test query resolution, not just port availability)**
+
+| Friendly Name | Type | Hostname | Resolver | Port | Record |
+| --- | --- | --- | --- | --- | --- |
+| Unbound – Basic | DNS | `cloudflare.com` | `127.0.0.1` | `5335` | A |
+| Unbound – DNSSEC | DNS | `internetsociety.org` | `127.0.0.1` | `5335` | A |
+| Pi-hole – Full Chain | DNS | `cloudflare.com` | `127.0.0.1` | `53` | A |
+| Pi-hole – Web UI | TCP Port | `192.168.1.118` | — | `8080` | — |
+| Home Router | HTTP(s) | `http://192.168.1.1` | — | — | — |
+
+For the resolver field: enter the IP only, **no port**. Port goes in the
+separate Port field. `127.0.0.1:5335` in the resolver field is wrong — it
+creates an invalid double-port and causes intermittent failures.
+
+**Packet loss monitors (Push type)**
+
+Create two Push monitors:
+
+| Friendly Name | Heartbeat Interval | Retries |
+| --- | --- | --- |
+| Packet Loss – Router (LAN) | 60s | 2 |
+| Packet Loss – Internet (1.1.1.1) | 60s | 2 |
+
+After saving each, copy the push URL (token only, strip `?status=…` from
+the end) into `scripts/packet-loss-monitor.sh`.
+
+### Packet loss monitoring script
+
+```bash
+cp scripts/packet-loss-monitor.sh ~/packet-loss-monitor.sh
+chmod +x ~/packet-loss-monitor.sh
+# Edit: fill in ROUTER_PUSH_URL and INTERNET_PUSH_URL tokens, confirm ROUTER_IP
+nano ~/packet-loss-monitor.sh
+# Test manually:
+~/packet-loss-monitor.sh
+# Both Push monitors should flip green within a few seconds.
+# Then schedule:
+crontab -e
+```
+
+Add to crontab:
+```
+* * * * * /home/USERNAME/packet-loss-monitor.sh
+```
+
+The script sends 50 pings per check (10 seconds) so it fits comfortably in
+the 60-second window. Loss % is placed in the `ping` field so Uptime Kuma
+graphs it over time. `status=down` fires when loss exceeds `THRESHOLD`
+(default 15% — lower to 5% once router hardware is stable).
+
+**Threshold guidance:**
+
+| Threshold | Meaning |
+| --- | --- |
+| 1–2% | Strict — catches early degradation |
+| 5% | Standard — video calls start glitching |
+| 10% | Lenient — things noticeably broken |
+| 15% | Severe events only — router-is-overheating tier |
+
 ---
 
 ## Part 5: Firewall
@@ -168,7 +233,158 @@ sudo bash ufw/setup.sh
 All services LAN-only (`192.168.0.0/16`): DNS 53, Unbound 5335, Pi-hole UI 8080,
 Uptime Kuma 3001, SSH 22, xrdp 3389, NoMachine 4000, mDNS 5353.
 
+Port 51820/UDP (WireGuard) is open to Anywhere — the phone connects from cellular
+and cannot be LAN-restricted. This is the single intended exception.
+
 The script resets and rebuilds all rules from scratch — safe to re-run.
+
+---
+
+## Part 5a: WireGuard VPN
+
+WireGuard tunnels peers back to the home network from anywhere on cellular or
+untrusted Wi-Fi. DNS goes through Pi-hole, so ad-blocking and DNSSEC work
+identically on cellular.
+
+### Install
+
+```bash
+sudo apt install -y wireguard
+```
+
+### Enable IP forwarding
+
+```bash
+sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
+sudo bash -c 'echo "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl.conf'
+sudo sysctl -p
+```
+
+### Generate server keys
+
+```bash
+wg genkey | sudo tee /etc/wireguard/server.key | wg pubkey | sudo tee /etc/wireguard/server.pub
+sudo chmod 600 /etc/wireguard/server.key
+```
+
+### Deploy config
+
+```bash
+sudo cp wireguard/wg0.conf /etc/wireguard/wg0.conf
+sudo chmod 600 /etc/wireguard/wg0.conf
+```
+
+Edit `/etc/wireguard/wg0.conf`:
+- Replace `REPLACE_WITH_SERVER_PRIVATE_KEY` with the contents of `/etc/wireguard/server.key`
+- Replace `REPLACE_WITH_PHONE_PUBLIC_KEY` with the phone's WireGuard public key
+
+### UFW and forwarding
+
+`setup.sh` already sets `ufw default allow routed`. This is required —
+without it, the UFW FORWARD chain drops peer traffic even when the tunnel is
+up and handshaking. Do not add raw `iptables -A FORWARD` rules to wg0.conf
+as a workaround; they land after UFW's DROP rule and are silently ignored.
+See network-context.md "UFW + WireGuard forwarding" for the full failure
+analysis.
+
+### Enable and start
+
+```bash
+sudo systemctl enable --now wg-quick@wg0
+sudo wg show   # verify interface up, peer listed
+```
+
+### Phone client (WireGuard iOS — App Store)
+
+Create a tunnel in the WireGuard iOS app with:
+
+| Field | Value |
+| ----- | ----- |
+| Server endpoint | `<WAN-IP>:51820` |
+| DNS | `10.8.0.1` |
+| Allowed IPs | `0.0.0.0/0, ::/0` |
+| On-Demand | Cellular + Wi-Fi enabled, no SSID exclusions |
+
+The server public key comes from `/etc/wireguard/server.pub` on the t630.
+The phone's public key (generated by the app) goes into wg0.conf as the peer `PublicKey`.
+
+### Adding additional peers (macOS or other)
+
+1. Use the **WireGuard Mac App Store app** — not Homebrew. See
+   `wireguard/peer-template.conf` for a fully annotated config with common
+   mistakes called out.
+2. Assign the next available IP (10.8.0.7, 10.8.0.8, …).
+3. Add a `[Peer]` block to wg0.conf on the server: public key + `/32` AllowedIPs.
+4. `sudo systemctl reload wg-quick@wg0` (no restart needed for adding peers).
+
+### Verify
+
+```bash
+sudo wg show            # peers listed, recent handshake timestamps
+ping 10.8.0.2           # phone responds when tunnel active
+```
+
+On any peer: open WireGuard app → tap tunnel name → Transfer counters must
+increment while browsing (not just "Connected"). Then test in order:
+
+```
+ping 10.8.0.1    # tunnel up
+ping 1.1.1.1     # NAT/forwarding working
+ping google.com  # DNS working
+```
+
+Each failure level points to a different problem. See network-context.md
+"Peer onboarding — what not to do" for the failure table.
+
+---
+
+## Part 5b: CAKE SQM (upload bufferbloat for VPN clients)
+
+CAKE (Common Applications Kept Enhanced) is a Linux queueing discipline that
+eliminates bufferbloat by making the OS queue the bottleneck before the modem's
+unmanaged FIFO. This matters when VPN clients are uploading through the tunnel —
+without it, upload latency spikes to 400–800 ms under load.
+
+**Scope:** CAKE on the t630 shapes traffic on `enp1s0` egress — all traffic the
+t630 forwards toward the router/internet. This covers upload bufferbloat for all
+WireGuard VPN clients. It does NOT help download bufferbloat for general LAN
+devices (laptops, phones on Wi-Fi) — those go through the Netgear directly. For
+whole-network bufferbloat, the Netgear R7000 needs SQM via DD-WRT or FreshTomato.
+
+### Install
+
+```bash
+sudo apt install -y iproute2   # tc is in iproute2; already present on Ubuntu 24.04
+
+sudo cp cake/setup.sh /usr/local/sbin/cake-setup.sh
+sudo chmod 755 /usr/local/sbin/cake-setup.sh
+sudo cp systemd/cake.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now cake
+```
+
+### Tune bandwidth cap
+
+Open `cake/setup.sh` and adjust `UPLOAD_MBPS` to 90% of your measured ISP upload
+speed. Default is `90` (for a ~100 Mbps upload line). Re-run the install step after
+changing.
+
+### Verify
+
+```bash
+systemctl status cake
+tc qdisc show dev enp1s0   # should show "cake" with bandwidth and options
+```
+
+Run a speed test from a WireGuard-connected device before and after. Upload loaded
+ping should drop from 400–800 ms to under 100 ms.
+
+### Live stats
+
+```bash
+# Per-flow queue stats (updates every 1s)
+watch -n1 tc -s qdisc show dev enp1s0
+```
 
 ---
 
@@ -249,29 +465,14 @@ Verify on a client: `nslookup example.com` — server should show `192.168.1.118
 
 ## Part 9: Uptime Kuma — Observability
 
-Uptime Kuma provides LAN service monitoring. It watches Home Router (HTTP ping), 
-Pi-hole (HTTP), and Unbound (DNS query). It runs as a Docker container with 
-network_mode: host — required because Ubuntu 22.04's nftables backend makes Docker 
-bridge IPs unreachable on arbitrary ports, even with UFW rules in place.
+See Part 4 for full monitor configuration. Summary of what's monitored and why
+`127.0.0.1` works for DNS monitors:
 
-INSTALL:
-  cd ~/uptime-kuma
-  docker compose up -d
+Uptime Kuma uses `network_mode: host`, placing it directly on the host network
+stack. `127.0.0.1:5335` reaches Unbound on the host loopback — the same address
+any host process would use. This is unlike Pi-hole (inside a Docker bridge), which
+must use `172.17.0.1#5335` to reach the host.
 
-The compose file (uptime-kuma/docker-compose.yml) uses network_mode: host and 
-omits ports: — Uptime Kuma is available at http://<t630-ip>:3001.
-
-UNBOUND MONITOR CONFIGURATION:
-After first login, add a DNS monitor:
-  Name:            Unbound
-  Type:            DNS
-  Hostname:        google.com
-  Resolver Server: 127.0.0.1
-  Port:            5335
-  Record Type:     A
-
-127.0.0.1 works here (unlike Pi-hole's 172.17.0.1#5335 setup) because Uptime Kuma 
-is on the host network — 127.0.0.1 is the host loopback, where Unbound listens.
 ---
 
 ## Verification checklist
@@ -284,8 +485,13 @@ is on the host network — 127.0.0.1 is the host loopback, where Unbound listens
 - [ ] Pi-hole Settings → DNS shows `172.17.0.1#5335` as custom upstream
 - [ ] Blocked domain (`doubleclick.net`) → `0.0.0.0` from a client
 - [ ] `cat /sys/class/drm/card*/device/power_dpm_force_performance_level` → `high`
-- [ ] `sudo ufw status verbose` — all ports show `192.168.0.0/16`, none say `Anywhere`
+- [ ] `sudo ufw status verbose` — all ports show `192.168.0.0/16` except 51820/udp which shows `Anywhere`
+- [ ] `sudo wg show` — wg0 interface up, iPhone peer listed
+- [ ] `tc qdisc show dev enp1s0` — shows `cake` qdisc with `bandwidth 90Mbit`
 - [ ] `systemctl status unbound-cache-dump.timer` — active (waiting)
+- [ ] Uptime Kuma: all DNS monitors green (Unbound-Basic, Unbound-DNSSEC, Pi-hole-FullChain)
+- [ ] Uptime Kuma: packet loss monitors receiving heartbeats every ~60s (`crontab -l` confirms job is set)
+- [ ] Packet loss to gateway and 1.1.1.1 both below 1% under normal (non-streaming) load
 
 ---
 

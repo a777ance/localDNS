@@ -1,3 +1,6 @@
+# Deploys to: /etc/systemd/system/unbound-cache-dump.service
+# Triggered by: unbound-cache-dump.timer (hourly) and unbound.service stop
+
 [Unit]
 Description=Dump Unbound cache
 Requires=unbound.service
