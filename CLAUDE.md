@@ -158,3 +158,11 @@ clean Ubuntu 24.04. Use feature branches for half-finished work.
 - **SETUP.md** — full step-by-step reproduction guide
 - **network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
+
+---
+
+## See also
+
+- **[a777ance/claude-code-homelab](https://github.com/a777ance/claude-code-homelab)** — the setup guide
+  that walks through creating a repo like this one from scratch, including Claude Code in VS Code,
+  GitHub Actions deploys, and best practices. This repo is the case study referenced throughout that guide.
