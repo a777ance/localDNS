@@ -14,7 +14,7 @@ Before touching the t630, configure the router so the t630 has a stable address
 and the network is ready to use it as DNS.
 
 **DHCP reservation:** Reserve `192.168.1.118` for the t630's MAC address
-(`7C:D3:0A:77:93:AE`) in the router's LAN setup. This gives the t630 a stable
+(`<T630-MAC>`) in the router's LAN setup. This gives the t630 a stable
 address without a static IP on the OS side.
 
 **DNS for LAN clients:** Set the router's primary DNS to `192.168.1.118` (the t630)
@@ -235,7 +235,7 @@ Create a tunnel in the WireGuard iOS app with:
 
 | Field | Value |
 | ----- | ----- |
-| Server endpoint | `47.14.39.51:51820` |
+| Server endpoint | `<WAN-IP>:51820` |
 | DNS | `10.8.0.1` |
 | Allowed IPs | `0.0.0.0/0, ::/0` |
 | On-Demand | Cellular + Wi-Fi enabled, no SSID exclusions |

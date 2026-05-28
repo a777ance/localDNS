@@ -12,7 +12,7 @@ DHCP reservation on the router:
 
 | Device | IP | MAC |
 | ------ | -- | --- |
-| t630 thin client | 192.168.1.118 | 7C:D3:0A:77:93:AE |
+| t630 thin client | 192.168.1.118 | `<T630-MAC>` |
 
 This means the t630 always gets the same address without needing to manage a static
 IP in netplan or NetworkManager. If the t630 is ever rebuilt, the reservation keeps
@@ -139,7 +139,7 @@ iPhone (cellular or any Wi-Fi)
 t630 wg0 interface — 10.8.0.1/24
   │  NAT / IP forward → enp1s0
   ▼
-Spectrum WAN (47.14.39.51) → internet
+ISP WAN (<WAN-IP>) → internet
 ```
 
 DNS for tunnel clients points to `10.8.0.1` (the wg0 interface), which is
@@ -173,7 +173,7 @@ Apply without reboot: `sudo sysctl -p`
 
 | Setting | Value |
 | ------- | ----- |
-| Endpoint | `47.14.39.51:51820` |
+| Endpoint | `<WAN-IP>:51820` |
 | DNS | `10.8.0.1` |
 | AllowedIPs | `0.0.0.0/0, ::/0` (full tunnel) |
 | On-Demand | Cellular + Wi-Fi, no SSID exclusions |
@@ -185,19 +185,19 @@ and avoids the operational complexity of per-SSID rules.
 ### Why port 51820 is open to Anywhere
 
 Every other service in `ufw/setup.sh` is restricted to `192.168.0.0/16`.
-WireGuard is the single exception: the phone connects from Spectrum Mobile
-cellular, which is a public IP outside the LAN. The port must be reachable
-from the internet for the handshake to complete.
+WireGuard is the single exception: the phone connects from cellular, which is
+a public IP outside the LAN. The port must be reachable from the internet for
+the handshake to complete.
 
 ### Verified behavior
 
 - Transfer counters in the WireGuard iOS app increment during browsing → tunnel
   is carrying traffic, not just "connected"
 - Speed on cellular through tunnel: ~185 Mbps down / 92 Mbps up, 15 ms ping
-  (Spectrum 2:1 down/up ratio, vs. the 10:1 ratio of 6 months prior)
-- dnsleaktest.com from phone on cellular (VPN on) shows `47.14.39.51 / Spectrum
-  Belchertown` — correct, because the phone exits through the home Spectrum
-  connection, not a third-party VPN provider
+  (ISP 2:1 down/up ratio, vs. the 10:1 ratio of 6 months prior)
+- dnsleaktest.com from phone on cellular (VPN on) shows the home WAN IP —
+  correct, because the phone exits through the home connection, not a
+  third-party VPN provider
 
 ### Does the router need a DHCP or DNS reservation for WireGuard peers?
 
@@ -212,7 +212,7 @@ VPN peers.
 
 ### The failure
 
-When a second peer (Jesse's Mac) was added, their internet stopped working after
+When a second peer (a Mac) was added, their internet stopped working after
 connecting. The tunnel handshaked successfully and `ping 10.8.0.1` worked, but
 `ping 1.1.1.1` failed — traffic was entering the tunnel but not getting out to
 the internet.
@@ -254,7 +254,7 @@ is the correct and only place for it.
 
 ## WireGuard peer onboarding — what not to do
 
-Lessons from adding Jesse's Mac as a peer (May 2026).
+Lessons from adding a Mac as a second peer (May 2026).
 
 ### Use the App Store app, not Homebrew
 
