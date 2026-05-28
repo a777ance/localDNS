@@ -12,10 +12,12 @@ PUSH_URL="http://192.168.1.118:3001/api/push/<PUSH_TOKEN_CAKE>"
 if systemctl is-active --quiet cake && tc qdisc show dev "$IFACE" | grep -q "cake"; then
     bandwidth=$(tc qdisc show dev "$IFACE" | grep -oP 'bandwidth \K[^ ]+')
     status="up"
-    msg="cake active @ ${bandwidth}"
+    msg="cake_active_${bandwidth}"
 else
     status="down"
-    msg="cake not running on $IFACE"
+    msg="cake_not_running"
 fi
 
-curl -s "${PUSH_URL}?status=${status}&msg=${msg}" > /dev/null
+curl -s -G "${PUSH_URL}" \
+    --data-urlencode "status=${status}" \
+    --data-urlencode "msg=${msg}" > /dev/null
