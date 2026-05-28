@@ -1,3 +1,7 @@
+# Deploys to: /etc/systemd/system/gpu-performance.service
+# Reload: sudo systemctl daemon-reload && sudo systemctl enable --now gpu-performance
+# Part of AMD Carrizo remediation — all 4 pieces required (GRUB + this + cpu-performance + udev rule).
+
 [Unit]
 Description=Force AMD GPU to high performance
 After=multi-user.target

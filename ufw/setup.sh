@@ -1,4 +1,9 @@
 #!/bin/bash
+# Run directly on the t630: sudo bash ufw/setup.sh
+# Resets and rebuilds all firewall rules from scratch. Safe to re-run.
+# All services LAN-only (192.168.0.0/16) except 51820/UDP (WireGuard, open to Anywhere).
+# WG subnet (10.8.0.0/24) also allowed for DNS, SSH, and Uptime Kuma
+# because full-tunnel peers source from 10.8.0.x, not 192.168.x.x.
 set -euo pipefail
 LAN="192.168.0.0/16"
 WG="10.8.0.0/24"

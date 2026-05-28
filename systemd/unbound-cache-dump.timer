@@ -1,3 +1,6 @@
+# Deploys to: /etc/systemd/system/unbound-cache-dump.timer
+# Fires: 10min after boot, then every hour. Cache persists across reboots.
+
 [Unit]
 Description=Periodic Unbound cache dump
 

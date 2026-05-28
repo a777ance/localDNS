@@ -1,3 +1,5 @@
 #!/bin/bash
+# Deploys to: /usr/local/bin/unbound-cache-load  (chmod +x)
+# Called by: systemd/unbound.service.d/override.conf (2s after Unbound start)
 [ -f /var/lib/unbound/cache/cache.dump ] && \
   /usr/sbin/unbound-control load_cache < /var/lib/unbound/cache/cache.dump

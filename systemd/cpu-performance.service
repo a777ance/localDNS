@@ -1,3 +1,6 @@
+# Deploys to: /etc/systemd/system/cpu-performance.service
+# Reload: sudo systemctl daemon-reload && sudo systemctl enable --now cpu-performance
+
 [Unit]
 Description=Force CPU to performance governor
 After=multi-user.target

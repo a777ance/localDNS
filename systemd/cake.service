@@ -1,3 +1,6 @@
+# Deploys to: /etc/systemd/system/cake.service
+# Reload: sudo systemctl daemon-reload && sudo systemctl enable --now cake
+
 [Unit]
 Description=CAKE queue discipline (upload bufferbloat management)
 After=network-online.target wg-quick@wg0.service

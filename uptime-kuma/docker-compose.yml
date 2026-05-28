@@ -1,10 +1,18 @@
+# Deploys to: ~/uptime-kuma/docker-compose.yml
+# Reload: cd ~/uptime-kuma && docker compose up -d
+# Data persists in ~/uptime-kuma/data/ (bind mount — back this directory up directly)
+#
+# network_mode: host is required so Uptime Kuma can reach Unbound at 127.0.0.1:5335.
+# Inside a bridge container, 127.0.0.1 is the container's own loopback — it does not
+# reach the host. With host networking the container shares the host network stack.
+# The ports: mapping is intentionally absent — Kuma binds directly on port 3001.
+
 services:
   uptime-kuma:
     image: louislam/uptime-kuma:1
     container_name: uptime-kuma
     restart: unless-stopped
-    ports:
-      - "3001:3001"
+    network_mode: host
     volumes:
       - ./data:/app/data
     environment:

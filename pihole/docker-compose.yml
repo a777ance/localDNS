@@ -1,3 +1,9 @@
+# Deploys to: ~/pihole/docker-compose.yml
+# Reload: cd ~/pihole && docker compose up -d
+# IMPORTANT: After first deploy, fix upstream DNS in Pi-hole UI:
+#   Settings → DNS → remove 127.0.0.1#5335 → enter 172.17.0.1#5335 → Save
+#   (127.0.0.1 is the container's own loopback, not the host — it does not reach Unbound)
+
 services:
   pihole:
     container_name: pihole

@@ -1,2 +1,8 @@
+# Deploys to: /etc/udev/rules.d/99-amdgpu-performance.rules
+# Reload: sudo udevadm control --reload-rules && sudo udevadm trigger --subsystem-match=drm
+# Critical piece of AMD Carrizo remediation: re-asserts 'high' GPU performance on every
+# DRM event (display hotplug, runtime PM). Without this the GPU re-throttles mid-session
+# even with the systemd service running.
+
 ACTION=="add|change", SUBSYSTEM=="drm", KERNEL=="card[0-9]*", ATTR{device/power_dpm_force_performance_level}="high"
 

@@ -1,4 +1,6 @@
 #!/bin/bash
+# Deploys to: /usr/local/sbin/cake-setup.sh  (chmod 755)
+# Managed by: systemd/cake.service
 # Apply CAKE queueing discipline on enp1s0 egress.
 #
 # Scope: upload path only — traffic leaving the t630 toward the router/internet.
