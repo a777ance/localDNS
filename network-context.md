@@ -293,6 +293,119 @@ assigned by the WireGuard server via `AllowedIPs` in wg0.conf — the router
 never sees the 10.8.0.0/24 subnet at all. Do not create a DHCP reservation for
 VPN peers.
 
+### IP address assignments
+
+| Peer | IP | Notes |
+| ---- | -- | ----- |
+| Server wg0 interface | 10.8.0.1 | Gateway; also the DNS address peers use |
+| iPhone | 10.8.0.2 | |
+| Mac (second peer) | 10.8.0.7 | |
+| Windows laptop | 10.8.0.3 | KEY ROTATION NEEDED — private key was shared in plaintext during setup |
+
+---
+
+## WireGuard: adding a new peer
+
+### Each device needs its own key pair
+
+Never share keys between devices. Each peer's private key must be unique.
+Reasons: if a device is lost, you revoke only that peer without affecting others;
+WireGuard routes traffic by public key — two devices sharing one key confuse the
+server about where to send return traffic; only one can realistically be connected
+at a time.
+
+### Adding a peer live (no restart)
+
+```bash
+# Add a peer without restarting wg-quick (existing tunnels stay connected)
+sudo wg set wg0 peer "PEER_PUBLIC_KEY" allowed-ips 10.8.0.X/32
+
+# Then save to wg0.conf so it survives reboot
+sudo wg-quick save wg0
+
+# Verify
+sudo wg show
+```
+
+`wg-quick save wg0` writes the current live state back to `/etc/wireguard/wg0.conf`.
+A manual restart is not needed — the peer is active immediately after `wg set`.
+
+### Key derivation: the safe way to get a peer's public key
+
+Copy/pasting base64 keys through chat, screenshots, or terminal fonts is
+unreliable. The character `I` (uppercase i) and `l` (lowercase L) are
+visually identical in many monospace fonts. A single wrong character produces a
+valid-looking but wrong key that either fails format validation or silently
+connects the wrong peer.
+
+**Safe method — derive the public key from the private key on the server:**
+
+```bash
+PUBKEY=$(echo "PEER_PRIVATE_KEY" | wg pubkey)
+echo $PUBKEY                           # verify it looks right
+sudo wg set wg0 peer "$PUBKEY" allowed-ips 10.8.0.X/32
+sudo wg-quick save wg0
+```
+
+The private key is processed only in the shell's memory and never written to
+disk. The peer should rotate their key afterward (delete tunnel, create new
+one, re-add public key) as a precaution.
+
+**Never share your own private key in chat, screenshots, or logs.** If it
+appears in plaintext anywhere, treat it as compromised and rotate immediately.
+The Windows laptop peer's private key was exposed during setup — that peer
+needs a new key pair.
+
+### Do not add the server's own public key as a peer
+
+During laptop setup, the server's public key was accidentally added as a peer:
+
+```bash
+# Wrong — this adds the server to its own peer list
+sudo wg set wg0 peer "SERVER_PUBLIC_KEY" allowed-ips 10.8.0.X/32
+
+# Remove it immediately
+sudo wg set wg0 peer "SERVER_PUBLIC_KEY" remove
+sudo wg-quick save wg0
+```
+
+If the server's key appears in `sudo wg show` as a peer entry, remove it.
+
+### SSH when a full tunnel is active
+
+With `AllowedIPs = 0.0.0.0/0`, all traffic from the VPN peer routes through
+the tunnel. Attempting to SSH to the server's LAN IP (`192.168.1.118`) from
+within the tunnel fails — the connection exits via the tunnel and comes back
+from a `10.8.0.x` source, but the firewall only allowed SSH from
+`192.168.0.0/16`.
+
+Two fixes (both now applied):
+
+1. **Use the WireGuard interface IP** — `ssh user@10.8.0.1` always works
+   because the connection arrives on wg0 and the WG subnet is now allowed
+   for SSH in `ufw/setup.sh`.
+
+2. **UFW now allows SSH from the WG subnet** — `ufw allow in from 10.8.0.0/24
+   to any port 22` is in `ufw/setup.sh`, so `ssh user@192.168.1.118` also
+   works from a connected VPN peer.
+
+### UFW: services reachable from VPN peers
+
+When a peer runs a full tunnel, its source IP on the server is `10.8.0.x`.
+Any UFW rule scoped to `192.168.0.0/16` will not match. Services that VPN
+peers need must also be allowed from `10.8.0.0/24`. Currently allowed:
+
+| Port | Service | Added in |
+| ---- | ------- | -------- |
+| 53/tcp+udp | Pi-hole DNS | initial WG setup |
+| 22/tcp | SSH | laptop session |
+| 3001/tcp | Uptime Kuma | laptop session |
+
+Uptime Kuma (`http://192.168.1.118:3001`) was unreachable from the laptop
+even after the tunnel connected because port 3001 was only open to the LAN
+subnet, not the WG subnet. Adding `ufw allow from 10.8.0.0/24 to any port
+3001 proto tcp` fixed it.
+
 ---
 
 ## WireGuard: UFW forwarding — what went wrong and why

@@ -23,6 +23,10 @@ ufw allow in to any port 51820 proto udp
 # WireGuard tunnel clients: allow DNS so the phone reaches Pi-hole at 10.8.0.1
 ufw allow in from "$WG" to any port 53 proto tcp
 ufw allow in from "$WG" to any port 53 proto udp
+# WireGuard tunnel clients: allow SSH and Kuma so they're reachable when full
+# tunnel is active (all traffic exits via WG; source IP is 10.8.0.x not 192.168.x.x)
+ufw allow in from "$WG" to any port 22 proto tcp
+ufw allow in from "$WG" to any port 3001 proto tcp
 ufw allow out to any port 53 proto udp
 ufw --force enable
 ufw status verbose
