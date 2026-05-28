@@ -3,6 +3,71 @@
 Documents the router and Pi-hole DNS configuration that the t630 stack depends on.
 This is not reproduced by SETUP.md — it describes the surrounding network environment.
 
+## Router topology
+
+Two routers are present. The Netgear R7000 is the main router (handles all
+routing, NAT, DHCP, and the WAN connection). A secondary TP-Link router is
+demoted to Access Point (AP) mode — it provides Wi-Fi coverage in areas the
+Netgear doesn't reach but does not route traffic.
+
+| Device | Role | IP |
+| ------ | ---- | -- |
+| Netgear R7000 | Main router (routing, NAT, DHCP) | 192.168.1.1 |
+| TP-Link (TPLINK90) | Wi-Fi AP only (no routing) | 192.168.1.2 (LAN) |
+| t630 thin client | DNS + VPN server | 192.168.1.118 |
+
+### Why this split
+
+The TP-Link has a stronger RF radio than the Netgear but a weaker CPU. Under
+sustained 4K streaming load (15–25 Mbps continuous per stream) the TP-Link's
+CPU saturates, heats up, and produces 60–85% packet loss — catastrophic for
+everything on the network, not just the streaming device.
+
+Root cause confirmed by testing: direct wired connection to the Netgear showed
+0% loss and good speeds; connecting through the TP-Link showed loss even after
+a fresh reboot. Symptom: fine ping under idle, packet loss explodes under load
+(download ping spikes to 2000–4000ms, jitter >100ms).
+
+Fix: promote the Netgear to main router (all routing, all DHCP, port forwarding
+for WireGuard), demote the TP-Link to AP mode (radio only, LAN port connected
+to Netgear). Now: Netgear's healthy CPU processes all packets; TP-Link's good
+radio handles Wi-Fi coverage. Neither is overloaded doing the other's job.
+
+**AP mode setup on the TP-Link:**
+- Connect LAN port (not WAN) to Netgear via ethernet
+- Disable DHCP server on TP-Link
+- Set TP-Link LAN IP to a static address on the Netgear's subnet (e.g. 192.168.1.2)
+- Disable firewall/NAT functions if the model supports it
+- Give it the same SSID as the Netgear if seamless roaming is wanted
+
+### Diagnosing future packet loss
+
+Three-hop test to locate the failure:
+
+```bash
+# 1. Direct to gateway — is the LAN/router healthy?
+ping -c 50 192.168.1.1
+
+# 2. External IP — is WAN routing working?
+ping -c 50 1.1.1.1
+
+# 3. Domain — is DNS working?
+ping -c 50 google.com
+```
+
+| Result | Meaning |
+| ------ | ------- |
+| #1 bad | LAN issue (router, ethernet, switch) |
+| #1 ok, #2 bad | WAN/ISP issue |
+| #1 ok, #2 ok, #3 bad | DNS issue (Pi-hole, Unbound) |
+
+For ISP-side diagnosis: `mtr -rwzc 500 1.1.1.1` shows per-hop loss across
+the full path. Check modem signal levels (usually `http://192.168.100.1`) —
+downstream power should be −7 to +7 dBmV, SNR above 35 dB. Out-of-spec
+signal levels require an ISP technician.
+
+---
+
 ## Router: Netgear R7000 (192.168.1.1)
 
 ### DHCP reservation
@@ -116,12 +181,34 @@ Consequence: the ports: mapping is removed from the compose file. Uptime Kuma
 remains available at port 3001 — it binds directly on the host interface rather 
 than through Docker's port mapping layer.
 
-Monitor configuration (Uptime Kuma → Edit Monitor):
-  Type:            DNS
-  Hostname:        google.com
-  Resolver Server: 127.0.0.1
-  Port:            5335
-  Record Type:     A
+### Uptime Kuma monitors
+
+Full monitor stack, with rationale for each layer:
+
+| Monitor | Type | Target | Port | Why |
+| ------- | ---- | ------ | ---- | --- |
+| Unbound – Basic | DNS | `cloudflare.com` via `127.0.0.1` | 5335 | Confirms Unbound is answering queries |
+| Unbound – DNSSEC | DNS | `internetsociety.org` via `127.0.0.1` | 5335 | Confirms DNSSEC validation is active (DNSSEC-signed domain) |
+| Pi-hole – Full Chain | DNS | `cloudflare.com` via `127.0.0.1` | 53 | Tests entire chain: Pi-hole → Unbound → recursion |
+| Pi-hole – Web UI | TCP Port | `192.168.1.118` | 8080 | Confirms Pi-hole admin panel is reachable |
+| Home Router | HTTP | `http://192.168.1.1` | — | Confirms gateway is up |
+| Packet Loss – Router | Push | (script pushes) | — | LAN packet loss %; `status=down` above threshold |
+| Packet Loss – Internet | Push | (script pushes) | — | WAN packet loss %; distinguishes LAN vs ISP problems |
+
+**Diagnostic logic:** if Pi-hole Full Chain goes red but Unbound Basic stays
+green, the break is specifically in the Pi-hole → Unbound link, not Unbound
+itself. If both go red, Unbound is the problem. Layered monitoring isolates the
+failure to one component.
+
+**Resolver field gotcha:** in Uptime Kuma's DNS monitor, the Resolver Server
+field takes an IP address only — no port. Port goes in the separate Port field.
+Entering `127.0.0.1:5335` in the resolver field creates an invalid double-port
+and causes intermittent failures.
+
+**Packet loss monitors:** driven by `scripts/packet-loss-monitor.sh`, which
+runs via cron every 60 seconds. The loss % is placed in the `ping` field so
+Uptime Kuma graphs it as a time series. Threshold: 15% while the TP-Link
+situation was being resolved; lower to 5% once hardware is stable.
 
 ---
 

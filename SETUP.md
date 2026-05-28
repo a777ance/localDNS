@@ -157,6 +157,71 @@ cd ~/uptime-kuma && docker compose up -d
 Web UI at `http://192.168.1.118:3001`. Create an admin account on first run.
 Data persists in `~/uptime-kuma/data/` (bind mount — back this directory up directly).
 
+### Monitor configuration
+
+Add these monitors after first login. They provide layered DNS visibility and
+packet loss tracking. See network-context.md "Uptime Kuma monitors" for the
+diagnostic logic behind each one.
+
+**DNS monitors (test query resolution, not just port availability)**
+
+| Friendly Name | Type | Hostname | Resolver | Port | Record |
+| --- | --- | --- | --- | --- | --- |
+| Unbound – Basic | DNS | `cloudflare.com` | `127.0.0.1` | `5335` | A |
+| Unbound – DNSSEC | DNS | `internetsociety.org` | `127.0.0.1` | `5335` | A |
+| Pi-hole – Full Chain | DNS | `cloudflare.com` | `127.0.0.1` | `53` | A |
+| Pi-hole – Web UI | TCP Port | `192.168.1.118` | — | `8080` | — |
+| Home Router | HTTP(s) | `http://192.168.1.1` | — | — | — |
+
+For the resolver field: enter the IP only, **no port**. Port goes in the
+separate Port field. `127.0.0.1:5335` in the resolver field is wrong — it
+creates an invalid double-port and causes intermittent failures.
+
+**Packet loss monitors (Push type)**
+
+Create two Push monitors:
+
+| Friendly Name | Heartbeat Interval | Retries |
+| --- | --- | --- |
+| Packet Loss – Router (LAN) | 60s | 2 |
+| Packet Loss – Internet (1.1.1.1) | 60s | 2 |
+
+After saving each, copy the push URL (token only, strip `?status=…` from
+the end) into `scripts/packet-loss-monitor.sh`.
+
+### Packet loss monitoring script
+
+```bash
+cp scripts/packet-loss-monitor.sh ~/packet-loss-monitor.sh
+chmod +x ~/packet-loss-monitor.sh
+# Edit: fill in ROUTER_PUSH_URL and INTERNET_PUSH_URL tokens, confirm ROUTER_IP
+nano ~/packet-loss-monitor.sh
+# Test manually:
+~/packet-loss-monitor.sh
+# Both Push monitors should flip green within a few seconds.
+# Then schedule:
+crontab -e
+```
+
+Add to crontab:
+```
+* * * * * /home/USERNAME/packet-loss-monitor.sh
+```
+
+The script sends 50 pings per check (10 seconds) so it fits comfortably in
+the 60-second window. Loss % is placed in the `ping` field so Uptime Kuma
+graphs it over time. `status=down` fires when loss exceeds `THRESHOLD`
+(default 15% — lower to 5% once router hardware is stable).
+
+**Threshold guidance:**
+
+| Threshold | Meaning |
+| --- | --- |
+| 1–2% | Strict — catches early degradation |
+| 5% | Standard — video calls start glitching |
+| 10% | Lenient — things noticeably broken |
+| 15% | Severe events only — router-is-overheating tier |
+
 ---
 
 ## Part 5: Firewall
@@ -350,29 +415,14 @@ Verify on a client: `nslookup example.com` — server should show `192.168.1.118
 
 ## Part 9: Uptime Kuma — Observability
 
-Uptime Kuma provides LAN service monitoring. It watches Home Router (HTTP ping), 
-Pi-hole (HTTP), and Unbound (DNS query). It runs as a Docker container with 
-network_mode: host — required because Ubuntu 22.04's nftables backend makes Docker 
-bridge IPs unreachable on arbitrary ports, even with UFW rules in place.
+See Part 4 for full monitor configuration. Summary of what's monitored and why
+`127.0.0.1` works for DNS monitors:
 
-INSTALL:
-  cd ~/uptime-kuma
-  docker compose up -d
+Uptime Kuma uses `network_mode: host`, placing it directly on the host network
+stack. `127.0.0.1:5335` reaches Unbound on the host loopback — the same address
+any host process would use. This is unlike Pi-hole (inside a Docker bridge), which
+must use `172.17.0.1#5335` to reach the host.
 
-The compose file (uptime-kuma/docker-compose.yml) uses network_mode: host and 
-omits ports: — Uptime Kuma is available at http://<t630-ip>:3001.
-
-UNBOUND MONITOR CONFIGURATION:
-After first login, add a DNS monitor:
-  Name:            Unbound
-  Type:            DNS
-  Hostname:        google.com
-  Resolver Server: 127.0.0.1
-  Port:            5335
-  Record Type:     A
-
-127.0.0.1 works here (unlike Pi-hole's 172.17.0.1#5335 setup) because Uptime Kuma 
-is on the host network — 127.0.0.1 is the host loopback, where Unbound listens.
 ---
 
 ## Verification checklist
@@ -388,6 +438,9 @@ is on the host network — 127.0.0.1 is the host loopback, where Unbound listens
 - [ ] `sudo ufw status verbose` — all ports show `192.168.0.0/16` except 51820/udp which shows `Anywhere`
 - [ ] `sudo wg show` — wg0 interface up, iPhone peer listed
 - [ ] `systemctl status unbound-cache-dump.timer` — active (waiting)
+- [ ] Uptime Kuma: all DNS monitors green (Unbound-Basic, Unbound-DNSSEC, Pi-hole-FullChain)
+- [ ] Uptime Kuma: packet loss monitors receiving heartbeats every ~60s (`crontab -l` confirms job is set)
+- [ ] Packet loss to gateway and 1.1.1.1 both below 1% under normal (non-streaming) load
 
 ---
 
