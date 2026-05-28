@@ -1,44 +1,17 @@
 # Network Context
 
-Documents the router and Pi-hole DNS configuration that the t630 stack depends on.
+Documents the router and DNS/VPN configuration that the t630 stack depends on.
 This is not reproduced by SETUP.md — it describes the surrounding network environment.
 
 ## Router topology
 
-Two routers are present. The Netgear R7000 is the main router (handles all
-routing, NAT, DHCP, and the WAN connection). A secondary TP-Link router is
-demoted to Access Point (AP) mode — it provides Wi-Fi coverage in areas the
-Netgear doesn't reach but does not route traffic.
+The Netgear R7000 is the sole router (routing, NAT, DHCP, WAN). The t630 is the
+DNS and VPN server, hanging off the LAN.
 
 | Device | Role | IP |
 | ------ | ---- | -- |
-| Netgear R7000 | Main router (routing, NAT, DHCP) | 192.168.1.1 |
-| TP-Link (TPLINK90) | Wi-Fi AP only (no routing) | 192.168.1.2 (LAN) |
+| Netgear R7000 | Router (routing, NAT, DHCP) | 192.168.1.1 |
 | t630 thin client | DNS + VPN server | 192.168.1.118 |
-
-### Why this split
-
-The TP-Link has a stronger RF radio than the Netgear but a weaker CPU. Under
-sustained 4K streaming load (15–25 Mbps continuous per stream) the TP-Link's
-CPU saturates, heats up, and produces 60–85% packet loss — catastrophic for
-everything on the network, not just the streaming device.
-
-Root cause confirmed by testing: direct wired connection to the Netgear showed
-0% loss and good speeds; connecting through the TP-Link showed loss even after
-a fresh reboot. Symptom: fine ping under idle, packet loss explodes under load
-(download ping spikes to 2000–4000ms, jitter >100ms).
-
-Fix: promote the Netgear to main router (all routing, all DHCP, port forwarding
-for WireGuard), demote the TP-Link to AP mode (radio only, LAN port connected
-to Netgear). Now: Netgear's healthy CPU processes all packets; TP-Link's good
-radio handles Wi-Fi coverage. Neither is overloaded doing the other's job.
-
-**AP mode setup on the TP-Link:**
-- Connect LAN port (not WAN) to Netgear via ethernet
-- Disable DHCP server on TP-Link
-- Set TP-Link LAN IP to a static address on the Netgear's subnet (e.g. 192.168.1.2)
-- Disable firewall/NAT functions if the model supports it
-- Give it the same SSID as the Netgear if seamless roaming is wanted
 
 ### Diagnosing future packet loss
 
@@ -208,8 +181,7 @@ and causes intermittent failures.
 
 **Packet loss monitors:** driven by `scripts/packet-loss-monitor.sh`, which
 runs via cron every 60 seconds. The loss % is placed in the `ping` field so
-Uptime Kuma graphs it as a time series. Threshold: 15% while the TP-Link
-situation was being resolved; lower to 5% once hardware is stable.
+Uptime Kuma graphs it as a time series. Threshold: 5%.
 
 ---
 
@@ -302,6 +274,19 @@ VPN peers.
 | iPhone | 10.8.0.2 | |
 | Mac (second peer) | 10.8.0.7 | |
 | Windows laptop | 10.8.0.3 | KEY ROTATION NEEDED — private key was shared in plaintext during setup |
+
+### Windows client security (laptop peer)
+
+| Setting | Value | Why |
+| ------- | ----- | --- |
+| Network profile | Public | Blocks most unsolicited inbound connections via Windows Firewall |
+| Windows Firewall | On | Confirmed enabled |
+
+Setting the network profile to **Public** (rather than Private or Domain) is the
+correct choice for a device on the home LAN that is also a VPN peer. Public profile
+activates Windows Firewall's stricter inbound rules, blocking discovery and sharing
+traffic from other LAN devices. The WireGuard tunnel is outbound-initiated and is
+unaffected by this setting.
 
 ---
 
