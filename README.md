@@ -61,6 +61,12 @@ Dropping a domain at DNS eliminates the request entirely — no payload, no pars
 
 ---
 
+## DNS exposure model: maximize, then dilute
+
+Using a third-party resolver like 1.1.1.1 *minimizes* the number of servers that see queries but *concentrates* visibility — one entity accumulates a full browsing profile. Recursive resolution does the opposite: queries fan out across the global resolver graph (root → TLD → authoritative), and each server sees exactly one query for one domain. Exposure is maximized; concentration is eliminated. No single entity can reconstruct a browsing history because no single entity ever holds more than one data point.
+
+CAKE's `diffserv4` scheduling enforces this priority at the packet level. DNS responses are marked CS5 (highest tier) and skip ahead of all other traffic in the upload queue — no packet waits in front of a DNS response regardless of concurrent upload load.
+
 ## DNS execution layers
 
 | Component | Execution layer | Rationale |
@@ -68,7 +74,7 @@ Dropping a domain at DNS eliminates the request entirely — no payload, no pars
 | Pi‑hole | Docker container | Isolates blocklist ingestion, gravity updates, and UI |
 | Unbound | Native Linux service | No bridge overhead; DNSSEC validation closest to the wire |
 
-Pi-hole sends upstream queries to Unbound at `172.17.0.1#5335` (the Docker bridge gateway to the host). No third-party resolver is ever in the chain.
+Pi-hole sends upstream queries to Unbound at `172.17.0.1#5335` (the Docker bridge gateway to the host). All upstream resolution is recursive — no third-party resolver is ever in the chain.
 
 ---
 

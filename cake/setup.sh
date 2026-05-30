@@ -31,6 +31,21 @@ IFACE="${1:-enp1s0}"
 # Adjust here if your line speed changes, then redeploy: sudo bash cake/setup.sh
 UPLOAD_MBPS=85
 
+# Mark DNS responses with DSCP=CS5 so diffserv4 places them in the highest-priority
+# tin (voice+DNS). Without explicit marking, DNS defaults to DSCP=0 (best-effort).
+# Covers port 53 (Pi-hole) and port 5335 (Unbound direct).
+# WireGuard's kernel module copies inner-packet DSCP to the outer UDP TOS field,
+# so marking here propagates through WireGuard encapsulation to what CAKE sees.
+# 'wash' below zeroes DSCP on egress — ISP never sees internal markings.
+for proto in udp tcp; do
+    for sport in 53 5335; do
+        iptables -t mangle -D POSTROUTING -p "$proto" --sport "$sport" \
+            -j DSCP --set-dscp-class CS5 2>/dev/null || true
+        iptables -t mangle -A POSTROUTING -p "$proto" --sport "$sport" \
+            -j DSCP --set-dscp-class CS5
+    done
+done
+
 # Remove any existing root qdisc so this script is idempotent.
 tc qdisc del dev "$IFACE" root 2>/dev/null || true
 
@@ -41,7 +56,7 @@ tc qdisc del dev "$IFACE" root 2>/dev/null || true
 #             MASQUERADE, so iPhone (10.8.0.2) and laptop (10.8.0.3) get separate
 #             fair-queue slots instead of being lumped as one flow
 # diffserv4   4-tier DSCP scheduling: bulk < best-effort < video < voice+DNS
-#             Pi-hole/Unbound DNS responses get highest priority automatically
+#             DNS responses land in the highest tin via CS5 marking above
 # wash        zero DSCP markings before egress — don't leak internal markings to ISP
 # split-gso   split GSO super-packets before queuing so CAKE's latency guarantees
 #             apply to individual packets, not 64 KB batches

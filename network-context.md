@@ -115,10 +115,11 @@ container restarts.
 ### Why "Permit all origins" is checked
 
 Pi-hole flags this as "potentially dangerous." It is safe here because UFW restricts
-port 53 to `192.168.0.0/16`. No query from outside the LAN can reach Pi-hole
-regardless of this setting. "Allow only local requests" would also work but would
-block queries from Docker containers and other non-directly-attached interfaces.
-"Permit all origins" is the correct setting when the firewall handles the boundary.
+port 53 to `192.168.0.0/16` and `10.8.0.0/24`. No query from outside those subnets
+can reach Pi-hole regardless of this setting. "Allow only local requests" would block
+queries from Docker containers and WireGuard peers. "Permit all origins" is correct
+when the firewall owns the boundary — it maximizes which internal clients can reach
+the DNS stack without widening the external attack surface.
 
 ### No preset upstream servers checked
 
@@ -498,7 +499,12 @@ packet buffer, everything else has to wait behind it. A 16 ms idle ping becomes
 fairness or timing), CAKE manages a smart queue in the OS. It rate-limits egress
 slightly below the ISP line speed so the OS queue becomes the bottleneck. It then
 applies fair queuing (each flow gets a slot) and DSCP prioritization so DNS
-responses and interactive traffic skip ahead of bulk downloads.
+responses skip ahead of bulk downloads.
+
+DNS responses are explicitly marked DSCP=CS5 by iptables mangle rules in
+`cake/setup.sh` before the CAKE qdisc sees them. Without that marking, DNS
+defaults to DSCP=0 (best-effort tin) and gets no priority benefit. The `wash`
+option zeroes DSCP on egress so internal markings are never seen by the ISP.
 
 ### What CAKE on the t630 covers
 
