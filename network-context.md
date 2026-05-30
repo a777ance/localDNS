@@ -69,9 +69,13 @@ This means Pi-hole sees individual client IPs in its query log, enabling per-dev
 statistics and filtering.
 
 **Secondary DNS tradeoff:** The `1.1.1.1` fallback is intentional. If the t630 goes
-down, the network stays online. The cost is that ad-blocking and local DNS resolution
-stop working until the t630 is back. For a home network this is the right tradeoff.
-Removing the fallback would make the entire network go offline when the t630 reboots.
+down, the network stays online. The cost is twofold: ad-blocking and DNSSEC stop
+working, and DNS queries are concentrated at Cloudflare rather than diluted across
+the recursive resolver graph. Some OS DNS clients will also fall back to the secondary
+during transient slowness (blocklist updates, high load) — not only on full t630
+failure — so `1.1.1.1` receives some queries even when the stack is healthy.
+Removing the fallback would make the entire network go offline when the t630 reboots,
+which is the wrong tradeoff for a home network.
 
 ### Router's own DNS
 
@@ -100,17 +104,15 @@ container's own loopback — not the host. Unbound runs on the host OS. To reach
 Pi-hole must use the Docker bridge gateway IP, which is `172.17.0.1` — the host's
 address as seen from inside the container.
 
-The `PIHOLE_DNS_` value in `pihole/docker-compose.yml` is `127.0.0.1#5335`. This is
-what Pi-hole receives on first container creation. After first run, Pi-hole stores
-the upstream DNS in its persistent database (in the `pihole_data` Docker volume).
-The UI-configured value (`172.17.0.1#5335`) then takes precedence over the compose
-env var. The compose file value only matters when deploying to a completely fresh
-volume.
+The `PIHOLE_DNS_` value in `pihole/docker-compose.yml` is `172.17.0.1#5335`. On
+fresh-volume creation, Pi-hole reads this env var to seed its upstream DNS database.
+After first run, the database stored in the `pihole_data` volume takes precedence
+over the compose env var — so changing the env var alone does not update a running
+instance.
 
-**On a fresh deployment:** after running `docker compose up -d`, go to
-Settings → DNS, clear `127.0.0.1#5335` from the custom upstream field, enter
-`172.17.0.1#5335`, and click Save & Apply. This persists in the volume across
-container restarts.
+**On a fresh deployment:** after running `docker compose up -d`, go to Settings → DNS
+and confirm `172.17.0.1#5335` appears as the custom upstream. If it shows a different
+value, clear it, enter `172.17.0.1#5335`, and click Save & Apply.
 
 ### Why "Permit all origins" is checked
 

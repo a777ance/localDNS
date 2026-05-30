@@ -1,8 +1,9 @@
 # Deploys to: ~/pihole/docker-compose.yml
 # Reload: cd ~/pihole && docker compose up -d
-# IMPORTANT: After first deploy, fix upstream DNS in Pi-hole UI:
-#   Settings → DNS → remove 127.0.0.1#5335 → enter 172.17.0.1#5335 → Save
-#   (127.0.0.1 is the container's own loopback, not the host — it does not reach Unbound)
+# After first deploy, verify upstream DNS in Pi-hole UI:
+#   Settings → DNS → confirm 172.17.0.1#5335 is set as custom upstream → Save if needed
+#   The compose env var seeds the value on fresh-volume creation; the UI-stored value
+#   takes precedence on subsequent restarts.
 
 services:
   pihole:
@@ -21,6 +22,13 @@ services:
       WEBPASSWORD: "CHANGE_ME"
       DNSMASQ_USER: "pihole"
       FTL_CMD: "no-daemon"
+      # Disable Pi-hole's dnsmasq cache. Unbound already caches aggressively
+      # (512 MB rrset-cache + 256 MB msg-cache in tuning.conf). A second cache
+      # layer in front of Unbound short-circuits queries before they reach the
+      # recursive resolver, degrading the dilution model. With this set to 0,
+      # all queries flow through to Unbound; Unbound answers from its own cache
+      # or fans out recursively as appropriate.
+      CACHE_SIZE: "0"
     volumes:
       - pihole_data:/etc/pihole
       - dnsmasq_data:/etc/dnsmasq.d

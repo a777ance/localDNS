@@ -122,19 +122,18 @@ docker compose logs -f pihole   # Ctrl-C when healthy
 
 Web UI at `http://192.168.1.118:8080/admin/`.
 
-### Set the upstream DNS in the Pi-hole UI
+### Verify upstream DNS in the Pi-hole UI
 
-The compose file sets `PIHOLE_DNS_=127.0.0.1#5335` as the initial value. This is
-wrong for the Docker bridge architecture — inside the container `127.0.0.1` is the
-container's own loopback, not the host. After the container starts:
+The compose env var `PIHOLE_DNS_=172.17.0.1#5335` seeds the upstream on fresh-volume
+creation. Confirm it took effect in the UI after the container starts:
 
 1. Go to Settings → DNS
-2. Remove `127.0.0.1#5335` from the custom upstream field
-3. Enter `172.17.0.1#5335` — the Docker bridge gateway (host as seen from container)
-4. Click Save & Apply
+2. Confirm `172.17.0.1#5335` appears in the custom upstream field
+3. If it shows anything else, clear it, enter `172.17.0.1#5335`, and click Save & Apply
 
-This value persists in the `pihole_data` Docker volume across container restarts.
-The compose env var is only read on first creation of a fresh volume.
+`172.17.0.1` is the Docker bridge gateway — the host as seen from inside the container.
+`127.0.0.1` inside the container is the container's own loopback and does not reach
+Unbound on the host.
 
 ### Interface setting: "Permit all origins"
 
@@ -143,6 +142,25 @@ option. It is safe here because UFW restricts port 53 to `192.168.0.0/16` — Pi
 cannot receive queries from outside the LAN regardless of this setting. "Permit all
 origins" is the correct choice when the firewall handles the network boundary,
 because it allows queries from Docker containers and bridged interfaces.
+
+### Firefox DoH canary
+
+Firefox checks the domain `use-application-dns.net` at startup. If it resolves as
+NXDOMAIN (blocked), Firefox treats this as a signal that a managed local resolver is
+in place and disables its built-in DNS-over-HTTPS. Without this, Firefox sends DNS
+queries to Cloudflare or another DoH provider over port 443, bypassing Pi-hole and
+Unbound entirely — the queries never appear in Pi-hole's log.
+
+Add the domain to Pi-hole's blacklist after the container starts:
+
+```bash
+docker exec pihole pihole -b use-application-dns.net
+```
+
+Verify: `docker exec pihole pihole -q use-application-dns.net` should return `Blacklisted`.
+
+Chrome's "Secure DNS" does not activate automatically — Pi-hole is not on Chrome's
+list of known DoH providers, so Chrome uses the system resolver (Pi-hole) as-is.
 
 ---
 
