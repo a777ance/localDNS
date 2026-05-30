@@ -8,7 +8,11 @@
 services:
   pihole:
     container_name: pihole
-    image: pihole/pihole:latest
+    # Pin to a specific version. ':latest' tracks Pi-hole v6 (released 2025),
+    # which changed FTL architecture, env var names, and CLI syntax.
+    # v5 → v6 env var differences are noted below.
+    # To upgrade to v6: update image tag and env vars together — do not mix.
+    image: pihole/pihole:2024.07.0
     restart: unless-stopped
     ports:
       - "53:53/tcp"
@@ -21,13 +25,13 @@ services:
       PIHOLE_DNS_: "172.17.0.1#5335"
       WEBPASSWORD: "CHANGE_ME"
       DNSMASQ_USER: "pihole"
-      FTL_CMD: "no-daemon"
-      # Disable Pi-hole's dnsmasq cache. Unbound already caches aggressively
-      # (512 MB rrset-cache + 256 MB msg-cache in tuning.conf). A second cache
-      # layer in front of Unbound short-circuits queries before they reach the
-      # recursive resolver, degrading the dilution model. With this set to 0,
-      # all queries flow through to Unbound; Unbound answers from its own cache
-      # or fans out recursively as appropriate.
+      FTL_CMD: "no-daemon"        # v5 only — ignored or removed in v6
+      # Disable Pi-hole's dnsmasq cache (v5 env var).
+      # Unbound caches aggressively (512 MB rrset + 256 MB msg in tuning.conf).
+      # A second cache layer in front of Unbound answers queries before they
+      # reach the recursive resolver, bypassing the dilution model entirely.
+      # With CACHE_SIZE=0, all queries flow through to Unbound.
+      # v6 equivalent: FTLCONF_dns_cache_size: "0"
       CACHE_SIZE: "0"
     volumes:
       - pihole_data:/etc/pihole

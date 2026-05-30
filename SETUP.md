@@ -5,7 +5,7 @@ Full reproduction walkthrough for the localDNS stack on the HP t630 thin client.
 ## Hardware and OS
 
 - HP t630 (AMD Carrizo GX-420GI quad-core, 16 GB RAM, 16 GB eMMC)
-- Ubuntu 24.04.4 LTS, kernel 6.17 series
+- Ubuntu 24.04.4 LTS, kernel 6.18.5
 - Wired Ethernet (enp1s0), Wi-Fi disabled
 
 ## Part 0: Router prerequisites
@@ -154,10 +154,13 @@ Unbound entirely — the queries never appear in Pi-hole's log.
 Add the domain to Pi-hole's blacklist after the container starts:
 
 ```bash
+# Pi-hole v5 (compose is pinned to 2024.07.0):
 docker exec pihole pihole -b use-application-dns.net
+# Pi-hole v6:
+docker exec pihole pihole blacklist add use-application-dns.net
 ```
 
-Verify: `docker exec pihole pihole -q use-application-dns.net` should return `Blacklisted`.
+Verify (v5): `docker exec pihole pihole -q use-application-dns.net` → `Blacklisted`.
 
 Chrome's "Secure DNS" does not activate automatically — Pi-hole is not on Chrome's
 list of known DoH providers, so Chrome uses the system resolver (Pi-hole) as-is.
@@ -393,6 +396,21 @@ t630 forwards toward the router/internet. This covers upload bufferbloat for all
 WireGuard VPN clients. It does NOT help download bufferbloat for general LAN
 devices (laptops, phones on Wi-Fi) — those go through the Netgear directly. For
 whole-network bufferbloat, the Netgear R7000 needs SQM via DD-WRT or FreshTomato.
+
+### Verify CAKE is available
+
+CAKE is built into the mainline kernel (≥ 4.19) and available on Ubuntu 24.04, but
+verify before deploying:
+
+```bash
+sudo modprobe sch_cake 2>/dev/null || true   # load if present as a module
+tc qdisc add dev lo root cake 2>&1           # should succeed with no error
+tc qdisc del dev lo root 2>/dev/null
+```
+
+If `tc` reports "RTNETLINK answers: No such file or directory", CAKE is not available
+in the running kernel. This should not happen on Ubuntu 24.04 6.x but would require
+a kernel with CAKE support compiled in or available as a module.
 
 ### Install
 
