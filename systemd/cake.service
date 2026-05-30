@@ -10,6 +10,7 @@ Wants=network-online.target
 Type=oneshot
 ExecStart=/usr/local/sbin/cake-setup.sh
 ExecStop=/sbin/tc qdisc del dev enp1s0 root
+ExecStop=/bin/bash -c 'for proto in udp tcp; do for sport in 53 5335; do iptables -t mangle -D POSTROUTING -p $proto --sport $sport -j DSCP --set-dscp-class CS5 2>/dev/null || true; done; done'
 RemainAfterExit=yes
 
 [Install]

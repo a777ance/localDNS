@@ -19,9 +19,8 @@ ROUTER_IP="192.168.1.1"
 ROUTER_PUSH_URL="http://192.168.1.118:3001/api/push/<PUSH_TOKEN_ROUTER>"
 INTERNET_PUSH_URL="http://192.168.1.118:3001/api/push/<PUSH_TOKEN_INTERNET>"
 
-# Alert if loss exceeds this %. Start at 15 while the router is being
-# stabilized; lower to 5 once the hardware situation is resolved.
-THRESHOLD=15
+# Alert if loss exceeds this %.
+THRESHOLD=5
 
 check_loss() {
   local target=$1
