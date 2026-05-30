@@ -91,6 +91,7 @@ the compose env var is only an initial default.
 | `scripts/unbound-cache-dump` | `/usr/local/bin/unbound-cache-dump` | — |
 | `scripts/unbound-cache-load` | `/usr/local/bin/unbound-cache-load` | — |
 | `scripts/packet-loss-monitor.sh` | `~/packet-loss-monitor.sh` (+ cron) | `crontab -e` |
+| `scripts/cake-monitor.sh` | `~/cake-monitor.sh` (+ cron) | `crontab -e` |
 | `udev/99-amdgpu-performance.rules` | `/etc/udev/rules.d/99-amdgpu-performance.rules` | `sudo udevadm control --reload-rules` |
 
 ---

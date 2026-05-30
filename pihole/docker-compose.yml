@@ -15,9 +15,8 @@ services:
       - "8080:80/tcp"
     environment:
       TZ: "America/New_York"
-      # Upstream DNS — points to Unbound recursive resolver
-      # Use 172.17.0.1#5335 if Unbound runs on the Docker host
-      # Use 127.0.0.1#5335 if Unbound runs inside this container
+      # Upstream DNS — Docker bridge gateway to Unbound on the host (port 5335).
+      # 127.0.0.1 is the container's own loopback and does NOT reach the host.
       PIHOLE_DNS_: "172.17.0.1#5335"
       WEBPASSWORD: "CHANGE_ME"
       DNSMASQ_USER: "pihole"

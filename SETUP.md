@@ -4,7 +4,7 @@ Full reproduction walkthrough for the localDNS stack on the HP t630 thin client.
 
 ## Hardware and OS
 
-- HP t630 (AMD Carrizo GX-420GI quad-core, 4 GB RAM, 16 GB eMMC)
+- HP t630 (AMD Carrizo GX-420GI quad-core, 16 GB RAM, 16 GB eMMC)
 - Ubuntu 24.04.4 LTS, kernel 6.17 series
 - Wired Ethernet (enp1s0), Wi-Fi disabled
 
