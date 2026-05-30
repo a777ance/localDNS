@@ -139,7 +139,7 @@ WHY network_mode: host — NOT A BRIDGE NETWORK
 
 Uptime Kuma's docker-compose.yml uses network_mode: host, which removes Docker's 
 network isolation and places the container directly on the host network stack. This 
-is required because Ubuntu 22.04 uses nftables as its firewall backend. Legacy 
+is required because Ubuntu 24.04 uses nftables as its firewall backend. Legacy 
 iptables rules don't affect the active ruleset, and the INPUT chain has a default 
 DROP policy. As a result, Docker bridge IPs (172.17.0.1, 172.18.0.1) are not 
 reachable from host processes or other containers on arbitrary ports like 5335 — 

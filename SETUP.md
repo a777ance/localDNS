@@ -204,15 +204,14 @@ nano ~/packet-loss-monitor.sh
 crontab -e
 ```
 
-Add to crontab:
+Add to crontab (replace `USERNAME` with the output of `whoami`):
 ```
 * * * * * /home/USERNAME/packet-loss-monitor.sh
 ```
 
 The script sends 50 pings per check (10 seconds) so it fits comfortably in
 the 60-second window. Loss % is placed in the `ping` field so Uptime Kuma
-graphs it over time. `status=down` fires when loss exceeds `THRESHOLD`
-(default 15% — lower to 5% once router hardware is stable).
+graphs it over time. `status=down` fires when loss exceeds `THRESHOLD` (5%).
 
 ### CAKE monitoring script
 
@@ -227,7 +226,7 @@ nano ~/cake-monitor.sh
 crontab -e
 ```
 
-Add to crontab (on the same line as the packet loss monitor):
+Add to crontab (on the same line as the packet loss monitor; replace `USERNAME` with the output of `whoami`):
 ```
 * * * * * /home/USERNAME/cake-monitor.sh
 ```
