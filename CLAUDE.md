@@ -74,7 +74,6 @@ the compose env var is only an initial default.
 | `unbound/server.conf` | `/etc/unbound/unbound.conf.d/server.conf` | `sudo systemctl restart unbound` |
 | `unbound/tuning.conf` | `/etc/unbound/unbound.conf.d/tuning.conf` | `sudo systemctl restart unbound` |
 | `unbound/remote-control.conf` | `/etc/unbound/unbound.conf.d/remote-control.conf` | `sudo systemctl restart unbound` |
-| `unbound/root-auto-trust-anchor-file.conf` | `/etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf` | `sudo systemctl restart unbound` |
 | `pihole/docker-compose.yml` | `~/pihole/docker-compose.yml` | `cd ~/pihole && docker compose up -d` |
 | `uptime-kuma/docker-compose.yml` | `~/uptime-kuma/docker-compose.yml` | `cd ~/uptime-kuma && docker compose up -d` |
 | `ufw/setup.sh` | run directly | `sudo bash ufw/setup.sh` |
@@ -97,13 +96,12 @@ the compose env var is only an initial default.
 
 ## Unbound config
 
-Four drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
+Three drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
 
 | File | Purpose |
 | ---- | ------- |
 | `remote-control.conf` | Unix socket for `unbound-control` |
-| `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
-| `server.conf` | Interface, port, access-control, security flags |
+| `server.conf` | Interface, port, ACLs, security flags, DNSSEC trust anchor |
 | `tuning.conf` | All performance and cache values — single source of truth |
 
 `tuning.conf` is the only place to change cache sizes, TTLs, or threading.

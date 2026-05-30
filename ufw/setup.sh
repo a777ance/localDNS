@@ -12,28 +12,21 @@ ufw default deny incoming
 ufw default allow outgoing
 ufw default allow routed  # required for WireGuard to forward peer traffic out enp1s0
 # LAN services
-ufw allow in from "$LAN" to any port 53 proto tcp
-ufw allow in from "$LAN" to any port 53 proto udp
-ufw allow in from "$LAN" to any port 5335 proto tcp
-ufw allow in from "$LAN" to any port 5335 proto udp
+ufw allow in from "$LAN" to any port 53
+ufw allow in from "$LAN" to any port 5335
 ufw allow in from "$LAN" to any port 22 proto tcp
 ufw allow in from "$LAN" to any port 8080 proto tcp
 ufw allow in from "$LAN" to any port 3389 proto tcp
-ufw allow in from "$LAN" to any port 4000 proto tcp
-ufw allow in from "$LAN" to any port 4000 proto udp
+ufw allow in from "$LAN" to any port 4000
 ufw allow in from "$LAN" to any port 5353 proto udp
 ufw allow in from "$LAN" to any port 3001 proto tcp
 # Docker bridge: allow Pi-hole container to reach Unbound on host at 5335
 ufw allow in on docker0 to any port 5335
 # WireGuard: listen port open to Anywhere (phone connects from cellular)
 ufw allow in to any port 51820 proto udp
-# WireGuard tunnel clients: allow DNS so the phone reaches Pi-hole at 10.8.0.1
-ufw allow in from "$WG" to any port 53 proto tcp
-ufw allow in from "$WG" to any port 53 proto udp
-# WireGuard tunnel clients: allow SSH and Kuma so they're reachable when full
-# tunnel is active (all traffic exits via WG; source IP is 10.8.0.x not 192.168.x.x)
+# WireGuard tunnel clients (full-tunnel: source IP is 10.8.0.x, not 192.168.x.x)
+ufw allow in from "$WG" to any port 53
 ufw allow in from "$WG" to any port 22 proto tcp
 ufw allow in from "$WG" to any port 3001 proto tcp
-ufw allow out to any port 53 proto udp
 ufw --force enable
 ufw status verbose

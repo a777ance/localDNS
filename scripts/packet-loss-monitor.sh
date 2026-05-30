@@ -1,15 +1,8 @@
 #!/bin/bash
 # Deploys to: ~/packet-loss-monitor.sh  (chmod +x)
 # Scheduled via: crontab -e  →  * * * * * /home/USERNAME/packet-loss-monitor.sh
-# Packet loss monitor for Uptime Kuma (Push monitors).
-# Runs every minute via cron. Pings gateway and 1.1.1.1, reports loss % and
-# status to two separate Push monitors so LAN vs internet loss can be
-# distinguished at a glance.
-#
-# Install:
-#   cp scripts/packet-loss-monitor.sh ~/packet-loss-monitor.sh
-#   chmod +x ~/packet-loss-monitor.sh
-#   crontab -e   →   add:  * * * * * /home/USER/packet-loss-monitor.sh
+# Pings gateway and 1.1.1.1, reports loss % to two separate Uptime Kuma Push
+# monitors so LAN vs internet loss can be distinguished at a glance.
 #
 # REPLACE the two PUSH_URL values with the tokens from your Uptime Kuma
 # Push monitors (Add Monitor → Type: Push → copy the URL).

@@ -58,9 +58,9 @@ sudo unbound-checkconf
 sudo systemctl enable --now unbound
 ```
 
-Four drop-ins: `server.conf` (network/security), `tuning.conf` (performance, TTLs,
-serve-expired — single source of truth for all caching values),
-`remote-control.conf` (Unix socket), `root-auto-trust-anchor-file.conf` (DNSSEC).
+Three drop-ins: `server.conf` (network/security/DNSSEC trust anchor), `tuning.conf`
+(performance, TTLs, serve-expired — single source of truth for all caching values),
+`remote-control.conf` (Unix socket).
 
 ### Verify
 

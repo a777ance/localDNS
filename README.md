@@ -103,10 +103,9 @@ No cloud. No WAN exposure. SSH is also reachable from WireGuard peers via `ssh u
 | `wireguard/peer-template.conf` | Reference config for adding a new peer |
 | `pihole/docker-compose.yml` | Pi-hole container |
 | `uptime-kuma/docker-compose.yml` | Uptime Kuma monitoring stack |
-| `unbound/server.conf` | Unbound interfaces, ACLs, ports, security flags |
+| `unbound/server.conf` | Unbound interfaces, ACLs, ports, security flags, DNSSEC trust anchor |
 | `unbound/tuning.conf` | Cache sizes, TTL policy, threading — single source of truth |
 | `unbound/remote-control.conf` | Unix socket for `unbound-control` |
-| `unbound/root-auto-trust-anchor-file.conf` | DNSSEC trust anchor |
 | `scripts/unbound-cache-dump` | Dumps Unbound cache to disk |
 | `scripts/unbound-cache-load` | Restores cache at startup |
 | `systemd/unbound.service.d/override.conf` | Hooks cache load/dump into service lifecycle |

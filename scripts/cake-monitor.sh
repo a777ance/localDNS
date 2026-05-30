@@ -15,8 +15,9 @@ PUSH_URL="http://192.168.1.118:3001/api/push/<PUSH_TOKEN_CAKE>"
 # Check the qdisc directly — it is the ground truth for whether CAKE is shaping.
 # systemctl is-active can return inactive after daemon-reload or boot even when
 # the qdisc is still applied; using it as the gate causes false "down" readings.
-if tc qdisc show dev "$IFACE" | grep -q "cake"; then
-    bandwidth=$(tc qdisc show dev "$IFACE" | grep -oP 'bandwidth \K[^ ]+')
+qdisc=$(tc qdisc show dev "$IFACE")
+if echo "$qdisc" | grep -q "cake"; then
+    bandwidth=$(echo "$qdisc" | grep -oP 'bandwidth \K[^ ]+')
     status="up"
     msg="cake_active_${bandwidth}"
 else
