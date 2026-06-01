@@ -58,9 +58,15 @@ ISP (Spectrum ~200/100 Mbps asymmetric)
 | xrdp | host OS | 3389 | LAN only |
 | SSH | host OS | 22 | LAN + WG subnet |
 
-**Pi-hole upstream DNS:** `172.17.0.1#5335` — the Docker bridge gateway to
-Unbound on the host. Set this in Pi-hole UI (Settings → DNS) after first deploy;
-the compose env var is only an initial default.
+**Pi-hole upstream DNS:** races six resolvers simultaneously, takes the fastest response:
+`1.1.1.1`, `1.0.0.1`, `8.8.8.8`, `8.8.4.4`, `9.9.9.9`, `172.17.0.1#5335` (Unbound).
+Set in Pi-hole UI (Settings → DNS) — the compose env var is only an initial default.
+
+**DNS resolution strategy:** Unbound applies domain-based forwarding via
+`streaming-forward.conf`. High-volume/low-sensitivity domains (Netflix, YouTube,
+Spotify, Steam, etc.) are forwarded to Cloudflare + Google for ECS-optimised CDN
+routing. Everything else resolves recursively through Unbound — no forwarder sees
+the query.
 
 **Uptime Kuma** runs with `network_mode: host` so it can reach Unbound at
 `127.0.0.1:5335` directly. No `ports:` mapping in the compose file.
@@ -75,6 +81,7 @@ the compose env var is only an initial default.
 | `unbound/tuning.conf` | `/etc/unbound/unbound.conf.d/tuning.conf` | `sudo systemctl restart unbound` |
 | `unbound/remote-control.conf` | `/etc/unbound/unbound.conf.d/remote-control.conf` | `sudo systemctl restart unbound` |
 | `unbound/root-auto-trust-anchor-file.conf` | `/etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf` | `sudo systemctl restart unbound` |
+| `unbound/streaming-forward.conf` | `/etc/unbound/unbound.conf.d/streaming-forward.conf` | `sudo systemctl restart unbound` |
 | `pihole/docker-compose.yml` | `~/pihole/docker-compose.yml` | `cd ~/pihole && docker compose up -d` |
 | `uptime-kuma/docker-compose.yml` | `~/uptime-kuma/docker-compose.yml` | `cd ~/uptime-kuma && docker compose up -d` |
 | `ufw/setup.sh` | run directly | `sudo bash ufw/setup.sh` |
@@ -97,17 +104,22 @@ the compose env var is only an initial default.
 
 ## Unbound config
 
-Four drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
+Five drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
 
 | File | Purpose |
 | ---- | ------- |
 | `remote-control.conf` | Unix socket for `unbound-control` |
 | `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
 | `server.conf` | Interface, port, access-control, security flags |
+| `streaming-forward.conf` | Forward-zones for streaming/media domains → Cloudflare + Google |
 | `tuning.conf` | All performance and cache values — single source of truth |
 
 `tuning.conf` is the only place to change cache sizes, TTLs, or threading.
 Do not split these into separate files.
+
+To verify the DNS split: `sudo unbound-control lookup netflix.com` should show
+`forwarding request` to `1.1.1.1`/`8.8.8.8`. `sudo unbound-control lookup chase.com`
+should show iterative delegation to authoritative nameservers (no forwarder).
 
 ---
 
@@ -128,7 +140,7 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 | ----- | ------ |
 | `WEBPASSWORD` in pihole compose | Placeholder — do not commit real credentials |
 | Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
-| WireGuard peers 10.8.0.4 and 10.8.0.5 | Present in live wg0.conf but not documented — identify devices and add to peer table |
+| WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Present in live wg0.conf but not documented — identify devices and add to peer table |
 
 ---
 
@@ -136,11 +148,14 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 
 ```bash
 systemctl status unbound
-dig @127.0.0.1 -p 5335 example.com +dnssec   # 'ad' flag = DNSSEC working
-docker ps                                       # pihole + uptime-kuma both Up
-sudo wg show                                    # wg0 up, peers listed
-sudo ufw status verbose                         # 51820/udp Anywhere; all else LAN
-tc qdisc show dev enp1s0                        # cake bandwidth 85Mbit
+dig @127.0.0.1 -p 5335 example.com +dnssec        # 'ad' flag = DNSSEC working
+sudo unbound-control lookup netflix.com            # should show: forwarding request
+sudo unbound-control lookup chase.com              # should show: iterative delegation
+docker ps                                          # pihole + uptime-kuma both Up
+sudo wg show                                       # wg0 up, peers listed
+sudo ufw status verbose                            # 51820/udp Anywhere; all else LAN
+tc qdisc show dev enp1s0                           # cake bandwidth 85Mbit
+sudo iptables -t mangle -L POSTROUTING -v | grep DSCP  # EF mark on sport 53
 cat /sys/class/drm/card*/device/power_dpm_force_performance_level  # high
 ```
 

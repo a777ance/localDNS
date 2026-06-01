@@ -54,3 +54,13 @@ tc qdisc add dev "$IFACE" root cake \
 
 echo "CAKE active on $IFACE egress @ ${UPLOAD_MBPS} Mbit/s"
 tc qdisc show dev "$IFACE"
+
+# Mark DNS response packets with DSCP EF so CAKE's diffserv4 schedules them
+# into the Voice/Interactive tin (highest priority). Every new connection
+# starts with a DNS lookup — prioritizing responses unblocks flows faster.
+# Delete-before-add makes this idempotent (safe to re-run).
+iptables -t mangle -D POSTROUTING -p udp --sport 53 -j DSCP --set-dscp-class EF 2>/dev/null || true
+iptables -t mangle -D POSTROUTING -p tcp --sport 53 -j DSCP --set-dscp-class EF 2>/dev/null || true
+iptables -t mangle -A POSTROUTING -p udp --sport 53 -j DSCP --set-dscp-class EF
+iptables -t mangle -A POSTROUTING -p tcp --sport 53 -j DSCP --set-dscp-class EF
+echo "DSCP EF marking active: DNS responses → CAKE Voice/Interactive tin"
