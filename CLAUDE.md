@@ -154,6 +154,8 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 | Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
 | WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Present in live wg0.conf but not documented — identify devices and add to peer table |
 | WireGuard `::/0` IPv6 black hole | Server is IPv4-only in-tunnel; peers routing `::/0` black-hole IPv6 (handshake OK, pages hang). Peer template now defaults to `0.0.0.0/0`. Leak-free dual-stack fix (ULA + NAT66) documented in network-context.md "WireGuard IPv6 black hole". |
+| **UNRESOLVED:** VPN peer DNS over the tunnel | Phone (`10.8.0.2`) can't resolve via Pi-hole at `10.8.0.1`: queries reach `wg0` (tcpdump) but replies don't return; the laptop (`10.8.0.3`) does appear as a Pi-hole client, so it's intermittent. Likely the Dockerized Pi-hole `:53` path from the host's own interface IPs (same family as the host-resolver bug). First set Pi-hole listening mode to ALL (`pihole-FTL --config dns.listeningMode ALL` + restart); if still unanswered, run Pi-hole with `network_mode: host` like Uptime Kuma. Stopgap: point the peer's DNS at an external resolver (e.g. `1.1.1.1`). |
+| Live Pi-hole upstreams ≠ repo | Dashboard shows the live Pi-hole forwarding directly to `8.8.8.8`/`8.8.4.4`/`9.9.9.9`/`149.112.112.112`/`208.67.222.222` **plus** `172.17.0.1#5335` — the old multi-resolver race retained in the `pihole_data` volume, not the single Unbound upstream the repo specifies. Re-set Pi-hole UI → Settings → DNS to the single `172.17.0.1#5335` so the streaming split (which lives in Unbound) is actually in effect. |
 
 ---
 
