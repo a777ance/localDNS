@@ -73,6 +73,11 @@ forwarder and demotes slow/dead ones (natural selection), trading privacy for sp
 Everything else (personal, sensitive, default) resolves recursively through Unbound
 with DNSSEC — no public resolver ever sees these queries.
 
+**Host's own DNS:** the t630 resolves its *own* queries (apt, git, curl) via external
+resolvers (`systemd/resolved.conf.d/host-dns.conf`), NOT its own Pi-hole — it cannot
+reach the Dockerized Pi-hole on `:53` from the host. See network-context.md "Host
+resolver" for the root cause.
+
 **Uptime Kuma** runs with `network_mode: host` so it can reach Unbound at
 `127.0.0.1:5335` directly. No `ports:` mapping in the compose file.
 
@@ -100,6 +105,7 @@ with DNSSEC — no public resolver ever sees these queries.
 | `systemd/unbound-cache-dump.service` | `/etc/systemd/system/unbound-cache-dump.service` | `sudo systemctl daemon-reload` |
 | `systemd/unbound-cache-dump.timer` | `/etc/systemd/system/unbound-cache-dump.timer` | `sudo systemctl daemon-reload` |
 | `systemd/unbound.service.d/override.conf` | `/etc/systemd/system/unbound.service.d/override.conf` | `sudo systemctl daemon-reload` |
+| `systemd/resolved.conf.d/host-dns.conf` | `/etc/systemd/resolved.conf.d/host-dns.conf` | `sudo systemctl restart systemd-resolved` |
 | `scripts/unbound-cache-dump` | `/usr/local/bin/unbound-cache-dump` | — |
 | `scripts/unbound-cache-load` | `/usr/local/bin/unbound-cache-load` | — |
 | `scripts/packet-loss-monitor.sh` | `~/packet-loss-monitor.sh` (+ cron) | `crontab -e` |

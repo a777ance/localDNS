@@ -159,6 +159,55 @@ sudo unbound-control lookup chase.com     # → iterative delegation (recursive,
 
 ---
 
+## Host resolver — why the t630 uses external DNS for itself
+
+The t630 runs the network's DNS, but it must NOT resolve its *own* queries (apt,
+git, curl) through its own Pi-hole. Pi-hole runs in Docker publishing `0.0.0.0:53`.
+LAN and WireGuard clients reach it fine through Docker's DNAT, but **host-originated**
+queries to `127.0.0.1:53` — or even to the host's own LAN IP `192.168.1.118:53` —
+are dropped by the UFW↔Docker path and time out:
+
+```bash
+dig @127.0.0.1 github.com           # ;; communications error to 127.0.0.1#53: timed out
+dig @127.0.0.1 -p 5335 github.com   # 140.82.113.3   ← Unbound (native process) answers
+```
+
+Unbound answers on `127.0.0.1:5335`, but `/etc/resolv.conf` cannot carry a non-53
+port, so the host can't point at Unbound directly either. Left pointing at
+`127.0.0.1`, the box cannot resolve anything for itself — `git`, `apt`, and `curl`
+all fail with "Temporary failure in name resolution," even though the DNS *service*
+is healthy for every other device on the network. (This is the same root cause as
+`dig @192.168.1.118` timing out when run from the t630 itself.)
+
+**Fix — point the host at external resolvers, independent of the Docker stack**
+(`systemd/resolved.conf.d/host-dns.conf`):
+
+```bash
+sudo mkdir -p /etc/systemd/resolved.conf.d
+sudo tee /etc/systemd/resolved.conf.d/host-dns.conf >/dev/null <<'EOF'
+[Resolve]
+DNS=9.9.9.9 1.1.1.1
+EOF
+sudo systemctl restart systemd-resolved
+```
+
+The host's own lookups now go straight to Quad9/Cloudflare and are never stranded
+while Unbound or Pi-hole restart. The trade — the box's own queries skip Pi-hole
+filtering — is irrelevant on a headless server. Verify with a name not in
+`/etc/hosts`:
+
+```bash
+getent hosts security.ubuntu.com    # returns an IP → host resolution works
+```
+
+**Note:** if `/etc/resolv.conf` still lists `nameserver 127.0.0.1` after the restart
+(appended *after* the external resolvers), that entry is pinned at the link level —
+`nameservers: [127.0.0.1]` in `/etc/netplan/*.yaml`. It is harmless because glibc
+tries the external resolvers first, but it can be removed from the netplan file
+(then `sudo netplan apply`) for tidiness.
+
+---
+
 ## Uptime Kuma — monitoring
 
 Uptime Kuma runs in Docker on port 3001 and monitors Unbound via a DNS monitor

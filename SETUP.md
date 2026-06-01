@@ -157,6 +157,27 @@ cannot receive queries from outside the LAN regardless of this setting. "Permit 
 origins" is the correct choice when the firewall handles the network boundary,
 because it allows queries from Docker containers and bridged interfaces.
 
+### The host's own DNS resolver (do this now, or apt/git break)
+
+Once Pi-hole owns port 53, the t630 can no longer resolve its OWN queries through it.
+Pi-hole is in Docker on `0.0.0.0:53`; host-originated queries to `127.0.0.1:53` (or
+the host's own LAN IP) are dropped by the UFW↔Docker path and time out. Unbound works
+on `127.0.0.1:5335`, but `/etc/resolv.conf` can't carry a port. Point the host at
+external resolvers so `apt`, `git`, and `curl` keep working independently of the
+Docker stack:
+
+```bash
+sudo mkdir -p /etc/systemd/resolved.conf.d
+sudo cp systemd/resolved.conf.d/host-dns.conf /etc/systemd/resolved.conf.d/
+sudo systemctl restart systemd-resolved
+getent hosts security.ubuntu.com   # returns an IP → host resolution works
+```
+
+If `/etc/resolv.conf` still lists `nameserver 127.0.0.1` afterward, that entry is
+pinned in `/etc/netplan/*.yaml` (`nameservers: [127.0.0.1]`); it is harmless (the
+external resolvers are tried first) but can be removed there for tidiness. See
+network-context.md "Host resolver" for the full root-cause analysis.
+
 ---
 
 ## Part 4: Uptime Kuma
