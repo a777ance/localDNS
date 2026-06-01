@@ -153,6 +153,7 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 | `WEBPASSWORD` in pihole compose | Placeholder — do not commit real credentials |
 | Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
 | WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Present in live wg0.conf but not documented — identify devices and add to peer table |
+| WireGuard `::/0` IPv6 black hole | Server is IPv4-only in-tunnel; peers routing `::/0` black-hole IPv6 (handshake OK, pages hang). Peer template now defaults to `0.0.0.0/0`. Leak-free dual-stack fix (ULA + NAT66) documented in network-context.md "WireGuard IPv6 black hole". |
 
 ---
 

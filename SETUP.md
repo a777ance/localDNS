@@ -362,7 +362,7 @@ Create a tunnel in the WireGuard iOS app with:
 | ----- | ----- |
 | Server endpoint | `<WAN-IP>:51820` |
 | DNS | `10.8.0.1` |
-| Allowed IPs | `0.0.0.0/0, ::/0` |
+| Allowed IPs | `0.0.0.0/0` (IPv4-only; do NOT add `::/0` — see network-context.md "WireGuard IPv6 black hole") |
 | On-Demand | Cellular + Wi-Fi enabled, no SSID exclusions |
 
 The server public key comes from `/etc/wireguard/server.pub` on the t630.
