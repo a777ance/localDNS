@@ -312,7 +312,7 @@ Apply without reboot: `sudo sysctl -p`
 | ------- | ----- |
 | Endpoint | `<WAN-IP>:51820` |
 | DNS | `10.8.0.1` |
-| AllowedIPs | `0.0.0.0/0, ::/0` (full tunnel) |
+| AllowedIPs | `0.0.0.0/0` (IPv4-only full tunnel; do NOT add `::/0` — see "WireGuard IPv6 black hole") |
 | On-Demand | Cellular + Wi-Fi, no SSID exclusions |
 
 No SSID exclusions — the tunnel stays on even at home. The home-Wi-Fi loop
@@ -541,8 +541,43 @@ VPN stack.
 | ------- | ------- | ------------- |
 | `DNS = 172.17.0.1:5335` | DNS fails silently; "internet doesn't work" even when routing is fine. WireGuard's DNS field is IP only — no port. Also, `172.17.0.1` is the Docker bridge gateway on the server host and is unreachable from outside. | `DNS = 10.8.0.1` |
 | `Address = 10.8.0.7/24` | Client claims ownership of the entire `10.8.0.0/24` subnet on its wg0 interface; causes routing weirdness. | `Address = 10.8.0.7/32` — client owns only its own IP |
-| `AllowedIPs = 10.8.0.0/24` | Split-tunnel: web traffic bypasses the VPN. Tunnel shows "connected," whatismyip.com shows real cellular IP — indistinguishable from VPN being off. | `AllowedIPs = 0.0.0.0/0, ::/0` for full tunnel |
+| `AllowedIPs = 10.8.0.0/24` | Split-tunnel: web traffic bypasses the VPN. Tunnel shows "connected," whatismyip.com shows real cellular IP — indistinguishable from VPN being off. | `AllowedIPs = 0.0.0.0/0` for full tunnel (IPv4-only — see IPv6 note below) |
+| `AllowedIPs = 0.0.0.0/0, ::/0` | IPv6 black hole: handshake succeeds, Transfer climbs, but pages hang. Server is IPv4-only in-tunnel, so IPv6 (which iOS/Android prefer) is dropped. | `AllowedIPs = 0.0.0.0/0` until the server has IPv6 NAT — see below |
 | No `PersistentKeepalive` | Tunnel silently drops after a few minutes of idle when peer is behind NAT (home router, cellular). | `PersistentKeepalive = 25` |
+
+### WireGuard IPv6 black hole (handshake OK, nothing loads)
+
+The most common breakage on this server. Peers configured with
+`AllowedIPs = 0.0.0.0/0, ::/0` route IPv6 into the tunnel, but the server is
+IPv4-only inside the tunnel: `wg0` has no IPv6 address and PostUp only does an
+IPv4 `MASQUERADE`. IPv6 packets entering the tunnel have nowhere to go and are
+silently dropped. Because iOS and Android prefer IPv6, connections to any
+dual-stack site (Google, Netflix, most of the web) stall on the dead IPv6 path.
+
+**Symptom:** the tunnel handshakes (Transfer bytes climb) but pages don't load.
+
+**Interim fix (works immediately):** set `AllowedIPs = 0.0.0.0/0` on the peer —
+IPv4-only tunnel. IPv6 then goes direct, outside the VPN. Downside: a real-IPv6
+leak for IPv6-capable destinations (the membrane no longer covers IPv6).
+
+**Proper fix (leak-free dual-stack).** The home has working IPv6
+(`curl -6 ifconfig.me` returns a `2600:…` address), so IPv6 can be tunnelled
+properly with a ULA prefix + NAT66, mirroring the existing IPv4 NAT:
+
+```bash
+# 1) wg0 gets a ULA IPv6 — add to [Interface] in wg0.conf:
+#      Address = 10.8.0.1/24, fd00:8::1/64
+# 2) Each peer gets an IPv6: peer [Interface] Address = 10.8.0.2/32, fd00:8::2/128
+#    and the server [Peer] AllowedIPs = 10.8.0.2/32, fd00:8::2/128
+# 3) Add IPv6 MASQUERADE to PostUp/PreDown in wg0.conf (mirrors the IPv4 rule):
+#      PostUp:  ip6tables -t nat -A POSTROUTING -s fd00:8::/64 -o enp1s0 -j MASQUERADE
+#      PreDown: ip6tables -t nat -D POSTROUTING -s fd00:8::/64 -o enp1s0 -j MASQUERADE
+# 4) IPv6 forwarding is already on (net.ipv6.conf.all.forwarding=1, Part 5a).
+# 5) Restore ::/0 in the peer's AllowedIPs.
+```
+
+NAT66 over a ULA needs no prefix delegation. Deploy and test on one peer before
+making `::/0` the template default again.
 
 ### How to verify the tunnel is actually working
 
