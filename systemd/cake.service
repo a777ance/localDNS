@@ -2,7 +2,7 @@
 # Reload: sudo systemctl daemon-reload && sudo systemctl enable --now cake
 
 [Unit]
-Description=CAKE queue discipline (upload bufferbloat management)
+Description=CAKE queue discipline and DNS DSCP marking
 After=network-online.target wg-quick@wg0.service
 Wants=network-online.target
 
@@ -10,6 +10,8 @@ Wants=network-online.target
 Type=oneshot
 ExecStart=/usr/local/sbin/cake-setup.sh
 ExecStop=/sbin/tc qdisc del dev enp1s0 root
+ExecStop=-/sbin/iptables -t mangle -D POSTROUTING -p udp --sport 53 -j DSCP --set-dscp-class EF
+ExecStop=-/sbin/iptables -t mangle -D POSTROUTING -p tcp --sport 53 -j DSCP --set-dscp-class EF
 RemainAfterExit=yes
 
 [Install]
