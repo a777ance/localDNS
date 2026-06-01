@@ -6,7 +6,7 @@ The WireGuard tunnel is the membrane. It defines what is inside and what is outs
 Everything else in the stack serves that gradient:
 
 - **Pi‑hole** — filters DNS at the edge; blocks telemetry before it reaches any device  
-- **Unbound** — recursive DNS with DNSSEC; no third-party resolver ever sees your queries  
+- **Unbound** — the DNS decision point: personal queries resolve recursively with DNSSEC (no third party ever sees them); high‑volume streaming domains are raced across public resolvers for speed  
 - **Thin client (t630)** — dedicated compute for the membrane; always on, low power  
 - **UFW** — explicit firewall; LAN and WG subnet only, no WAN exposure  
 - **Uptime Kuma** — monitors every layer of the stack  
@@ -24,7 +24,7 @@ The tunnel is the membrane. It maintains a gradient between trusted inside and u
 
 Peers inside the tunnel get:
 - filtered DNS (Pi-hole blocks telemetry and tracking domains before they resolve)
-- recursive resolution with DNSSEC (Unbound — no third-party resolver in the chain)
+- private recursive resolution with DNSSEC for personal traffic (Unbound — no third-party resolver in the chain); streaming domains raced across public resolvers for speed
 - shaped egress (CAKE — fair queuing, no single peer saturates the pipe)
 
 This works identically whether the peer is on the home LAN or on cellular halfway across the world. Physical location does not change what is inside.
@@ -53,11 +53,13 @@ Dropping unwanted domains at DNS means:
   Allowed
       │
       ▼
-┌──────────────────────────────┐
-│ UNBOUND RECURSIVE DNS CORE   │ ──(DNSSEC)──> [ Internet Root ]
+┌──────────────────────────────┐  personal / sensitive
+│ UNBOUND — single decision pt │ ──(DNSSEC, recursive)──> [ Internet Root ]
+│                              │  streaming / low-sensitivity
+│                              │ ──(fastest of 3)──────> [ Cloudflare · Google · Quad9 ]
 └──────────────────────────────┘
 ```
-Dropping a domain at DNS eliminates the request entirely — no payload, no parsing, no CPU cost, no battery drain on the client.
+Dropping a domain at DNS eliminates the request entirely — no payload, no parsing, no CPU cost, no battery drain on the client. Allowed queries reach Unbound, which keeps personal lookups recursive and private while racing streaming domains across public resolvers for speed.
 
 ---
 
@@ -68,7 +70,7 @@ Dropping a domain at DNS eliminates the request entirely — no payload, no pars
 | Pi‑hole | Docker container | Isolates blocklist ingestion, gravity updates, and UI |
 | Unbound | Native Linux service | No bridge overhead; DNSSEC validation closest to the wire |
 
-Pi-hole sends upstream queries to Unbound at `172.17.0.1#5335` (the Docker bridge gateway to the host). No third-party resolver is ever in the chain.
+Pi-hole sends every upstream query to Unbound at `172.17.0.1#5335` (the Docker bridge gateway to the host) — it does no resolver selection itself. Unbound is the single decision point: personal and sensitive domains resolve recursively with no third-party resolver in the chain, while high-volume streaming domains are forwarded to fast public resolvers (Cloudflare, Google, Quad9). The split lives entirely in `unbound/streaming-forward.conf`.
 
 ---
 
@@ -78,7 +80,7 @@ Pi-hole sends upstream queries to Unbound at `172.17.0.1#5335` (the Docker bridg
 - WireGuard port 51820/UDP is the only WAN-exposed service
 - CPU governor locked to performance mode
 - AMD GPU forced into high-performance mode (headless downclocking prevention)
-- Uptime Kuma monitors every layer: Unbound, Pi-hole, DNS chain, router, packet loss
+- Uptime Kuma monitors every layer: Unbound, Pi-hole, DNS chain, router, packet loss, CAKE qdisc
 - Automated Unbound cache dumps and restores across reboots
 
 ---
@@ -105,6 +107,7 @@ No cloud. No WAN exposure. SSH is also reachable from WireGuard peers via `ssh u
 | `uptime-kuma/docker-compose.yml` | Uptime Kuma monitoring stack |
 | `unbound/server.conf` | Unbound interfaces, ACLs, ports, security flags |
 | `unbound/tuning.conf` | Cache sizes, TTL policy, threading — single source of truth |
+| `unbound/streaming-forward.conf` | Domain split: streaming → public resolvers, all else → recursive |
 | `unbound/remote-control.conf` | Unix socket for `unbound-control` |
 | `unbound/root-auto-trust-anchor-file.conf` | DNSSEC trust anchor |
 | `scripts/unbound-cache-dump` | Dumps Unbound cache to disk |

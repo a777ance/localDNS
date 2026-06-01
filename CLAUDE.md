@@ -58,15 +58,18 @@ ISP (Spectrum ~200/100 Mbps asymmetric)
 | xrdp | host OS | 3389 | LAN only |
 | SSH | host OS | 22 | LAN + WG subnet |
 
-**Pi-hole upstream DNS:** races six resolvers simultaneously, takes the fastest response:
-`1.1.1.1`, `1.0.0.1`, `8.8.8.8`, `8.8.4.4`, `9.9.9.9`, `172.17.0.1#5335` (Unbound).
-Set in Pi-hole UI (Settings → DNS) — the compose env var is only an initial default.
+**Pi-hole upstream DNS:** a single upstream — `172.17.0.1#5335` (Unbound, via the
+Docker bridge gateway). Pi-hole does no resolver selection of its own; it forwards
+every query to Unbound. Set in Pi-hole UI (Settings → DNS); the compose env var
+only seeds this on a fresh volume. Do not add public resolvers here — that would
+race them for all queries and leak personal lookups.
 
-**DNS resolution strategy:** Unbound applies domain-based forwarding via
-`streaming-forward.conf`. High-volume/low-sensitivity domains (Netflix, YouTube,
-Spotify, Steam, etc.) are forwarded to Cloudflare + Google for ECS-optimised CDN
-routing. Everything else resolves recursively through Unbound — no forwarder sees
-the query.
+**DNS resolution strategy (the split lives in Unbound):** `streaming-forward.conf`
+is the single decision point. High-volume/low-sensitivity domains (Netflix,
+YouTube, Spotify, Steam, etc.) are forwarded to three public resolvers — Cloudflare
+(`1.1.1.1`), Google (`8.8.8.8`), Quad9 (`9.9.9.9`) — lowest-latency forwarder wins,
+trading privacy for speed. Everything else (personal, sensitive, default) resolves
+recursively through Unbound with DNSSEC — no public resolver ever sees these queries.
 
 **Uptime Kuma** runs with `network_mode: host` so it can reach Unbound at
 `127.0.0.1:5335` directly. No `ports:` mapping in the compose file.
@@ -98,6 +101,7 @@ the query.
 | `scripts/unbound-cache-dump` | `/usr/local/bin/unbound-cache-dump` | — |
 | `scripts/unbound-cache-load` | `/usr/local/bin/unbound-cache-load` | — |
 | `scripts/packet-loss-monitor.sh` | `~/packet-loss-monitor.sh` (+ cron) | `crontab -e` |
+| `scripts/cake-monitor.sh` | `~/cake-monitor.sh` (+ cron) | `crontab -e` |
 | `udev/99-amdgpu-performance.rules` | `/etc/udev/rules.d/99-amdgpu-performance.rules` | `sudo udevadm control --reload-rules` |
 
 ---
@@ -111,7 +115,7 @@ Five drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
 | `remote-control.conf` | Unix socket for `unbound-control` |
 | `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
 | `server.conf` | Interface, port, access-control, security flags |
-| `streaming-forward.conf` | Forward-zones for streaming/media domains → Cloudflare + Google |
+| `streaming-forward.conf` | Forward-zones: streaming/media domains → Cloudflare + Google + Quad9; all else recursive |
 | `tuning.conf` | All performance and cache values — single source of truth |
 
 `tuning.conf` is the only place to change cache sizes, TTLs, or threading.
