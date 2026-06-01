@@ -1,8 +1,12 @@
 # Deploys to: ~/pihole/docker-compose.yml
 # Reload: cd ~/pihole && docker compose up -d
-# IMPORTANT: After first deploy, fix upstream DNS in Pi-hole UI:
-#   Settings → DNS → remove 127.0.0.1#5335 → enter 172.17.0.1#5335 → Save
-#   (127.0.0.1 is the container's own loopback, not the host — it does not reach Unbound)
+# IMPORTANT: After first deploy, confirm upstream DNS in Pi-hole UI:
+#   Settings → DNS → custom upstream must be the single entry 172.17.0.1#5335
+#   (the Docker bridge gateway to Unbound on the host). Do NOT add the public
+#   resolvers here — the streaming/personal split is owned entirely by Unbound
+#   (see unbound/streaming-forward.conf). Adding public resolvers here would
+#   race them for ALL queries and leak personal lookups. 127.0.0.1 is wrong:
+#   inside the container it is the container's own loopback, not the host.
 
 services:
   pihole:
@@ -15,11 +19,13 @@ services:
       - "8080:80/tcp"
     environment:
       TZ: "America/New_York"
-      # Upstream DNS — races all resolvers, uses fastest response.
-      # Unbound (172.17.0.1#5335) wins on cache hits; commercial resolvers
-      # win on cold lookups from networks with slow paths to root servers.
-      # Privacy is intentionally traded for path diversity and speed.
-      PIHOLE_DNS_: "1.1.1.1;1.0.0.1;8.8.8.8;8.8.4.4;9.9.9.9;172.17.0.1#5335"
+      # Upstream DNS — single upstream: Unbound on the host.
+      # Pi-hole forwards EVERY query to Unbound, which then decides per-domain:
+      # streaming/low-sensitivity domains are forwarded out to public resolvers
+      # for speed (see unbound/streaming-forward.conf); everything else resolves
+      # recursively and privately. Keeping a single upstream here guarantees no
+      # public resolver ever sees a personal query.
+      PIHOLE_DNS_: "172.17.0.1#5335"
       WEBPASSWORD: "CHANGE_ME"
       DNSMASQ_USER: "pihole"
       FTL_CMD: "no-daemon"

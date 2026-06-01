@@ -100,17 +100,17 @@ container's own loopback — not the host. Unbound runs on the host OS. To reach
 Pi-hole must use the Docker bridge gateway IP, which is `172.17.0.1` — the host's
 address as seen from inside the container.
 
-The `PIHOLE_DNS_` value in `pihole/docker-compose.yml` is `127.0.0.1#5335`. This is
-what Pi-hole receives on first container creation. After first run, Pi-hole stores
-the upstream DNS in its persistent database (in the `pihole_data` Docker volume).
-The UI-configured value (`172.17.0.1#5335`) then takes precedence over the compose
-env var. The compose file value only matters when deploying to a completely fresh
-volume.
+The `PIHOLE_DNS_` value in `pihole/docker-compose.yml` is `172.17.0.1#5335` — a
+single upstream pointing at Unbound. This is what Pi-hole receives on first
+container creation. After first run, Pi-hole stores the upstream DNS in its
+persistent database (in the `pihole_data` Docker volume), so the UI-configured
+value takes precedence over the compose env var. The compose file value only
+matters when deploying to a completely fresh volume.
 
 **On a fresh deployment:** after running `docker compose up -d`, go to
-Settings → DNS, clear `127.0.0.1#5335` from the custom upstream field, enter
-`172.17.0.1#5335`, and click Save & Apply. This persists in the volume across
-container restarts.
+Settings → DNS and confirm the custom upstream field shows the single entry
+`172.17.0.1#5335` with no preset resolvers checked. This persists in the volume
+across container restarts.
 
 ### Why "Permit all origins" is checked
 
@@ -122,36 +122,112 @@ block queries from Docker containers and other non-directly-attached interfaces.
 
 ### No preset upstream servers checked
 
-None of the preset upstream servers (Google, Cloudflare, Quad9, etc.) are enabled.
-All upstream resolution goes through the custom entry (`172.17.0.
-1#5335`), which
-routes to Unbound on the host. This is the whole point — no third-party resolver
-ever sees the query.
-| NAT Filtering | Secured | Blocks unsolicited inbound packets |
-| Disable SIP ALG | Yes | SIP ALG causes VoIP problems; disabled by default |
+None of Pi-hole's preset upstream servers (Google, Cloudflare, Quad9, etc.) are
+enabled, and the public resolvers are deliberately NOT added here. Pi-hole has a
+single custom upstream — `172.17.0.1#5335` — so every query goes to Unbound, which
+owns the streaming/personal split (see "Unbound DNS split" below). Putting the
+public resolvers in Pi-hole would race them for all queries and leak personal
+lookups; keeping a single upstream is what preserves the private path.
 
-________________
+---
 
-Uptime Kuma — Monitoring
+## Unbound DNS split (streaming-forward.conf)
 
-Uptime Kuma runs in Docker on port 3001 and monitors Unbound via a DNS monitor 
-querying 127.0.0.1:5335.
+Unbound is the single decision point for where each query goes:
 
-WHY network_mode: host — NOT A BRIDGE NETWORK
+- **Streaming / low-sensitivity domains** — Netflix, YouTube, Spotify, Steam, and
+  the rest of `unbound/streaming-forward.conf` — are forwarded to a large pool of
+  reputable public resolvers (Cloudflare, Google, Quad9, OpenDNS, Level3, and ~13
+  more; `streaming-forward.conf` is the authoritative list). Unbound sends to the
+  lowest-latency forwarder and fails over to the others, demoting slow/dead ones —
+  so the fastest public resolver effectively wins (natural selection). This is the
+  deliberate privacy-for-speed trade on high-volume traffic whose destination is
+  not sensitive. Only resolvers that answer plain DNS on port 53 are included;
+  DoH/DoT-only resolvers would be dead forwarders.
+- **Everything else** — banking, email, health, personal services, the default —
+  resolves recursively with DNSSEC. No public resolver ever sees these queries.
 
-Uptime Kuma's docker-compose.yml uses network_mode: host, which removes Docker's 
-network isolation and places the container directly on the host network stack. This 
-is required because Ubuntu 22.04 uses nftables as its firewall backend. Legacy 
-iptables rules don't affect the active ruleset, and the INPUT chain has a default 
-DROP policy. As a result, Docker bridge IPs (172.17.0.1, 172.18.0.1) are not 
-reachable from host processes or other containers on arbitrary ports like 5335 — 
+`forward-first: yes` means that if every forwarder is unreachable, Unbound falls
+back to recursive resolution instead of returning SERVFAIL.
+
+Verify the split:
+
+```bash
+sudo unbound-control lookup netflix.com   # → forwarding request to a public resolver
+sudo unbound-control lookup chase.com     # → iterative delegation (recursive, private)
+```
+
+---
+
+## Host resolver — why the t630 uses external DNS for itself
+
+The t630 runs the network's DNS, but it must NOT resolve its *own* queries (apt,
+git, curl) through its own Pi-hole. Pi-hole runs in Docker publishing `0.0.0.0:53`.
+LAN and WireGuard clients reach it fine through Docker's DNAT, but **host-originated**
+queries to `127.0.0.1:53` — or even to the host's own LAN IP `192.168.1.118:53` —
+are dropped by the UFW↔Docker path and time out:
+
+```bash
+dig @127.0.0.1 github.com           # ;; communications error to 127.0.0.1#53: timed out
+dig @127.0.0.1 -p 5335 github.com   # 140.82.113.3   ← Unbound (native process) answers
+```
+
+Unbound answers on `127.0.0.1:5335`, but `/etc/resolv.conf` cannot carry a non-53
+port, so the host can't point at Unbound directly either. Left pointing at
+`127.0.0.1`, the box cannot resolve anything for itself — `git`, `apt`, and `curl`
+all fail with "Temporary failure in name resolution," even though the DNS *service*
+is healthy for every other device on the network. (This is the same root cause as
+`dig @192.168.1.118` timing out when run from the t630 itself.)
+
+**Fix — point the host at external resolvers, independent of the Docker stack**
+(`systemd/resolved.conf.d/host-dns.conf`):
+
+```bash
+sudo mkdir -p /etc/systemd/resolved.conf.d
+sudo tee /etc/systemd/resolved.conf.d/host-dns.conf >/dev/null <<'EOF'
+[Resolve]
+DNS=9.9.9.9 1.1.1.1
+EOF
+sudo systemctl restart systemd-resolved
+```
+
+The host's own lookups now go straight to Quad9/Cloudflare and are never stranded
+while Unbound or Pi-hole restart. The trade — the box's own queries skip Pi-hole
+filtering — is irrelevant on a headless server. Verify with a name not in
+`/etc/hosts`:
+
+```bash
+getent hosts security.ubuntu.com    # returns an IP → host resolution works
+```
+
+**Note:** if `/etc/resolv.conf` still lists `nameserver 127.0.0.1` after the restart
+(appended *after* the external resolvers), that entry is pinned at the link level —
+`nameservers: [127.0.0.1]` in `/etc/netplan/*.yaml`. It is harmless because glibc
+tries the external resolvers first, but it can be removed from the netplan file
+(then `sudo netplan apply`) for tidiness.
+
+---
+
+## Uptime Kuma — monitoring
+
+Uptime Kuma runs in Docker on port 3001 and monitors Unbound via a DNS monitor
+querying `127.0.0.1:5335`.
+
+### Why network_mode: host — not a bridge network
+
+Uptime Kuma's docker-compose.yml uses `network_mode: host`, which removes Docker's
+network isolation and places the container directly on the host network stack. This
+is required because Ubuntu 24.04 uses nftables as its firewall backend. Legacy
+iptables rules don't affect the active ruleset, and the INPUT chain has a default
+DROP policy. As a result, Docker bridge IPs (172.17.0.1, 172.18.0.1) are not
+reachable from host processes or other containers on arbitrary ports like 5335 —
 even with explicit UFW allow rules added.
 
-With network_mode: host, Uptime Kuma shares the host network stack and reaches 
-Unbound at 127.0.0.1:5335 directly, the same way any native host process would.
+With `network_mode: host`, Uptime Kuma shares the host network stack and reaches
+Unbound at `127.0.0.1:5335` directly, the same way any native host process would.
 
-Consequence: the ports: mapping is removed from the compose file. Uptime Kuma 
-remains available at port 3001 — it binds directly on the host interface rather 
+Consequence: the `ports:` mapping is removed from the compose file. Uptime Kuma
+remains available at port 3001 — it binds directly on the host interface rather
 than through Docker's port mapping layer.
 
 ### Uptime Kuma monitors
@@ -181,7 +257,8 @@ and causes intermittent failures.
 
 **Packet loss monitors:** driven by `scripts/packet-loss-monitor.sh`, which
 runs via cron every 60 seconds. The loss % is placed in the `ping` field so
-Uptime Kuma graphs it as a time series. Threshold: 5%.
+Uptime Kuma graphs it as a time series. Threshold: 15% by default (the value in
+the script), lowered to 5% once the router hardware is stable.
 
 ---
 
@@ -272,8 +349,11 @@ VPN peers.
 | ---- | -- | ----- |
 | Server wg0 interface | 10.8.0.1 | Gateway; also the DNS address peers use |
 | iPhone | 10.8.0.2 | |
-| Mac (second peer) | 10.8.0.7 | |
 | Windows laptop | 10.8.0.3 | KEY ROTATION NEEDED — private key was shared in plaintext during setup |
+| (unidentified) | 10.8.0.4 | Present in live wg0.conf, device not yet identified — see CLAUDE.md "Known issues" |
+| (unidentified) | 10.8.0.5 | Present in live wg0.conf, device not yet identified — see CLAUDE.md "Known issues" |
+| (unidentified) | 10.8.0.6 | Present in live wg0.conf, device not yet identified — see CLAUDE.md "Known issues" |
+| Mac (second peer added) | 10.8.0.7 | |
 
 ### Windows client security (laptop peer)
 
@@ -498,7 +578,9 @@ packet buffer, everything else has to wait behind it. A 16 ms idle ping becomes
 fairness or timing), CAKE manages a smart queue in the OS. It rate-limits egress
 slightly below the ISP line speed so the OS queue becomes the bottleneck. It then
 applies fair queuing (each flow gets a slot) and DSCP prioritization so DNS
-responses and interactive traffic skip ahead of bulk downloads.
+responses and interactive traffic skip ahead of bulk downloads. `cake-setup.sh`
+makes this explicit for DNS: it marks every DNS response (source port 53) with
+DSCP EF via an iptables mangle rule, landing it in CAKE's highest-priority tin.
 
 ### What CAKE on the t630 covers
 

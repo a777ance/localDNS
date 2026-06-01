@@ -58,15 +58,25 @@ ISP (Spectrum ~200/100 Mbps asymmetric)
 | xrdp | host OS | 3389 | LAN only |
 | SSH | host OS | 22 | LAN + WG subnet |
 
-**Pi-hole upstream DNS:** races six resolvers simultaneously, takes the fastest response:
-`1.1.1.1`, `1.0.0.1`, `8.8.8.8`, `8.8.4.4`, `9.9.9.9`, `172.17.0.1#5335` (Unbound).
-Set in Pi-hole UI (Settings → DNS) — the compose env var is only an initial default.
+**Pi-hole upstream DNS:** a single upstream — `172.17.0.1#5335` (Unbound, via the
+Docker bridge gateway). Pi-hole does no resolver selection of its own; it forwards
+every query to Unbound. Set in Pi-hole UI (Settings → DNS); the compose env var
+only seeds this on a fresh volume. Do not add public resolvers here — that would
+race them for all queries and leak personal lookups.
 
-**DNS resolution strategy:** Unbound applies domain-based forwarding via
-`streaming-forward.conf`. High-volume/low-sensitivity domains (Netflix, YouTube,
-Spotify, Steam, etc.) are forwarded to Cloudflare + Google for ECS-optimised CDN
-routing. Everything else resolves recursively through Unbound — no forwarder sees
-the query.
+**DNS resolution strategy (the split lives in Unbound):** `streaming-forward.conf`
+is the single decision point. High-volume/low-sensitivity domains (Netflix,
+YouTube, Spotify, Steam, etc.) are forwarded to a large pool of reputable public
+resolvers (Cloudflare, Google, Quad9, and ~15 other operators — `streaming-forward.conf`
+is the authoritative list); Unbound routes each query to the lowest-latency
+forwarder and demotes slow/dead ones (natural selection), trading privacy for speed.
+Everything else (personal, sensitive, default) resolves recursively through Unbound
+with DNSSEC — no public resolver ever sees these queries.
+
+**Host's own DNS:** the t630 resolves its *own* queries (apt, git, curl) via external
+resolvers (`systemd/resolved.conf.d/host-dns.conf`), NOT its own Pi-hole — it cannot
+reach the Dockerized Pi-hole on `:53` from the host. See network-context.md "Host
+resolver" for the root cause.
 
 **Uptime Kuma** runs with `network_mode: host` so it can reach Unbound at
 `127.0.0.1:5335` directly. No `ports:` mapping in the compose file.
@@ -95,9 +105,11 @@ the query.
 | `systemd/unbound-cache-dump.service` | `/etc/systemd/system/unbound-cache-dump.service` | `sudo systemctl daemon-reload` |
 | `systemd/unbound-cache-dump.timer` | `/etc/systemd/system/unbound-cache-dump.timer` | `sudo systemctl daemon-reload` |
 | `systemd/unbound.service.d/override.conf` | `/etc/systemd/system/unbound.service.d/override.conf` | `sudo systemctl daemon-reload` |
+| `systemd/resolved.conf.d/host-dns.conf` | `/etc/systemd/resolved.conf.d/host-dns.conf` | `sudo systemctl restart systemd-resolved` |
 | `scripts/unbound-cache-dump` | `/usr/local/bin/unbound-cache-dump` | — |
 | `scripts/unbound-cache-load` | `/usr/local/bin/unbound-cache-load` | — |
 | `scripts/packet-loss-monitor.sh` | `~/packet-loss-monitor.sh` (+ cron) | `crontab -e` |
+| `scripts/cake-monitor.sh` | `~/cake-monitor.sh` (+ cron) | `crontab -e` |
 | `udev/99-amdgpu-performance.rules` | `/etc/udev/rules.d/99-amdgpu-performance.rules` | `sudo udevadm control --reload-rules` |
 
 ---
@@ -111,7 +123,7 @@ Five drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
 | `remote-control.conf` | Unix socket for `unbound-control` |
 | `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
 | `server.conf` | Interface, port, access-control, security flags |
-| `streaming-forward.conf` | Forward-zones for streaming/media domains → Cloudflare + Google |
+| `streaming-forward.conf` | Forward-zones: streaming/media domains → pool of ~18 public resolvers (lowest-RTT wins); all else recursive. Authoritative pool list. |
 | `tuning.conf` | All performance and cache values — single source of truth |
 
 `tuning.conf` is the only place to change cache sizes, TTLs, or threading.
