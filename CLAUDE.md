@@ -66,10 +66,12 @@ race them for all queries and leak personal lookups.
 
 **DNS resolution strategy (the split lives in Unbound):** `streaming-forward.conf`
 is the single decision point. High-volume/low-sensitivity domains (Netflix,
-YouTube, Spotify, Steam, etc.) are forwarded to three public resolvers — Cloudflare
-(`1.1.1.1`), Google (`8.8.8.8`), Quad9 (`9.9.9.9`) — lowest-latency forwarder wins,
-trading privacy for speed. Everything else (personal, sensitive, default) resolves
-recursively through Unbound with DNSSEC — no public resolver ever sees these queries.
+YouTube, Spotify, Steam, etc.) are forwarded to a large pool of reputable public
+resolvers (Cloudflare, Google, Quad9, and ~15 other operators — `streaming-forward.conf`
+is the authoritative list); Unbound routes each query to the lowest-latency
+forwarder and demotes slow/dead ones (natural selection), trading privacy for speed.
+Everything else (personal, sensitive, default) resolves recursively through Unbound
+with DNSSEC — no public resolver ever sees these queries.
 
 **Uptime Kuma** runs with `network_mode: host` so it can reach Unbound at
 `127.0.0.1:5335` directly. No `ports:` mapping in the compose file.
@@ -115,7 +117,7 @@ Five drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
 | `remote-control.conf` | Unix socket for `unbound-control` |
 | `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
 | `server.conf` | Interface, port, access-control, security flags |
-| `streaming-forward.conf` | Forward-zones: streaming/media domains → Cloudflare + Google + Quad9; all else recursive |
+| `streaming-forward.conf` | Forward-zones: streaming/media domains → pool of ~18 public resolvers (lowest-RTT wins); all else recursive. Authoritative pool list. |
 | `tuning.conf` | All performance and cache values — single source of truth |
 
 `tuning.conf` is the only place to change cache sizes, TTLs, or threading.

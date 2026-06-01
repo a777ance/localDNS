@@ -146,7 +146,7 @@ The compose env var is only read on first creation of a fresh volume.
 and Unbound owns the streaming/personal split (`streaming-forward.conf`). Adding
 public resolvers to Pi-hole would race them for every query — including personal
 ones — and defeat the private path. The split is: streaming/low-sensitivity domains
-→ forwarded to Cloudflare/Google/Quad9 for speed; everything else → recursive and
+→ forwarded to a large pool of public resolvers (lowest-latency wins) for speed; everything else → recursive and
 private. Verify with the `unbound-control lookup` commands in Part 1.
 
 ### Interface setting: "Permit all origins"

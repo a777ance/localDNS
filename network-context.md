@@ -136,11 +136,14 @@ lookups; keeping a single upstream is what preserves the private path.
 Unbound is the single decision point for where each query goes:
 
 - **Streaming / low-sensitivity domains** — Netflix, YouTube, Spotify, Steam, and
-  the rest of `unbound/streaming-forward.conf` — are forwarded to three fast public
-  resolvers: Cloudflare (`1.1.1.1`), Google (`8.8.8.8`), Quad9 (`9.9.9.9`). Unbound
-  sends to the lowest-latency forwarder and fails over to the others, so the fastest
-  public resolver effectively wins. This is the deliberate privacy-for-speed trade
-  on high-volume traffic whose destination is not sensitive.
+  the rest of `unbound/streaming-forward.conf` — are forwarded to a large pool of
+  reputable public resolvers (Cloudflare, Google, Quad9, OpenDNS, Level3, and ~13
+  more; `streaming-forward.conf` is the authoritative list). Unbound sends to the
+  lowest-latency forwarder and fails over to the others, demoting slow/dead ones —
+  so the fastest public resolver effectively wins (natural selection). This is the
+  deliberate privacy-for-speed trade on high-volume traffic whose destination is
+  not sensitive. Only resolvers that answer plain DNS on port 53 are included;
+  DoH/DoT-only resolvers would be dead forwarders.
 - **Everything else** — banking, email, health, personal services, the default —
   resolves recursively with DNSSEC. No public resolver ever sees these queries.
 

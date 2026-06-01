@@ -56,7 +56,7 @@ Dropping unwanted domains at DNS means:
 ┌──────────────────────────────┐  personal / sensitive
 │ UNBOUND — single decision pt │ ──(DNSSEC, recursive)──> [ Internet Root ]
 │                              │  streaming / low-sensitivity
-│                              │ ──(fastest of 3)──────> [ Cloudflare · Google · Quad9 ]
+│                              │ ──(fastest wins)──────> [ public resolver pool · 18 operators ]
 └──────────────────────────────┘
 ```
 Dropping a domain at DNS eliminates the request entirely — no payload, no parsing, no CPU cost, no battery drain on the client. Allowed queries reach Unbound, which keeps personal lookups recursive and private while racing streaming domains across public resolvers for speed.
@@ -70,7 +70,7 @@ Dropping a domain at DNS eliminates the request entirely — no payload, no pars
 | Pi‑hole | Docker container | Isolates blocklist ingestion, gravity updates, and UI |
 | Unbound | Native Linux service | No bridge overhead; DNSSEC validation closest to the wire |
 
-Pi-hole sends every upstream query to Unbound at `172.17.0.1#5335` (the Docker bridge gateway to the host) — it does no resolver selection itself. Unbound is the single decision point: personal and sensitive domains resolve recursively with no third-party resolver in the chain, while high-volume streaming domains are forwarded to fast public resolvers (Cloudflare, Google, Quad9). The split lives entirely in `unbound/streaming-forward.conf`.
+Pi-hole sends every upstream query to Unbound at `172.17.0.1#5335` (the Docker bridge gateway to the host) — it does no resolver selection itself. Unbound is the single decision point: personal and sensitive domains resolve recursively with no third-party resolver in the chain, while high-volume streaming domains are forwarded to a large pool of fast public resolvers (Cloudflare, Google, Quad9, and ~15 other reputable operators) with the lowest-latency one winning. The full pool and the split live entirely in `unbound/streaming-forward.conf`.
 
 ---
 
