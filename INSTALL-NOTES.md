@@ -7,6 +7,34 @@ severity and fix. See the summary table at the bottom for a quick reference.
 
 ---
 
+## Contents
+
+- [BLOCKERS — will stop a fresh install cold](#blockers--will-stop-a-fresh-install-cold)
+  - [1. No `git clone` step in the setup guide](#1-no-git-clone-step-in-the-setup-guide)
+  - [2. `wg0.conf` fails to parse — WireGuard will not start](#2-wg0conf-fails-to-parse--wireguard-will-not-start)
+- [HIGH — will cause significant confusion or debugging time](#high--will-cause-significant-confusion-or-debugging-time)
+  - [3. Host DNS breaks between Steps 3 and 4 and the warning is in the wrong place](#3-host-dns-breaks-between-steps-3-and-4-and-the-warning-is-in-the-wrong-place)
+  - [4. `FTLCONF_webserver_api_password: "CHANGE_ME"` — easy to overlook, starts Pi-hole with a known password](#4-ftlconf_webserver_api_password-change_me--easy-to-overlook-starts-pi-hole-with-a-known-password)
+- [MEDIUM — silent or hard-to-diagnose failures](#medium--silent-or-hard-to-diagnose-failures)
+  - [5. Monitoring script placeholder tokens cause silent `curl` failures](#5-monitoring-script-placeholder-tokens-cause-silent-curl-failures)
+  - [6. Crontab `USERNAME` placeholder must be replaced manually](#6-crontab-username-placeholder-must-be-replaced-manually)
+  - [7. UFW INPUT rules did not restrict Pi-hole's published port 53 (now fixed by host networking)](#7-ufw-input-rules-did-not-restrict-pi-holes-published-port-53-now-fixed-by-host-networking)
+- [MINOR — cosmetic or low-impact](#minor--cosmetic-or-low-impact)
+  - [8. `server.conf` indentation inconsistency](#8-serverconf-indentation-inconsistency)
+  - [9. `sysctl.conf` append is not idempotent](#9-sysctlconf-append-is-not-idempotent)
+  - [10. GRUB edit shows the target string but not a safe append command](#10-grub-edit-shows-the-target-string-but-not-a-safe-append-command)
+  - [11. MAC address not mentioned in Step 0](#11-mac-address-not-mentioned-in-step-0)
+  - [12. Cache dump correctness depends on Ubuntu's base unbound unit having no `ExecStop`](#12-cache-dump-correctness-depends-on-ubuntus-base-unbound-unit-having-no-execstop)
+  - [13. Host-networked Pi-hole vs systemd-resolved on port 53 — now asserted in repo](#13-host-networked-pi-hole-vs-systemd-resolved-on-port-53--now-asserted-in-repo)
+- [Consolidation note (2026-06-02)](#consolidation-note-2026-06-02)
+- [Replicability pass (2026-06-02)](#replicability-pass-2026-06-02)
+  - [14. Pi-hole v5 → v6 environment scheme — compose used variables v6 ignores (BLOCKER)](#14-pi-hole-v5--v6-environment-scheme--compose-used-variables-v6-ignores-blocker)
+  - [13 (resolved). Host-net Pi-hole vs systemd-resolved stub — now asserted](#13-resolved-host-net-pi-hole-vs-systemd-resolved-stub--now-asserted)
+  - [Live-box verification (2026-06-02)](#live-box-verification-2026-06-02)
+- [Summary](#summary)
+
+---
+
 ## BLOCKERS — will stop a fresh install cold
 
 ### 1. No `git clone` step in the setup guide

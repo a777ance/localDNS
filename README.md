@@ -12,6 +12,38 @@ manually deployed — **the live t630 is the source of truth.**
 
 ---
 
+## Contents
+
+- [Hardware](#hardware)
+- [Network topology](#network-topology)
+- [How it works](#how-it-works)
+  - [DNS resolution chain](#dns-resolution-chain)
+  - [Why Unbound runs on the host, not in Docker](#why-unbound-runs-on-the-host-not-in-docker)
+  - [Why the host resolves its own DNS through external servers](#why-the-host-resolves-its-own-dns-through-external-servers)
+  - [Unbound config files](#unbound-config-files)
+  - [AMD Carrizo GPU](#amd-carrizo-gpu)
+- [Repository layout](#repository-layout)
+- [Setup](#setup)
+  - [Before you begin](#before-you-begin)
+  - [Step 0: Router — DHCP reservation](#step-0-router--dhcp-reservation)
+  - [Step 1: Unbound — Recursive DNS](#step-1-unbound--recursive-dns)
+  - [Step 2: Docker CE](#step-2-docker-ce)
+  - [Steps 3 + 4: Host DNS Fix, then Pi-hole](#steps-3--4-host-dns-fix-then-pi-hole)
+  - [Step 5: UFW Firewall](#step-5-ufw-firewall)
+  - [Step 6: WireGuard VPN](#step-6-wireguard-vpn)
+  - [Step 7: CAKE SQM](#step-7-cake-sqm)
+  - [Step 8: Uptime Kuma](#step-8-uptime-kuma)
+  - [Step 9: GPU Performance](#step-9-gpu-performance)
+  - [Step 10: Remote Desktop](#step-10-remote-desktop)
+  - [Step 11: Point LAN Clients at t630](#step-11-point-lan-clients-at-t630)
+- [Verification checklist](#verification-checklist)
+- [Configuration reference](#configuration-reference)
+- [Operational notes](#operational-notes)
+- [Known issues](#known-issues)
+- [Further reading](#further-reading)
+
+---
+
 ## Hardware
 
 | | |
@@ -83,7 +115,7 @@ does no resolver selection of its own.
   for speed on traffic whose destination is not sensitive.
 - **Everything else** — banking, email, health, personal services, the default —
   resolves recursively with DNSSEC. Cloudflare never sees these queries. This is the
-  private recursive nucleus.
+  private recursive path.
 
 The domain split lives entirely in `01-unbound/streaming-forward.conf`. **Invariant:**
 never add sensitive domains to that file — doing so hands Cloudflare your private

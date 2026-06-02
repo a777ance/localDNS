@@ -9,6 +9,15 @@ the resume name-drops, this explains.
 
 ---
 
+## Contents
+
+- [Networking, VPN & Security](#networking-vpn--security)
+- [Systems & Infrastructure](#systems--infrastructure)
+- [Automation, Scripting & Tooling](#automation-scripting--tooling)
+- [Professional background (beyond this repo)](#professional-background-beyond-this-repo)
+
+---
+
 ## Networking, VPN & Security
 
 - **WireGuard VPN** — self-hosted server; multi-peer (iOS / macOS / Windows);

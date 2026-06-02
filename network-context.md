@@ -3,6 +3,58 @@
 Documents the router and DNS/VPN configuration that the t630 stack depends on.
 This is not reproduced by README.md — it describes the surrounding network environment.
 
+## Contents
+
+- [Router topology](#router-topology)
+  - [Diagnosing future packet loss](#diagnosing-future-packet-loss)
+- [Router: Netgear R7000 (192.168.1.1)](#router-netgear-r7000-19216811)
+  - [DHCP reservation](#dhcp-reservation)
+  - [DNS pushed to LAN clients](#dns-pushed-to-lan-clients)
+  - [Router's own DNS](#routers-own-dns)
+  - [WAN security settings (Advanced → WAN Setup)](#wan-security-settings-advanced--wan-setup)
+- [Pi-hole DNS settings (Settings → DNS)](#pi-hole-dns-settings-settings--dns)
+  - [Why 127.0.0.1#5335 — and why it used to be 172.17.0.1#5335](#why-1270015335--and-why-it-used-to-be-17217015335)
+  - [Why "Permit all origins" is checked](#why-permit-all-origins-is-checked)
+  - [No preset upstream servers checked](#no-preset-upstream-servers-checked)
+- [Unbound DNS split (streaming-forward.conf)](#unbound-dns-split-streaming-forwardconf)
+  - [Why DoT-in-Unbound, not the old plaintext pool (or a separate proxy)](#why-dot-in-unbound-not-the-old-plaintext-pool-or-a-separate-proxy)
+- [Host resolver — why the t630 uses external DNS for itself](#host-resolver--why-the-t630-uses-external-dns-for-itself)
+- [Uptime Kuma — monitoring](#uptime-kuma--monitoring)
+  - [Why network_mode: host — not a bridge network](#why-network_mode-host--not-a-bridge-network)
+  - [Uptime Kuma monitors](#uptime-kuma-monitors)
+- [WireGuard VPN](#wireguard-vpn)
+  - [Topology](#topology)
+  - [Server config: 05-wireguard/wg0.conf](#server-config-05-wireguardwg0conf)
+  - [IP forwarding](#ip-forwarding)
+  - [Phone client (WireGuard iOS)](#phone-client-wireguard-ios)
+  - [Why port 51820 is open to Anywhere](#why-port-51820-is-open-to-anywhere)
+  - [Verified behavior](#verified-behavior)
+  - [Does the router need a DHCP or DNS reservation for WireGuard peers?](#does-the-router-need-a-dhcp-or-dns-reservation-for-wireguard-peers)
+  - [IP address assignments](#ip-address-assignments)
+  - [Windows client security (laptop peer)](#windows-client-security-laptop-peer)
+- [WireGuard: adding a new peer](#wireguard-adding-a-new-peer)
+  - [Each device needs its own key pair](#each-device-needs-its-own-key-pair)
+  - [Adding a peer live (no restart)](#adding-a-peer-live-no-restart)
+  - [Key derivation: the safe way to get a peer's public key](#key-derivation-the-safe-way-to-get-a-peers-public-key)
+  - [Do not add the server's own public key as a peer](#do-not-add-the-servers-own-public-key-as-a-peer)
+  - [SSH when a full tunnel is active](#ssh-when-a-full-tunnel-is-active)
+  - [UFW: services reachable from VPN peers](#ufw-services-reachable-from-vpn-peers)
+- [WireGuard: UFW forwarding — what went wrong and why](#wireguard-ufw-forwarding--what-went-wrong-and-why)
+  - [The failure](#the-failure)
+  - [Root cause](#root-cause)
+  - [The fix](#the-fix)
+- [WireGuard peer onboarding — what not to do](#wireguard-peer-onboarding--what-not-to-do)
+  - [Use the App Store app, not Homebrew](#use-the-app-store-app-not-homebrew)
+  - [Peer config mistakes that break everything](#peer-config-mistakes-that-break-everything)
+  - [WireGuard IPv6 black hole (handshake OK, nothing loads)](#wireguard-ipv6-black-hole-handshake-ok-nothing-loads)
+  - [How to verify the tunnel is actually working](#how-to-verify-the-tunnel-is-actually-working)
+  - [Pi-hole must accept queries from the wg0 subnet](#pi-hole-must-accept-queries-from-the-wg0-subnet)
+- [CAKE / bufferbloat](#cake--bufferbloat)
+  - [What CAKE on the t630 covers](#what-cake-on-the-t630-covers)
+  - [For whole-network bufferbloat: Netgear R7000](#for-whole-network-bufferbloat-netgear-r7000)
+
+---
+
 ## Router topology
 
 The Netgear R7000 is the sole router (routing, NAT, DHCP, WAN). The t630 is the
@@ -150,7 +202,7 @@ Unbound is the single decision point for where each query goes:
   high-volume traffic whose destination is not sensitive.
 - **Everything else** — banking, email, health, personal services, the default —
   resolves recursively with DNSSEC. Cloudflare never sees these queries. This
-  recursive **nucleus** is sovereign.
+  recursive path is the private default and never forwards anywhere.
 
 `forward-first: yes` means that if Cloudflare's DoT endpoints are unreachable
 (e.g. an ISP blocking port 853), Unbound falls back to recursive resolution for the
@@ -160,20 +212,18 @@ streaming domains instead of returning SERVFAIL.
 
 This path originally forwarded to a pool of ~18 public resolvers (Cloudflare,
 Google, Quad9, OpenDNS, Level3, …) over **plaintext UDP/53**, with Unbound racing
-them by RTT (natural selection). That worked for speed but had a hole: every
-streaming lookup left the box in the clear, so the **ISP could read the entire
-forward-path** even though the destinations were "low sensitivity." Only plain-53
-resolvers could be in the pool; encrypted-only operators were excluded as dead
-forwarders.
+them by RTT. That worked for speed but had a hole: every streaming lookup left the
+box in the clear, so the **ISP could read the entire forward-path** even though the
+destinations were "low sensitivity." Only plain-53 resolvers could be in the pool;
+encrypted-only operators were excluded as dead forwarders.
 
-The intended fix was endosymbiosis — engulf one Cloudflare resolver as a contained
-DoH organelle (a `cloudflared proxy-dns` daemon on loopback). **That organism is
-dead:** Cloudflare removed the `proxy-dns` feature in cloudflared v2026.2.0
-(installing 2026.5.2 and starting it just logs "dns-proxy feature is no longer
-supported" and exits 1). Rather than hunt for a replacement daemon, we did the
-mature version of the same idea — **endosymbiotic gene transfer**: Unbound speaks
-DoT natively, so the host simply *absorbs* the capability the organelle would have
-provided. No second process, nothing extra to crash.
+The intended fix was to run a local `cloudflared proxy-dns` daemon on loopback and
+forward to it, adding encryption as a separate process. **That option is gone:**
+Cloudflare removed the `proxy-dns` feature in cloudflared v2026.2.0 (installing
+2026.5.2 and starting it just logs "dns-proxy feature is no longer supported" and
+exits 1). Rather than hunt for a replacement daemon, the encryption was folded into
+Unbound itself: Unbound speaks DoT natively, so the host gains the capability the
+proxy would have provided with no second process to run or crash.
 
 - **The encryption lives in Unbound itself.** Each streaming forward-zone sets
   `forward-tls-upstream: yes` and forwards to `1.1.1.1@853#cloudflare-dns.com` /
@@ -182,14 +232,14 @@ provided. No second process, nothing extra to crash.
   "/etc/ssl/certs/ca-certificates.crt"` (a `server:` setting in the same file)
   validates Cloudflare's certificate; the `#cloudflare-dns.com` suffix is the name
   the cert is checked against.
-- **The nucleus stays sovereign.** The recursive path never forwards anywhere.
+- **The recursive path stays private.** It never forwards anywhere.
   This is the load-bearing invariant: routing recursive (sensitive) traffic through
   Cloudflare would trade your ISP for Cloudflare — strictly worse, since Cloudflare
   could correlate those lookups globally. Do not add sensitive domains to this file.
 
 **Trade vs. the old pool:** we give up multi-operator RTT racing (the forward-path
 is now Cloudflare-only, two endpoints for redundancy) in exchange for ISP-invisible
-streaming DNS and a recursive nucleus that is provably never exposed. For
+streaming DNS and a recursive path that is provably never exposed. For
 low-sensitivity, high-volume domains that is the right trade; for everything else,
 recursion already wins. **DoT vs. DoH:** DoT (:853) is a distinct port the ISP can
 see you using (though not the contents); DoH (:443) blends with HTTPS. We chose DoT
@@ -623,7 +673,7 @@ dual-stack site (Google, Netflix, most of the web) stall on the dead IPv6 path.
 
 **Interim fix (works immediately):** set `AllowedIPs = 0.0.0.0/0` on the peer —
 IPv4-only tunnel. IPv6 then goes direct, outside the VPN. Downside: a real-IPv6
-leak for IPv6-capable destinations (the membrane no longer covers IPv6).
+leak for IPv6-capable destinations (the tunnel no longer covers IPv6).
 
 **Proper fix (leak-free dual-stack).** The home has working IPv6
 (`curl -6 ifconfig.me` returns a `2600:…` address), so IPv6 can be tunnelled

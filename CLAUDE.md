@@ -6,6 +6,21 @@ network-context.md has detailed rationale for non-obvious design decisions.
 
 ---
 
+## Contents
+
+- [What this repo is](#what-this-repo-is)
+- [Hardware](#hardware)
+- [Network topology](#network-topology)
+- [Deploy paths](#deploy-paths)
+- [Unbound config](#unbound-config)
+- [AMD Carrizo GPU](#amd-carrizo-gpu)
+- [Known issues](#known-issues)
+- [Verification](#verification)
+- [Working philosophy](#working-philosophy)
+- [Further reading](#further-reading)
+
+---
+
 ## What this repo is
 
 Config snapshot and rollback target for a self-hosted DNS + monitoring + VPN
@@ -76,7 +91,7 @@ sensitive, default) resolves recursively through Unbound with DNSSEC — Cloudfl
 never sees these queries. **Invariant:** never add sensitive domains to the
 forward-path; that would hand Cloudflare your private lookups. (This path previously
 forwarded to a ~18-resolver plaintext UDP/53 pool, which leaked streaming lookups to
-the ISP in the clear. An interim plan to engulf a `cloudflared proxy-dns` organelle
+the ISP in the clear. An interim plan to run a local `cloudflared proxy-dns` daemon
 was dropped — Cloudflare removed that feature in v2026.2.0 — in favor of Unbound's
 native DoT. See network-context.md "Unbound DNS split".)
 
