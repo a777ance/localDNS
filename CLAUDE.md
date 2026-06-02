@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Briefing for Claude Code. Read this first — it is the authoritative summary of
-the whole system. SETUP.md is the step-by-step reproduction guide.
+the whole system. README.md is the complete setup guide and system reference.
 network-context.md has detailed rationale for non-obvious design decisions.
 
 ---
@@ -189,14 +189,15 @@ cat /sys/class/drm/card*/device/power_dpm_force_performance_level  # high
 
 ## Working philosophy
 
-Every commit to `main` must leave SETUP.md able to reproduce a working system on
+Every commit to `main` must leave README.md able to reproduce a working system on
 clean Ubuntu 24.04. Use feature branches for half-finished work.
 
 ---
 
 ## Further reading
 
-- **SETUP.md** — full step-by-step reproduction guide
+- **README.md** — complete setup guide and system reference (SETUP.md absorbed here)
+- **INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
 - **network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
 
