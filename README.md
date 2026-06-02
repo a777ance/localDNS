@@ -788,6 +788,8 @@ item must pass before Step 11.
 - [ ] VPN peer (phone, `10.8.0.2`) resolves through Pi-hole at `10.8.0.1` — `nslookup example.com 10.8.0.1` answers over the tunnel
 - [ ] Pi-hole Settings → DNS → Interface: "Permit all origins"
 - [ ] `getent hosts security.ubuntu.com` — returns IP (host resolver independent of Pi-hole)
+- [ ] `readlink /etc/resolv.conf` is **not** `…/stub-resolv.conf` (host DNS is off the stub, so Pi-hole can own `:53`)
+- [ ] `sudo ss -ulpn 'sport = :53'` — `:53` is held by `pihole-FTL` only (not `systemd-resolved`)
 - [ ] `sudo ufw status verbose` — all ports show `192.168.0.0/16` except 51820/udp → `Anywhere`
 - [ ] `sudo wg show` — wg0 interface up, iPhone peer listed with recent handshake
 - [ ] `systemctl status cake` — active
