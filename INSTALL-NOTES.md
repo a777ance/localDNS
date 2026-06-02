@@ -67,11 +67,18 @@ now has an explicit "fix the peer blocks before deploying" instruction.
 
 **Location:** README.md, Steps 3–4
 
-When `docker compose up -d` succeeds and Pi-hole starts, Docker's proxy process binds
-`0.0.0.0:53` — including `127.0.0.53`, the address systemd-resolved's stub listener
-uses. Host DNS breaks immediately. Any diagnostic command you naturally try next
-(`docker compose logs`, `apt`, `curl`) fails with "Temporary failure in name
+When `docker compose up -d` succeeds and Pi-hole starts, it binds `0.0.0.0:53`
+directly on the host (Pi-hole is `network_mode: host`). That collides with the
+`:53` that systemd-resolved's stub listener (`127.0.0.53:53`) occupies, and takes
+over host-wide DNS. Host DNS breaks immediately. Any diagnostic command you naturally
+try next (`docker compose logs`, `apt`, `curl`) fails with "Temporary failure in name
 resolution."
+
+Two consequences of host networking to be aware of here: (a) Pi-hole may fail to bind
+`:53` at all if the stub listener still holds it — disable it with
+`DNSStubListener=no` if so (flagged as a verify-on-box item below); and (b) once
+Pi-hole owns `:53`, the host cannot resolve for itself until Step 4 repoints it at
+external resolvers.
 
 The original SETUP.md warned "Do this immediately after Pi-hole starts" but placed
 the warning *after* the `docker compose up -d` command. A first-time installer will
@@ -135,25 +142,22 @@ to substitute the actual username.
 
 ---
 
-### 7. UFW INPUT rules do not restrict Pi-hole's published port 53
+### 7. UFW INPUT rules did not restrict Pi-hole's published port 53 (now fixed by host networking)
 
-**Location:** `04-ufw/setup.sh`
+**Location:** `04-ufw/setup.sh`, `02-pihole/docker-compose.yml`
 
-Docker inserts DNAT rules into the `DOCKER` iptables chain, which is processed
-*before* UFW's INPUT chain. Pi-hole port 53 (published via `ports: "53:53/udp"` in
-the compose file) bypasses UFW's `from 192.168.0.0/16` restriction entirely. The
-`ufw allow in from "$LAN" to any port 53` rules in `setup.sh` apply to host-resident
-services — they don't gate Docker-published ports.
+**Original problem:** with Pi-hole on the Docker bridge publishing ports, Docker
+inserted DNAT rules into the `DOCKER` iptables chain, processed *before* UFW's INPUT
+chain. Pi-hole port 53 (published via `ports: "53:53/udp"`) bypassed UFW's
+`from 192.168.0.0/16` restriction entirely — UFW's rules only gate host-resident
+services, not Docker-published ports. LAN isolation for port 53 relied entirely on
+the router.
 
-In practice this is safe for the current topology: the Netgear R7000 NATs all WAN
-traffic and only forwards 51820/UDP to the t630, so the external boundary is the
-router. But it means UFW does not provide the LAN-restriction layer for Pi-hole port
-53 that the comments in `setup.sh` imply. Internal LAN isolation for port 53 relies
-entirely on the router.
-
-**Fix:** Document this accurately. README.md now includes a note in the UFW step.
-Unbound on port 5335 is correctly protected by UFW (it is a host-resident service, not
-Docker-published) via the `ufw allow in on docker0 to any port 5335` rule.
+**Resolved by the consolidation:** Pi-hole now runs `network_mode: host`. Its `:53`
+and `:8080` bind directly on the host, so they are subject to UFW's INPUT chain like
+any host service — the `from 192.168.0.0/16` and `from 10.8.0.0/24` rules genuinely
+restrict them now. Host networking closes the DNAT-bypass gap as a side effect of
+the VPN-peer-DNS fix. README.md's UFW note reflects this.
 
 ---
 
@@ -239,6 +243,41 @@ or reset the `ExecStop=` list in the override before redefining it.
 
 ---
 
+### 13. Host-networked Pi-hole vs systemd-resolved on port 53 — verify on the box
+
+**Location:** `02-pihole/docker-compose.yml`, `03-host-dns/host-dns.conf`
+
+The consolidated config runs Pi-hole with `network_mode: host` (this is what fixes
+VPN-peer DNS). Pi-hole then wants `0.0.0.0:53`, which **collides with
+systemd-resolved's stub listener** on `127.0.0.53:53`. On a fresh install Pi-hole may
+fail to bind `:53` until the stub listener is disabled:
+
+```bash
+# Add to /etc/systemd/resolved.conf.d/host-dns.conf, then restart systemd-resolved
+DNSStubListener=no
+```
+
+This repo deliberately does **not** assert that change in `host-dns.conf`, because
+the live t630's exact reconciliation is unknown from this side (no SSH access to the
+box during consolidation). **Action:** confirm on `192.168.1.118` how `:53` is freed
+for Pi-hole — if it relies on `DNSStubListener=no`, add that line to
+`03-host-dns/host-dns.conf` so a fresh rebuild reproduces it.
+
+---
+
+## Consolidation note (2026-06-02)
+
+This file and the rest of the repo were consolidated from five divergent branches
+into a single source of truth on `main`. The substantive behavioral change adopted
+during consolidation: **Pi-hole moved from Docker bridge networking to
+`network_mode: host`**, which resolved the project's headline open issue (VPN-peer
+DNS over the tunnel) and, as a side effect, brought Pi-hole's ports under UFW's
+control (item 7). Items 1, 2, 8, 9, 10, 11 were already fixed in the renovated docs;
+items 5, 6, 12 remain operational cautions; item 13 is the one new verify-on-box item
+introduced by the host-networking change.
+
+---
+
 ## Summary
 
 | # | Severity | Location | Impact |
@@ -249,9 +288,10 @@ or reset the `ExecStop=` list in the override before redefining it.
 | 4 | High | `02-pihole/docker-compose.yml` | Known-weak default password easy to miss in prose |
 | 5 | Medium | `07-uptime-kuma/*.sh` | Silent `curl` failures when push tokens not replaced |
 | 6 | Medium | README.md Step 8 | `USERNAME` crontab placeholder creates broken cron job |
-| 7 | Medium | `04-ufw/setup.sh` | UFW port 53 restriction ineffective for Docker-published ports |
+| 7 | Resolved | `04-ufw/setup.sh`, `02-pihole/` | UFW port-53 bypass — closed by moving Pi-hole to host networking |
 | 8 | Minor | `01-unbound/server.conf` | Indentation inconsistency on `interface:` line |
 | 9 | Minor | README.md Step 6 | `sysctl.conf` append not idempotent |
 | 10 | Minor | README.md Step 9 | GRUB edit guidance incomplete — risk of clobbering existing flags |
 | 11 | Minor | README.md Step 0 | No guidance on finding the MAC address |
 | 12 | Minor | `unbound.service.d/override.conf` | Cache dump assumes base unit has no `ExecStop` |
+| 13 | Verify on box | `02-pihole/`, `03-host-dns/` | Host-net Pi-hole vs systemd-resolved stub on `:53` — may need `DNSStubListener=no` |

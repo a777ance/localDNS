@@ -50,19 +50,19 @@ ISP (Spectrum ~200/100 Mbps asymmetric)
 
 | Service | Runtime | Port(s) | Accessible from |
 | ------- | ------- | ------- | --------------- |
-| Pi-hole | Docker bridge | 53 (DNS), 8080 (UI) | LAN + WG subnet |
-| Unbound | host OS | 5335 | Pi-hole only (via `172.17.0.1`) |
+| Pi-hole | Docker host-net | 53 (DNS), 8080 (UI) | LAN + WG subnet |
+| Unbound | host OS | 5335 | Pi-hole only (via `127.0.0.1`) |
 | Uptime Kuma | Docker host-net | 3001 | LAN + WG subnet |
 | WireGuard | host OS | 51820/UDP | Internet (open to Anywhere) |
 | NoMachine | host OS | 4000 | LAN only |
 | xrdp | host OS | 3389 | LAN only |
 | SSH | host OS | 22 | LAN + WG subnet |
 
-**Pi-hole upstream DNS:** a single upstream — `172.17.0.1#5335` (Unbound, via the
-Docker bridge gateway). Pi-hole does no resolver selection of its own; it forwards
-every query to Unbound. Set in Pi-hole UI (Settings → DNS); the compose env var
-only seeds this on a fresh volume. Do not add public resolvers here — that would
-race them for all queries and leak personal lookups.
+**Pi-hole upstream DNS:** a single upstream — `127.0.0.1#5335` (Unbound on the host;
+reachable directly because Pi-hole runs `network_mode: host`). Pi-hole does no
+resolver selection of its own; it forwards every query to Unbound. Set in Pi-hole UI
+(Settings → DNS); the compose env var only seeds this on a fresh volume. Do not add
+public resolvers here — that would race them for all queries and leak personal lookups.
 
 **DNS resolution strategy (the split lives in Unbound):** `streaming-forward.conf`
 is the single decision point. High-volume/low-sensitivity domains (Netflix,
@@ -84,7 +84,9 @@ reach the Dockerized Pi-hole on `:53` from the host. See network-context.md "Hos
 resolver" for the root cause.
 
 **Uptime Kuma** runs with `network_mode: host` so it can reach Unbound at
-`127.0.0.1:5335` directly. No `ports:` mapping in the compose file.
+`127.0.0.1:5335` directly. No `ports:` mapping in the compose file. Pi-hole is
+host-networked for the same reason (and so it answers VPN peers over `wg0`), so
+both containers sit directly on the host network stack.
 
 ---
 
@@ -164,8 +166,9 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 | Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
 | WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Present in live wg0.conf but not documented — identify devices and add to peer table |
 | WireGuard `::/0` IPv6 black hole | Server is IPv4-only in-tunnel; peers routing `::/0` black-hole IPv6 (handshake OK, pages hang). Peer template now defaults to `0.0.0.0/0`. Leak-free dual-stack fix (ULA + NAT66) documented in network-context.md "WireGuard IPv6 black hole". |
-| **UNRESOLVED:** VPN peer DNS over the tunnel | Phone (`10.8.0.2`) can't resolve via Pi-hole at `10.8.0.1`: queries reach `wg0` (tcpdump) but replies don't return; the laptop (`10.8.0.3`) does appear as a Pi-hole client, so it's intermittent. Likely the Dockerized Pi-hole `:53` path from the host's own interface IPs (same family as the host-resolver bug). First set Pi-hole listening mode to ALL (`pihole-FTL --config dns.listeningMode ALL` + restart); if still unanswered, run Pi-hole with `network_mode: host` like Uptime Kuma. Stopgap: point the peer's DNS at an external resolver (e.g. `1.1.1.1`). |
-| Live Pi-hole upstreams ≠ repo | Dashboard shows the live Pi-hole forwarding directly to `8.8.8.8`/`8.8.4.4`/`9.9.9.9`/`149.112.112.112`/`208.67.222.222` **plus** `172.17.0.1#5335` — the old multi-resolver race retained in the `pihole_data` volume, not the single Unbound upstream the repo specifies. Re-set Pi-hole UI → Settings → DNS to the single `172.17.0.1#5335` so the streaming split (which lives in Unbound) is actually in effect. |
+| VPN peer DNS over the tunnel | **Resolved.** Pi-hole switched to `network_mode: host` — Docker DNAT no longer in the path, so `10.8.0.1:53` is answered directly for queries sourced from `wg0`. Port 8080 also added to the WG UFW rules so the Pi-hole UI is reachable from VPN peers. |
+| Host-net Pi-hole vs systemd-resolved `:53` | With `network_mode: host` Pi-hole binds `0.0.0.0:53`, which can collide with systemd-resolved's stub on `127.0.0.53:53`. If Pi-hole won't bind, set `DNSStubListener=no`. Not asserted in repo — verify on the live box. |
+| Live Pi-hole upstreams ≠ repo | After deploying the host-network compose, set Pi-hole UI → Settings → DNS to the single custom upstream `127.0.0.1#5335` (replacing any `172.17.0.1#5335` or public resolvers left in the `pihole_data` volume) so the streaming split (which lives in Unbound) is actually in effect. |
 
 ---
 
@@ -198,6 +201,7 @@ clean Ubuntu 24.04. Use feature branches for half-finished work.
 
 - **README.md** — complete setup guide and system reference (SETUP.md absorbed here)
 - **INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
+- **SKILLS.md** — skills demonstrated by the stack, each mapped to proving artifacts
 - **network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
 

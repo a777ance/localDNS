@@ -50,8 +50,8 @@ ISP (Spectrum ~200/100 Mbps asymmetric)
 
 | Service | Runtime | Port(s) | Accessible from |
 | ------- | ------- | ------- | --------------- |
-| Pi-hole | Docker bridge | 53 (DNS), 8080 (UI) | LAN + WG subnet |
-| Unbound | host OS | 5335 | Pi-hole only (via `172.17.0.1`) |
+| Pi-hole | Docker host-net | 53 (DNS), 8080 (UI) | LAN + WG subnet |
+| Unbound | host OS | 5335 | Pi-hole only (via `127.0.0.1`) |
 | Uptime Kuma | Docker host-net | 3001 | LAN + WG subnet |
 | WireGuard | host OS | 51820/UDP | Internet (open to Anywhere) |
 | NoMachine | host OS | 4000 | LAN only |
@@ -68,8 +68,9 @@ Every query from a LAN or VPN client flows through two layers:
 
 **Pi-hole** receives all queries, strips blocklisted domains (ad/tracker domains
 answered with `0.0.0.0` — no request, no payload, no CPU cost on the client), and
-forwards everything that passes to Unbound at `172.17.0.1#5335` (the Docker bridge
-gateway to the host). Pi-hole does no resolver selection of its own.
+forwards everything that passes to Unbound at `127.0.0.1#5335`. Pi-hole runs with
+`network_mode: host`, so it reaches Unbound directly on the host loopback. Pi-hole
+does no resolver selection of its own.
 
 **Unbound** is the single decision point for where each query goes:
 
@@ -91,17 +92,26 @@ to full recursion. Streaming keeps working, just slower.
 ### Why Unbound runs on the host, not in Docker
 
 DNSSEC validation needs low overhead and no bridge routing. Unbound runs directly on
-the host OS at `0.0.0.0:5335`. Pi-hole reaches it via `172.17.0.1#5335` (Docker
-bridge gateway). Uptime Kuma runs with `network_mode: host` so it can also reach
-`127.0.0.1:5335` directly without a bridge.
+the host OS at `0.0.0.0:5335`. Both containers that talk to it — Pi-hole and Uptime
+Kuma — run with `network_mode: host`, so each reaches Unbound directly at
+`127.0.0.1:5335` on the host loopback, with no Docker bridge in the path.
 
 ### Why the host resolves its own DNS through external servers
 
-Pi-hole publishes `0.0.0.0:53`. When Docker's proxy occupies that address, host-
-originated queries to the host's own IP time out — Docker's DNAT rules don't loop
-back correctly. `03-host-dns/host-dns.conf` points systemd-resolved at `9.9.9.9`
-and `1.1.1.1` directly, decoupling the host's own resolution from the Docker stack.
-See `network-context.md` "Host resolver" for the root-cause analysis.
+Pi-hole (host-networked) binds `:53` directly on the host across every interface.
+The host therefore cannot cleanly use its own Pi-hole for its own lookups — and
+`/etc/resolv.conf` cannot carry Unbound's non-standard `:5335` port either.
+`03-host-dns/host-dns.conf` points systemd-resolved at `9.9.9.9` and `1.1.1.1`
+directly, decoupling the host's own resolution from the DNS stack so it is never
+stranded while Pi-hole/Unbound restart. See `network-context.md` "Host resolver"
+for the root-cause analysis.
+
+> **Verify on the live box:** with `network_mode: host`, Pi-hole wants `0.0.0.0:53`,
+> which can collide with systemd-resolved's stub listener on `127.0.0.53:53`. If
+> Pi-hole fails to bind `:53` after switching to host networking, the stub listener
+> must be disabled (`DNSStubListener=no` in a resolved drop-in) or otherwise moved
+> off `:53`. This repo does not assert how the live t630 reconciles this — confirm
+> it directly on the box.
 
 ### Unbound config files
 
@@ -341,13 +351,14 @@ Web UI at `http://192.168.1.118:8080/admin/`.
 #### Confirm Pi-hole upstream DNS in the UI
 
 Go to Settings → DNS. Verify:
-1. Custom upstream shows exactly: `172.17.0.1#5335`
+1. Custom upstream shows exactly: `127.0.0.1#5335`
 2. No preset resolvers (Google, Cloudflare, Quad9) are checked
 
-The `PIHOLE_DNS_: "172.17.0.1#5335"` env var seeds this on a fresh volume, but
-confirm it in the UI after first start. Do not add public resolvers — Pi-hole
-forwards everything to Unbound, and Unbound owns the streaming/personal split.
-Adding public resolvers here would race them for every query, including sensitive ones.
+The `PIHOLE_DNS_: "127.0.0.1#5335"` env var seeds this on a fresh volume, but
+confirm it in the UI after first start (Pi-hole is host-networked, so the host
+loopback reaches Unbound directly). Do not add public resolvers — Pi-hole forwards
+everything to Unbound, and Unbound owns the streaming/personal split. Adding public
+resolvers here would race them for every query, including sensitive ones.
 
 #### Set Pi-hole interface mode
 
@@ -355,12 +366,13 @@ Settings → DNS → Interface: set to **"Permit all origins"**. This is require
 Pi-hole to accept queries from WireGuard tunnel clients (`10.8.0.x`) and Docker
 containers. Safe here because UFW (next step) restricts access at the network layer.
 
-> **UFW and Docker port 53:** Docker inserts DNAT rules into the `DOCKER` iptables
-> chain, which processes before UFW's INPUT chain. Pi-hole's published port 53 is not
-> restricted by UFW's `from 192.168.0.0/16` rule — Docker handles that routing
-> directly. The router's NAT is the outer boundary for WAN access. Unbound's port 5335
-> is a host-resident service and is correctly protected by UFW via the
-> `allow in on docker0` rule.
+> **UFW now gates Pi-hole:** because Pi-hole runs `network_mode: host` (not Docker
+> bridge with published ports), its `:53` and `:8080` bind directly on the host and
+> are subject to UFW's INPUT chain like any host service — UFW's `from 192.168.0.0/16`
+> and `from 10.8.0.0/24` rules genuinely restrict them. (With the old bridge +
+> published-ports setup, Docker's DNAT in the `DOCKER` chain ran before UFW's INPUT
+> chain and bypassed these rules — host networking removes that gap.) The router's
+> NAT remains the outer boundary for WAN access.
 
 ---
 
@@ -380,7 +392,7 @@ Rules applied:
 | 53 | TCP/UDP | `192.168.0.0/16` + `10.8.0.0/24` |
 | 5335 | TCP/UDP | `192.168.0.0/16` + docker0 bridge |
 | 22 | TCP | `192.168.0.0/16` + `10.8.0.0/24` |
-| 8080 | TCP | `192.168.0.0/16` |
+| 8080 | TCP | `192.168.0.0/16` + `10.8.0.0/24` |
 | 3001 | TCP | `192.168.0.0/16` + `10.8.0.0/24` |
 | 3389 | TCP | `192.168.0.0/16` |
 | 4000 | TCP/UDP | `192.168.0.0/16` |
@@ -555,8 +567,8 @@ Web UI at `http://192.168.1.118:3001`. Create an admin account on first run.
 Data persists in `~/uptime-kuma/data/` (bind mount — back this directory up directly).
 
 Uptime Kuma uses `network_mode: host`, placing it on the host network stack. This lets
-it reach Unbound at `127.0.0.1:5335` directly — unlike Pi-hole (Docker bridge), which
-must use `172.17.0.1#5335`.
+it reach Unbound at `127.0.0.1:5335` directly. Pi-hole is host-networked for the same
+reason, so both containers reach Unbound on the host loopback.
 
 #### DNS monitors
 
@@ -761,7 +773,9 @@ item must pass before Step 11.
 - [ ] `sudo unbound-control lookup chase.com` → iterative delegation (private, never forwarded)
 - [ ] `docker ps` — pihole and uptime-kuma both Up and healthy
 - [ ] Pi-hole web UI at `http://192.168.1.118:8080/admin/`
-- [ ] Pi-hole Settings → DNS → custom upstream: exactly `172.17.0.1#5335`, no preset resolvers checked
+- [ ] Pi-hole Settings → DNS → custom upstream: exactly `127.0.0.1#5335`, no preset resolvers checked
+- [ ] Pi-hole web UI reachable from a VPN peer at `http://10.8.0.1:8080/admin/` (port 8080 open to WG subnet)
+- [ ] VPN peer (phone, `10.8.0.2`) resolves through Pi-hole at `10.8.0.1` — `nslookup example.com 10.8.0.1` answers over the tunnel
 - [ ] Pi-hole Settings → DNS → Interface: "Permit all origins"
 - [ ] `getent hosts security.ubuntu.com` — returns IP (host resolver independent of Pi-hole)
 - [ ] `sudo ufw status verbose` — all ports show `192.168.0.0/16` except 51820/udp → `Anywhere`
@@ -831,13 +845,16 @@ item must pass before Step 11.
 | Windows laptop WireGuard key | Open | Private key was exposed during setup; rotate before trusting this peer |
 | WireGuard peers 10.8.0.4–10.8.0.6 | Open | Present in live `wg0.conf` but not documented — identify devices and add to peer table |
 | WireGuard `::/0` IPv6 black hole | Documented | Server is IPv4-only in-tunnel; do not add `::/0` to peer AllowedIPs. IPv6 traffic black-holes silently: handshake succeeds, pages hang. Use `0.0.0.0/0` only. Leak-free dual-stack fix (ULA + NAT66) in `network-context.md`. |
-| VPN peer DNS over the tunnel | Unresolved | Phone (`10.8.0.2`) intermittently can't resolve via Pi-hole at `10.8.0.1`: queries reach `wg0` (tcpdump confirms) but replies don't return. First fix: confirm Pi-hole → Settings → DNS → Interface is "Permit all origins". If still broken, run Pi-hole with `network_mode: host` like Uptime Kuma. Stopgap: set peer DNS to `1.1.1.1`. |
-| Live Pi-hole upstreams ≠ repo | Check on deploy | Dashboard may show legacy resolvers (`8.8.8.8`, Quad9, etc.) retained in the `pihole_data` Docker volume from a prior install. On every fresh deploy, confirm Pi-hole UI → Settings → DNS shows only `172.17.0.1#5335`. |
+| VPN peer DNS over the tunnel | **Resolved** | Fixed by running Pi-hole with `network_mode: host` (`02-pihole/docker-compose.yml`). The Docker bridge + published-ports DNAT path silently dropped replies to queries sourced from the host's own `wg0` interface; host networking removes the DNAT path so `10.8.0.1:53` answers directly. Port 8080 was also opened to the WG subnet (`04-ufw/setup.sh`) so the Pi-hole UI is reachable over the tunnel. |
+| Live Pi-hole upstreams ≠ repo | Check on deploy | Dashboard may show legacy resolvers (`8.8.8.8`, Quad9, etc.) retained in the `pihole_data` Docker volume from a prior install. On every fresh deploy, confirm Pi-hole UI → Settings → DNS shows only `127.0.0.1#5335`. |
+| Host-net Pi-hole vs systemd-resolved on `:53` | Verify on box | `network_mode: host` makes Pi-hole bind `0.0.0.0:53`, which can collide with systemd-resolved's stub listener (`127.0.0.53:53`). If Pi-hole fails to bind, disable the stub (`DNSStubListener=no`). Repo does not assert how the live t630 handles this — confirm on the box. |
 
 ---
 
 ## Further reading
 
+- **SKILLS.md** — the networking, Linux/infra, and automation skills this stack
+  exercises, each mapped to the concrete config and scripts that prove it
 - **INSTALL-NOTES.md** — fresh install simulation: every known break point, its
   severity, and what was fixed
 - **network-context.md** — design rationale: Docker networking, UFW/WireGuard
