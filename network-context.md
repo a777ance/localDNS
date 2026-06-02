@@ -97,8 +97,9 @@ filtered too.
 
 Pi-hole runs with `network_mode: host`, so it shares the host's network stack
 directly. Inside that stack `127.0.0.1` *is* the host loopback, and Unbound listens
-on `127.0.0.1:5335` — so Pi-hole reaches it as `127.0.0.1#5335`, exactly as a native
-host process would.
+on `:5335` across every interface (`interface: 0.0.0.0` in `01-unbound/server.conf`),
+the loopback included — so Pi-hole reaches it as `127.0.0.1#5335`, exactly as a
+native host process would.
 
 This changed with the move to host networking. Under the **old bridge-mode** setup,
 Pi-hole ran in its own network namespace where `127.0.0.1` was the *container's* own
@@ -221,7 +222,7 @@ git, curl) through its own Pi-hole. With `network_mode: host`, Pi-hole binds
    which conflicts with Pi-hole's `0.0.0.0:53` bind. One of them has to give up the
    port — and Pi-hole needs `:53` to serve LAN and VPN clients, so the stub is
    disabled (`DNSStubListener=no`).
-2. **Unbound is on a non-standard port.** Unbound answers on `127.0.0.1:5335`, but
+2. **Unbound is on a non-standard port.** Unbound answers on port `5335`, but
    `/etc/resolv.conf` cannot carry a non-53 port, so the host can't point at Unbound
    directly either.
 
@@ -341,7 +342,7 @@ reachable because Pi-hole (host-networked) binds `0.0.0.0:53` directly on every
 host interface — including wg0. All phone DNS therefore flows through Pi-hole +
 Unbound — ad-blocking and DNSSEC validation work on cellular identically to LAN.
 
-### Server config: wireguard/wg0.conf
+### Server config: 05-wireguard/wg0.conf
 
 | Parameter | Value |
 | --------- | ----- |
@@ -523,7 +524,13 @@ peers need must also be allowed from `10.8.0.0/24`. Currently allowed:
 | ---- | ------- | -------- |
 | 53/tcp+udp | Pi-hole DNS | initial WG setup |
 | 22/tcp | SSH | laptop session |
+| 8080/tcp | Pi-hole UI | host-net migration |
 | 3001/tcp | Uptime Kuma | laptop session |
+
+Port 8080 (the Pi-hole admin UI) only became gateable by this rule after the
+host-net migration: with bridge networking Docker's DNAT bypassed UFW for
+published ports, so the WG-subnet allow had no effect. Now that Pi-hole binds
+8080 directly on `wg0`, this rule is what actually exposes the UI to VPN peers.
 
 Uptime Kuma (`http://192.168.1.118:3001`) was unreachable from the laptop
 even after the tunnel connected because port 3001 was only open to the LAN
@@ -630,7 +637,7 @@ properly with a ULA prefix + NAT66, mirroring the existing IPv4 NAT:
 # 3) Add IPv6 MASQUERADE to PostUp/PreDown in wg0.conf (mirrors the IPv4 rule):
 #      PostUp:  ip6tables -t nat -A POSTROUTING -s fd00:8::/64 -o enp1s0 -j MASQUERADE
 #      PreDown: ip6tables -t nat -D POSTROUTING -s fd00:8::/64 -o enp1s0 -j MASQUERADE
-# 4) IPv6 forwarding is already on (net.ipv6.conf.all.forwarding=1, Part 5a).
+# 4) IPv6 forwarding is already on (net.ipv6.conf.all.forwarding=1 — README Step 6).
 # 5) Restore ::/0 in the peer's AllowedIPs.
 ```
 
