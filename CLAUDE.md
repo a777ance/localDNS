@@ -66,12 +66,17 @@ race them for all queries and leak personal lookups.
 
 **DNS resolution strategy (the split lives in Unbound):** `streaming-forward.conf`
 is the single decision point. High-volume/low-sensitivity domains (Netflix,
-YouTube, Spotify, Steam, etc.) are forwarded to a large pool of reputable public
-resolvers (Cloudflare, Google, Quad9, and ~15 other operators — `streaming-forward.conf`
-is the authoritative list); Unbound routes each query to the lowest-latency
-forwarder and demotes slow/dead ones (natural selection), trading privacy for speed.
-Everything else (personal, sensitive, default) resolves recursively through Unbound
-with DNSSEC — no public resolver ever sees these queries.
+YouTube, Spotify, Steam, etc.) are forwarded to **Cloudflare over DNS-over-TLS**
+(`1.1.1.1@853#cloudflare-dns.com` / `1.0.0.1`, `forward-tls-upstream: yes`), so the
+ISP sees an encrypted channel instead of cleartext lookups — trading privacy for
+speed on traffic whose destination is not sensitive. Everything else (personal,
+sensitive, default) resolves recursively through Unbound with DNSSEC — Cloudflare
+never sees these queries. **Invariant:** never add sensitive domains to the
+forward-path; that would hand Cloudflare your private lookups. (This path previously
+forwarded to a ~18-resolver plaintext UDP/53 pool, which leaked streaming lookups to
+the ISP in the clear. An interim plan to engulf a `cloudflared proxy-dns` organelle
+was dropped — Cloudflare removed that feature in v2026.2.0 — in favor of Unbound's
+native DoT. See network-context.md "Unbound DNS split".)
 
 **Host's own DNS:** the t630 resolves its *own* queries (apt, git, curl) via external
 resolvers (`systemd/resolved.conf.d/host-dns.conf`), NOT its own Pi-hole — it cannot
@@ -123,15 +128,18 @@ Five drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
 | `remote-control.conf` | Unix socket for `unbound-control` |
 | `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
 | `server.conf` | Interface, port, access-control, security flags |
-| `streaming-forward.conf` | Forward-zones: streaming/media domains → pool of ~18 public resolvers (lowest-RTT wins); all else recursive. Authoritative pool list. |
+| `streaming-forward.conf` | Forward-zones: streaming/media domains → Cloudflare over DoT (`1.1.1.1@853`, `forward-tls-upstream`); all else recursive. Sets `tls-cert-bundle` for upstream cert validation. |
 | `tuning.conf` | All performance and cache values — single source of truth |
 
 `tuning.conf` is the only place to change cache sizes, TTLs, or threading.
 Do not split these into separate files.
 
 To verify the DNS split: `sudo unbound-control lookup netflix.com` should show
-`forwarding request` to `1.1.1.1`/`8.8.8.8`. `sudo unbound-control lookup chase.com`
-should show iterative delegation to authoritative nameservers (no forwarder).
+`forwarding request` to `1.1.1.1@853`/`1.0.0.1@853`. `sudo unbound-control lookup
+chase.com` should show iterative delegation to authoritative nameservers (no
+forwarder). A resolved `dig @127.0.0.1 -p 5335 netflix.com +short` confirms the DoT
+path works end-to-end (it fails closed to recursion via `forward-first` if :853 is
+blocked).
 
 ---
 
@@ -164,7 +172,8 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 ```bash
 systemctl status unbound
 dig @127.0.0.1 -p 5335 example.com +dnssec        # 'ad' flag = DNSSEC working
-sudo unbound-control lookup netflix.com            # should show: forwarding request
+dig @127.0.0.1 -p 5335 netflix.com +short          # DoT forward-path resolves end-to-end
+sudo unbound-control lookup netflix.com            # forwarding request → 1.1.1.1@853 / 1.0.0.1@853
 sudo unbound-control lookup chase.com              # should show: iterative delegation
 docker ps                                          # pihole + uptime-kuma both Up
 sudo wg show                                       # wg0 up, peers listed

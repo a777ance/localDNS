@@ -60,9 +60,9 @@ sudo systemctl enable --now unbound
 
 Five drop-ins: `server.conf` (network/security), `tuning.conf` (performance, TTLs,
 serve-expired — single source of truth for all caching values),
-`streaming-forward.conf` (domain split — streaming/low-sensitivity domains
-forwarded to public resolvers, everything else recursive), `remote-control.conf`
-(Unix socket), `root-auto-trust-anchor-file.conf` (DNSSEC).
+`streaming-forward.conf` (domain split — streaming/low-sensitivity domains forwarded
+to Cloudflare over DNS-over-TLS, everything else recursive; see Part 1a),
+`remote-control.conf` (Unix socket), `root-auto-trust-anchor-file.conf` (DNSSEC).
 
 ### Verify
 
@@ -71,9 +71,13 @@ dig @127.0.0.1 -p 5335 example.com +dnssec | grep "ad;"
 # 'ad' flag = DNSSEC validation working
 
 # Confirm the streaming/personal split (see Part 3 for the full rationale):
-sudo unbound-control lookup netflix.com   # → "forwarding request" to a public resolver
+sudo unbound-control lookup netflix.com   # → "forwarding request" to 1.1.1.1@853 / 1.0.0.1@853
 sudo unbound-control lookup chase.com     # → iterative delegation (recursive, private)
 ```
+
+The `netflix.com` lookup forwards to Cloudflare over DNS-over-TLS (see Part 1a for
+the rationale). If port 853 is ever blocked, `forward-first: yes` falls back to
+recursion, so streaming keeps resolving.
 
 ### Cache persistence
 
@@ -90,6 +94,37 @@ sudo systemctl enable --now unbound-cache-dump.timer
 
 Cache is dumped hourly and on Unbound stop; restored 2 seconds after Unbound starts
 (to let the socket settle). Warm-cache performance survives reboots.
+
+---
+
+## Part 1a: Encrypted streaming forward-path (Cloudflare DoT)
+
+The streaming forward-zones in `streaming-forward.conf` forward to Cloudflare over
+**DNS-over-TLS** so the ISP sees an encrypted channel instead of cleartext lookups,
+while the recursive nucleus (banking, email, the default) stays fully private. See
+network-context.md "Unbound DNS split" for the rationale and the load-bearing
+invariant (never add sensitive domains to the forward-path).
+
+There is **no separate daemon** — Unbound does DoT natively (an earlier plan to run
+a `cloudflared proxy-dns` organelle was dropped because Cloudflare removed that
+feature in cloudflared v2026.2.0). The forward-path needs only:
+
+- **`tls-cert-bundle`** — already set in `streaming-forward.conf`, pointing at
+  `/etc/ssl/certs/ca-certificates.crt` to validate Cloudflare's certificate. That
+  bundle is provided by the `ca-certificates` package (present on stock Ubuntu;
+  `sudo apt install -y ca-certificates` if somehow missing).
+- **Outbound port 853** to `1.1.1.1` / `1.0.0.1`. Normally open on residential ISPs;
+  if blocked, `forward-first: yes` falls back to recursion so streaming still works.
+
+Deploying is just the standard Unbound drop-in copy from Part 1 (`sudo cp
+unbound/*.conf /etc/unbound/unbound.conf.d/`). Verify it after a restart:
+
+```bash
+sudo systemctl restart unbound
+sudo unbound-control lookup netflix.com     # → forwarding request to 1.1.1.1@853 / 1.0.0.1@853
+dig @127.0.0.1 -p 5335 netflix.com +short   # → resolves → the DoT path works end-to-end
+sudo unbound-control lookup chase.com       # → iterative delegation (recursive, private)
+```
 
 ---
 
@@ -146,8 +181,9 @@ The compose env var is only read on first creation of a fresh volume.
 and Unbound owns the streaming/personal split (`streaming-forward.conf`). Adding
 public resolvers to Pi-hole would race them for every query — including personal
 ones — and defeat the private path. The split is: streaming/low-sensitivity domains
-→ forwarded to a large pool of public resolvers (lowest-latency wins) for speed; everything else → recursive and
-private. Verify with the `unbound-control lookup` commands in Part 1.
+→ forwarded to Cloudflare over DNS-over-TLS (encrypted from the ISP); everything
+else → recursive and private. Verify with the `unbound-control lookup` commands in
+Part 1/1a.
 
 ### Interface setting: "Permit all origins"
 
@@ -551,11 +587,12 @@ must use `172.17.0.1#5335` to reach the host.
 
 - [ ] `systemctl status unbound` — active
 - [ ] `dig @127.0.0.1 -p 5335 example.com +dnssec` — `ad` flag present
+- [ ] `dig @127.0.0.1 -p 5335 netflix.com +short` — resolves (Cloudflare DoT forward-path works)
 - [ ] `docker ps` — pihole and uptime-kuma both healthy
 - [ ] Pi-hole web UI at `http://192.168.1.118:8080/admin/`
 - [ ] Uptime Kuma at `http://192.168.1.118:3001`
 - [ ] Pi-hole Settings → DNS shows `172.17.0.1#5335` as the single custom upstream (no preset resolvers checked)
-- [ ] `sudo unbound-control lookup netflix.com` → `forwarding request`; `sudo unbound-control lookup chase.com` → iterative delegation (the streaming/personal split is live)
+- [ ] `sudo unbound-control lookup netflix.com` → `forwarding request` to `1.1.1.1@853` / `1.0.0.1@853`; `sudo unbound-control lookup chase.com` → iterative delegation (the streaming/personal split is live)
 - [ ] `sudo iptables -t mangle -L POSTROUTING -v | grep DSCP` → two rules marking sport 53 as EF
 - [ ] Blocked domain (`doubleclick.net`) → `0.0.0.0` from a client
 - [ ] `cat /sys/class/drm/card*/device/power_dpm_force_performance_level` → `high`
