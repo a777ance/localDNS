@@ -93,38 +93,45 @@ filtered too.
 
 ## Pi-hole DNS settings (Settings → DNS)
 
-### Why 172.17.0.1#5335 — not 127.0.0.1#5335
+### Why 127.0.0.1#5335 — and why it used to be 172.17.0.1#5335
 
-Pi-hole runs inside a Docker container. Inside the container, `127.0.0.1` is the
-container's own loopback — not the host. Unbound runs on the host OS. To reach it,
-Pi-hole must use the Docker bridge gateway IP, which is `172.17.0.1` — the host's
-address as seen from inside the container.
+Pi-hole runs with `network_mode: host`, so it shares the host's network stack
+directly. Inside that stack `127.0.0.1` *is* the host loopback, and Unbound listens
+on `127.0.0.1:5335` — so Pi-hole reaches it as `127.0.0.1#5335`, exactly as a native
+host process would.
 
-The `PIHOLE_DNS_` value in `pihole/docker-compose.yml` is `172.17.0.1#5335` — a
-single upstream pointing at Unbound. This is what Pi-hole receives on first
-container creation. After first run, Pi-hole stores the upstream DNS in its
-persistent database (in the `pihole_data` Docker volume), so the UI-configured
-value takes precedence over the compose env var. The compose file value only
-matters when deploying to a completely fresh volume.
+This changed with the move to host networking. Under the **old bridge-mode** setup,
+Pi-hole ran in its own network namespace where `127.0.0.1` was the *container's* own
+loopback, not the host's; it had to reach Unbound via the Docker bridge gateway
+`172.17.0.1` (the host's address as seen from inside the container). Host networking
+removes the namespace boundary, so the bridge-gateway address is no longer correct —
+`127.0.0.1#5335` is. Any lingering `172.17.0.1#5335` in an old `pihole_data` volume
+should be corrected to `127.0.0.1#5335`.
 
-**On a fresh deployment:** after running `docker compose up -d`, go to
-Settings → DNS and confirm the custom upstream field shows the single entry
-`172.17.0.1#5335` with no preset resolvers checked. This persists in the volume
-across container restarts.
+The `FTLCONF_dns_upstreams` value in `02-pihole/docker-compose.yml` is
+`127.0.0.1#5335` — a single upstream pointing at Unbound. Under Pi-hole v6 this is
+re-applied and locked on every container start, so it overrides whatever is stored in
+the `pihole_data` volume rather than only seeding a fresh one.
+
+**On a deployment:** after `docker compose up -d`, go to Settings → DNS and confirm
+the upstream field shows the single entry `127.0.0.1#5335` with no preset resolvers
+checked.
 
 ### Why "Permit all origins" is checked
 
 Pi-hole flags this as "potentially dangerous." It is safe here because UFW restricts
-port 53 to `192.168.0.0/16`. No query from outside the LAN can reach Pi-hole
-regardless of this setting. "Allow only local requests" would also work but would
-block queries from Docker containers and other non-directly-attached interfaces.
-"Permit all origins" is the correct setting when the firewall handles the boundary.
+port 53 to `192.168.0.0/16` and `10.8.0.0/24`. No query from outside the LAN or VPN
+subnet can reach Pi-hole regardless of this setting. "Allow only local requests"
+would block queries from WireGuard peers (`10.8.0.x`), which are not on the LAN
+subnet. "Permit all origins" is the correct setting when the firewall handles the
+boundary; under Pi-hole v6 it is seeded and locked by
+`FTLCONF_dns_listeningMode: "all"` in the compose file.
 
 ### No preset upstream servers checked
 
 None of Pi-hole's preset upstream servers (Google, Cloudflare, Quad9, etc.) are
 enabled, and the public resolvers are deliberately NOT added here. Pi-hole has a
-single custom upstream — `172.17.0.1#5335` — so every query goes to Unbound, which
+single custom upstream — `127.0.0.1#5335` — so every query goes to Unbound, which
 owns the streaming/personal split (see "Unbound DNS split" below). Putting the
 public resolvers in Pi-hole would race them for all queries and leak personal
 lookups; keeping a single upstream is what preserves the private path.
@@ -136,7 +143,7 @@ lookups; keeping a single upstream is what preserves the private path.
 Unbound is the single decision point for where each query goes:
 
 - **Streaming / low-sensitivity domains** — Netflix, YouTube, Spotify, Steam, and
-  the rest of `unbound/streaming-forward.conf` — are forwarded to **Cloudflare over
+  the rest of `01-unbound/streaming-forward.conf` — are forwarded to **Cloudflare over
   DNS-over-TLS** (`1.1.1.1@853` / `1.0.0.1@853`, name-checked against
   `cloudflare-dns.com`). This is the deliberate privacy-for-speed trade on
   high-volume traffic whose destination is not sensitive.
@@ -198,7 +205,7 @@ dig @127.0.0.1 -p 5335 netflix.com +short # → resolves (DoT path works end-to-
 ```
 
 **Possible future extension (not yet done):** the host's own resolver
-(`resolved.conf.d/host-dns.conf`) still queries `9.9.9.9 1.1.1.1` in plaintext.
+(`03-host-dns/host-dns.conf`) still queries `9.9.9.9 1.1.1.1` in plaintext.
 systemd-resolved supports DoT (`DNSOverTLS=yes`), so the host could encrypt its own
 lookups too — a separate, optional change.
 
@@ -207,49 +214,54 @@ lookups too — a separate, optional change.
 ## Host resolver — why the t630 uses external DNS for itself
 
 The t630 runs the network's DNS, but it must NOT resolve its *own* queries (apt,
-git, curl) through its own Pi-hole. Pi-hole runs in Docker publishing `0.0.0.0:53`.
-LAN and WireGuard clients reach it fine through Docker's DNAT, but **host-originated**
-queries to `127.0.0.1:53` — or even to the host's own LAN IP `192.168.1.118:53` —
-are dropped by the UFW↔Docker path and time out:
+git, curl) through its own Pi-hole. With `network_mode: host`, Pi-hole binds
+`0.0.0.0:53` across every interface. Two facts make self-resolution unworkable:
 
-```bash
-dig @127.0.0.1 github.com           # ;; communications error to 127.0.0.1#53: timed out
-dig @127.0.0.1 -p 5335 github.com   # 140.82.113.3   ← Unbound (native process) answers
-```
+1. **The stub collision.** systemd-resolved's stub listener owns `127.0.0.53:53`,
+   which conflicts with Pi-hole's `0.0.0.0:53` bind. One of them has to give up the
+   port — and Pi-hole needs `:53` to serve LAN and VPN clients, so the stub is
+   disabled (`DNSStubListener=no`).
+2. **Unbound is on a non-standard port.** Unbound answers on `127.0.0.1:5335`, but
+   `/etc/resolv.conf` cannot carry a non-53 port, so the host can't point at Unbound
+   directly either.
 
-Unbound answers on `127.0.0.1:5335`, but `/etc/resolv.conf` cannot carry a non-53
-port, so the host can't point at Unbound directly either. Left pointing at
-`127.0.0.1`, the box cannot resolve anything for itself — `git`, `apt`, and `curl`
-all fail with "Temporary failure in name resolution," even though the DNS *service*
-is healthy for every other device on the network. (This is the same root cause as
-`dig @192.168.1.118` timing out when run from the t630 itself.)
+Pointing the host at its own Pi-hole would also be circular and fragile (the host's
+resolver depending on a container the host manages). Left without a working resolver,
+the box cannot resolve anything for itself — `git`, `apt`, and `curl` all fail with
+"Temporary failure in name resolution," even though the DNS *service* is healthy for
+every other device on the network.
 
 **Fix — point the host at external resolvers, independent of the Docker stack**
-(`systemd/resolved.conf.d/host-dns.conf`):
+(`03-host-dns/host-dns.conf`). Because disabling the stub removes the `127.0.0.53`
+listener that `/etc/resolv.conf` normally targets, the symlink must be re-pointed to
+the file that lists the real upstreams:
 
 ```bash
 sudo mkdir -p /etc/systemd/resolved.conf.d
 sudo tee /etc/systemd/resolved.conf.d/host-dns.conf >/dev/null <<'EOF'
 [Resolve]
 DNS=9.9.9.9 1.1.1.1
+DNSStubListener=no
 EOF
 sudo systemctl restart systemd-resolved
+sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf   # off the stub file
 ```
 
 The host's own lookups now go straight to Quad9/Cloudflare and are never stranded
-while Unbound or Pi-hole restart. The trade — the box's own queries skip Pi-hole
-filtering — is irrelevant on a headless server. Verify with a name not in
-`/etc/hosts`:
+while Unbound or Pi-hole restart, and `:53` is free for Pi-hole. The trade — the
+box's own queries skip Pi-hole filtering — is irrelevant on a headless server.
+Verify with a name not in `/etc/hosts`, and confirm nothing else holds `:53` before
+launching Pi-hole:
 
 ```bash
 getent hosts security.ubuntu.com    # returns an IP → host resolution works
+sudo ss -ulpn 'sport = :53'         # empty until Pi-hole starts
 ```
 
-**Note:** if `/etc/resolv.conf` still lists `nameserver 127.0.0.1` after the restart
-(appended *after* the external resolvers), that entry is pinned at the link level —
-`nameservers: [127.0.0.1]` in `/etc/netplan/*.yaml`. It is harmless because glibc
-tries the external resolvers first, but it can be removed from the netplan file
-(then `sudo netplan apply`) for tidiness.
+**Note:** if `/etc/resolv.conf` still lists `nameserver 127.0.0.1` or `127.0.0.53`
+after the restart, an entry may be pinned at the link level —
+`nameservers: [127.0.0.1]` in `/etc/netplan/*.yaml`. Remove it from the netplan file
+(then `sudo netplan apply`) so the re-pointed `resolv.conf` is authoritative.
 
 ---
 
@@ -300,7 +312,7 @@ field takes an IP address only — no port. Port goes in the separate Port field
 Entering `127.0.0.1:5335` in the resolver field creates an invalid double-port
 and causes intermittent failures.
 
-**Packet loss monitors:** driven by `scripts/packet-loss-monitor.sh`, which
+**Packet loss monitors:** driven by `07-uptime-kuma/packet-loss-monitor.sh`, which
 runs via cron every 60 seconds. The loss % is placed in the `ping` field so
 Uptime Kuma graphs it as a time series. Threshold: 15% by default (the value in
 the script), lowered to 5% once the router hardware is stable.
@@ -325,9 +337,9 @@ ISP WAN (<WAN-IP>) → internet
 ```
 
 DNS for tunnel clients points to `10.8.0.1` (the wg0 interface), which is
-reachable because Pi-hole binds to `0.0.0.0:53` via Docker port mapping. All
-phone DNS therefore flows through Pi-hole + Unbound — ad-blocking and DNSSEC
-validation work on cellular identically to LAN.
+reachable because Pi-hole (host-networked) binds `0.0.0.0:53` directly on every
+host interface — including wg0. All phone DNS therefore flows through Pi-hole +
+Unbound — ad-blocking and DNSSEC validation work on cellular identically to LAN.
 
 ### Server config: wireguard/wg0.conf
 
@@ -344,12 +356,13 @@ caused a silent failure.
 
 ### IP forwarding
 
-Required in `/etc/sysctl.conf`:
+Set via a dedicated `sysctl.d` drop-in (idempotent — see README Step 6):
 ```
-net.ipv4.ip_forward = 1
-net.ipv6.conf.all.forwarding = 1
+# /etc/sysctl.d/99-wireguard-forward.conf
+net.ipv4.ip_forward=1
+net.ipv6.conf.all.forwarding=1
 ```
-Apply without reboot: `sudo sysctl -p`
+Apply without reboot: `sudo sysctl --system`
 
 ### Phone client (WireGuard iOS)
 
@@ -366,7 +379,7 @@ and avoids the operational complexity of per-SSID rules.
 
 ### Why port 51820 is open to Anywhere
 
-Every other service in `ufw/setup.sh` is restricted to `192.168.0.0/16`.
+Every other service in `04-ufw/setup.sh` is restricted to `192.168.0.0/16`.
 WireGuard is the single exception: the phone connects from cellular, which is
 a public IP outside the LAN. The port must be reachable from the internet for
 the handshake to complete.
@@ -494,10 +507,10 @@ Two fixes (both now applied):
 
 1. **Use the WireGuard interface IP** — `ssh user@10.8.0.1` always works
    because the connection arrives on wg0 and the WG subnet is now allowed
-   for SSH in `ufw/setup.sh`.
+   for SSH in `04-ufw/setup.sh`.
 
 2. **UFW now allows SSH from the WG subnet** — `ufw allow in from 10.8.0.0/24
-   to any port 22` is in `ufw/setup.sh`, so `ssh user@192.168.1.118` also
+   to any port 22` is in `04-ufw/setup.sh`, so `ssh user@192.168.1.118` also
    works from a connected VPN peer.
 
 ### UFW: services reachable from VPN peers
@@ -552,7 +565,7 @@ Two changes — both required:
    not raw iptables added by WireGuard.
 
 2. **Change `ufw default deny routed` to `ufw default allow routed`** in
-   `ufw/setup.sh`. This sets `DEFAULT_FORWARD_POLICY=ACCEPT`, which allows all
+   `04-ufw/setup.sh`. This sets `DEFAULT_FORWARD_POLICY=ACCEPT`, which allows all
    forwarding through the t630. Combined with the existing LAN firewall
    restrictions on incoming ports, this is safe: the t630 is not a public
    router, and the only forwarded traffic will be from WireGuard peers that

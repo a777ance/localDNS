@@ -60,9 +60,10 @@ ISP (Spectrum ~200/100 Mbps asymmetric)
 
 **Pi-hole upstream DNS:** a single upstream — `127.0.0.1#5335` (Unbound on the host;
 reachable directly because Pi-hole runs `network_mode: host`). Pi-hole does no
-resolver selection of its own; it forwards every query to Unbound. Set in Pi-hole UI
-(Settings → DNS); the compose env var only seeds this on a fresh volume. Do not add
-public resolvers here — that would race them for all queries and leak personal lookups.
+resolver selection of its own; it forwards every query to Unbound. Set via
+`FTLCONF_dns_upstreams` in the compose file (Pi-hole v6 re-applies and locks it on
+every start; visible read-only in the UI under Settings → DNS). Do not add public
+resolvers here — that would race them for all queries and leak personal lookups.
 
 **DNS resolution strategy (the split lives in Unbound):** `streaming-forward.conf`
 is the single decision point. High-volume/low-sensitivity domains (Netflix,
@@ -79,9 +80,10 @@ was dropped — Cloudflare removed that feature in v2026.2.0 — in favor of Unb
 native DoT. See network-context.md "Unbound DNS split".)
 
 **Host's own DNS:** the t630 resolves its *own* queries (apt, git, curl) via external
-resolvers (`systemd/resolved.conf.d/host-dns.conf`), NOT its own Pi-hole — it cannot
-reach the Dockerized Pi-hole on `:53` from the host. See network-context.md "Host
-resolver" for the root cause.
+resolvers (`03-host-dns/host-dns.conf`), NOT its own Pi-hole. Host-net Pi-hole takes
+`0.0.0.0:53` (so the resolved stub is disabled, `DNSStubListener=no`), and
+`/etc/resolv.conf` can't carry Unbound's `:5335` — so the host points straight at
+`9.9.9.9`/`1.1.1.1` instead. See network-context.md "Host resolver" for the root cause.
 
 **Uptime Kuma** runs with `network_mode: host` so it can reach Unbound at
 `127.0.0.1:5335` directly. No `ports:` mapping in the compose file. Pi-hole is
@@ -152,9 +154,9 @@ blocked).
 The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 
 1. GRUB: `amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1`
-2. `systemd/gpu-performance.service`
-3. `systemd/cpu-performance.service`
-4. `udev/99-amdgpu-performance.rules` — re-asserts `high` on every DRM event
+2. `08-gpu-performance/gpu-performance.service`
+3. `08-gpu-performance/cpu-performance.service`
+4. `08-gpu-performance/99-amdgpu-performance.rules` — re-asserts `high` on every DRM event
 
 ---
 
@@ -162,13 +164,14 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 
 | Issue | Action |
 | ----- | ------ |
-| `WEBPASSWORD` in pihole compose | Placeholder — do not commit real credentials |
+| `FTLCONF_webserver_api_password` in pihole compose | Placeholder (`CHANGE_ME`) — do not commit real credentials |
+| Pi-hole v5 → v6 env vars | `pihole/pihole:latest` is v6; compose migrated from v5 vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`) to `FTLCONF_*`. The v5 names are silently ignored by v6. |
 | Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
 | WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Present in live wg0.conf but not documented — identify devices and add to peer table |
 | WireGuard `::/0` IPv6 black hole | Server is IPv4-only in-tunnel; peers routing `::/0` black-hole IPv6 (handshake OK, pages hang). Peer template now defaults to `0.0.0.0/0`. Leak-free dual-stack fix (ULA + NAT66) documented in network-context.md "WireGuard IPv6 black hole". |
 | VPN peer DNS over the tunnel | **Resolved.** Pi-hole switched to `network_mode: host` — Docker DNAT no longer in the path, so `10.8.0.1:53` is answered directly for queries sourced from `wg0`. Port 8080 also added to the WG UFW rules so the Pi-hole UI is reachable from VPN peers. |
-| Host-net Pi-hole vs systemd-resolved `:53` | With `network_mode: host` Pi-hole binds `0.0.0.0:53`, which can collide with systemd-resolved's stub on `127.0.0.53:53`. If Pi-hole won't bind, set `DNSStubListener=no`. Not asserted in repo — verify on the live box. |
-| Live Pi-hole upstreams ≠ repo | After deploying the host-network compose, set Pi-hole UI → Settings → DNS to the single custom upstream `127.0.0.1#5335` (replacing any `172.17.0.1#5335` or public resolvers left in the `pihole_data` volume) so the streaming split (which lives in Unbound) is actually in effect. |
+| Host-net Pi-hole vs systemd-resolved `:53` | Host-net Pi-hole binds `0.0.0.0:53`, colliding with the resolved stub on `127.0.0.53:53`. `03-host-dns/host-dns.conf` now sets `DNSStubListener=no` and README Steps 3-4 (Part A) re-points `/etc/resolv.conf` off the stub. On the live box, check current state before re-applying (see INSTALL-NOTES item 13). |
+| Live Pi-hole upstreams ≠ repo | Pi-hole v6 re-applies & locks `FTLCONF_dns_upstreams: 127.0.0.1#5335` on every start, overriding any `172.17.0.1#5335`/public resolvers left in the `pihole_data` volume. Confirm in the UI after deploying onto an old volume. |
 
 ---
 

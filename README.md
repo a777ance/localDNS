@@ -106,12 +106,12 @@ directly, decoupling the host's own resolution from the DNS stack so it is never
 stranded while Pi-hole/Unbound restart. See `network-context.md` "Host resolver"
 for the root-cause analysis.
 
-> **Verify on the live box:** with `network_mode: host`, Pi-hole wants `0.0.0.0:53`,
-> which can collide with systemd-resolved's stub listener on `127.0.0.53:53`. If
-> Pi-hole fails to bind `:53` after switching to host networking, the stub listener
-> must be disabled (`DNSStubListener=no` in a resolved drop-in) or otherwise moved
-> off `:53`. This repo does not assert how the live t630 reconciles this — confirm
-> it directly on the box.
+> **Stub listener vs Pi-hole on `:53`:** because Pi-hole wants `0.0.0.0:53`, it
+> collides with systemd-resolved's stub on `127.0.0.53:53`. `host-dns.conf` therefore
+> also sets `DNSStubListener=no` to free the port, and Part A of Steps 3-4 re-points
+> `/etc/resolv.conf` off the now-disabled stub to `/run/systemd/resolve/resolv.conf`
+> (which lists the external resolvers directly). On the **live t630**, confirm which
+> mechanism already frees `:53` before re-applying — see the queued live-box steps.
 
 ### Unbound config files
 
@@ -307,46 +307,54 @@ step — the `docker` group change is not active in the current session. Running
 
 ---
 
-### Steps 3 + 4: Pi-hole and Host DNS Fix
+### Steps 3 + 4: Host DNS Fix, then Pi-hole
 
-**These two steps must run back-to-back without pausing between them.**
+**Run these back-to-back. The host DNS fix comes FIRST — do it before starting Pi-hole.**
 
-The moment Pi-hole starts and binds port 53, Docker's proxy occupies `0.0.0.0:53` —
-including `127.0.0.53`, which is systemd-resolved's stub address. Host DNS breaks
-immediately. Any command requiring DNS (including `docker compose logs`, `apt`,
-`curl`) will fail with "Temporary failure in name resolution" until Step 4 completes.
-Do not run any other commands between starting Pi-hole and deploying the host DNS fix.
+Pi-hole runs `network_mode: host`, so it wants to bind `0.0.0.0:53` on every
+interface. That collides with systemd-resolved's stub listener on `127.0.0.53:53`:
+on a fresh box Pi-hole cannot bind `:53` until the stub is turned off. The fix is to
+free `:53` *first* (disable the stub) while simultaneously re-pointing the host's own
+resolution at external resolvers, so the host never loses DNS and `:53` is clear when
+Pi-hole launches. Doing it in this order avoids the "Temporary failure in name
+resolution" window entirely.
 
-#### Step 3: Start Pi-hole
+#### Part A (do first): free port 53 and decouple host DNS — `03-host-dns/`
 
-```bash
-# 1. Set a real password before starting — the default is a placeholder
-nano 02-pihole/docker-compose.yml
-# Change: WEBPASSWORD: "CHANGE_ME"
-# To:     WEBPASSWORD: "your-actual-password"
-
-# 2. Copy compose file to its operational location and start
-mkdir -p ~/pihole
-cp 02-pihole/docker-compose.yml ~/pihole/
-cd ~/pihole && docker compose up -d
-```
-
-#### Step 4: Fix host DNS immediately
+`03-host-dns/host-dns.conf` sets `DNS=9.9.9.9 1.1.1.1` **and** `DNSStubListener=no`.
+Disabling the stub frees `:53`; because that also removes the `127.0.0.53` listener,
+`/etc/resolv.conf` must be re-pointed off the stub file to the one that lists the
+real upstreams.
 
 ```bash
 cd ~/localdns
 sudo mkdir -p /etc/systemd/resolved.conf.d
 sudo cp 03-host-dns/host-dns.conf /etc/systemd/resolved.conf.d/
 sudo systemctl restart systemd-resolved
+# Re-point resolv.conf off the (now-disabled) stub to the direct-resolver file:
+sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
 getent hosts security.ubuntu.com   # must return an IP — host DNS is working
+sudo ss -ulpn 'sport = :53'        # should show NOTHING bound on :53 yet
 ```
 
-Now it is safe to check Pi-hole:
+#### Part B (then): start Pi-hole — `02-pihole/`
+
 ```bash
-docker compose -f ~/pihole/docker-compose.yml logs -f pihole   # Ctrl-C when healthy
+# 1. Set a real password before starting — the default is a placeholder
+nano 02-pihole/docker-compose.yml
+# Change: FTLCONF_webserver_api_password: "CHANGE_ME"
+# To:     FTLCONF_webserver_api_password: "your-actual-password"
+
+# 2. Copy compose file to its operational location and start
+mkdir -p ~/pihole
+cp 02-pihole/docker-compose.yml ~/pihole/
+cd ~/pihole && docker compose up -d
+docker compose logs -f pihole   # Ctrl-C once it reports listening on :53 / :8080
 ```
 
-Web UI at `http://192.168.1.118:8080/admin/`.
+Web UI at `http://192.168.1.118:8080/admin/`. If `docker compose logs` shows FTL
+failing to bind `:53`, the stub is still up — re-check Part A (`sudo ss -ulpn 'sport
+= :53'` should be empty before Pi-hole starts).
 
 #### Confirm Pi-hole upstream DNS in the UI
 
@@ -354,15 +362,17 @@ Go to Settings → DNS. Verify:
 1. Custom upstream shows exactly: `127.0.0.1#5335`
 2. No preset resolvers (Google, Cloudflare, Quad9) are checked
 
-The `PIHOLE_DNS_: "127.0.0.1#5335"` env var seeds this on a fresh volume, but
-confirm it in the UI after first start (Pi-hole is host-networked, so the host
-loopback reaches Unbound directly). Do not add public resolvers — Pi-hole forwards
-everything to Unbound, and Unbound owns the streaming/personal split. Adding public
-resolvers here would race them for every query, including sensitive ones.
+The `FTLCONF_dns_upstreams: "127.0.0.1#5335"` env var (Pi-hole v6) enforces this on
+every container start and locks it read-only in the UI, so the field above is
+informational — you are confirming, not editing (Pi-hole is host-networked, so the
+host loopback reaches Unbound directly). Do not add public resolvers — Pi-hole
+forwards everything to Unbound, and Unbound owns the streaming/personal split.
+Adding public resolvers here would race them for every query, including sensitive ones.
 
 #### Set Pi-hole interface mode
 
-Settings → DNS → Interface: set to **"Permit all origins"**. This is required for
+`FTLCONF_dns_listeningMode: "all"` in the compose file already seeds and locks this
+to **"Permit all origins"** (Settings → DNS → Interface). This is required for
 Pi-hole to accept queries from WireGuard tunnel clients (`10.8.0.x`) and Docker
 containers. Safe here because UFW (next step) restricts access at the network layer.
 
@@ -841,13 +851,14 @@ item must pass before Step 11.
 
 | Issue | Status | Action |
 | ----- | ------ | ------ |
-| `WEBPASSWORD` in pihole compose | Open | Placeholder — must be changed before first `docker compose up` |
+| `FTLCONF_webserver_api_password` in pihole compose | Open | Placeholder (`CHANGE_ME`) — must be changed before first `docker compose up` |
 | Windows laptop WireGuard key | Open | Private key was exposed during setup; rotate before trusting this peer |
 | WireGuard peers 10.8.0.4–10.8.0.6 | Open | Present in live `wg0.conf` but not documented — identify devices and add to peer table |
 | WireGuard `::/0` IPv6 black hole | Documented | Server is IPv4-only in-tunnel; do not add `::/0` to peer AllowedIPs. IPv6 traffic black-holes silently: handshake succeeds, pages hang. Use `0.0.0.0/0` only. Leak-free dual-stack fix (ULA + NAT66) in `network-context.md`. |
 | VPN peer DNS over the tunnel | **Resolved** | Fixed by running Pi-hole with `network_mode: host` (`02-pihole/docker-compose.yml`). The Docker bridge + published-ports DNAT path silently dropped replies to queries sourced from the host's own `wg0` interface; host networking removes the DNAT path so `10.8.0.1:53` answers directly. Port 8080 was also opened to the WG subnet (`04-ufw/setup.sh`) so the Pi-hole UI is reachable over the tunnel. |
-| Live Pi-hole upstreams ≠ repo | Check on deploy | Dashboard may show legacy resolvers (`8.8.8.8`, Quad9, etc.) retained in the `pihole_data` Docker volume from a prior install. On every fresh deploy, confirm Pi-hole UI → Settings → DNS shows only `127.0.0.1#5335`. |
-| Host-net Pi-hole vs systemd-resolved on `:53` | Verify on box | `network_mode: host` makes Pi-hole bind `0.0.0.0:53`, which can collide with systemd-resolved's stub listener (`127.0.0.53:53`). If Pi-hole fails to bind, disable the stub (`DNSStubListener=no`). Repo does not assert how the live t630 handles this — confirm on the box. |
+| Live Pi-hole upstreams ≠ repo | Mostly resolved (v6) | Under Pi-hole v6, `FTLCONF_dns_upstreams` is re-applied and locked on every start, overriding any legacy resolvers (`8.8.8.8`, Quad9, etc.) left in the `pihole_data` volume. Still worth confirming the UI shows only `127.0.0.1#5335` after a deploy onto an old volume. |
+| Host-net Pi-hole vs systemd-resolved on `:53` | Resolved in repo | `network_mode: host` makes Pi-hole bind `0.0.0.0:53`, colliding with systemd-resolved's stub listener (`127.0.0.53:53`). `03-host-dns/host-dns.conf` now sets `DNSStubListener=no` (and the host-DNS step re-points `/etc/resolv.conf` off the stub) so `:53` is free for Pi-hole on a fresh install. On the live box, verify which mechanism already frees `:53` before re-applying. |
+| Pi-hole v5 → v6 env vars | Resolved in repo | `pihole/pihole:latest` is v6, which ignores the v5 env vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`, …). `02-pihole/docker-compose.yml` now uses `FTLCONF_*` keys. See `INSTALL-NOTES.md` for the mapping. |
 
 ---
 
