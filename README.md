@@ -44,6 +44,9 @@ ISP (Spectrum ~200/100 Mbps asymmetric)
 | t630 wg0 | 10.8.0.1 | Server gateway; DNS address for all peers |
 | iPhone | 10.8.0.2 | |
 | Windows laptop | 10.8.0.3 | Key rotation needed — see Known issues |
+| *(unidentified)* | 10.8.0.4 | In `wg0.conf`, no recent handshake — identify or remove |
+| *(unidentified)* | 10.8.0.5 | In `wg0.conf`, no recent handshake — identify or remove |
+| *(unidentified)* | 10.8.0.6 | In `wg0.conf`, no recent handshake — identify or remove |
 | Mac | 10.8.0.7 | |
 
 **Services**
@@ -855,7 +858,7 @@ item must pass before Step 11.
 | ----- | ------ | ------ |
 | `FTLCONF_webserver_api_password` in pihole compose | Open | Placeholder (`CHANGE_ME`) — must be changed before first `docker compose up` |
 | Windows laptop WireGuard key | Open | Private key was exposed during setup; rotate before trusting this peer |
-| WireGuard peers 10.8.0.4–10.8.0.6 | Open | Present in live `wg0.conf` but not documented — identify devices and add to peer table |
+| WireGuard peers 10.8.0.4–10.8.0.6 | Reconciled, still unidentified | Now in `05-wireguard/wg0.conf` with their real public keys, but none has a recent handshake — identify each device or remove the stale peer. |
 | WireGuard `::/0` IPv6 black hole | Documented | Server is IPv4-only in-tunnel; do not add `::/0` to peer AllowedIPs. IPv6 traffic black-holes silently: handshake succeeds, pages hang. Use `0.0.0.0/0` only. Leak-free dual-stack fix (ULA + NAT66) in `network-context.md`. |
 | VPN peer DNS over the tunnel | **Resolved** | Fixed by running Pi-hole with `network_mode: host` (`02-pihole/docker-compose.yml`). The Docker bridge + published-ports DNAT path silently dropped replies to queries sourced from the host's own `wg0` interface; host networking removes the DNAT path so `10.8.0.1:53` answers directly. Port 8080 was also opened to the WG subnet (`04-ufw/setup.sh`) so the Pi-hole UI is reachable over the tunnel. |
 | Live Pi-hole upstreams ≠ repo | Mostly resolved (v6) | Under Pi-hole v6, `FTLCONF_dns_upstreams` is re-applied and locked on every start, overriding any legacy resolvers (`8.8.8.8`, Quad9, etc.) left in the `pihole_data` volume. Still worth confirming the UI shows only `127.0.0.1#5335` after a deploy onto an old volume. |

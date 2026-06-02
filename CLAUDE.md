@@ -44,6 +44,7 @@ ISP (Spectrum ~200/100 Mbps asymmetric)
 | t630 wg0 | 10.8.0.1 | Server gateway; DNS address peers use |
 | iPhone | 10.8.0.2 | |
 | Windows laptop | 10.8.0.3 | Key rotation needed — see Known issues |
+| (unidentified) | 10.8.0.4–10.8.0.6 | In wg0.conf, no recent handshake — identify or remove |
 | Mac | 10.8.0.7 | |
 
 **Services**
@@ -167,7 +168,7 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 | `FTLCONF_webserver_api_password` in pihole compose | Placeholder (`CHANGE_ME`) — do not commit real credentials |
 | Pi-hole v5 → v6 env vars | `pihole/pihole:latest` is v6; compose migrated from v5 vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`) to `FTLCONF_*`. The v5 names are silently ignored by v6. |
 | Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
-| WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Present in live wg0.conf but not documented — identify devices and add to peer table |
+| WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Now reconciled into `05-wireguard/wg0.conf` (real public keys) but still UNIDENTIFIED with no recent handshake — identify each device or remove the stale peer. |
 | WireGuard `::/0` IPv6 black hole | Server is IPv4-only in-tunnel; peers routing `::/0` black-hole IPv6 (handshake OK, pages hang). Peer template now defaults to `0.0.0.0/0`. Leak-free dual-stack fix (ULA + NAT66) documented in network-context.md "WireGuard IPv6 black hole". |
 | VPN peer DNS over the tunnel | **Resolved.** Pi-hole switched to `network_mode: host` — Docker DNAT no longer in the path, so `10.8.0.1:53` is answered directly for queries sourced from `wg0`. Port 8080 also added to the WG UFW rules so the Pi-hole UI is reachable from VPN peers. |
 | Host-net Pi-hole vs systemd-resolved `:53` | Host-net Pi-hole binds `0.0.0.0:53`, colliding with the resolved stub on `127.0.0.53:53`. `03-host-dns/host-dns.conf` now sets `DNSStubListener=no` and README Steps 3-4 (Part A) re-points `/etc/resolv.conf` off the stub. On the live box, check current state before re-applying (see INSTALL-NOTES item 13). |

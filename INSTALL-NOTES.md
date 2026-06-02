@@ -320,6 +320,26 @@ to free `:53` before Pi-hole starts and to re-point `/etc/resolv.conf` off the s
 See the updated item 13 above. Live-box reconciliation is now a guided check, not an
 unknown.
 
+### Live-box verification (2026-06-02)
+
+Confirmed against the running t630 (SSH `192.168.1.118`):
+
+- **Item 14 reproduced live:** the box was running Pi-hole **v6** (Core v6.4.1 /
+  FTL v6.6) with the *old v5-var* compose. FTL had fallen back to the v6 default web
+  port, binding `:80`/`:443` instead of `:8080` — and since UFW only opens `:8080`,
+  the admin UI was firewalled off on the LAN. Deploying the `FTLCONF_*` compose moved
+  the UI back to `:8080` (`curl …:8080/admin/` → `302`). This is the clearest
+  real-world proof of the v5→v6 break.
+- **Stub location:** on the live box `DNSStubListener=no` is set in the **main**
+  `/etc/systemd/resolved.conf` (not the drop-in), and `/etc/resolv.conf` already
+  points at `/run/systemd/resolve/resolv.conf`. The repo asserts the same via the
+  version-controlled drop-in `03-host-dns/host-dns.conf`, which is additive (a
+  redundant `DNSStubListener=no` is harmless) and is the cleaner reproducible pattern.
+- **WireGuard peers reconciled:** `wg show` listed six peers (`10.8.0.2`–`.7`). Their
+  real public keys are now in `05-wireguard/wg0.conf`. `.2` (iPhone) and `.3` (Windows
+  laptop) are active; `.4`/`.5`/`.6` have no handshake and remain UNIDENTIFIED; `.7`
+  is the Mac. The laptop key rotation is still outstanding.
+
 ---
 
 ## Summary
