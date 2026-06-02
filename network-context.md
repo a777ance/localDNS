@@ -136,70 +136,71 @@ lookups; keeping a single upstream is what preserves the private path.
 Unbound is the single decision point for where each query goes:
 
 - **Streaming / low-sensitivity domains** — Netflix, YouTube, Spotify, Steam, and
-  the rest of `unbound/streaming-forward.conf` — are forwarded to **the Cloudflare
-  endosymbiont**: a local `cloudflared` organelle on `127.0.0.1@5053` that speaks
-  DNS-over-HTTPS to Cloudflare's anycast edge. This is the deliberate
-  privacy-for-speed trade on high-volume traffic whose destination is not sensitive.
+  the rest of `unbound/streaming-forward.conf` — are forwarded to **Cloudflare over
+  DNS-over-TLS** (`1.1.1.1@853` / `1.0.0.1@853`, name-checked against
+  `cloudflare-dns.com`). This is the deliberate privacy-for-speed trade on
+  high-volume traffic whose destination is not sensitive.
 - **Everything else** — banking, email, health, personal services, the default —
-  resolves recursively with DNSSEC. No public resolver, and not the organelle, ever
-  sees these queries. This recursive **nucleus** is sovereign.
+  resolves recursively with DNSSEC. Cloudflare never sees these queries. This
+  recursive **nucleus** is sovereign.
 
-`forward-first: yes` means that if the organelle is unreachable, Unbound falls
-back to recursive resolution for the streaming domains instead of returning SERVFAIL.
+`forward-first: yes` means that if Cloudflare's DoT endpoints are unreachable
+(e.g. an ISP blocking port 853), Unbound falls back to recursive resolution for the
+streaming domains instead of returning SERVFAIL.
 
-### Why an endosymbiont, not the old plaintext pool
+### Why DoT-in-Unbound, not the old plaintext pool (or a separate proxy)
 
 This path originally forwarded to a pool of ~18 public resolvers (Cloudflare,
 Google, Quad9, OpenDNS, Level3, …) over **plaintext UDP/53**, with Unbound racing
 them by RTT (natural selection). That worked for speed but had a hole: every
 streaming lookup left the box in the clear, so the **ISP could read the entire
 forward-path** even though the destinations were "low sensitivity." Only plain-53
-resolvers could be in the pool; DoH/DoT-only operators were excluded as dead
+resolvers could be in the pool; encrypted-only operators were excluded as dead
 forwarders.
 
-The fix is endosymbiosis — engulf **one** Cloudflare DoH resolver as a contained
-organelle that lives inside the t630, instead of cooperating with 18 external ones
-over an open channel:
+The intended fix was endosymbiosis — engulf one Cloudflare resolver as a contained
+DoH organelle (a `cloudflared proxy-dns` daemon on loopback). **That organism is
+dead:** Cloudflare removed the `proxy-dns` feature in cloudflared v2026.2.0
+(installing 2026.5.2 and starting it just logs "dns-proxy feature is no longer
+supported" and exits 1). Rather than hunt for a replacement daemon, we did the
+mature version of the same idea — **endosymbiotic gene transfer**: Unbound speaks
+DoT natively, so the host simply *absorbs* the capability the organelle would have
+provided. No second process, nothing extra to crash.
 
-- **It lives on loopback.** `cloudflared proxy-dns` listens only on
-  `127.0.0.1:5053` and presents a plain Do53 interface to Unbound (loopback, so no
-  exposure), then re-emits each query as **HTTPS to Cloudflare on :443**. The ISP
-  now sees an encrypted blob, not your Netflix/Spotify/Steam lookups.
-- **It does one job, under the host's control.** Like a mitochondrion, it provides
-  a capability the host can't generate itself (encrypted anycast egress) but never
-  runs the cell. Only the forward-zones point at it.
-- **The nucleus stays sovereign.** The recursive path never touches the organelle.
+- **The encryption lives in Unbound itself.** Each streaming forward-zone sets
+  `forward-tls-upstream: yes` and forwards to `1.1.1.1@853#cloudflare-dns.com` /
+  `1.0.0.1@853`. The ISP now sees a TLS channel to Cloudflare on :853, not your
+  Netflix/Spotify/Steam lookups. `tls-cert-bundle:
+  "/etc/ssl/certs/ca-certificates.crt"` (a `server:` setting in the same file)
+  validates Cloudflare's certificate; the `#cloudflare-dns.com` suffix is the name
+  the cert is checked against.
+- **The nucleus stays sovereign.** The recursive path never forwards anywhere.
   This is the load-bearing invariant: routing recursive (sensitive) traffic through
   Cloudflare would trade your ISP for Cloudflare — strictly worse, since Cloudflare
-  could correlate those lookups globally. `streaming-forward.conf` and the systemd
-  unit header both state this; do not widen what feeds the proxy.
-- **IP-literal upstreams avoid a bootstrap loop.** Upstreams are
-  `https://1.1.1.1/dns-query` and `https://1.0.0.1/dns-query` (IP, not hostname), so
-  the organelle needs no DNS of its own to come up. Cloudflare's TLS cert carries
-  the 1.1.1.1 / 1.0.0.1 IP SANs, so validation succeeds against the literal IP.
+  could correlate those lookups globally. Do not add sensitive domains to this file.
 
 **Trade vs. the old pool:** we give up multi-operator RTT racing (the forward-path
-is now Cloudflare-only) in exchange for ISP-invisible, anycast streaming DNS and a
-recursive nucleus that is provably never exposed. For low-sensitivity, high-volume
-domains that is the right trade; for everything else, recursion already wins.
-
-**Required Unbound setting:** `streaming-forward.conf` sets
-`do-not-query-localhost: no`. Unbound's default is `yes`, which would silently
-refuse to forward to `127.0.0.1@5053` and break the whole forward-path.
+is now Cloudflare-only, two endpoints for redundancy) in exchange for ISP-invisible
+streaming DNS and a recursive nucleus that is provably never exposed. For
+low-sensitivity, high-volume domains that is the right trade; for everything else,
+recursion already wins. **DoT vs. DoH:** DoT (:853) is a distinct port the ISP can
+see you using (though not the contents); DoH (:443) blends with HTTPS. We chose DoT
+because Unbound does it natively with zero extra moving parts — and the destinations
+here are explicitly low-sensitivity, so "the ISP knows I do encrypted DNS to
+Cloudflare" is an acceptable tell.
 
 Verify the split:
 
 ```bash
-sudo unbound-control lookup netflix.com   # → forwarding request to 127.0.0.1@5053
+sudo unbound-control lookup netflix.com   # → forwarding request to 1.1.1.1@853 / 1.0.0.1@853
 sudo unbound-control lookup chase.com     # → iterative delegation (recursive, private)
-dig @127.0.0.1 -p 5053 example.com        # → the organelle answers directly
-systemctl status cloudflared-proxy-dns    # → active (the endosymbiont is alive)
+dig @127.0.0.1 -p 5335 netflix.com +short # → resolves (DoT path works end-to-end)
 ```
 
 **Possible future extension (not yet done):** the host's own resolver
 (`resolved.conf.d/host-dns.conf`) still queries `9.9.9.9 1.1.1.1` in plaintext.
-systemd-resolved can take `DNS=127.0.0.1:5053`, so the host could route its own
-lookups through the same organelle for encryption — a separate, optional change.
+systemd-resolved supports DoT (`DNSOverTLS=yes`), so the host could encrypt its own
+lookups too — a separate, optional change.
 
 ---
 

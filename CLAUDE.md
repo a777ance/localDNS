@@ -52,7 +52,6 @@ ISP (Spectrum ~200/100 Mbps asymmetric)
 | ------- | ------- | ------- | --------------- |
 | Pi-hole | Docker bridge | 53 (DNS), 8080 (UI) | LAN + WG subnet |
 | Unbound | host OS | 5335 | Pi-hole only (via `172.17.0.1`) |
-| cloudflared (endosymbiont) | host OS | 5053 (loopback) | Unbound only (`127.0.0.1`) |
 | Uptime Kuma | Docker host-net | 3001 | LAN + WG subnet |
 | WireGuard | host OS | 51820/UDP | Internet (open to Anywhere) |
 | NoMachine | host OS | 4000 | LAN only |
@@ -67,17 +66,17 @@ race them for all queries and leak personal lookups.
 
 **DNS resolution strategy (the split lives in Unbound):** `streaming-forward.conf`
 is the single decision point. High-volume/low-sensitivity domains (Netflix,
-YouTube, Spotify, Steam, etc.) are forwarded to **the Cloudflare endosymbiont** — a
-contained `cloudflared` organelle on `127.0.0.1@5053` that speaks DNS-over-HTTPS to
-Cloudflare's anycast edge (`systemd/cloudflared-proxy-dns.service`). This encrypts
-the forward-path from the ISP and rides Cloudflare's network, trading privacy for
+YouTube, Spotify, Steam, etc.) are forwarded to **Cloudflare over DNS-over-TLS**
+(`1.1.1.1@853#cloudflare-dns.com` / `1.0.0.1`, `forward-tls-upstream: yes`), so the
+ISP sees an encrypted channel instead of cleartext lookups — trading privacy for
 speed on traffic whose destination is not sensitive. Everything else (personal,
-sensitive, default) resolves recursively through Unbound with DNSSEC — neither a
-public resolver nor the organelle ever sees these queries. **Invariant:** never
-point the recursive nucleus at the organelle; that would hand Cloudflare your
-sensitive lookups. (This path previously forwarded to a ~18-resolver plaintext
-UDP/53 pool, which leaked streaming lookups to the ISP in the clear; the organelle
-supersedes it — see network-context.md "Unbound DNS split".)
+sensitive, default) resolves recursively through Unbound with DNSSEC — Cloudflare
+never sees these queries. **Invariant:** never add sensitive domains to the
+forward-path; that would hand Cloudflare your private lookups. (This path previously
+forwarded to a ~18-resolver plaintext UDP/53 pool, which leaked streaming lookups to
+the ISP in the clear. An interim plan to engulf a `cloudflared proxy-dns` organelle
+was dropped — Cloudflare removed that feature in v2026.2.0 — in favor of Unbound's
+native DoT. See network-context.md "Unbound DNS split".)
 
 **Host's own DNS:** the t630 resolves its *own* queries (apt, git, curl) via external
 resolvers (`systemd/resolved.conf.d/host-dns.conf`), NOT its own Pi-hole — it cannot
@@ -98,7 +97,6 @@ resolver" for the root cause.
 | `unbound/remote-control.conf` | `/etc/unbound/unbound.conf.d/remote-control.conf` | `sudo systemctl restart unbound` |
 | `unbound/root-auto-trust-anchor-file.conf` | `/etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf` | `sudo systemctl restart unbound` |
 | `unbound/streaming-forward.conf` | `/etc/unbound/unbound.conf.d/streaming-forward.conf` | `sudo systemctl restart unbound` |
-| `systemd/cloudflared-proxy-dns.service` | `/etc/systemd/system/cloudflared-proxy-dns.service` | `sudo systemctl daemon-reload && sudo systemctl restart cloudflared-proxy-dns` |
 | `pihole/docker-compose.yml` | `~/pihole/docker-compose.yml` | `cd ~/pihole && docker compose up -d` |
 | `uptime-kuma/docker-compose.yml` | `~/uptime-kuma/docker-compose.yml` | `cd ~/uptime-kuma && docker compose up -d` |
 | `ufw/setup.sh` | run directly | `sudo bash ufw/setup.sh` |
@@ -130,17 +128,18 @@ Five drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
 | `remote-control.conf` | Unix socket for `unbound-control` |
 | `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
 | `server.conf` | Interface, port, access-control, security flags |
-| `streaming-forward.conf` | Forward-zones: streaming/media domains → Cloudflare endosymbiont (`127.0.0.1@5053`, DoH); all else recursive. Sets `do-not-query-localhost: no` so Unbound will forward to the loopback organelle. |
+| `streaming-forward.conf` | Forward-zones: streaming/media domains → Cloudflare over DoT (`1.1.1.1@853`, `forward-tls-upstream`); all else recursive. Sets `tls-cert-bundle` for upstream cert validation. |
 | `tuning.conf` | All performance and cache values — single source of truth |
 
 `tuning.conf` is the only place to change cache sizes, TTLs, or threading.
 Do not split these into separate files.
 
 To verify the DNS split: `sudo unbound-control lookup netflix.com` should show
-`forwarding request` to `127.0.0.1@5053` (the organelle). `sudo unbound-control
-lookup chase.com` should show iterative delegation to authoritative nameservers (no
-forwarder). Confirm the organelle itself answers: `dig @127.0.0.1 -p 5053
-example.com` and `systemctl status cloudflared-proxy-dns`.
+`forwarding request` to `1.1.1.1@853`/`1.0.0.1@853`. `sudo unbound-control lookup
+chase.com` should show iterative delegation to authoritative nameservers (no
+forwarder). A resolved `dig @127.0.0.1 -p 5335 netflix.com +short` confirms the DoT
+path works end-to-end (it fails closed to recursion via `forward-first` if :853 is
+blocked).
 
 ---
 
@@ -172,10 +171,9 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 
 ```bash
 systemctl status unbound
-systemctl status cloudflared-proxy-dns             # endosymbiont up (loopback DoH proxy)
-dig @127.0.0.1 -p 5053 example.com                 # organelle answers directly
 dig @127.0.0.1 -p 5335 example.com +dnssec        # 'ad' flag = DNSSEC working
-sudo unbound-control lookup netflix.com            # forwarding request → 127.0.0.1@5053
+dig @127.0.0.1 -p 5335 netflix.com +short          # DoT forward-path resolves end-to-end
+sudo unbound-control lookup netflix.com            # forwarding request → 1.1.1.1@853 / 1.0.0.1@853
 sudo unbound-control lookup chase.com              # should show: iterative delegation
 docker ps                                          # pihole + uptime-kuma both Up
 sudo wg show                                       # wg0 up, peers listed
