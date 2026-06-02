@@ -97,33 +97,37 @@ No cloud. No WAN exposure. SSH is also reachable from WireGuard peers via `ssh u
 
 ---
 
-## Repository contents
+## Repository layout
 
-| Path | Purpose |
-|------|---------|
-| `wireguard/wg0.conf` | WireGuard server config — interface, peers, MASQUERADE |
-| `wireguard/peer-template.conf` | Reference config for adding a new peer |
-| `pihole/docker-compose.yml` | Pi-hole container |
-| `uptime-kuma/docker-compose.yml` | Uptime Kuma monitoring stack |
-| `unbound/server.conf` | Unbound interfaces, ACLs, ports, security flags |
-| `unbound/tuning.conf` | Cache sizes, TTL policy, threading — single source of truth |
-| `unbound/streaming-forward.conf` | Domain split: streaming → Cloudflare over DoT (`1.1.1.1@853`), all else → recursive |
-| `unbound/remote-control.conf` | Unix socket for `unbound-control` |
-| `unbound/root-auto-trust-anchor-file.conf` | DNSSEC trust anchor |
-| `scripts/unbound-cache-dump` | Dumps Unbound cache to disk |
-| `scripts/unbound-cache-load` | Restores cache at startup |
-| `systemd/unbound.service.d/override.conf` | Hooks cache load/dump into service lifecycle |
-| `systemd/unbound-cache-dump.timer` | Hourly cache backup timer |
-| `systemd/unbound-cache-dump.service` | One-shot cache backup worker |
-| `systemd/gpu-performance.service` | AMD GPU high-performance mode at boot |
-| `systemd/cpu-performance.service` | CPU governor locked to performance |
-| `udev/99-amdgpu-performance.rules` | Re-asserts GPU profile on DRM events |
-| `ufw/setup.sh` | Firewall rules — LAN + WG subnet, WireGuard WAN port |
-| `cake/setup.sh` | CAKE QoS setup script |
-| `systemd/cake.service` | CAKE systemd service |
-| `nomachine/server.cfg` | NoMachine remote desktop config |
-| `scripts/packet-loss-monitor.sh` | Cron-driven packet loss monitor feeding Uptime Kuma |
-| `scripts/cake-monitor.sh` | Cron-driven CAKE qdisc health monitor feeding Uptime Kuma |
+Folders are numbered by installation order. See SETUP.md for the full walkthrough.
+
+| Step | Path | Purpose |
+|------|------|---------|
+| 1 | `01-unbound/server.conf` | Unbound interfaces, ACLs, ports, security flags |
+| 1 | `01-unbound/tuning.conf` | Cache sizes, TTL policy, threading — single source of truth |
+| 1 | `01-unbound/streaming-forward.conf` | Domain split: streaming → Cloudflare DoT (`1.1.1.1@853`), all else → recursive |
+| 1 | `01-unbound/remote-control.conf` | Unix socket for `unbound-control` |
+| 1 | `01-unbound/root-auto-trust-anchor-file.conf` | DNSSEC trust anchor |
+| 1 | `01-unbound/unbound-cache-dump` | Dumps Unbound cache to disk |
+| 1 | `01-unbound/unbound-cache-load` | Restores cache at startup |
+| 1 | `01-unbound/unbound-cache-dump.timer` | Hourly cache backup timer |
+| 1 | `01-unbound/unbound-cache-dump.service` | One-shot cache backup worker |
+| 1 | `01-unbound/unbound.service.d/override.conf` | Hooks cache load/dump into service lifecycle |
+| 2 | *(Docker CE — no config files, install only)* | |
+| 3 | `02-pihole/docker-compose.yml` | Pi-hole container |
+| 4 | `03-host-dns/host-dns.conf` | Host resolver fix — points t630's own DNS at external resolvers after Pi-hole takes port 53 |
+| 5 | `04-ufw/setup.sh` | Firewall rules — LAN + WG subnet, WireGuard WAN port |
+| 6 | `05-wireguard/wg0.conf` | WireGuard server config — interface, peers, MASQUERADE |
+| 6 | `05-wireguard/peer-template.conf` | Reference config for adding a new peer |
+| 7 | `06-cake/setup.sh` | CAKE QoS setup script |
+| 7 | `06-cake/cake.service` | CAKE systemd service |
+| 8 | `07-uptime-kuma/docker-compose.yml` | Uptime Kuma monitoring stack |
+| 8 | `07-uptime-kuma/packet-loss-monitor.sh` | Cron-driven packet loss monitor feeding Uptime Kuma |
+| 8 | `07-uptime-kuma/cake-monitor.sh` | Cron-driven CAKE qdisc health monitor feeding Uptime Kuma |
+| 9 | `08-gpu-performance/gpu-performance.service` | AMD GPU high-performance mode at boot |
+| 9 | `08-gpu-performance/cpu-performance.service` | CPU governor locked to performance |
+| 9 | `08-gpu-performance/99-amdgpu-performance.rules` | Re-asserts GPU profile on DRM events |
+| 10 | `09-remote-desktop/server.cfg` | NoMachine remote desktop config |
 
 ---
 
