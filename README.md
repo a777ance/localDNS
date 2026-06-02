@@ -127,6 +127,14 @@ No cloud. No WAN exposure. SSH is also reachable from WireGuard peers via `ssh u
 
 ---
 
+## Skills demonstrated
+
+Building and operating this stack exercised a full range of networking, VPN,
+Linux, container, and automation skills — each mapped to the concrete config
+and scripts in this repo. See **[SKILLS.md](SKILLS.md)** for the breakdown.
+
+---
+
 ## Deployment
 
 See:
