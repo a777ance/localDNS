@@ -130,7 +130,7 @@ crontab.
 
 ### 6. Crontab `USERNAME` placeholder must be replaced manually
 
-**Location:** README.md / SETUP.md crontab instructions
+**Location:** README.md crontab instructions
 
 ```
 * * * * * /home/USERNAME/packet-loss-monitor.sh

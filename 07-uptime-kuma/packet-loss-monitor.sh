@@ -7,7 +7,7 @@
 # distinguished at a glance.
 #
 # Install:
-#   cp scripts/packet-loss-monitor.sh ~/packet-loss-monitor.sh
+#   cp 07-uptime-kuma/packet-loss-monitor.sh ~/packet-loss-monitor.sh
 #   chmod +x ~/packet-loss-monitor.sh
 #   crontab -e   →   add:  * * * * * /home/USER/packet-loss-monitor.sh
 #

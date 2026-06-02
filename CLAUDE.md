@@ -95,7 +95,9 @@ both containers sit directly on the host network stack.
 
 ## Deploy paths
 
-Folders are numbered by installation order — folder name = step number in SETUP.md.
+Folders are numbered by installation order. README adds two folder-less steps
+(Step 0 Router, Step 2 Docker CE), so a folder's number is not its README step
+number — use this table to map repo path → system path, not the step numbers.
 
 | Repo path | System path | Reload |
 | --------- | ----------- | ------ |

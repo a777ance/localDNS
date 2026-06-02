@@ -1,7 +1,7 @@
 # Network Context
 
 Documents the router and DNS/VPN configuration that the t630 stack depends on.
-This is not reproduced by SETUP.md — it describes the surrounding network environment.
+This is not reproduced by README.md — it describes the surrounding network environment.
 
 ## Router topology
 
