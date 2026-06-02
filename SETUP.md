@@ -60,9 +60,10 @@ sudo systemctl enable --now unbound
 
 Five drop-ins: `server.conf` (network/security), `tuning.conf` (performance, TTLs,
 serve-expired — single source of truth for all caching values),
-`streaming-forward.conf` (domain split — streaming/low-sensitivity domains
-forwarded to public resolvers, everything else recursive), `remote-control.conf`
-(Unix socket), `root-auto-trust-anchor-file.conf` (DNSSEC).
+`streaming-forward.conf` (domain split — streaming/low-sensitivity domains forwarded
+to the Cloudflare endosymbiont at `127.0.0.1@5053`, everything else recursive;
+install the organelle in Part 1a), `remote-control.conf` (Unix socket),
+`root-auto-trust-anchor-file.conf` (DNSSEC).
 
 ### Verify
 
@@ -71,9 +72,12 @@ dig @127.0.0.1 -p 5335 example.com +dnssec | grep "ad;"
 # 'ad' flag = DNSSEC validation working
 
 # Confirm the streaming/personal split (see Part 3 for the full rationale):
-sudo unbound-control lookup netflix.com   # → "forwarding request" to a public resolver
+sudo unbound-control lookup netflix.com   # → "forwarding request" to 127.0.0.1@5053
 sudo unbound-control lookup chase.com     # → iterative delegation (recursive, private)
 ```
+
+The `netflix.com` lookup forwards to the Cloudflare endosymbiont — install it in
+Part 1a (without it the forward-path falls back to recursion via `forward-first`).
 
 ### Cache persistence
 
@@ -90,6 +94,56 @@ sudo systemctl enable --now unbound-cache-dump.timer
 
 Cache is dumped hourly and on Unbound stop; restored 2 seconds after Unbound starts
 (to let the socket settle). Warm-cache performance survives reboots.
+
+---
+
+## Part 1a: cloudflared (the Cloudflare endosymbiont)
+
+The streaming forward-path in `streaming-forward.conf` points at `127.0.0.1@5053` —
+a contained `cloudflared` organelle that speaks DNS-over-HTTPS to Cloudflare's
+anycast edge. It encrypts the streaming forward-path from the ISP while leaving the
+recursive nucleus (banking, email, the default) fully private. See network-context.md
+"Unbound DNS split" for the rationale and the load-bearing invariant (the recursive
+path must NEVER be pointed at this proxy).
+
+### Install the binary
+
+```bash
+# amd64 .deb straight from Cloudflare (the t630 is x86-64):
+curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb \
+  -o /tmp/cloudflared.deb
+sudo dpkg -i /tmp/cloudflared.deb
+# The .deb installs /usr/bin/cloudflared; the unit calls /usr/local/bin/cloudflared:
+sudo ln -sf /usr/bin/cloudflared /usr/local/bin/cloudflared
+cloudflared --version
+```
+
+### Deploy the service
+
+```bash
+sudo cp systemd/cloudflared-proxy-dns.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now cloudflared-proxy-dns
+```
+
+The unit runs `cloudflared proxy-dns` bound to `127.0.0.1:5053` with **IP-literal**
+DoH upstreams (`https://1.1.1.1/dns-query`, `https://1.0.0.1/dns-query`) so it needs
+no DNS of its own to bootstrap. It listens on loopback only — nothing off-box can
+reach it.
+
+### Verify
+
+```bash
+systemctl status cloudflared-proxy-dns      # active (running)
+dig @127.0.0.1 -p 5053 example.com          # organelle answers (proves DoH egress works)
+sudo systemctl restart unbound              # pick up streaming-forward.conf's forwarders
+sudo unbound-control lookup netflix.com     # → forwarding request to 127.0.0.1@5053
+sudo unbound-control lookup chase.com       # → iterative delegation (recursive, private)
+```
+
+Note: `streaming-forward.conf` sets `do-not-query-localhost: no` — required, because
+Unbound otherwise refuses to forward to a loopback address and the forward-path
+silently breaks.
 
 ---
 
@@ -146,8 +200,9 @@ The compose env var is only read on first creation of a fresh volume.
 and Unbound owns the streaming/personal split (`streaming-forward.conf`). Adding
 public resolvers to Pi-hole would race them for every query — including personal
 ones — and defeat the private path. The split is: streaming/low-sensitivity domains
-→ forwarded to a large pool of public resolvers (lowest-latency wins) for speed; everything else → recursive and
-private. Verify with the `unbound-control lookup` commands in Part 1.
+→ forwarded to the Cloudflare endosymbiont (`127.0.0.1@5053`, DoH) for encrypted,
+anycast speed; everything else → recursive and private. Verify with the
+`unbound-control lookup` commands in Part 1/1a.
 
 ### Interface setting: "Permit all origins"
 
@@ -550,12 +605,14 @@ must use `172.17.0.1#5335` to reach the host.
 ## Verification checklist
 
 - [ ] `systemctl status unbound` — active
+- [ ] `systemctl status cloudflared-proxy-dns` — active (the Cloudflare endosymbiont)
+- [ ] `dig @127.0.0.1 -p 5053 example.com` — organelle answers (DoH egress works)
 - [ ] `dig @127.0.0.1 -p 5335 example.com +dnssec` — `ad` flag present
 - [ ] `docker ps` — pihole and uptime-kuma both healthy
 - [ ] Pi-hole web UI at `http://192.168.1.118:8080/admin/`
 - [ ] Uptime Kuma at `http://192.168.1.118:3001`
 - [ ] Pi-hole Settings → DNS shows `172.17.0.1#5335` as the single custom upstream (no preset resolvers checked)
-- [ ] `sudo unbound-control lookup netflix.com` → `forwarding request`; `sudo unbound-control lookup chase.com` → iterative delegation (the streaming/personal split is live)
+- [ ] `sudo unbound-control lookup netflix.com` → `forwarding request` to `127.0.0.1@5053`; `sudo unbound-control lookup chase.com` → iterative delegation (the streaming/personal split is live)
 - [ ] `sudo iptables -t mangle -L POSTROUTING -v | grep DSCP` → two rules marking sport 53 as EF
 - [ ] Blocked domain (`doubleclick.net`) → `0.0.0.0` from a client
 - [ ] `cat /sys/class/drm/card*/device/power_dpm_force_performance_level` → `high`
