@@ -12,7 +12,7 @@ name: Publish statement gallery to Pages
 on:
   workflow_dispatch:
   push:
-    branches: ["main", "claude/meta-audit-priorities-MzByf"]
+    branches: ["main", "claude/meta-audit-priorities-MzByf", "claude/inspiring-fermi-FIdYr"]
     paths:
       - "docs/statements/**"
       - ".github/workflows/pages.yml"
