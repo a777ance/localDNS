@@ -10,6 +10,9 @@ guide. Clone it to the t630 and follow Setup below to go from fresh
 Ubuntu 24.04 to a fully running stack. Edits here do not take effect until
 manually deployed — **the live t630 is the source of truth.**
 
+For the surrounding network — router, ISP, and the rationale behind these design
+choices — see **[network-context.md](network-context.md)**.
+
 ---
 
 ## Thesis
@@ -55,6 +58,7 @@ boundary holds with a single command.
 - Reset firewall rules: `sudo bash 04-ufw/setup.sh` (idempotent — safe to re-run)
 - Add a streaming domain to Cloudflare DoT: append a `forward-zone:` block to `01-unbound/streaming-forward.conf`, deploy to `/etc/unbound/unbound.conf.d/`, and `sudo systemctl restart unbound`. Never add sensitive domains.
 - Add a WireGuard peer: see `05-wireguard/peer-template.conf`. Next free IP starts at `10.8.0.8`. Use `sudo systemctl reload wg-quick@wg0` — no restart needed.
+- SSH to the t630: `ssh <user>@192.168.1.118` from the LAN, or `ssh <user>@10.8.0.1` (the tunnel address) from a connected WireGuard peer once Step 7 is up — port 22 is open to both `192.168.0.0/16` and `10.8.0.0/24` in `04-ufw/setup.sh`.
 
 ---
 
@@ -69,7 +73,7 @@ boundary holds with a single command.
   - [Step 3: Docker CE](#step-3-docker-ce)
   - [Steps 4 + 5: Host DNS Fix, then Pi-hole](#steps-4--5-host-dns-fix-then-pi-hole)
   - [Step 6: UFW Firewall](#step-6-ufw-firewall)
-  - [Step 7: WireGuard VPN](#step-7-wireguard-vpn)
+  - [Step 7: VPN](#step-7-vpn)
   - [Step 8: Uptime Kuma](#step-8-uptime-kuma)
   - [Step 9: GPU Performance](#step-9-gpu-performance)
   - [Step 10: Remote Desktop](#step-10-remote-desktop)
@@ -136,6 +140,16 @@ never hardens into a single point of failure.
 ## A. Setup (Quick-Start)
 
 ### Before you begin
+
+**Connect to the t630 over SSH.** Every command below runs on the t630 itself. From
+any machine on the LAN:
+
+```bash
+ssh <user>@192.168.1.118        # the DHCP-reserved LAN address from Step 0
+```
+
+(Once WireGuard is up in Step 7 you can also reach it over the tunnel at
+`ssh <user>@10.8.0.1` — see [Operational notes](#operational-notes).)
 
 **Clone the repo to the t630.** All commands below use paths relative to the repo
 root. Without this, every `cp` command fails immediately.
@@ -418,14 +432,42 @@ workaround — they land after UFW's DROP rule and are silently ignored.
 
 ---
 
-### Step 7: WireGuard VPN
+### Step 7: VPN
 
-WireGuard tunnels peers back to the home network from anywhere on cellular or
-untrusted Wi-Fi. DNS routes through Pi-hole over the tunnel, so ad-blocking and
-DNSSEC work identically on cellular.
+A VPN here does one of two different jobs, and which one you want decides what you set
+up:
 
-UFW's `allow routed` (Step 6) must be in place before enabling WireGuard — without
-it the FORWARD chain drops peer traffic silently.
+1. **Bring the home network with you** — reach the t630's full DNS stack (Pi-hole
+   ad-blocking + the Unbound DNSSEC/streaming split) and LAN services from anywhere,
+   exactly as if you were home, exiting through your own WAN IP. Only a tunnel that
+   terminates *on the t630* delivers this. It is what the repo implements
+   (`05-wireguard/`).
+2. **Just hide your traffic from the local network/ISP** — encrypt everything to a
+   third party and exit from their network. Nothing of your own to run, but your DNS
+   goes to that provider, not your Pi-hole.
+
+On a phone these are largely mutually exclusive: a full-tunnel VPN points at one place
+at a time.
+
+| Option | Server to run | Client DNS | Exit IP | Home stack (ad-block + DNSSEC split)? | Best for |
+| ------ | ------------- | ---------- | ------- | ------------------------------------- | -------- |
+| **Self-hosted WireGuard → t630** (repo default) | the t630 (`05-wireguard/wg0.conf`) | `10.8.0.1` → Pi-hole → Unbound | your home WAN IP | **Yes** | home network + services on cellular |
+| **Cloudflare WARP** (`1.1.1.1` app) | none — Cloudflare runs it | Cloudflare `1.1.1.1` | a Cloudflare edge | **No** — bypasses Pi-hole/Unbound | zero-maintenance privacy on untrusted Wi-Fi |
+| **Tailscale / Headscale** (mesh) | a coordination server | configurable (can point at Pi-hole via MagicDNS) | per-node / exit node | yes, if the t630 is the DNS/exit node | painless NAT traversal across many devices |
+
+**Be clear about the WARP trade.** WARP is the easy button — install the **1.1.1.1:
+Faster Internet** app, sign in, toggle it on (pick *WARP* for a full tunnel, or
+*1.1.1.1* for DNS-only; optionally *1.1.1.1 for Families* for basic malware/ad
+filtering) — and there is nothing to deploy on the t630. But it sends your DNS to
+Cloudflare's `1.1.1.1`, the exact third-party resolver this stack is built to keep
+sensitive lookups *away* from. You get Cloudflare's privacy from your ISP, not your
+own private resolver, and none of the network-wide ad-blocking. It is a fine choice
+for casual browsing on untrusted Wi-Fi; it is not a substitute for the home stack.
+Nothing stops you running both and switching per use-case.
+
+The rest of this step sets up **Option 1, self-hosted WireGuard** — the repo's
+implemented path. UFW's `allow routed` (Step 6) must already be in place, or the
+FORWARD chain drops peer traffic silently.
 
 #### Install
 
