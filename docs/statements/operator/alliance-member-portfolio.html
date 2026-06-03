@@ -1,0 +1,128 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A777ance — Alliance Member Portfolio — Jose Marin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--navy:#13314f;--ink:#1f2733;--bronze:#a9803f;--bronze-soft:#c6a463;--paper:#fbfaf7;
+--rule:#e6e2d6;--rule-2:#eceef1;--muted:#8a93a0;--pos:#3f7a4d;--amber:#c08a2e;--watch:#2d6aa8;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:#e9ecf0;padding:40px 20px;color:var(--ink);}
+.page{max-width:760px;margin:0 auto;background:var(--paper);box-shadow:0 6px 40px rgba(0,0,0,0.13);}
+.fig{font-family:Georgia,serif;font-feature-settings:"tnum";}
+.header{background:var(--navy);color:#fff;padding:30px 44px 26px;border-bottom:3px solid var(--bronze);}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.brandwrap{display:flex;align-items:center;gap:15px;}
+.monogram{width:44px;height:44px;border-radius:9px;background:linear-gradient(150deg,#1c4a73,#0e2640);border:1px solid var(--bronze);display:flex;align-items:center;justify-content:center;}
+.monogram span{font-family:Georgia,serif;font-size:19px;font-weight:700;color:var(--bronze-soft);}
+.brand{font-size:21px;font-weight:700;letter-spacing:0.16em;}
+.brand-sub{font-size:9px;color:#8fb0cc;letter-spacing:0.2em;text-transform:uppercase;margin-top:6px;}
+.tag{display:inline-block;margin-top:8px;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#0e2640;background:var(--bronze-soft);border-radius:4px;padding:3px 8px;font-weight:700;}
+.doc-title{text-align:right;}
+.doc-title .label{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#8fb0cc;}
+.doc-title .period{font-family:Georgia,serif;font-size:17px;margin-top:5px;}
+.acct-bar{display:flex;gap:40px;margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.13);}
+.acct-field .k{font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#7e9fbb;}
+.acct-field .v{font-size:13px;margin-top:4px;font-family:Georgia,serif;}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--rule);}
+.kpi{padding:22px 16px;text-align:center;border-right:1px solid var(--rule);}
+.kpi:last-child{border-right:none;}
+.kpi .v{font-family:Georgia,serif;font-size:28px;color:var(--navy);line-height:1;}
+.kpi .v.warn{color:var(--amber);}
+.kpi .l{font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-top:7px;}
+.body{padding:0 44px;}
+.section{padding:24px 0;border-bottom:1px solid var(--rule);}
+.section:last-child{border-bottom:none;}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:15px;}
+.section-title{font-size:12px;text-transform:uppercase;letter-spacing:0.16em;color:var(--navy);font-weight:700;}
+.section-note{font-size:10.5px;color:var(--muted);font-style:italic;}
+.att{display:flex;flex-direction:column;gap:10px;}
+.ai{display:flex;gap:13px;padding:12px 14px;border-radius:8px;border-left:3px solid;background:#faf7f1;}
+.ai.high{border-color:#b4542a;background:#fbf2ec;}
+.ai.med{border-color:var(--amber);background:#fbf6ea;}
+.ai.low{border-color:var(--watch);background:#eef4fa;}
+.ai .sev{font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;width:42px;flex-shrink:0;padding-top:2px;}
+.ai.high .sev{color:#b4542a;}.ai.med .sev{color:var(--amber);}.ai.low .sev{color:var(--watch);}
+.ai .body2{flex:1;}
+.ai .h{font-size:13px;color:var(--navy);font-weight:600;}
+.ai .h .who{color:var(--bronze);font-weight:600;}
+.ai .d{font-size:11.5px;color:#5a6573;line-height:1.5;margin-top:3px;}
+.ai .meta{font-size:10.5px;color:var(--muted);margin-top:4px;}
+.log{display:flex;flex-direction:column;}
+.lx{display:flex;gap:13px;padding:10px 0;border-bottom:1px solid var(--rule-2);}
+.lx:last-child{border-bottom:none;}
+.lx .scope{font-family:Georgia,serif;font-size:11px;color:var(--bronze);width:70px;flex-shrink:0;padding-top:1px;}
+.lx .txt{font-size:12.5px;color:#3a4553;line-height:1.5;flex:1;}
+.lx .txt b{color:var(--navy);}
+table.roster{width:100%;border-collapse:collapse;}
+table.roster th{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:600;text-align:left;padding:0 8px 8px;border-bottom:1px solid var(--rule);}
+table.roster th.r,table.roster td.fig{text-align:right;}
+table.roster td{padding:7px 8px;font-size:12px;border-bottom:1px solid var(--rule-2);color:var(--ink);}
+table.roster tr:last-child td{border-bottom:none;}
+.rdot{display:inline-block;width:8px;height:8px;border-radius:50%;}
+.acct{font-family:Georgia,serif;color:var(--muted);font-size:11px;}
+.nm{font-weight:600;color:var(--navy);}
+.arch{color:#5a6573;font-size:11px;}
+.legend-note{margin-top:12px;font-size:10.5px;color:var(--muted);display:flex;gap:18px;}
+.legend-note span{display:flex;align-items:center;gap:6px;}
+.footer{padding:18px 44px;display:flex;justify-content:space-between;align-items:center;background:var(--navy);color:#8fb0cc;font-size:10.5px;}
+.footer .fb{font-weight:700;letter-spacing:0.14em;color:#fff;font-size:11px;}
+</style></head><body><div class="page">
+  <div class="header"><div class="header-top">
+    <div class="brandwrap"><div class="monogram"><span>A7</span></div>
+      <div><div class="brand">A777ANCE</div><div class="brand-sub">Residential Network Services</div>
+        <div class="tag">Alliance Member Portfolio</div></div></div>
+    <div class="doc-title"><div class="label">Monthly Portfolio Statement</div>
+      <div class="period">May 2026</div></div></div>
+    <div class="acct-bar">
+      <div class="acct-field"><div class="k">Alliance Member</div><div class="v">Jose Marin</div></div>
+      <div class="acct-field"><div class="k">Member ID</div><div class="v">ALY-0042</div></div>
+      <div class="acct-field"><div class="k">Homes Under Management</div><div class="v">20</div></div>
+      <div class="acct-field"><div class="k">Statement Date</div><div class="v">June 1, 2026</div></div></div></div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="v">20</div><div class="l">Homes Managed</div></div>
+    <div class="kpi"><div class="v">224,963</div><div class="l">Threats Blocked (all homes)</div></div>
+    <div class="kpi"><div class="v">99.9%</div><div class="l">Avg Uptime</div></div>
+    <div class="kpi"><div class="v warn">2</div><div class="l">Homes Need Attention</div></div></div>
+
+  <div class="body">
+    <div class="section"><div class="section-head"><div class="section-title">Needs Your Attention</div>
+      <div class="section-note">flagged across your book — most urgent first</div></div>
+      <div class="att">
+        <div class="ai high"><div class="sev">High</div><div class="body2">
+          <div class="h">A77-020 · Reyes Loft <span style="color:#8a93a0;font-weight:400">(Home Office)</span></div>
+          <div class="d">Appliance storage at <b>88%</b> — query logs growing faster than expected. Left unattended, logging could stall within ~9 days.</div>
+          <div class="meta">Owned by <span class="who" style="color:#a9803f;font-weight:600">Jose</span> · cleanup scheduled tonight 02:00 · client not affected yet</div></div></div>
+        <div class="ai med"><div class="sev">Med</div><div class="body2">
+          <div class="h">A77-005 · Park Household <span style="color:#8a93a0;font-weight:400">(Connected Family)</span></div>
+          <div class="d">One of three Wi-Fi points is <b>dropping nightly around 1 a.m.</b> and self-recovering. Looks like a failing unit, not config.</div>
+          <div class="meta">Owned by <span style="color:#a9803f;font-weight:600">Jose</span> · replacement unit en route · ETA Jun 3</div></div></div>
+        <div class="ai low"><div class="sev">Watch</div><div class="body2">
+          <div class="h">A77-011 · Whitlock <span style="color:#8a93a0;font-weight:400">(Prime-Time)</span></div>
+          <div class="d">WireGuard key is <b>over a year old</b>. No issue today, but worth rotating on the next visit for good hygiene.</div>
+          <div class="meta">Flagged by the system · no action needed this month</div></div></div>
+      </div></div>
+
+    <div class="section"><div class="section-head"><div class="section-title">This Month, Across Your Homes</div>
+      <div class="section-note">your work log — what carried your subscription</div></div>
+      <div class="log">
+        <div class="lx"><div class="scope">20 / 20</div><div class="txt">Rolled out <b>Cloudflare's encrypted-DNS update (v2026.5)</b> to every home the day it shipped. No client saw a hiccup.</div></div>
+        <div class="lx"><div class="scope">20 / 20</div><div class="txt">Closed a <b>router-service security flaw (CVE-2026-3118)</b> across all appliances the morning it was disclosed.</div></div>
+        <div class="lx"><div class="scope">20 / 20</div><div class="txt">Refreshed ad &amp; tracker blocklists fleet-wide — <b>+4,100 new domains</b>.</div></div>
+        <div class="lx"><div class="scope">3 homes</div><div class="txt">Onboarded <b>7 new devices</b> (tablets, a console, two smart-home hubs) onto secure networks.</div></div>
+        <div class="lx"><div class="scope">2 homes</div><div class="txt"><b>Proactive hardware swaps</b> — power adapters reading flaky at A77-014 and A77-006, replaced before failure.</div></div>
+        <div class="lx"><div class="scope">1 home</div><div class="txt">Re-pointed DNS at A77-001 mid-stream during a Spectrum routing change — <b>zero downtime</b>.</div></div>
+      </div></div>
+
+    <div class="section"><div class="section-head"><div class="section-title">Your Homes</div>
+      <div class="section-note">20 statements generated &amp; delivered this month</div></div>
+      <table class="roster"><thead><tr><th></th><th>Account</th><th>Household</th><th>Profile</th><th class="r">Threats Blocked</th><th class="r">Uptime</th></tr></thead>
+      <tbody><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-001</td><td class="nm">Allum</td><td class="arch">Prime-Time</td><td class="fig">16,258</td><td class="fig">99.97%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-002</td><td class="nm">Chen</td><td class="arch">Home Office</td><td class="fig">7,246</td><td class="fig">99.98%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-003</td><td class="nm">Okafor Family</td><td class="arch">Connected Family</td><td class="fig">17,962</td><td class="fig">99.99%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-004</td><td class="nm">Delgado</td><td class="arch">Prime-Time</td><td class="fig">8,487</td><td class="fig">99.93%</td></tr><tr><td><span class="rdot" style="background:#c08a2e"></span></td><td class="acct">A77-005</td><td class="nm">Park Household</td><td class="arch">Home Office</td><td class="fig">13,243</td><td class="fig">99.98%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-006</td><td class="nm">Nguyen</td><td class="arch">Connected Family</td><td class="fig">12,645</td><td class="fig">99.9%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-007</td><td class="nm">Brooks</td><td class="arch">Prime-Time</td><td class="fig">12,002</td><td class="fig">99.88%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-008</td><td class="nm">Romano</td><td class="arch">Home Office</td><td class="fig">8,029</td><td class="fig">99.88%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-009</td><td class="nm">Haddad</td><td class="arch">Connected Family</td><td class="fig">11,176</td><td class="fig">99.88%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-010</td><td class="nm">Ferreira</td><td class="arch">Prime-Time</td><td class="fig">17,195</td><td class="fig">99.93%</td></tr><tr><td><span class="rdot" style="background:#2d6aa8"></span></td><td class="acct">A77-011</td><td class="nm">Whitlock</td><td class="arch">Home Office</td><td class="fig">17,397</td><td class="fig">99.98%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-012</td><td class="nm">Osei</td><td class="arch">Connected Family</td><td class="fig">9,329</td><td class="fig">99.99%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-013</td><td class="nm">Sandberg</td><td class="arch">Prime-Time</td><td class="fig">5,564</td><td class="fig">99.88%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-014</td><td class="nm">Cruz</td><td class="arch">Home Office</td><td class="fig">8,546</td><td class="fig">99.95%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-015</td><td class="nm">Tanaka</td><td class="arch">Connected Family</td><td class="fig">7,231</td><td class="fig">99.98%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-016</td><td class="nm">Mbeki</td><td class="arch">Prime-Time</td><td class="fig">5,082</td><td class="fig">99.88%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-017</td><td class="nm">Lindqvist</td><td class="arch">Home Office</td><td class="fig">7,713</td><td class="fig">99.93%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-018</td><td class="nm">Patel</td><td class="arch">Connected Family</td><td class="fig">18,448</td><td class="fig">99.93%</td></tr><tr><td><span class="rdot" style="background:#3f7a4d"></span></td><td class="acct">A77-019</td><td class="nm">Dubois</td><td class="arch">Prime-Time</td><td class="fig">15,551</td><td class="fig">99.99%</td></tr><tr><td><span class="rdot" style="background:#c08a2e"></span></td><td class="acct">A77-020</td><td class="nm">Reyes Loft</td><td class="arch">Home Office</td><td class="fig">5,859</td><td class="fig">99.88%</td></tr></tbody></table>
+      <div class="legend-note">
+        <span><span class="rdot" style="background:#3f7a4d"></span>Healthy (17)</span>
+        <span><span class="rdot" style="background:#c08a2e"></span>Needs attention (2)</span>
+        <span><span class="rdot" style="background:#2d6aa8"></span>Watch (1)</span>
+      </div></div>
+  </div>
+  <div class="footer"><div class="fb">A777ANCE</div>
+    <div>Twenty homes, one view · individual statements bundled &amp; mailed · Member ALY-0042 · hello@a777ance.com</div></div>
+</div></body></html>
