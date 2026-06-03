@@ -214,6 +214,10 @@ Covers upload bufferbloat for WireGuard VPN clients. Does not address download
 bufferbloat for general LAN devices (the Netgear R7000 is the correct fix point
 for that; DD-WRT/FreshTomato both support CAKE).
 
+**Files — [`06-cake/`](06-cake/):**
+- [`setup.sh`](06-cake/setup.sh) — CAKE setup script; set `UPLOAD_MBPS` before deploying
+- [`cake.service`](06-cake/cake.service) — systemd service
+
 #### Install
 
 ```bash
@@ -252,6 +256,16 @@ watch -n1 tc -s qdisc show dev enp1s0                         # live queue stats
 
 Unbound runs on the host OS, not in a container. It is the DNS decision point — all
 queries that pass Pi-hole's blocklist come here. It must exist before Pi-hole.
+
+**Files — [`01-unbound/`](01-unbound/):**
+- [`server.conf`](01-unbound/server.conf) — interface, port, access-control, security flags
+- [`tuning.conf`](01-unbound/tuning.conf) — cache sizes, TTLs, threading (single source of truth for performance)
+- [`streaming-forward.conf`](01-unbound/streaming-forward.conf) — streaming domains → Cloudflare DoT; all else recursive
+- [`remote-control.conf`](01-unbound/remote-control.conf) — Unix socket for `unbound-control`
+- [`root-auto-trust-anchor-file.conf`](01-unbound/root-auto-trust-anchor-file.conf) — DNSSEC root trust anchor
+- [`unbound-cache-dump`](01-unbound/unbound-cache-dump) / [`unbound-cache-load`](01-unbound/unbound-cache-load) — cache persistence scripts (dump hourly + on stop; restore 2 s after start)
+- [`unbound-cache-dump.service`](01-unbound/unbound-cache-dump.service) / [`unbound-cache-dump.timer`](01-unbound/unbound-cache-dump.timer) — systemd units for hourly cache dump
+- [`unbound.service.d/override.conf`](01-unbound/unbound.service.d/override.conf) — service override (triggers cache restore on start)
 
 #### Install
 
@@ -368,6 +382,9 @@ Disabling the stub frees `:53`; because that also removes the `127.0.0.53` liste
 `/etc/resolv.conf` must be re-pointed off the stub file to the one that lists the
 real upstreams.
 
+**Files — [`03-host-dns/`](03-host-dns/):**
+- [`host-dns.conf`](03-host-dns/host-dns.conf) — sets `DNS=9.9.9.9 1.1.1.1` and `DNSStubListener=no`
+
 ```bash
 cd ~/localdns
 sudo mkdir -p /etc/systemd/resolved.conf.d
@@ -380,6 +397,9 @@ sudo ss -ulpn 'sport = :53'        # should show NOTHING bound on :53 yet
 ```
 
 #### Part B (then): start Pi-hole — `02-pihole/`
+
+**Files — [`02-pihole/`](02-pihole/):**
+- [`docker-compose.yml`](02-pihole/docker-compose.yml) — Pi-hole v6 compose; set `FTLCONF_webserver_api_password` before deploying
 
 ```bash
 # 1. Set a real password before starting — the default is a placeholder
@@ -431,6 +451,9 @@ containers. Safe here because UFW (next step) restricts access at the network la
 ### Step 6: UFW Firewall
 
 Lock down before opening the WAN port in Step 7.
+
+**Files — [`04-ufw/`](04-ufw/):**
+- [`setup.sh`](04-ufw/setup.sh) — complete UFW ruleset; run directly with `sudo bash`
 
 ```bash
 sudo bash 04-ufw/setup.sh
@@ -493,6 +516,10 @@ Nothing stops you running both and switching per use-case.
 The rest of this step sets up **Option 1, self-hosted WireGuard** — the repo's
 implemented path. UFW's `allow routed` (Step 6) must already be in place, or the
 FORWARD chain drops peer traffic silently.
+
+**Files — [`05-wireguard/`](05-wireguard/):**
+- [`wg0.conf`](05-wireguard/wg0.conf) — server config; fill in private key and peer public keys before deploying
+- [`peer-template.conf`](05-wireguard/peer-template.conf) — annotated peer template; reference only
 
 #### Install
 
@@ -592,6 +619,11 @@ ping google.com  # DNS working
 
 Set up after everything else exists to monitor — the CAKE script depends on CAKE
 being installed first.
+
+**Files — [`07-uptime-kuma/`](07-uptime-kuma/):**
+- [`docker-compose.yml`](07-uptime-kuma/docker-compose.yml) — Uptime Kuma compose
+- [`packet-loss-monitor.sh`](07-uptime-kuma/packet-loss-monitor.sh) — packet loss monitoring script (cron, every minute)
+- [`cake-monitor.sh`](07-uptime-kuma/cake-monitor.sh) — CAKE health heartbeat script (cron, every minute)
 
 ```bash
 mkdir -p ~/uptime-kuma
@@ -701,6 +733,11 @@ household never needs them). See [Which steps do you need?](#which-steps-do-you-
 
 **Requires a reboot.** Do this before installing NoMachine.
 
+**Files — [`08-gpu-performance/`](08-gpu-performance/):**
+- [`gpu-performance.service`](08-gpu-performance/gpu-performance.service) — sets GPU to `high` performance level on boot
+- [`cpu-performance.service`](08-gpu-performance/cpu-performance.service) — sets CPU governor to `performance` on boot
+- [`99-amdgpu-performance.rules`](08-gpu-performance/99-amdgpu-performance.rules) — udev rule; re-asserts `high` on every DRM event
+
 #### 1. Kernel parameters
 
 Edit `/etc/default/grub`. Find the `GRUB_CMDLINE_LINUX_DEFAULT` line and **append**
@@ -757,6 +794,9 @@ cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor | sort -u  # → perfo
 **Skip this step (and Step 9) if you only administer the t630 over SSH.** Remote
 desktop runs a graphical session *on the box* — a phone-only or headless setup never
 needs it.
+
+**Files — [`09-remote-desktop/`](09-remote-desktop/):**
+- [`server.cfg`](09-remote-desktop/server.cfg) — NoMachine server config
 
 ```bash
 sudo apt install -y xubuntu-desktop xfce4 xfce4-goodies
