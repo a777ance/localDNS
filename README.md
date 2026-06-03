@@ -1044,11 +1044,11 @@ item must pass before Step 11.
 
 ### Further reading
 
-- **SKILLS.md** — the networking, Linux/infra, and automation skills this stack
+- **[SKILLS.md](SKILLS.md)** — the networking, Linux/infra, and automation skills this stack
   exercises, each mapped to the concrete config and scripts that prove it
 - **[INSTALL-NOTES.md](INSTALL-NOTES.md)** — fresh install simulation: every known break point, its
   severity, and what was fixed
-- **network-context.md** — design rationale: Docker networking, UFW/WireGuard
+- **[network-context.md](network-context.md)** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack, WireGuard IPv6
-- **CLAUDE.md** — structural summary and deploy-path reference for AI assistants
+- **[CLAUDE.md](CLAUDE.md)** — structural summary and deploy-path reference for AI assistants
   working on this repo
