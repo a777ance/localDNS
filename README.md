@@ -1,9 +1,10 @@
 # localDNS
 
 Self-hosted DNS, VPN, and network monitoring stack on an HP t630 thin client.
-Every device on the home LAN and every WireGuard peer resolves DNS through
-Pi-hole (ad blocking) → Unbound (DNSSEC, Cloudflare DoT for streaming).
-The WireGuard tunnel defines "inside" — not physical location.
+Every device on the home LAN — and every phone tunneled back over the self-hosted
+WireGuard VPN — resolves DNS through Pi-hole (ad blocking) → Unbound (DNSSEC,
+Cloudflare DoT for streaming). The tunnel, not physical location, defines what counts
+as "inside" the network.
 
 This repo is the config snapshot, rollback target, and complete reproduction
 guide. Clone it to the t630 and follow Setup below to go from fresh
