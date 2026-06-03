@@ -24,9 +24,13 @@ This stack delivers measurable, verifiable outcomes from a single low-power node
   responses are rejected rather than trusted.
 - **The privacy/speed split does what it claims** — `unbound-control lookup` proves
   streaming domains forward to Cloudflare over TLS while everything else (banking,
-  email, health) resolves recursively and is *never* forwarded to a third party. The
-  split — exactly which domains, and the full rationale for it — is defined and
-  annotated in [`01-unbound/streaming-forward.conf`](01-unbound/streaming-forward.conf);
+  email, health) is resolved *recursively*: Unbound walks the DNS hierarchy itself —
+  starting from root hints, following referrals through TLD nameservers, then to each
+  domain's own authoritative nameservers — contacting many well-known servers along the
+  way, none of which see your full query history, and no third-party resolver ever
+  handles them. The split — exactly which domains, and the full rationale for it — is
+  defined and annotated in
+  [`01-unbound/streaming-forward.conf`](01-unbound/streaming-forward.conf);
   [DNS resolution chain](#dns-resolution-chain) walks through how it fits together.
 - **Ad and tracker blocking is network-wide** — every device benefits with no
   client-side software, and blocked domains are answered with `0.0.0.0`.
@@ -1014,8 +1018,12 @@ does no resolver selection of its own.
   The ISP sees an encrypted TLS channel instead of cleartext DNS lookups — privacy
   for speed on traffic whose destination is not sensitive.
 - **Everything else** — banking, email, health, personal services, the default —
-  resolves recursively with DNSSEC. Cloudflare never sees these queries. This is the
-  private recursive path.
+  resolves **recursively with DNSSEC**: Unbound contacts the DNS hierarchy directly,
+  starting from root hints, following referrals to TLD nameservers, then to each
+  domain's own authoritative nameservers. Many well-known authoritative servers are
+  contacted, but none of them see your full query history — each sees only the single
+  question it is authoritative for. No third-party resolver is in the path; Cloudflare
+  never sees these queries.
 
 The domain split lives entirely in
 [`01-unbound/streaming-forward.conf`](01-unbound/streaming-forward.conf) — **and its
