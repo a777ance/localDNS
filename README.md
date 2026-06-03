@@ -14,6 +14,9 @@ manually deployed — **the live t630 is the source of truth.**
 For the surrounding network — router, ISP, and the rationale behind these design
 choices — see **[network-context.md](network-context.md)**.
 
+For fresh-install gotchas, break points, and workarounds discovered during setup — see
+**[INSTALL-NOTES.md](INSTALL-NOTES.md)**.
+
 ---
 
 ## Thesis
@@ -1043,7 +1046,7 @@ item must pass before Step 11.
 
 - **SKILLS.md** — the networking, Linux/infra, and automation skills this stack
   exercises, each mapped to the concrete config and scripts that prove it
-- **INSTALL-NOTES.md** — fresh install simulation: every known break point, its
+- **[INSTALL-NOTES.md](INSTALL-NOTES.md)** — fresh install simulation: every known break point, its
   severity, and what was fixed
 - **network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack, WireGuard IPv6
