@@ -24,7 +24,10 @@ This stack delivers measurable, verifiable outcomes from a single low-power node
   responses are rejected rather than trusted.
 - **The privacy/speed split does what it claims** — `unbound-control lookup` proves
   streaming domains forward to Cloudflare over TLS while everything else (banking,
-  email, health) resolves recursively and is *never* forwarded to a third party.
+  email, health) resolves recursively and is *never* forwarded to a third party. The
+  split — exactly which domains, and the full rationale for it — is defined and
+  annotated in [`01-unbound/streaming-forward.conf`](01-unbound/streaming-forward.conf);
+  [DNS resolution chain](#dns-resolution-chain) walks through how it fits together.
 - **Ad and tracker blocking is network-wide** — every device benefits with no
   client-side software, and blocked domains are answered with `0.0.0.0`.
 - **VPN peers get the full stack on cellular** — identical ad-blocking and DNSSEC over
@@ -54,8 +57,9 @@ boundary holds with a single command.
 The whole stack on one page. Follow the **DNS path**: clients and VPN peers hand every
 lookup to the t630, Pi-hole filters it, then Unbound — the single decision point —
 either resolves it privately by recursion or, for streaming domains only, forwards it
-to Cloudflare over an encrypted channel. Outbound resolution traverses the router/WAN
-to reach the targets at the top. `[Step N]` tags map each piece to its setup step in
+to Cloudflare over an encrypted channel — the split is defined and fully annotated in
+[`01-unbound/streaming-forward.conf`](01-unbound/streaming-forward.conf). Outbound
+resolution traverses the router/WAN to reach the targets at the top. `[Step N]` tags map each piece to its setup step in
 [Section A](#a-setup-quick-start); full peer and port tables are in
 [Section B](#wireguard-peers--service-ports).
 
@@ -122,7 +126,7 @@ RESOLUTION TARGETS — what the t630 reaches out to (out on the internet)
 - Uptime Kuma data: back up `~/uptime-kuma/data/` directly
 - Refresh root hints: `sudo curl -o /var/lib/unbound/root.hints https://www.internic.net/domain/named.root && sudo systemctl restart unbound`
 - Reset firewall rules: `sudo bash 04-ufw/setup.sh` (idempotent — safe to re-run)
-- Add a streaming domain to Cloudflare DoT: append a `forward-zone:` block to `01-unbound/streaming-forward.conf`, deploy to `/etc/unbound/unbound.conf.d/`, and `sudo systemctl restart unbound`. Never add sensitive domains.
+- Add a streaming domain to Cloudflare DoT: append a `forward-zone:` block to [`01-unbound/streaming-forward.conf`](01-unbound/streaming-forward.conf), deploy to `/etc/unbound/unbound.conf.d/`, and `sudo systemctl restart unbound`. Never add sensitive domains.
 - Add a WireGuard peer: see `05-wireguard/peer-template.conf`. Next free IP starts at `10.8.0.8`. Use `sudo systemctl reload wg-quick@wg0` — no restart needed.
 - SSH to the t630: `ssh <user>@192.168.1.118` from the LAN, or `ssh <user>@10.8.0.1` (the tunnel address) from a connected WireGuard peer once Step 7 is up — port 22 is open to both `192.168.0.0/16` and `10.8.0.0/24` in `04-ufw/setup.sh`.
 
@@ -369,9 +373,11 @@ sudo unbound-control lookup chase.com    # → iterative delegation (recursive, 
 
 #### Step 2a: Encrypted streaming forward-path (Cloudflare DoT)
 
-Already deployed by the `cp` above. `streaming-forward.conf` forwards streaming and
+Already deployed by the `cp` above.
+[`streaming-forward.conf`](01-unbound/streaming-forward.conf) forwards streaming and
 media domains to Cloudflare over DNS-over-TLS at port 853. Everything not listed
-resolves recursively — Cloudflare never sees those queries.
+resolves recursively — Cloudflare never sees those queries. Its header comment is the
+fully-annotated rationale for the split (see [DNS resolution chain](#dns-resolution-chain)).
 
 Confirm end-to-end:
 ```bash
@@ -1011,9 +1017,16 @@ does no resolver selection of its own.
   resolves recursively with DNSSEC. Cloudflare never sees these queries. This is the
   private recursive path.
 
-The domain split lives entirely in `01-unbound/streaming-forward.conf`. **Invariant:**
-never add sensitive domains to that file — doing so hands Cloudflare your private
-lookups, defeating the point of the design.
+The domain split lives entirely in
+[`01-unbound/streaming-forward.conf`](01-unbound/streaming-forward.conf) — **and its
+header comment is the canonical, fully-annotated explanation of the whole strategy**:
+exactly which domains take the encrypted path, why the encryption lives inside Unbound
+(the earlier design fanned out to a ~18-resolver plaintext UDP/53 pool that leaked
+every streaming lookup to the ISP; the interim `cloudflared proxy-dns` plan died when
+Cloudflare removed that feature), and the load-bearing invariant. If you change one
+thing about the resolver strategy, read that file first. **Invariant:** never add
+sensitive domains to it — doing so hands Cloudflare your private lookups, defeating the
+point of the design.
 
 If Cloudflare's port 853 is ever blocked by an ISP, `forward-first: yes` falls back
 to full recursion. Streaming keeps working, just slower.
