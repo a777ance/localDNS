@@ -67,6 +67,8 @@ README step.
 
 ## Step 0. Router topology
 
+**Repo:** [`03-host-dns/`](03-host-dns/) (host resolver) — router settings live on the Netgear, not in this repo
+
 The Netgear R7000 is the sole router (routing, NAT, DHCP, WAN). The t630 is the
 DNS and VPN server, hanging off the LAN.
 
@@ -207,6 +209,8 @@ after the restart, an entry may be pinned at the link level —
 
 ## Step 1. CAKE / bufferbloat
 
+**Repo:** [`06-cake/`](06-cake/)
+
 **What bufferbloat is:** when a big download or upload fills the modem/router's
 packet buffer, everything else has to wait behind it. A 16 ms idle ping becomes
 800–1200 ms under load. This is not packet loss — all packets arrive, just late.
@@ -266,6 +270,8 @@ bufferbloat remains for direct LAN devices.
 ---
 
 ## Step 2. Unbound DNS split (streaming-forward.conf)
+
+**Repo:** [`01-unbound/`](01-unbound/)
 
 Unbound is the single decision point for where each query goes:
 
@@ -338,6 +344,8 @@ lookups too — a separate, optional change.
 
 ## Step 3. Docker CE
 
+**Repo:** none — install only, no config files in this repo
+
 Docker is installed from Docker's own apt repository, not Ubuntu's `docker.io`
 package, so the host runs current Docker Engine and the Compose v2 plugin
 (`docker compose`, not the older `docker-compose`). README Step 3 has the exact
@@ -358,6 +366,8 @@ directly. No custom Docker network is defined.
 ---
 
 ## Step 4 + 5. Pi-hole DNS settings (Settings → DNS)
+
+**Repo:** [`02-pihole/`](02-pihole/) — plus [`03-host-dns/`](03-host-dns/) for the port-53 handoff
 
 Pi-hole is deployed across README Steps 4 + 5 (free `:53` and decouple host DNS,
 *then* start the container). These are the settings that matter — all seeded and
@@ -411,6 +421,8 @@ lookups; keeping a single upstream is what preserves the private path.
 
 ## Step 6. UFW Firewall
 
+**Repo:** [`04-ufw/`](04-ufw/)
+
 UFW is the host firewall (`04-ufw/setup.sh`). The policy is default-deny incoming,
 with every service scoped to the LAN (`192.168.0.0/16`) and the WireGuard subnet
 (`10.8.0.0/24`) — except WireGuard's own `51820/udp`, the single port open to
@@ -435,6 +447,8 @@ from UFW's `filter` rules, so the two do not interact.
 ---
 
 ## Step 7. WireGuard VPN
+
+**Repo:** [`05-wireguard/`](05-wireguard/)
 
 The t630 runs a WireGuard server that tunnels the phone back to the home network
 from anywhere on cellular or untrusted Wi-Fi.
@@ -778,6 +792,8 @@ regardless of this setting.
 
 ## Step 8. Uptime Kuma — monitoring
 
+**Repo:** [`07-uptime-kuma/`](07-uptime-kuma/)
+
 Uptime Kuma runs in Docker on port 3001 and monitors Unbound via a DNS monitor
 querying `127.0.0.1:5335`.
 
@@ -832,15 +848,18 @@ the script), lowered to 5% once the router hardware is stable.
 
 ## Step 9. GPU performance
 
+**Repo:** [`08-gpu-performance/`](08-gpu-performance/)
+
 No network dimension — purely a local display/performance fix for the headless AMD
-Carrizo iGPU downclock, with no bearing on DNS, VPN, or firewalling. See
-[`08-gpu-performance/`](08-gpu-performance/) for the units and udev rule (rationale in
-CLAUDE.md § E and README Step 9). Optional — skip unless you run a graphical remote
-desktop on the box.
+Carrizo iGPU downclock, with no bearing on DNS, VPN, or firewalling. Rationale and the
+required units/udev rule are in CLAUDE.md § E and README Step 9. Optional — skip unless
+you run a graphical remote desktop on the box.
 
 ---
 
 ## Step 10. Remote Desktop
+
+**Repo:** [`09-remote-desktop/`](09-remote-desktop/)
 
 The only network-relevant fact: the remote-desktop services are **LAN-only**.
 `04-ufw/setup.sh` opens NoMachine (`4000`) and xrdp (`3389`) to `192.168.0.0/16`
@@ -854,6 +873,8 @@ phone-only setup.
 ---
 
 ## Step 11. Point LAN Clients at t630
+
+**Repo:** none — router-side configuration
 
 The final cut-over: point the router's DNS at the t630 so LAN clients actually use
 the stack. On the Netgear R7000 (Basic → Internet Setup), set Primary DNS =
