@@ -1,30 +1,35 @@
 # Network Context
 
 Documents the router and DNS/VPN configuration that the t630 stack depends on.
-This is not reproduced by README.md — it describes the surrounding network environment.
+This is not reproduced by README.md — it describes the surrounding network
+environment and the rationale behind the non-obvious choices. Sections follow the same
+order as README.md's Setup section, so each "Step N" here lines up with the matching
+README step.
 
 ---
 
 ## Contents
 
-- [0. Router topology](#0-router-topology)
+- [Step 0. Router topology](#step-0-router-topology)
   - [Diagnosing future packet loss](#diagnosing-future-packet-loss)
-- [A. Router: Netgear R7000 (192.168.1.1)](#a-router-netgear-r7000-19216811)
-  - [DHCP reservation](#dhcp-reservation)
-  - [DNS pushed to LAN clients](#dns-pushed-to-lan-clients)
-  - [Router's own DNS](#routers-own-dns)
-  - [WAN security settings (Advanced → WAN Setup)](#wan-security-settings-advanced--wan-setup)
-- [B. Pi-hole DNS settings (Settings → DNS)](#b-pi-hole-dns-settings-settings--dns)
+  - [Router: Netgear R7000 (192.168.1.1)](#router-netgear-r7000-19216811)
+    - [DHCP reservation](#dhcp-reservation)
+    - [DNS pushed to LAN clients](#dns-pushed-to-lan-clients)
+    - [Router's own DNS](#routers-own-dns)
+    - [WAN security settings (Advanced → WAN Setup)](#wan-security-settings-advanced--wan-setup)
+  - [Host resolver — why the t630 uses external DNS for itself](#host-resolver--why-the-t630-uses-external-dns-for-itself)
+- [Step 1. CAKE / bufferbloat](#step-1-cake--bufferbloat)
+  - [What CAKE on the t630 covers](#what-cake-on-the-t630-covers)
+  - [For whole-network bufferbloat: Netgear R7000](#for-whole-network-bufferbloat-netgear-r7000)
+- [Step 2. Unbound DNS split (streaming-forward.conf)](#step-2-unbound-dns-split-streaming-forwardconf)
+  - [Why DoT-in-Unbound, not the old plaintext pool (or a separate proxy)](#why-dot-in-unbound-not-the-old-plaintext-pool-or-a-separate-proxy)
+- [Step 3. Docker CE](#step-3-docker-ce)
+- [Step 4 + 5. Pi-hole DNS settings (Settings → DNS)](#step-4--5-pi-hole-dns-settings-settings--dns)
   - [Why 127.0.0.1#5335 — and why it used to be 172.17.0.1#5335](#why-1270015335--and-why-it-used-to-be-17217015335)
   - [Why "Permit all origins" is checked](#why-permit-all-origins-is-checked)
   - [No preset upstream servers checked](#no-preset-upstream-servers-checked)
-- [C. Unbound DNS split (streaming-forward.conf)](#c-unbound-dns-split-streaming-forwardconf)
-  - [Why DoT-in-Unbound, not the old plaintext pool (or a separate proxy)](#why-dot-in-unbound-not-the-old-plaintext-pool-or-a-separate-proxy)
-- [D. Host resolver — why the t630 uses external DNS for itself](#d-host-resolver--why-the-t630-uses-external-dns-for-itself)
-- [E. Uptime Kuma — monitoring](#e-uptime-kuma--monitoring)
-  - [Why network_mode: host — not a bridge network](#why-network_mode-host--not-a-bridge-network)
-  - [Uptime Kuma monitors](#uptime-kuma-monitors)
-- [F. WireGuard VPN](#f-wireguard-vpn)
+- [Step 6. UFW Firewall](#step-6-ufw-firewall)
+- [Step 7. WireGuard VPN](#step-7-wireguard-vpn)
   - [Topology](#topology)
   - [Server config: 05-wireguard/wg0.conf](#server-config-05-wireguardwg0conf)
   - [IP forwarding](#ip-forwarding)
@@ -34,30 +39,33 @@ This is not reproduced by README.md — it describes the surrounding network env
   - [Does the router need a DHCP or DNS reservation for WireGuard peers?](#does-the-router-need-a-dhcp-or-dns-reservation-for-wireguard-peers)
   - [IP address assignments](#ip-address-assignments)
   - [Windows client security (laptop peer)](#windows-client-security-laptop-peer)
-- [G. WireGuard: adding a new peer](#g-wireguard-adding-a-new-peer)
-  - [Each device needs its own key pair](#each-device-needs-its-own-key-pair)
-  - [Adding a peer live (no restart)](#adding-a-peer-live-no-restart)
-  - [Key derivation: the safe way to get a peer's public key](#key-derivation-the-safe-way-to-get-a-peers-public-key)
-  - [Do not add the server's own public key as a peer](#do-not-add-the-servers-own-public-key-as-a-peer)
-  - [SSH when a full tunnel is active](#ssh-when-a-full-tunnel-is-active)
-  - [UFW: services reachable from VPN peers](#ufw-services-reachable-from-vpn-peers)
-- [H. WireGuard: UFW forwarding — what went wrong and why](#h-wireguard-ufw-forwarding--what-went-wrong-and-why)
-  - [The failure](#the-failure)
-  - [Root cause](#root-cause)
-  - [The fix](#the-fix)
-- [I. WireGuard peer onboarding — what not to do](#i-wireguard-peer-onboarding--what-not-to-do)
-  - [Use the App Store app, not Homebrew](#use-the-app-store-app-not-homebrew)
-  - [Peer config mistakes that break everything](#peer-config-mistakes-that-break-everything)
-  - [WireGuard IPv6 black hole (handshake OK, nothing loads)](#wireguard-ipv6-black-hole-handshake-ok-nothing-loads)
-  - [How to verify the tunnel is actually working](#how-to-verify-the-tunnel-is-actually-working)
-  - [Pi-hole must accept queries from the wg0 subnet](#pi-hole-must-accept-queries-from-the-wg0-subnet)
-- [J. CAKE / bufferbloat](#j-cake--bufferbloat)
-  - [What CAKE on the t630 covers](#what-cake-on-the-t630-covers)
-  - [For whole-network bufferbloat: Netgear R7000](#for-whole-network-bufferbloat-netgear-r7000)
+  - [WireGuard: adding a new peer](#wireguard-adding-a-new-peer)
+    - [Each device needs its own key pair](#each-device-needs-its-own-key-pair)
+    - [Adding a peer live (no restart)](#adding-a-peer-live-no-restart)
+    - [Key derivation: the safe way to get a peer's public key](#key-derivation-the-safe-way-to-get-a-peers-public-key)
+    - [Do not add the server's own public key as a peer](#do-not-add-the-servers-own-public-key-as-a-peer)
+    - [SSH when a full tunnel is active](#ssh-when-a-full-tunnel-is-active)
+    - [UFW: services reachable from VPN peers](#ufw-services-reachable-from-vpn-peers)
+  - [WireGuard: UFW forwarding — what went wrong and why](#wireguard-ufw-forwarding--what-went-wrong-and-why)
+    - [The failure](#the-failure)
+    - [Root cause](#root-cause)
+    - [The fix](#the-fix)
+  - [WireGuard peer onboarding — what not to do](#wireguard-peer-onboarding--what-not-to-do)
+    - [Use the App Store app, not Homebrew](#use-the-app-store-app-not-homebrew)
+    - [Peer config mistakes that break everything](#peer-config-mistakes-that-break-everything)
+    - [WireGuard IPv6 black hole (handshake OK, nothing loads)](#wireguard-ipv6-black-hole-handshake-ok-nothing-loads)
+    - [How to verify the tunnel is actually working](#how-to-verify-the-tunnel-is-actually-working)
+    - [Pi-hole must accept queries from the wg0 subnet](#pi-hole-must-accept-queries-from-the-wg0-subnet)
+- [Step 8. Uptime Kuma — monitoring](#step-8-uptime-kuma--monitoring)
+  - [Why network_mode: host — not a bridge network](#why-network_mode-host--not-a-bridge-network)
+  - [Uptime Kuma monitors](#uptime-kuma-monitors)
+- [Step 9. GPU performance](#step-9-gpu-performance)
+- [Step 10. Remote Desktop](#step-10-remote-desktop)
+- [Step 11. Point LAN Clients at t630](#step-11-point-lan-clients-at-t630)
 
 ---
 
-## 0. Router topology
+## Step 0. Router topology
 
 The Netgear R7000 is the sole router (routing, NAT, DHCP, WAN). The t630 is the
 DNS and VPN server, hanging off the LAN.
@@ -93,11 +101,11 @@ the full path. Check modem signal levels (usually `http://192.168.100.1`) —
 downstream power should be −7 to +7 dBmV, SNR above 35 dB. Out-of-spec
 signal levels require an ISP technician.
 
----
+### Router: Netgear R7000 (192.168.1.1)
 
-## A. Router: Netgear R7000 (192.168.1.1)
+Settings that live on the router itself, not the t630.
 
-### DHCP reservation
+#### DHCP reservation
 
 The t630 has no static IP configured at the OS level. Its address is fixed via a
 DHCP reservation on the router:
@@ -110,7 +118,7 @@ This means the t630 always gets the same address without needing to manage a sta
 IP in netplan or NetworkManager. If the t630 is ever rebuilt, the reservation keeps
 its address stable automatically.
 
-### DNS pushed to LAN clients
+#### DNS pushed to LAN clients
 
 Under Basic → Internet Setup, the router is configured with:
 
@@ -127,13 +135,13 @@ down, the network stays online. The cost is that ad-blocking and local DNS resol
 stop working until the t630 is back. For a home network this is the right tradeoff.
 Removing the fallback would make the entire network go offline when the t630 reboots.
 
-### Router's own DNS
+#### Router's own DNS
 
 The router also uses Pi-hole for its own lookups (visible in Advanced Home →
 Internet Port → Domain Name Server). This means the router's own queries are
 filtered too.
 
-### WAN security settings (Advanced → WAN Setup)
+#### WAN security settings (Advanced → WAN Setup)
 
 | Setting | Value | Why |
 | ------- | ----- | --- |
@@ -143,57 +151,121 @@ filtered too.
 | Port scan / DoS protection | Enabled | Router-level rate limiting |
 | DMZ | Disabled | Nothing exposed to internet directly |
 
+### Host resolver — why the t630 uses external DNS for itself
+
+The t630 runs the network's DNS, but it must NOT resolve its *own* queries (apt,
+git, curl) through its own Pi-hole. With `network_mode: host`, Pi-hole binds
+`0.0.0.0:53` across every interface. Two facts make self-resolution unworkable:
+
+1. **The stub collision.** systemd-resolved's stub listener owns `127.0.0.53:53`,
+   which conflicts with Pi-hole's `0.0.0.0:53` bind. One of them has to give up the
+   port — and Pi-hole needs `:53` to serve LAN and VPN clients, so the stub is
+   disabled (`DNSStubListener=no`).
+2. **Unbound is on a non-standard port.** Unbound answers on port `5335`, but
+   `/etc/resolv.conf` cannot carry a non-53 port, so the host can't point at Unbound
+   directly either.
+
+Pointing the host at its own Pi-hole would also be circular and fragile (the host's
+resolver depending on a container the host manages). Left without a working resolver,
+the box cannot resolve anything for itself — `git`, `apt`, and `curl` all fail with
+"Temporary failure in name resolution," even though the DNS *service* is healthy for
+every other device on the network.
+
+**Fix — point the host at external resolvers, independent of the Docker stack**
+(`03-host-dns/host-dns.conf`). Because disabling the stub removes the `127.0.0.53`
+listener that `/etc/resolv.conf` normally targets, the symlink must be re-pointed to
+the file that lists the real upstreams:
+
+```bash
+sudo mkdir -p /etc/systemd/resolved.conf.d
+sudo tee /etc/systemd/resolved.conf.d/host-dns.conf >/dev/null <<'EOF'
+[Resolve]
+DNS=9.9.9.9 1.1.1.1
+DNSStubListener=no
+EOF
+sudo systemctl restart systemd-resolved
+sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf   # off the stub file
+```
+
+The host's own lookups now go straight to Quad9/Cloudflare and are never stranded
+while Unbound or Pi-hole restart, and `:53` is free for Pi-hole. The trade — the
+box's own queries skip Pi-hole filtering — is irrelevant on a headless server.
+Verify with a name not in `/etc/hosts`, and confirm nothing else holds `:53` before
+launching Pi-hole:
+
+```bash
+getent hosts security.ubuntu.com    # returns an IP → host resolution works
+sudo ss -ulpn 'sport = :53'         # empty until Pi-hole starts
+```
+
+**Note:** if `/etc/resolv.conf` still lists `nameserver 127.0.0.1` or `127.0.0.53`
+after the restart, an entry may be pinned at the link level —
+`nameservers: [127.0.0.1]` in `/etc/netplan/*.yaml`. Remove it from the netplan file
+(then `sudo netplan apply`) so the re-pointed `resolv.conf` is authoritative.
+
 ---
 
-## B. Pi-hole DNS settings (Settings → DNS)
+## Step 1. CAKE / bufferbloat
 
-### Why 127.0.0.1#5335 — and why it used to be 172.17.0.1#5335
+**What bufferbloat is:** when a big download or upload fills the modem/router's
+packet buffer, everything else has to wait behind it. A 16 ms idle ping becomes
+800–1200 ms under load. This is not packet loss — all packets arrive, just late.
 
-Pi-hole runs with `network_mode: host`, so it shares the host's network stack
-directly. Inside that stack `127.0.0.1` *is* the host loopback, and Unbound listens
-on `:5335` across every interface (`interface: 0.0.0.0` in `01-unbound/server.conf`),
-the loopback included — so Pi-hole reaches it as `127.0.0.1#5335`, exactly as a
-native host process would.
+**Why CAKE helps:** instead of letting the buffer fill (modem has no concept of
+fairness or timing), CAKE manages a smart queue in the OS. It rate-limits egress
+slightly below the ISP line speed so the OS queue becomes the bottleneck. It then
+applies fair queuing (each flow gets a slot) and DSCP prioritization so DNS
+responses and interactive traffic skip ahead of bulk downloads. `cake-setup.sh`
+makes this explicit for DNS: it marks every DNS response (source port 53) with
+DSCP EF via an iptables mangle rule, landing it in CAKE's highest-priority tin.
 
-This changed with the move to host networking. Under the **old bridge-mode** setup,
-Pi-hole ran in its own network namespace where `127.0.0.1` was the *container's* own
-loopback, not the host's; it had to reach Unbound via the Docker bridge gateway
-`172.17.0.1` (the host's address as seen from inside the container). Host networking
-removes the namespace boundary, so the bridge-gateway address is no longer correct —
-`127.0.0.1#5335` is. Any lingering `172.17.0.1#5335` in an old `pihole_data` volume
-should be corrected to `127.0.0.1#5335`.
+### What CAKE on the t630 covers
 
-The `FTLCONF_dns_upstreams` value in `02-pihole/docker-compose.yml` is
-`127.0.0.1#5335` — a single upstream pointing at Unbound. Under Pi-hole v6 this is
-re-applied and locked on every container start, so it overrides whatever is stored in
-the `pihole_data` volume rather than only seeding a fresh one.
+The t630 is not inline for general LAN traffic. A laptop or phone on Wi-Fi goes
+`device → Netgear R7000 → ISP`, bypassing the t630. CAKE on the t630 only
+shapes traffic the t630 actually forwards:
 
-**On a deployment:** after `docker compose up -d`, go to Settings → DNS and confirm
-the upstream field shows the single entry `127.0.0.1#5335` with no preset resolvers
-checked.
+| Traffic type | Path includes t630? | CAKE helps? |
+| ------------ | ------------------- | ----------- |
+| WireGuard VPN clients (upload) | Yes — exits enp1s0 | Yes |
+| WireGuard VPN clients (DNS) | Yes — Pi-hole at 10.8.0.1 | Yes (diffserv4 prioritizes) |
+| General LAN devices (any direction) | No — Netgear handles it | No |
 
-### Why "Permit all origins" is checked
+**Measured impact (VPN clients):** under load, upload latency holds at 11 ms and
+download at 16 ms (idle baseline 14 ms) — essentially no bufferbloat. Previous
+unmanaged state was ~400–800 ms loaded. `nat` transparency lets CAKE distinguish
+individual VPN clients behind the WireGuard MASQUERADE, so the iPhone and laptop
+each get a fair queue slot rather than competing as a single undifferentiated flow.
 
-Pi-hole flags this as "potentially dangerous." It is safe here because UFW restricts
-port 53 to `192.168.0.0/16` and `10.8.0.0/24`. No query from outside the LAN or VPN
-subnet can reach Pi-hole regardless of this setting. "Allow only local requests"
-would block queries from WireGuard peers (`10.8.0.x`), which are not on the LAN
-subnet. "Permit all origins" is the correct setting when the firewall handles the
-boundary; under Pi-hole v6 it is seeded and locked by
-`FTLCONF_dns_listeningMode: "all"` in the compose file.
+Because it only acts on what the t630 forwards, CAKE earns its keep only once the
+WireGuard VPN (Step 7) is carrying traffic — on a build with no VPN, it has nothing
+to shape.
 
-### No preset upstream servers checked
+### For whole-network bufferbloat: Netgear R7000
 
-None of Pi-hole's preset upstream servers (Google, Cloudflare, Quad9, etc.) are
-enabled, and the public resolvers are deliberately NOT added here. Pi-hole has a
-single custom upstream — `127.0.0.1#5335` — so every query goes to Unbound, which
-owns the streaming/personal split (see "Unbound DNS split" below). Putting the
-public resolvers in Pi-hole would race them for all queries and leak personal
-lookups; keeping a single upstream is what preserves the private path.
+The 1200 ms download-loaded-ping spike observed in speed tests on the home
+network is caused by the Netgear/modem buffer filling. The fix must be on the
+device handling that bottleneck — the Netgear R7000.
+
+The R7000 is a well-supported target for third-party firmware:
+
+| Firmware | CAKE/fq_codel | Notes |
+| -------- | ------------- | ----- |
+| DD-WRT | Yes (fq_codel via QoS) | Mature, large community |
+| FreshTomato | Yes (fq_codel/CAKE via QoS) | More modern UI than DD-WRT |
+| OpenWrt | Yes (full CAKE) | Most capable; harder install |
+
+FreshTomato is a reasonable starting point — it retains a familiar Tomato UI,
+supports the R7000 (K26ARM build), and exposes fq_codel in QoS settings.
+Steps: backup config, flash firmware via the Netgear admin UI, set QoS
+download/upload caps to 90% of measured ISP speeds, enable fq_codel.
+
+Until then, the t630 CAKE handles the VPN client case, and the home network
+bufferbloat remains for direct LAN devices.
 
 ---
 
-## C. Unbound DNS split (streaming-forward.conf)
+## Step 2. Unbound DNS split (streaming-forward.conf)
 
 Unbound is the single decision point for where each query goes:
 
@@ -264,115 +336,105 @@ lookups too — a separate, optional change.
 
 ---
 
-## D. Host resolver — why the t630 uses external DNS for itself
+## Step 3. Docker CE
 
-The t630 runs the network's DNS, but it must NOT resolve its *own* queries (apt,
-git, curl) through its own Pi-hole. With `network_mode: host`, Pi-hole binds
-`0.0.0.0:53` across every interface. Two facts make self-resolution unworkable:
+Docker is installed from Docker's own apt repository, not Ubuntu's `docker.io`
+package, so the host runs current Docker Engine and the Compose v2 plugin
+(`docker compose`, not the older `docker-compose`). README Step 3 has the exact
+keyring/repo commands and the `docker` group re-login the socket permission needs.
 
-1. **The stub collision.** systemd-resolved's stub listener owns `127.0.0.53:53`,
-   which conflicts with Pi-hole's `0.0.0.0:53` bind. One of them has to give up the
-   port — and Pi-hole needs `:53` to serve LAN and VPN clients, so the stub is
-   disabled (`DNSStubListener=no`).
-2. **Unbound is on a non-standard port.** Unbound answers on port `5335`, but
-   `/etc/resolv.conf` cannot carry a non-53 port, so the host can't point at Unbound
-   directly either.
-
-Pointing the host at its own Pi-hole would also be circular and fragile (the host's
-resolver depending on a container the host manages). Left without a working resolver,
-the box cannot resolve anything for itself — `git`, `apt`, and `curl` all fail with
-"Temporary failure in name resolution," even though the DNS *service* is healthy for
-every other device on the network.
-
-**Fix — point the host at external resolvers, independent of the Docker stack**
-(`03-host-dns/host-dns.conf`). Because disabling the stub removes the `127.0.0.53`
-listener that `/etc/resolv.conf` normally targets, the symlink must be re-pointed to
-the file that lists the real upstreams:
-
-```bash
-sudo mkdir -p /etc/systemd/resolved.conf.d
-sudo tee /etc/systemd/resolved.conf.d/host-dns.conf >/dev/null <<'EOF'
-[Resolve]
-DNS=9.9.9.9 1.1.1.1
-DNSStubListener=no
-EOF
-sudo systemctl restart systemd-resolved
-sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf   # off the stub file
-```
-
-The host's own lookups now go straight to Quad9/Cloudflare and are never stranded
-while Unbound or Pi-hole restart, and `:53` is free for Pi-hole. The trade — the
-box's own queries skip Pi-hole filtering — is irrelevant on a headless server.
-Verify with a name not in `/etc/hosts`, and confirm nothing else holds `:53` before
-launching Pi-hole:
-
-```bash
-getent hosts security.ubuntu.com    # returns an IP → host resolution works
-sudo ss -ulpn 'sport = :53'         # empty until Pi-hole starts
-```
-
-**Note:** if `/etc/resolv.conf` still lists `nameserver 127.0.0.1` or `127.0.0.53`
-after the restart, an entry may be pinned at the link level —
-`nameservers: [127.0.0.1]` in `/etc/netplan/*.yaml`. Remove it from the netplan file
-(then `sudo netplan apply`) so the re-pointed `resolv.conf` is authoritative.
+Both containers in this stack — Pi-hole and Uptime Kuma — run with
+`network_mode: host` rather than on a Docker bridge. The reasons are spelled out in
+their own sections (Pi-hole under Step 4 + 5, Uptime Kuma under Step 8), but the root
+cause is shared: on Ubuntu 24.04 the firewall backend is nftables with a default-DROP
+INPUT chain, so Docker bridge addresses (`172.17.0.1`, `172.18.0.1`) are not reliably
+reachable for a host-loopback service like Unbound on `:5335`, and bridge
+published-ports insert DNAT rules that run *before* UFW's INPUT chain and bypass its
+restrictions. Host networking removes the namespace boundary: each container sits
+directly on the host stack, reaches Unbound at `127.0.0.1:5335` like any native
+process, has its ports gated by UFW (Step 6), and answers VPN peers on `wg0`
+directly. No custom Docker network is defined.
 
 ---
 
-## E. Uptime Kuma — monitoring
+## Step 4 + 5. Pi-hole DNS settings (Settings → DNS)
 
-Uptime Kuma runs in Docker on port 3001 and monitors Unbound via a DNS monitor
-querying `127.0.0.1:5335`.
+Pi-hole is deployed across README Steps 4 + 5 (free `:53` and decouple host DNS,
+*then* start the container). These are the settings that matter — all seeded and
+locked by `FTLCONF_*` env vars in `02-pihole/docker-compose.yml` under Pi-hole v6.
 
-### Why network_mode: host — not a bridge network
+### Why 127.0.0.1#5335 — and why it used to be 172.17.0.1#5335
 
-Uptime Kuma's docker-compose.yml uses `network_mode: host`, which removes Docker's
-network isolation and places the container directly on the host network stack. This
-is required because Ubuntu 24.04 uses nftables as its firewall backend. Legacy
-iptables rules don't affect the active ruleset, and the INPUT chain has a default
-DROP policy. As a result, Docker bridge IPs (172.17.0.1, 172.18.0.1) are not
-reachable from host processes or other containers on arbitrary ports like 5335 —
-even with explicit UFW allow rules added.
+Pi-hole runs with `network_mode: host`, so it shares the host's network stack
+directly. Inside that stack `127.0.0.1` *is* the host loopback, and Unbound listens
+on `:5335` across every interface (`interface: 0.0.0.0` in `01-unbound/server.conf`),
+the loopback included — so Pi-hole reaches it as `127.0.0.1#5335`, exactly as a
+native host process would.
 
-With `network_mode: host`, Uptime Kuma shares the host network stack and reaches
-Unbound at `127.0.0.1:5335` directly, the same way any native host process would.
+This changed with the move to host networking. Under the **old bridge-mode** setup,
+Pi-hole ran in its own network namespace where `127.0.0.1` was the *container's* own
+loopback, not the host's; it had to reach Unbound via the Docker bridge gateway
+`172.17.0.1` (the host's address as seen from inside the container). Host networking
+removes the namespace boundary, so the bridge-gateway address is no longer correct —
+`127.0.0.1#5335` is. Any lingering `172.17.0.1#5335` in an old `pihole_data` volume
+should be corrected to `127.0.0.1#5335`.
 
-Consequence: the `ports:` mapping is removed from the compose file. Uptime Kuma
-remains available at port 3001 — it binds directly on the host interface rather
-than through Docker's port mapping layer.
+The `FTLCONF_dns_upstreams` value in `02-pihole/docker-compose.yml` is
+`127.0.0.1#5335` — a single upstream pointing at Unbound. Under Pi-hole v6 this is
+re-applied and locked on every container start, so it overrides whatever is stored in
+the `pihole_data` volume rather than only seeding a fresh one.
 
-### Uptime Kuma monitors
+**On a deployment:** after `docker compose up -d`, go to Settings → DNS and confirm
+the upstream field shows the single entry `127.0.0.1#5335` with no preset resolvers
+checked.
 
-Full monitor stack, with rationale for each layer:
+### Why "Permit all origins" is checked
 
-| Monitor | Type | Target | Port | Why |
-| ------- | ---- | ------ | ---- | --- |
-| Unbound – Basic | DNS | `cloudflare.com` via `127.0.0.1` | 5335 | Confirms Unbound is answering queries |
-| Unbound – DNSSEC | DNS | `internetsociety.org` via `127.0.0.1` | 5335 | Confirms DNSSEC validation is active (DNSSEC-signed domain) |
-| Pi-hole – Full Chain | DNS | `cloudflare.com` via `127.0.0.1` | 53 | Tests entire chain: Pi-hole → Unbound → recursion |
-| Pi-hole – Web UI | TCP Port | `192.168.1.118` | 8080 | Confirms Pi-hole admin panel is reachable |
-| Home Router | HTTP | `http://192.168.1.1` | — | Confirms gateway is up |
-| Packet Loss – Router | Push | (script pushes) | — | LAN packet loss %; `status=down` above threshold |
-| Packet Loss – Internet | Push | (script pushes) | — | WAN packet loss %; distinguishes LAN vs ISP problems |
-| CAKE SQM | Push | (script pushes) | — | Confirms CAKE qdisc is active on enp1s0; message shows live bandwidth |
+Pi-hole flags this as "potentially dangerous." It is safe here because UFW restricts
+port 53 to `192.168.0.0/16` and `10.8.0.0/24`. No query from outside the LAN or VPN
+subnet can reach Pi-hole regardless of this setting. "Allow only local requests"
+would block queries from WireGuard peers (`10.8.0.x`), which are not on the LAN
+subnet. "Permit all origins" is the correct setting when the firewall handles the
+boundary; under Pi-hole v6 it is seeded and locked by
+`FTLCONF_dns_listeningMode: "all"` in the compose file.
 
-**Diagnostic logic:** if Pi-hole Full Chain goes red but Unbound Basic stays
-green, the break is specifically in the Pi-hole → Unbound link, not Unbound
-itself. If both go red, Unbound is the problem. Layered monitoring isolates the
-failure to one component.
+### No preset upstream servers checked
 
-**Resolver field gotcha:** in Uptime Kuma's DNS monitor, the Resolver Server
-field takes an IP address only — no port. Port goes in the separate Port field.
-Entering `127.0.0.1:5335` in the resolver field creates an invalid double-port
-and causes intermittent failures.
-
-**Packet loss monitors:** driven by `07-uptime-kuma/packet-loss-monitor.sh`, which
-runs via cron every 60 seconds. The loss % is placed in the `ping` field so
-Uptime Kuma graphs it as a time series. Threshold: 15% by default (the value in
-the script), lowered to 5% once the router hardware is stable.
+None of Pi-hole's preset upstream servers (Google, Cloudflare, Quad9, etc.) are
+enabled, and the public resolvers are deliberately NOT added here. Pi-hole has a
+single custom upstream — `127.0.0.1#5335` — so every query goes to Unbound, which
+owns the streaming/personal split (see "Unbound DNS split" above). Putting the
+public resolvers in Pi-hole would race them for all queries and leak personal
+lookups; keeping a single upstream is what preserves the private path.
 
 ---
 
-## F. WireGuard VPN
+## Step 6. UFW Firewall
+
+UFW is the host firewall (`04-ufw/setup.sh`). The policy is default-deny incoming,
+with every service scoped to the LAN (`192.168.0.0/16`) and the WireGuard subnet
+(`10.8.0.0/24`) — except WireGuard's own `51820/udp`, the single port open to
+`Anywhere` because the phone handshakes from a public cellular IP (see "Why port
+51820 is open to Anywhere" under Step 7). The full port table is in README Step 6.
+
+Two interactions are worth calling out, both covered in depth elsewhere:
+
+- **Forwarding for the VPN.** `04-ufw/setup.sh` sets `ufw default allow routed`
+  (`DEFAULT_FORWARD_POLICY=ACCEPT`) so the FORWARD chain passes WireGuard peer traffic
+  out `enp1s0`. Raw `iptables -A FORWARD` rules in `wg0.conf` do *not* work here —
+  they land after UFW's DROP. See "WireGuard: UFW forwarding" under Step 7.
+- **Host networking makes UFW effective for the containers.** Because Pi-hole and
+  Uptime Kuma are host-networked (Step 3), their ports (`53`, `8080`, `3001`) bind on
+  the host and are genuinely gated by UFW's INPUT chain — unlike the old bridge +
+  published-ports setup, where Docker's DNAT bypassed UFW. See "UFW: services
+  reachable from VPN peers" under Step 7.
+
+DSCP marking for DNS priority (Step 1's CAKE) lives in the `mangle` table, separate
+from UFW's `filter` rules, so the two do not interact.
+
+---
+
+## Step 7. WireGuard VPN
 
 The t630 runs a WireGuard server that tunnels the phone back to the home network
 from anywhere on cellular or untrusted Wi-Fi.
@@ -404,7 +466,7 @@ Unbound — ad-blocking and DNSSEC validation work on cellular identically to LA
 
 PostUp/PreDown manage only the MASQUERADE (nat table). FORWARD rules are not
 in wg0.conf — UFW handles forwarding via `ufw default allow routed` in setup.sh.
-See "UFW + WireGuard forwarding" below for why raw iptables FORWARD rules here
+See "WireGuard: UFW forwarding" below for why raw iptables FORWARD rules here
 caused a silent failure.
 
 ### IP forwarding
@@ -479,11 +541,9 @@ activates Windows Firewall's stricter inbound rules, blocking discovery and shar
 traffic from other LAN devices. The WireGuard tunnel is outbound-initiated and is
 unaffected by this setting.
 
----
+### WireGuard: adding a new peer
 
-## G. WireGuard: adding a new peer
-
-### Each device needs its own key pair
+#### Each device needs its own key pair
 
 Never share keys between devices. Each peer's private key must be unique.
 Reasons: if a device is lost, you revoke only that peer without affecting others;
@@ -491,7 +551,7 @@ WireGuard routes traffic by public key — two devices sharing one key confuse t
 server about where to send return traffic; only one can realistically be connected
 at a time.
 
-### Adding a peer live (no restart)
+#### Adding a peer live (no restart)
 
 ```bash
 # Add a peer without restarting wg-quick (existing tunnels stay connected)
@@ -507,7 +567,7 @@ sudo wg show
 `wg-quick save wg0` writes the current live state back to `/etc/wireguard/wg0.conf`.
 A manual restart is not needed — the peer is active immediately after `wg set`.
 
-### Key derivation: the safe way to get a peer's public key
+#### Key derivation: the safe way to get a peer's public key
 
 Copy/pasting base64 keys through chat, screenshots, or terminal fonts is
 unreliable. The character `I` (uppercase i) and `l` (lowercase L) are
@@ -533,7 +593,7 @@ appears in plaintext anywhere, treat it as compromised and rotate immediately.
 The Windows laptop peer's private key was exposed during setup — that peer
 needs a new key pair.
 
-### Do not add the server's own public key as a peer
+#### Do not add the server's own public key as a peer
 
 During laptop setup, the server's public key was accidentally added as a peer:
 
@@ -548,7 +608,7 @@ sudo wg-quick save wg0
 
 If the server's key appears in `sudo wg show` as a peer entry, remove it.
 
-### SSH when a full tunnel is active
+#### SSH when a full tunnel is active
 
 With `AllowedIPs = 0.0.0.0/0`, all traffic from the VPN peer routes through
 the tunnel. Attempting to SSH to the server's LAN IP (`192.168.1.118`) from
@@ -566,7 +626,7 @@ Two fixes (both now applied):
    to any port 22` is in `04-ufw/setup.sh`, so `ssh user@192.168.1.118` also
    works from a connected VPN peer.
 
-### UFW: services reachable from VPN peers
+#### UFW: services reachable from VPN peers
 
 When a peer runs a full tunnel, its source IP on the server is `10.8.0.x`.
 Any UFW rule scoped to `192.168.0.0/16` will not match. Services that VPN
@@ -589,18 +649,16 @@ even after the tunnel connected because port 3001 was only open to the LAN
 subnet, not the WG subnet. Adding `ufw allow from 10.8.0.0/24 to any port
 3001 proto tcp` fixed it.
 
----
+### WireGuard: UFW forwarding — what went wrong and why
 
-## H. WireGuard: UFW forwarding — what went wrong and why
-
-### The failure
+#### The failure
 
 When a second peer (a Mac) was added, their internet stopped working after
 connecting. The tunnel handshaked successfully and `ping 10.8.0.1` worked, but
 `ping 1.1.1.1` failed — traffic was entering the tunnel but not getting out to
 the internet.
 
-### Root cause
+#### Root cause
 
 `wg0.conf` had PostUp lines that added raw iptables FORWARD rules:
 ```
@@ -616,7 +674,7 @@ FORWARD chain policy was effectively DROP regardless of the PostUp rules.
 `sudo iptables -L FORWARD -v` confirmed: policy DROP, 0 bytes matched by the
 ACCEPT rules.
 
-### The fix
+#### The fix
 
 Two changes — both required:
 
@@ -633,13 +691,11 @@ Two changes — both required:
 MASQUERADE stays in PostUp — UFW does not manage the nat table, so PostUp
 is the correct and only place for it.
 
----
-
-## I. WireGuard peer onboarding — what not to do
+### WireGuard peer onboarding — what not to do
 
 Lessons from adding a Mac as a second peer (May 2026).
 
-### Use the App Store app, not Homebrew
+#### Use the App Store app, not Homebrew
 
 **macOS:** Install WireGuard from the **Mac App Store**. Do not use
 `brew install wireguard-tools`.
@@ -652,7 +708,7 @@ VPN stack.
 
 **iOS:** WireGuard is already from the App Store.
 
-### Peer config mistakes that break everything
+#### Peer config mistakes that break everything
 
 | Mistake | Symptom | Correct value |
 | ------- | ------- | ------------- |
@@ -662,7 +718,7 @@ VPN stack.
 | `AllowedIPs = 0.0.0.0/0, ::/0` | IPv6 black hole: handshake succeeds, Transfer climbs, but pages hang. Server is IPv4-only in-tunnel, so IPv6 (which iOS/Android prefer) is dropped. | `AllowedIPs = 0.0.0.0/0` until the server has IPv6 NAT — see below |
 | No `PersistentKeepalive` | Tunnel silently drops after a few minutes of idle when peer is behind NAT (home router, cellular). | `PersistentKeepalive = 25` |
 
-### WireGuard IPv6 black hole (handshake OK, nothing loads)
+#### WireGuard IPv6 black hole (handshake OK, nothing loads)
 
 The most common breakage on this server. Peers configured with
 `AllowedIPs = 0.0.0.0/0, ::/0` route IPv6 into the tunnel, but the server is
@@ -696,7 +752,7 @@ properly with a ULA prefix + NAT66, mirroring the existing IPv4 NAT:
 NAT66 over a ULA needs no prefix delegation. Deploy and test on one peer before
 making `::/0` the template default again.
 
-### How to verify the tunnel is actually working
+#### How to verify the tunnel is actually working
 
 Do not trust "Connected" status alone. Run these in order:
 
@@ -710,7 +766,7 @@ Failure at each step points to a different layer. If `ping 1.1.1.1` works
 but `ping google.com` fails, the tunnel and routing are fine — only DNS is
 broken (check the `DNS =` line in the peer config).
 
-### Pi-hole must accept queries from the wg0 subnet
+#### Pi-hole must accept queries from the wg0 subnet
 
 Pi-hole's Settings → DNS must have **"Permit all origins"** checked. Without
 it, Pi-hole refuses queries from `10.8.0.x` addresses (VPN peers are not on
@@ -720,56 +776,93 @@ regardless of this setting.
 
 ---
 
-## J. CAKE / bufferbloat
+## Step 8. Uptime Kuma — monitoring
 
-**What bufferbloat is:** when a big download or upload fills the modem/router's
-packet buffer, everything else has to wait behind it. A 16 ms idle ping becomes
-800–1200 ms under load. This is not packet loss — all packets arrive, just late.
+Uptime Kuma runs in Docker on port 3001 and monitors Unbound via a DNS monitor
+querying `127.0.0.1:5335`.
 
-**Why CAKE helps:** instead of letting the buffer fill (modem has no concept of
-fairness or timing), CAKE manages a smart queue in the OS. It rate-limits egress
-slightly below the ISP line speed so the OS queue becomes the bottleneck. It then
-applies fair queuing (each flow gets a slot) and DSCP prioritization so DNS
-responses and interactive traffic skip ahead of bulk downloads. `cake-setup.sh`
-makes this explicit for DNS: it marks every DNS response (source port 53) with
-DSCP EF via an iptables mangle rule, landing it in CAKE's highest-priority tin.
+### Why network_mode: host — not a bridge network
 
-### What CAKE on the t630 covers
+Uptime Kuma's docker-compose.yml uses `network_mode: host`, which removes Docker's
+network isolation and places the container directly on the host network stack. This
+is required because Ubuntu 24.04 uses nftables as its firewall backend. Legacy
+iptables rules don't affect the active ruleset, and the INPUT chain has a default
+DROP policy. As a result, Docker bridge IPs (172.17.0.1, 172.18.0.1) are not
+reachable from host processes or other containers on arbitrary ports like 5335 —
+even with explicit UFW allow rules added.
 
-The t630 is not inline for general LAN traffic. A laptop or phone on Wi-Fi goes
-`device → Netgear R7000 → ISP`, bypassing the t630. CAKE on the t630 only
-shapes traffic the t630 actually forwards:
+With `network_mode: host`, Uptime Kuma shares the host network stack and reaches
+Unbound at `127.0.0.1:5335` directly, the same way any native host process would.
 
-| Traffic type | Path includes t630? | CAKE helps? |
-| ------------ | ------------------- | ----------- |
-| WireGuard VPN clients (upload) | Yes — exits enp1s0 | Yes |
-| WireGuard VPN clients (DNS) | Yes — Pi-hole at 10.8.0.1 | Yes (diffserv4 prioritizes) |
-| General LAN devices (any direction) | No — Netgear handles it | No |
+Consequence: the `ports:` mapping is removed from the compose file. Uptime Kuma
+remains available at port 3001 — it binds directly on the host interface rather
+than through Docker's port mapping layer.
 
-**Measured impact (VPN clients):** under load, upload latency holds at 11 ms and
-download at 16 ms (idle baseline 14 ms) — essentially no bufferbloat. Previous
-unmanaged state was ~400–800 ms loaded. `nat` transparency lets CAKE distinguish
-individual VPN clients behind the WireGuard MASQUERADE, so the iPhone and laptop
-each get a fair queue slot rather than competing as a single undifferentiated flow.
+### Uptime Kuma monitors
 
-### For whole-network bufferbloat: Netgear R7000
+Full monitor stack, with rationale for each layer:
 
-The 1200 ms download-loaded-ping spike observed in speed tests on the home
-network is caused by the Netgear/modem buffer filling. The fix must be on the
-device handling that bottleneck — the Netgear R7000.
+| Monitor | Type | Target | Port | Why |
+| ------- | ---- | ------ | ---- | --- |
+| Unbound – Basic | DNS | `cloudflare.com` via `127.0.0.1` | 5335 | Confirms Unbound is answering queries |
+| Unbound – DNSSEC | DNS | `internetsociety.org` via `127.0.0.1` | 5335 | Confirms DNSSEC validation is active (DNSSEC-signed domain) |
+| Pi-hole – Full Chain | DNS | `cloudflare.com` via `127.0.0.1` | 53 | Tests entire chain: Pi-hole → Unbound → recursion |
+| Pi-hole – Web UI | TCP Port | `192.168.1.118` | 8080 | Confirms Pi-hole admin panel is reachable |
+| Home Router | HTTP | `http://192.168.1.1` | — | Confirms gateway is up |
+| Packet Loss – Router | Push | (script pushes) | — | LAN packet loss %; `status=down` above threshold |
+| Packet Loss – Internet | Push | (script pushes) | — | WAN packet loss %; distinguishes LAN vs ISP problems |
+| CAKE SQM | Push | (script pushes) | — | Confirms CAKE qdisc is active on enp1s0; message shows live bandwidth |
 
-The R7000 is a well-supported target for third-party firmware:
+**Diagnostic logic:** if Pi-hole Full Chain goes red but Unbound Basic stays
+green, the break is specifically in the Pi-hole → Unbound link, not Unbound
+itself. If both go red, Unbound is the problem. Layered monitoring isolates the
+failure to one component.
 
-| Firmware | CAKE/fq_codel | Notes |
-| -------- | ------------- | ----- |
-| DD-WRT | Yes (fq_codel via QoS) | Mature, large community |
-| FreshTomato | Yes (fq_codel/CAKE via QoS) | More modern UI than DD-WRT |
-| OpenWrt | Yes (full CAKE) | Most capable; harder install |
+**Resolver field gotcha:** in Uptime Kuma's DNS monitor, the Resolver Server
+field takes an IP address only — no port. Port goes in the separate Port field.
+Entering `127.0.0.1:5335` in the resolver field creates an invalid double-port
+and causes intermittent failures.
 
-FreshTomato is a reasonable starting point — it retains a familiar Tomato UI,
-supports the R7000 (K26ARM build), and exposes fq_codel in QoS settings.
-Steps: backup config, flash firmware via the Netgear admin UI, set QoS
-download/upload caps to 90% of measured ISP speeds, enable fq_codel.
+**Packet loss monitors:** driven by `07-uptime-kuma/packet-loss-monitor.sh`, which
+runs via cron every 60 seconds. The loss % is placed in the `ping` field so
+Uptime Kuma graphs it as a time series. Threshold: 15% by default (the value in
+the script), lowered to 5% once the router hardware is stable.
 
-Until then, the t630 CAKE handles the VPN client case, and the home network
-bufferbloat remains for direct LAN devices.
+---
+
+## Step 9. GPU performance
+
+No network dimension — included only to keep this document aligned with the README's
+step order. The headless AMD Carrizo iGPU downclock fix is purely a local
+display/performance concern and has no bearing on DNS, VPN, or firewalling. The full
+rationale and the four required pieces (GRUB flags, two systemd services, the udev
+rule) are in CLAUDE.md § E and README Step 9. It is also entirely optional — skip it
+unless you run a graphical remote desktop on the box.
+
+---
+
+## Step 10. Remote Desktop
+
+The only network-relevant fact: the remote-desktop services are **LAN-only**.
+`04-ufw/setup.sh` opens NoMachine (`4000`) and xrdp (`3389`) to `192.168.0.0/16`
+only — not to `Anywhere`, and not to the WireGuard subnet. Remote *administration*
+from outside the LAN therefore goes over SSH (port 22, which *is* allowed from
+`10.8.0.0/24`), not over the graphical desktop. Everything else about this step —
+which desktop environment and remote-desktop server to install — is a local choice
+with no network consequence; see README Step 10. Skip it entirely on a headless or
+phone-only setup.
+
+---
+
+## Step 11. Point LAN Clients at t630
+
+The final cut-over: point the router's DNS at the t630 so LAN clients actually use
+the stack. On the Netgear R7000 (Basic → Internet Setup), set Primary DNS =
+`192.168.1.118` and Secondary DNS = `1.1.1.1`. The rationale — per-device visibility
+in Pi-hole's query log, and the deliberate `1.1.1.1` fallback so the network stays
+online if the t630 reboots — is covered under "DNS pushed to LAN clients" (Step 0).
+
+Do this last, after README's verification checklist passes, then renew DHCP leases
+and confirm `nslookup example.com` reports `192.168.1.118` as the server. Phones and
+other clients need no per-device configuration: they pick up the t630 as resolver
+from DHCP automatically (on cellular, they reach it through the Step 7 VPN instead).
