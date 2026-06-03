@@ -1028,16 +1028,20 @@ item must pass before Step 11.
 
 ### Known issues
 
-| Issue | Status | Action |
-| ----- | ------ | ------ |
-| `FTLCONF_webserver_api_password` in pihole compose | Open | Placeholder (`CHANGE_ME`) — must be changed before first `docker compose up` |
-| Windows laptop WireGuard key | Open | Private key was exposed during setup; rotate before trusting this peer |
-| WireGuard peers 10.8.0.4–10.8.0.6 | Reconciled, still unidentified | Now in `05-wireguard/wg0.conf` with their real public keys, but none has a recent handshake — identify each device or remove the stale peer. |
-| WireGuard `::/0` IPv6 black hole | Documented | Server is IPv4-only in-tunnel; do not add `::/0` to peer AllowedIPs. IPv6 traffic black-holes silently: handshake succeeds, pages hang. Use `0.0.0.0/0` only. Leak-free dual-stack fix (ULA + NAT66) in `network-context.md`. |
-| VPN peer DNS over the tunnel | **Resolved** | Fixed by running Pi-hole with `network_mode: host` (`02-pihole/docker-compose.yml`). The Docker bridge + published-ports DNAT path silently dropped replies to queries sourced from the host's own `wg0` interface; host networking removes the DNAT path so `10.8.0.1:53` answers directly. Port 8080 was also opened to the WG subnet (`04-ufw/setup.sh`) so the Pi-hole UI is reachable over the tunnel. |
-| Live Pi-hole upstreams ≠ repo | Mostly resolved (v6) | Under Pi-hole v6, `FTLCONF_dns_upstreams` is re-applied and locked on every start, overriding any legacy resolvers (`8.8.8.8`, Quad9, etc.) left in the `pihole_data` volume. Still worth confirming the UI shows only `127.0.0.1#5335` after a deploy onto an old volume. |
-| Host-net Pi-hole vs systemd-resolved on `:53` | Resolved in repo | `network_mode: host` makes Pi-hole bind `0.0.0.0:53`, colliding with systemd-resolved's stub listener (`127.0.0.53:53`). `03-host-dns/host-dns.conf` now sets `DNSStubListener=no` (and the host-DNS step re-points `/etc/resolv.conf` off the stub) so `:53` is free for Pi-hole on a fresh install. On the live box, verify which mechanism already frees `:53` before re-applying. |
-| Pi-hole v5 → v6 env vars | Resolved in repo | `pihole/pihole:latest` is v6, which ignores the v5 env vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`, …). `02-pihole/docker-compose.yml` now uses `FTLCONF_*` keys. See `INSTALL-NOTES.md` for the mapping. |
+The full issue catalogue — fresh-install break points (numbered in install order)
+plus ongoing operational items, each with severity, root cause, current status, and
+a link to the file that resolves it — now lives in
+**[INSTALL-NOTES.md](INSTALL-NOTES.md)**. By area:
+
+| Category | Issues | Details |
+| -------- | ------ | ------- |
+| **Setup flow & docs** | `git clone` step, finding the MAC address | [Pre-install + Step 0](INSTALL-NOTES.md#pre-install) |
+| **Unbound** | cache-dump `ExecStop` assumption, `server.conf` indentation | [Step 2](INSTALL-NOTES.md#step-2--unbound) |
+| **Pi-hole & host DNS** | v5→v6 env migration, password placeholder, `:53` stub collision, UFW port-53 gating | [Steps 4+5](INSTALL-NOTES.md#steps-45--host-dns-fix-then-pi-hole) |
+| **WireGuard / VPN** | peer-block parse failures, IP-forward idempotency | [Step 7](INSTALL-NOTES.md#step-7--vpn-wireguard) |
+| **Monitoring (Uptime Kuma)** | push-token placeholders, crontab username | [Step 8](INSTALL-NOTES.md#step-8--uptime-kuma) |
+| **GPU / boot** | GRUB kernel-flag append | [Step 9](INSTALL-NOTES.md#step-9--gpu-performance) |
+| **Operational & open items** | laptop WireGuard key rotation, unidentified peers `10.8.0.4`–`.6`, IPv6 `::/0` black hole, live Pi-hole upstreams | [Operational & Open Issues](INSTALL-NOTES.md#operational--open-issues) |
 
 ### Further reading
 
