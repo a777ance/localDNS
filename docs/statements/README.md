@@ -24,7 +24,10 @@ GitHub shows `.html` as source code, not a rendered page, so there are three way
    One-time setup: **Settings → Pages → Source: "GitHub Actions"**. The
    [`pages.yml`](../../.github/workflows/pages.yml) workflow then regenerates and publishes
    `docs/statements/` on every change; the gallery lands at the site root
-   (`https://<owner>.github.io/<repo>/`).
+   (`https://<owner>.github.io/<repo>/`). Published this way the gallery is an **installable
+   PWA** — *Add to Home Screen* on a phone, *Install* in Chrome/Edge on a laptop; it opens
+   full-screen and works offline. The path from here to a native app is in
+   [`APP-ROADMAP.md`](APP-ROADMAP.md).
 
 ---
 
@@ -119,6 +122,7 @@ Everything renders from JSON — the template never holds data. The flow:
 | [`tools/collect/collect_stats.py`](tools/collect/collect_stats.py) | On-box gatherer (Pi-hole / Kuma / wg / nft). `--sample` runs anywhere |
 | [`tools/collect/categories.json`](tools/collect/categories.json) | Domain → category map |
 | [`tools/collect/nftables-accounting.nft`](tools/collect/nftables-accounting.nft) | The flow-accounting ruleset that yields per-category bytes |
+| [`tools/collect/populate_sets.py`](tools/collect/populate_sets.py) | Resolves `categories.json` → IPs and feeds the nft sets — the piece that makes volume real. Runbook in [`collect/README.md`](tools/collect/README.md) |
 | [`tools/collect/sample-sidecar.json`](tools/collect/sample-sidecar.json) | Example operator sidecar (narrative + cohort + prior/YTD) |
 
 Regenerate the mockups (only dependency is `segno`):
@@ -153,7 +157,7 @@ Read before shipping to a paying client. Be honest about which figures are real:
 | Uptime, peak latency | Uptime Kuma `/metrics` | **Real** — available today |
 | VPN session count | `wg show` | **Real** — available today |
 | "Handled For You" log | The operator's own change record (the sidecar) | **Real** — operator-maintained |
-| **Traffic volume in GB, by category** | nftables accounting (`nftables-accounting.nft`) | **Buildable** — the ruleset + IP-set populator are scaffolded here; stand it up on the box before these sections are real |
+| **Traffic volume in GB, by category** | nftables accounting (`nftables-accounting.nft` + `populate_sets.py`) | **Built — run it on the box.** Ruleset *and* IP-set populator now both ship here; load the ruleset, schedule `populate_sets.py`, and these sections are real (runbook: [`collect/README.md`](tools/collect/README.md)). Until then the committed examples use sample volume. |
 | Demographic benchmark averages | the cohort block in the sidecar | **Needs a real cohort dataset**, or it's a placeholder. Don't print invented peer averages on a kept document. |
 
 The committed examples use **sample data** for the volume-based sections. Before these go out for

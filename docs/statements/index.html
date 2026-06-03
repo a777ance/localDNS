@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>A777ance — Statement Gallery</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#13314f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="A777ance">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--navy:#13314f;--ink:#1f2733;--bronze:#a9803f;--bronze-soft:#c6a463;--paper:#fbfaf7;--rule:#e6e2d6;--muted:#8a93a0;}
@@ -19,6 +27,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .lead h1{font-family:Georgia,serif;font-size:26px;color:var(--navy);font-weight:700;}
 .lead p{font-size:14px;color:#3a4553;line-height:1.65;margin-top:10px;}
 .lead .note{margin-top:14px;font-size:12px;color:#5a5446;background:#f2efe7;border-left:3px solid var(--bronze);padding:11px 14px;border-radius:0 6px 6px 0;}
+.lead .install{margin-top:12px;font-size:12px;color:#3a4553;line-height:1.55;}
+.lead .install b{color:var(--navy);}
 .sect{margin-top:38px;}
 .sect-h{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:22px;}
 .sect-h h2{font-size:13px;text-transform:uppercase;letter-spacing:0.16em;color:var(--navy);}
@@ -54,6 +64,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
     figures and the "Handled For You" log are real-data-ready today; the volume-by-category
     sections need a flow-accounting layer first. See the
     <a href="README.md">README</a> for the honest data-sourcing breakdown.</div>
+    <p class="install"><b>Tip —</b> install this like an app: on a phone, open this page and choose
+    <b>Add to Home Screen</b>; on a laptop (Chrome/Edge), click <b>Install</b> in the address bar.
+    It opens full-screen and works offline — no app store needed.</p>
   </div>
 
   <div class="wrap">
@@ -100,5 +113,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
       single self-contained file. &nbsp;·&nbsp; A777ANCE · hello@a777ance.com
     </div>
   </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+      });
+    }
+  </script>
 </body>
 </html>
