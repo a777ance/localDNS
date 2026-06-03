@@ -1,0 +1,53 @@
+name: Publish statement gallery to Pages
+
+# Makes the statement mockups openable by anyone at a first-party URL.
+# GitHub serves .html files as source code, not rendered pages — so to "open"
+# them in a browser we publish docs/statements/ as a GitHub Pages site. The
+# gallery index lands at the site root: https://<owner>.github.io/<repo>/
+#
+# ONE-TIME SETUP (repo Settings → Pages → Build and deployment → Source:
+# "GitHub Actions"). After that, this workflow publishes on every push that
+# touches the statements, and can be run by hand from the Actions tab.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main", "claude/meta-audit-priorities-MzByf"]
+    paths:
+      - "docs/statements/**"
+      - ".github/workflows/pages.yml"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      # Optional: regenerate the HTML from data/ so the published site is always
+      # in sync with the generators. Safe to run — segno is the only dependency.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Regenerate statements
+        run: |
+          python -m pip install --quiet segno
+          cd docs/statements
+          python tools/generate_client.py
+          python tools/generate_operator.py
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/statements
+      - id: deployment
+        uses: actions/deploy-pages@v4

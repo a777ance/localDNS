@@ -1,0 +1,160 @@
+{
+  "holder": "The Okafor Family",
+  "acct": "A77-008",
+  "period": "Statement Period: May 1 – May 31, 2026",
+  "stmt_date": "June 1, 2026",
+  "live_url": "https://status.a777ance.com/okafor",
+  "stmt_url": "https://my.a777ance.com/A77-008",
+  "conn_url": "https://alliance.a777ance.com/connect/t-bishop",
+  "handled": [
+    [
+      "May 8",
+      "Pi-hole shipped a filtering upgrade. <b>Your home's blocklists were updated the same day</b> — all 18 devices, in one sweep.",
+      "Patched on your t630 by <span class='nm'>Jose</span>"
+    ],
+    [
+      "May 9",
+      "<b>A smart-plug in your home</b> started flooding the network with chatter; it was isolated before anyone felt a lag.",
+      "Diagnosed in your home by <span class='nm'>Jose</span>"
+    ],
+    [
+      "May 12",
+      "<b>Two new devices</b> — a tablet and a console — were added to your secure network, no setup needed from you.",
+      "Onboarded in your home by <span class='nm'>Jose</span>"
+    ]
+  ],
+  "handled_foot": "A busy house, kept quiet. Eighteen devices, one calm network — and someone watching it.",
+  "summary": [
+    [
+      "Queries resolved",
+      "88,260",
+      "90,140",
+      "&minus;2.1%",
+      "441,300"
+    ],
+    [
+      "Threats &amp; trackers blocked",
+      "17,540",
+      "16,990",
+      "+3.2%",
+      "84,120"
+    ],
+    [
+      "Protection rate",
+      "19.9%",
+      "18.8%",
+      "+1.1 pts",
+      "19.1%"
+    ],
+    [
+      "Network availability",
+      "99.95%",
+      "99.9%",
+      "+0.05 pts",
+      "99.93%"
+    ],
+    [
+      "Peak loaded latency",
+      "14 ms",
+      "16 ms",
+      "&minus;2 ms",
+      "15 ms"
+    ],
+    [
+      "Secure VPN sessions",
+      "21",
+      "19",
+      "+2",
+      "96"
+    ]
+  ],
+  "total_gb": "934",
+  "alloc": [
+    [
+      "Streaming &amp; Video",
+      30,
+      "280.2 GB"
+    ],
+    [
+      "Smart Home / IoT",
+      20,
+      "186.8 GB"
+    ],
+    [
+      "Gaming &amp; Downloads",
+      16,
+      "149.4 GB"
+    ],
+    [
+      "Social &amp; Messaging",
+      14,
+      "130.8 GB"
+    ],
+    [
+      "Cloud &amp; Backups",
+      10,
+      "93.4 GB"
+    ],
+    [
+      "Shopping &amp; Web",
+      6,
+      "56.0 GB"
+    ],
+    [
+      "Other",
+      4,
+      "37.4 GB"
+    ]
+  ],
+  "emoji": "&#128106;",
+  "arch_name": "The Connected Family",
+  "arch_tag": "many devices, one happy network",
+  "arch_body": "With <b>18 devices</b> under one roof — phones, tablets, consoles, and a small army of smart-home gadgets — yours is one of the busiest networks we manage. Smart Home / IoT alone was 20% of traffic. And yet it stayed fast and tidy all month: no congestion, no slowdowns, even on weekend evenings when everything is on at once.",
+  "chips": [
+    "&#128241; <b>Device-dense (18)</b>",
+    "&#128126; IoT-heavy",
+    "&#128118; Family hours",
+    "&#127777; Weekend-peaked"
+  ],
+  "macro_line": "A wonderfully balanced spread — no single macro dominates, which is exactly what you want in a full house. Vs. April, volume eased <b>2%</b> even as device count grew.",
+  "cohort": "large families, 12+ devices",
+  "compare": [
+    {
+      "metric": "Total monthly volume",
+      "value": "934 GB",
+      "delta": 99,
+      "sentiment": "neutral"
+    },
+    {
+      "metric": "Devices on the network",
+      "value": "18",
+      "delta": 100,
+      "sentiment": "neutral"
+    },
+    {
+      "metric": "Threats blocked / day",
+      "value": "566/day",
+      "delta": 77,
+      "sentiment": "good",
+      "verdict": "keeping a big house clean"
+    },
+    {
+      "metric": "Responsiveness under load",
+      "value": "14 ms",
+      "delta": -53,
+      "sentiment": "good",
+      "verdict": "steady despite the crowd"
+    }
+  ],
+  "sug_title": "Our Read This Month",
+  "affirmation": {
+    "ic": "&#9989;",
+    "t": "Nothing to change this month.",
+    "d": "We looked hard — with 18 devices and nearly a terabyte of traffic, your network stayed fast, filtered, and congestion-free all month. There's genuinely nothing we'd tune right now. Beautifully boring. We'll keep watching."
+  },
+  "ally_intro": "Your A777ance membership is also a network of people. Based on your household profile, we think you'd hit it off with a member who runs a busy, device-dense home like yours:",
+  "ally_name": "Tom Bishop",
+  "ally_role": "Smart-home &amp; multi-device specialist",
+  "ally_loc": "A777ance member · 3.0 miles away",
+  "ally_blurb": "&ldquo;I wrangle big smart-home setups — VLANs for IoT, guest networks, parental schedules. Always glad to swap tips.&rdquo;"
+}

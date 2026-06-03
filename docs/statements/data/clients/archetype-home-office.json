@@ -1,0 +1,175 @@
+{
+  "holder": "Sarah Chen",
+  "acct": "A77-014",
+  "period": "Statement Period: May 1 – May 31, 2026",
+  "stmt_date": "June 1, 2026",
+  "live_url": "https://status.a777ance.com/chen",
+  "stmt_url": "https://my.a777ance.com/A77-014",
+  "conn_url": "https://alliance.a777ance.com/connect/p-nair",
+  "handled": [
+    [
+      "May 11",
+      "A flaw turned up in a widely-used router service this month. <b>Your appliance was checked and hardened the same morning</b> — your home was never exposed.",
+      "Patched on your t630 by <span class='nm'>Jose</span> · before the news broke"
+    ],
+    [
+      "May 3",
+      "Ahead of your launch week, <b>your video calls were pinned to top priority on your line</b> — not one dropped call since.",
+      "Set up on your network by <span class='nm'>Jose</span> · at your request"
+    ],
+    [
+      "May 19",
+      "<b>The power adapter on your appliance</b> was reading flaky; it was swapped before it could fail and take your home office down.",
+      "Replaced in your home by <span class='nm'>Jose</span> · caught early"
+    ]
+  ],
+  "handled_foot": "Your connection is your livelihood. We watch your home like it's ours.",
+  "summary": [
+    [
+      "Queries resolved",
+      "61,930",
+      "58,400",
+      "+6.0%",
+      "298,110"
+    ],
+    [
+      "Threats &amp; trackers blocked",
+      "11,204",
+      "10,880",
+      "+3.0%",
+      "53,470"
+    ],
+    [
+      "Protection rate",
+      "18.1%",
+      "18.6%",
+      "&minus;0.5 pts",
+      "18.4%"
+    ],
+    [
+      "Network availability",
+      "99.99%",
+      "99.9%",
+      "+0.09 pts",
+      "99.96%"
+    ],
+    [
+      "Peak loaded latency",
+      "9 ms",
+      "11 ms",
+      "&minus;2 ms",
+      "10 ms"
+    ],
+    [
+      "Secure VPN sessions",
+      "42",
+      "38",
+      "+4",
+      "214"
+    ]
+  ],
+  "total_gb": "612",
+  "alloc": [
+    [
+      "Cloud &amp; Backups",
+      27,
+      "165.2 GB"
+    ],
+    [
+      "Video Conferencing",
+      22,
+      "134.6 GB"
+    ],
+    [
+      "Streaming &amp; Video",
+      17,
+      "104.0 GB"
+    ],
+    [
+      "Web &amp; SaaS",
+      14,
+      "85.7 GB"
+    ],
+    [
+      "Social &amp; Messaging",
+      11,
+      "67.3 GB"
+    ],
+    [
+      "Smart Home / IoT",
+      6,
+      "36.7 GB"
+    ],
+    [
+      "Other",
+      3,
+      "18.5 GB"
+    ]
+  ],
+  "emoji": "&#128188;",
+  "arch_name": "The Home Office",
+  "arch_tag": "the network clocks in at 9 a.m.",
+  "arch_body": "Your traffic peaks in the <b>workday</b>, not the evening — cloud sync and video calls together made up <b>49%</b> of the month. Uptime and upload stability matter more here than raw volume: a dropped second on a call costs more than a slow movie. Your network delivered, holding sub-10ms latency through the busiest hours.",
+  "chips": [
+    "&#9728; <b>Daytime-peaked</b>",
+    "&#128222; Call-heavy",
+    "&#9729; Cloud-reliant",
+    "&#11014; Upload-sensitive"
+  ],
+  "macro_line": "These macros say \"professional, not playful.\" Vs. April, video conferencing rose <b>+3 pts</b> as cloud backups held flat — a busier month of calls.",
+  "cohort": "home-based workers, 3–5 devices",
+  "compare": [
+    {
+      "metric": "Workday data volume",
+      "value": "24.1 GB/day",
+      "delta": 31,
+      "sentiment": "neutral"
+    },
+    {
+      "metric": "Video-call share",
+      "value": "22%",
+      "delta": 69,
+      "sentiment": "neutral"
+    },
+    {
+      "metric": "Downtime this month",
+      "value": "4 min",
+      "delta": -97,
+      "sentiment": "good",
+      "verdict": "vs ~2 hours for peers"
+    },
+    {
+      "metric": "Upload responsiveness",
+      "value": "9 ms",
+      "delta": -59,
+      "sentiment": "good",
+      "verdict": "calls stay crisp under load"
+    }
+  ],
+  "sug_title": "Have You Tried?",
+  "suggestions": [
+    [
+      "&#128267;",
+      "Have you considered a battery backup (UPS)?",
+      "Your livelihood runs over this connection. A small UPS keeps the appliance and router alive through brief outages — so a flickering power line never drops you mid-call.",
+      "Ask us &rarr; we can spec one to your gear"
+    ],
+    [
+      "&#128249;",
+      "Have you tried locking video calls to top priority?",
+      "We can pin conferencing above everything in your traffic shaping, so a cloud backup kicking off never steals from a live Zoom.",
+      "Ask us &rarr; a 5-minute change, no cost"
+    ],
+    [
+      "&#128268;",
+      "Have you thought about a wired link to your desk?",
+      "All-day calls are happiest off Wi-Fi. If your desk is near the appliance, a single cable removes wireless jitter entirely.",
+      "Ask us &rarr; we'll check the run"
+    ]
+  ],
+  "ally_intro": "Your A777ance membership is also a network of people. Based on your household profile, we think you'd hit it off with a member who lives the work-from-home setup too:",
+  "ally_name": "Priya Nair",
+  "ally_role": "Remote-work network specialist",
+  "ally_loc": "A777ance member · 1.1 miles away",
+  "ally_blurb": "&ldquo;I set up rock-solid home offices — UPS, wired backhaul, call-priority QoS. Happy to compare notes anytime.&rdquo;"
+}

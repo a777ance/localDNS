@@ -77,19 +77,26 @@ table.summary tr:last-child td{border-bottom:none;}
 .legend .pct{text-align:right;font-family:Georgia,serif;color:var(--navy);width:44px;}
 .legend .vol{text-align:right;font-family:Georgia,serif;color:var(--muted);width:64px;font-size:11.5px;}
 
-/* BENCHMARK */
-.bench-row{margin-bottom:16px;}
-.bench-row:last-child{margin-bottom:0;}
-.bench-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;}
-.bench-label .metric{color:var(--ink);}
-.bench-label .verdict{color:var(--muted);font-size:11px;}
-.bar{height:13px;border-radius:2px;display:flex;align-items:center;}
-.bar.you{background:var(--bronze);margin-bottom:3px;}
-.bar.avg{background:#c8cfd6;}
-.bar .tag{font-size:8.5px;letter-spacing:0.08em;text-transform:uppercase;color:#fff;padding-left:7px;font-weight:600;}
-.bar.avg .tag{color:#5d6b78;}
-.bar .val{margin-left:auto;padding-right:7px;font-family:Georgia,serif;font-size:10.5px;color:#fff;}
-.bar.avg .val{color:#4a5663;}
+/* COMPARE — diverging axis vs. the average home */
+.cmp-axislabels{display:grid;grid-template-columns:176px 1fr;margin-bottom:10px;}
+.cmp-axislabels .ends{position:relative;display:flex;justify-content:space-between;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#aab2bd;}
+.cmp-axislabels .ctr{position:absolute;left:50%;transform:translateX(-50%);}
+.cmp-axislabels .ctr span{font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);background:var(--paper);padding:0 6px;}
+.cmp-row{display:grid;grid-template-columns:176px 1fr;align-items:center;margin-bottom:14px;}
+.cmp-row:last-child{margin-bottom:0;}
+.cmp-metric{font-size:12px;color:#3a4553;padding-right:14px;text-align:right;}
+.cmp-metric .vd{font-size:10px;color:var(--muted);margin-top:2px;}
+.cmp-track{position:relative;height:18px;}
+.cmp-track::before{content:'';position:absolute;left:50%;top:-4px;bottom:-4px;border-left:1px dashed #c2b89c;}
+.cmp-bar{position:absolute;top:2px;height:14px;border-radius:3px;}
+.cmp-bar.right{left:50%;}
+.cmp-bar.left{right:50%;}
+.cmp-bar.good{background:var(--pos);}
+.cmp-bar.neutral{background:#a8adb4;}
+.cmp-bar.bad{background:#a0524a;}
+.cmp-val{position:absolute;top:50%;transform:translateY(-50%);font-family:Georgia,serif;font-size:11px;color:var(--ink);white-space:nowrap;}
+.cmp-bar.right .cmp-val{left:100%;margin-left:7px;}
+.cmp-bar.left .cmp-val{right:100%;margin-right:7px;text-align:right;}
 
 /* SUGGESTIONS */
 .suggest{display:flex;flex-direction:column;gap:13px;}
@@ -209,7 +216,7 @@ table.summary tr:last-child td{border-bottom:none;}
 
     <div class="section"><div class="section-head"><div class="section-title">How You Compare</div>
       <div class="section-note">vs. similar households — home-based workers, 3–5 devices</div></div>
-      <div class="bench-row"><div class="bench-label"><span class="metric">Workday data volume</span><span class="verdict">31% above peer average</span></div><div class="bar you" style="width:82%"><span class="tag">You</span><span class="val">24.1 GB/day</span></div><div class="bar avg" style="width:58%"><span class="tag">Peer avg</span><span class="val">18.4 GB/day</span></div></div><div class="bench-row"><div class="bench-label"><span class="metric">Video-call share of traffic</span><span class="verdict">well above peer average</span></div><div class="bar you" style="width:80%"><span class="tag">You</span><span class="val">22%</span></div><div class="bar avg" style="width:48%"><span class="tag">Peer avg</span><span class="val">13%</span></div></div><div class="bench-row"><div class="bench-label"><span class="metric">Uptime during 9–5</span><span class="verdict">best-in-class — zero call drops</span></div><div class="bar you" style="width:96%"><span class="tag">You</span><span class="val">99.99%</span></div><div class="bar avg" style="width:72%"><span class="tag">Peer avg</span><span class="val">99.7%</span></div></div><div class="bench-row"><div class="bench-label"><span class="metric">Upload responsiveness</span><span class="verdict">calls stay crisp under load</span></div><div class="bar you" style="width:90%"><span class="tag">You</span><span class="val">9ms</span></div><div class="bar avg" style="width:30%"><span class="tag">Peer avg</span><span class="val">~300 ms</span></div></div></div>
+      <div class="cmp-axislabels"><div></div><div class="ends"><span>&#9666; below average</span><div class="ctr"><span>Average home</span></div><span>above average &#9656;</span></div></div><div class="cmp-row"><div class="cmp-metric">Workday data volume</div><div class="cmp-track"><div class="cmp-bar neutral right" style="width:14.3%"><span class="cmp-val">24.1 GB/day &middot; +31%</span></div></div></div><div class="cmp-row"><div class="cmp-metric">Video-call share</div><div class="cmp-track"><div class="cmp-bar neutral right" style="width:31.7%"><span class="cmp-val">22% &middot; +69%</span></div></div></div><div class="cmp-row"><div class="cmp-metric">Downtime this month<div class="vd">vs ~2 hours for peers</div></div><div class="cmp-track"><div class="cmp-bar good left" style="width:44.6%"><span class="cmp-val">4 min &middot; &minus;97%</span></div></div></div><div class="cmp-row"><div class="cmp-metric">Upload responsiveness<div class="vd">calls stay crisp under load</div></div><div class="cmp-track"><div class="cmp-bar good left" style="width:27.1%"><span class="cmp-val">9 ms &middot; &minus;59%</span></div></div></div></div>
 
     <div class="section"><div class="section-head"><div class="section-title">Have You Tried?</div>
       <div class="section-note">what we'd gently suggest this month</div></div>

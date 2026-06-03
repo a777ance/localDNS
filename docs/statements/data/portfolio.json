@@ -1,0 +1,234 @@
+{
+  "member": {
+    "name": "Jose Marin",
+    "id": "ALY-0042",
+    "homes": 20,
+    "period": "May 2026",
+    "stmt_date": "June 1, 2026"
+  },
+  "kpis": {
+    "homes": 20,
+    "threats_blocked": 224963,
+    "avg_uptime": "99.9%",
+    "attention": 2,
+    "healthy": 17,
+    "watch": 1
+  },
+  "attention": [
+    {
+      "sev": "high",
+      "label": "High",
+      "acct": "A77-020",
+      "home": "Reyes Loft",
+      "arch": "Home Office",
+      "detail": "Appliance storage at <b>88%</b> — query logs growing faster than expected. Left unattended, logging could stall within ~9 days.",
+      "meta": "Owned by <span class='who'>Jose</span> · cleanup scheduled tonight 02:00 · client not affected yet"
+    },
+    {
+      "sev": "med",
+      "label": "Med",
+      "acct": "A77-005",
+      "home": "Park Household",
+      "arch": "Connected Family",
+      "detail": "One of three Wi-Fi points is <b>dropping nightly around 1 a.m.</b> and self-recovering. Looks like a failing unit, not config.",
+      "meta": "Owned by <span class='who'>Jose</span> · replacement unit en route · ETA Jun 3"
+    },
+    {
+      "sev": "low",
+      "label": "Watch",
+      "acct": "A77-011",
+      "home": "Whitlock",
+      "arch": "Prime-Time",
+      "detail": "WireGuard key is <b>over a year old</b>. No issue today, but worth rotating on the next visit for good hygiene.",
+      "meta": "Flagged by the system · no action needed this month"
+    }
+  ],
+  "log": [
+    {
+      "scope": "20 / 20",
+      "text": "Rolled out <b>Cloudflare's encrypted-DNS update (v2026.5)</b> to every home the day it shipped. No client saw a hiccup."
+    },
+    {
+      "scope": "20 / 20",
+      "text": "Closed a <b>router-service security flaw (CVE-2026-3118)</b> across all appliances the morning it was disclosed."
+    },
+    {
+      "scope": "20 / 20",
+      "text": "Refreshed ad &amp; tracker blocklists fleet-wide — <b>+4,100 new domains</b>."
+    },
+    {
+      "scope": "3 homes",
+      "text": "Onboarded <b>7 new devices</b> (tablets, a console, two smart-home hubs) onto secure networks."
+    },
+    {
+      "scope": "2 homes",
+      "text": "<b>Proactive hardware swaps</b> — power adapters reading flaky at A77-014 and A77-006, replaced before failure."
+    },
+    {
+      "scope": "1 home",
+      "text": "Re-pointed DNS at A77-001 mid-stream during a Spectrum routing change — <b>zero downtime</b>."
+    }
+  ],
+  "roster": [
+    {
+      "acct": "A77-001",
+      "home": "Allum",
+      "arch": "Prime-Time",
+      "blocked": 16258,
+      "uptime": 99.97,
+      "status": "green"
+    },
+    {
+      "acct": "A77-002",
+      "home": "Chen",
+      "arch": "Home Office",
+      "blocked": 7246,
+      "uptime": 99.98,
+      "status": "green"
+    },
+    {
+      "acct": "A77-003",
+      "home": "Okafor Family",
+      "arch": "Connected Family",
+      "blocked": 17962,
+      "uptime": 99.99,
+      "status": "green"
+    },
+    {
+      "acct": "A77-004",
+      "home": "Delgado",
+      "arch": "Prime-Time",
+      "blocked": 8487,
+      "uptime": 99.93,
+      "status": "green"
+    },
+    {
+      "acct": "A77-005",
+      "home": "Park Household",
+      "arch": "Home Office",
+      "blocked": 13243,
+      "uptime": 99.98,
+      "status": "amber"
+    },
+    {
+      "acct": "A77-006",
+      "home": "Nguyen",
+      "arch": "Connected Family",
+      "blocked": 12645,
+      "uptime": 99.9,
+      "status": "green"
+    },
+    {
+      "acct": "A77-007",
+      "home": "Brooks",
+      "arch": "Prime-Time",
+      "blocked": 12002,
+      "uptime": 99.88,
+      "status": "green"
+    },
+    {
+      "acct": "A77-008",
+      "home": "Romano",
+      "arch": "Home Office",
+      "blocked": 8029,
+      "uptime": 99.88,
+      "status": "green"
+    },
+    {
+      "acct": "A77-009",
+      "home": "Haddad",
+      "arch": "Connected Family",
+      "blocked": 11176,
+      "uptime": 99.88,
+      "status": "green"
+    },
+    {
+      "acct": "A77-010",
+      "home": "Ferreira",
+      "arch": "Prime-Time",
+      "blocked": 17195,
+      "uptime": 99.93,
+      "status": "green"
+    },
+    {
+      "acct": "A77-011",
+      "home": "Whitlock",
+      "arch": "Home Office",
+      "blocked": 17397,
+      "uptime": 99.98,
+      "status": "watch"
+    },
+    {
+      "acct": "A77-012",
+      "home": "Osei",
+      "arch": "Connected Family",
+      "blocked": 9329,
+      "uptime": 99.99,
+      "status": "green"
+    },
+    {
+      "acct": "A77-013",
+      "home": "Sandberg",
+      "arch": "Prime-Time",
+      "blocked": 5564,
+      "uptime": 99.88,
+      "status": "green"
+    },
+    {
+      "acct": "A77-014",
+      "home": "Cruz",
+      "arch": "Home Office",
+      "blocked": 8546,
+      "uptime": 99.95,
+      "status": "green"
+    },
+    {
+      "acct": "A77-015",
+      "home": "Tanaka",
+      "arch": "Connected Family",
+      "blocked": 7231,
+      "uptime": 99.98,
+      "status": "green"
+    },
+    {
+      "acct": "A77-016",
+      "home": "Mbeki",
+      "arch": "Prime-Time",
+      "blocked": 5082,
+      "uptime": 99.88,
+      "status": "green"
+    },
+    {
+      "acct": "A77-017",
+      "home": "Lindqvist",
+      "arch": "Home Office",
+      "blocked": 7713,
+      "uptime": 99.93,
+      "status": "green"
+    },
+    {
+      "acct": "A77-018",
+      "home": "Patel",
+      "arch": "Connected Family",
+      "blocked": 18448,
+      "uptime": 99.93,
+      "status": "green"
+    },
+    {
+      "acct": "A77-019",
+      "home": "Dubois",
+      "arch": "Prime-Time",
+      "blocked": 15551,
+      "uptime": 99.99,
+      "status": "green"
+    },
+    {
+      "acct": "A77-020",
+      "home": "Reyes Loft",
+      "arch": "Home Office",
+      "blocked": 5859,
+      "uptime": 99.88,
+      "status": "amber"
+    }
+  ]
+}

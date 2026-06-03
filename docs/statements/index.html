@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A777ance — Statement Gallery</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--navy:#13314f;--ink:#1f2733;--bronze:#a9803f;--bronze-soft:#c6a463;--paper:#fbfaf7;--rule:#e6e2d6;--muted:#8a93a0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:#e9ecf0;color:var(--ink);padding:0 0 60px;}
+.wrap{max-width:980px;margin:0 auto;padding:0 24px;}
+.header{background:var(--navy);color:#fff;border-bottom:3px solid var(--bronze);}
+.header .wrap{padding:34px 24px 30px;display:flex;align-items:center;gap:16px;}
+.monogram{width:48px;height:48px;border-radius:10px;background:linear-gradient(150deg,#1c4a73,#0e2640);border:1px solid var(--bronze);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.monogram span{font-family:Georgia,serif;font-size:21px;font-weight:700;color:var(--bronze-soft);}
+.brand{font-size:23px;font-weight:700;letter-spacing:0.16em;}
+.brand-sub{font-size:9.5px;color:#8fb0cc;letter-spacing:0.2em;text-transform:uppercase;margin-top:6px;}
+.lead{max-width:720px;margin:34px auto 0;padding:0 24px;}
+.lead h1{font-family:Georgia,serif;font-size:26px;color:var(--navy);font-weight:700;}
+.lead p{font-size:14px;color:#3a4553;line-height:1.65;margin-top:10px;}
+.lead .note{margin-top:14px;font-size:12px;color:#5a5446;background:#f2efe7;border-left:3px solid var(--bronze);padding:11px 14px;border-radius:0 6px 6px 0;}
+.sect{margin-top:38px;}
+.sect-h{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:22px;}
+.sect-h h2{font-size:13px;text-transform:uppercase;letter-spacing:0.16em;color:var(--navy);}
+.sect-h span{font-size:11.5px;color:var(--muted);font-style:italic;}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+.grid.one{grid-template-columns:1fr;max-width:420px;}
+.card{background:var(--paper);border:1px solid var(--rule);border-radius:12px;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,0.07);transition:transform .12s,box-shadow .12s;text-decoration:none;color:inherit;display:block;}
+.card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,0.13);}
+.thumb{height:230px;overflow:hidden;background:#fff;border-bottom:1px solid var(--rule);}
+.thumb img{width:100%;display:block;}
+.card-body{padding:15px 17px 18px;}
+.card-body .t{font-size:15px;font-weight:700;color:var(--navy);}
+.card-body .d{font-size:12px;color:#5a6573;line-height:1.5;margin-top:5px;}
+.card-body .open{display:inline-block;margin-top:11px;font-size:12px;color:var(--bronze);font-weight:600;letter-spacing:0.03em;}
+.foot{margin-top:46px;padding-top:20px;border-top:1px solid var(--rule);font-size:11.5px;color:var(--muted);line-height:1.6;}
+.foot a{color:var(--bronze);text-decoration:none;}
+@media (max-width:760px){.grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+  <div class="header"><div class="wrap">
+    <div class="monogram"><span>A7</span></div>
+    <div><div class="brand">A777ANCE</div><div class="brand-sub">Residential Network Services</div></div>
+  </div></div>
+
+  <div class="lead">
+    <h1>Statement Gallery</h1>
+    <p>Mockups of the monthly statements the stack produces — what we're aiming the generator
+    toward. Each opens in your browser and prints cleanly to PDF for mailing. Two sides:
+    the per-household <strong>client statement</strong>, and the operator-side
+    <strong>Alliance Member Portfolio</strong> that rolls a whole book of homes into one view.</p>
+    <div class="note"><strong>These are mockups.</strong> Query / block / uptime / latency / VPN
+    figures and the "Handled For You" log are real-data-ready today; the volume-by-category
+    sections need a flow-accounting layer first. See the
+    <a href="README.md">README</a> for the honest data-sourcing breakdown.</div>
+  </div>
+
+  <div class="wrap">
+    <div class="sect">
+      <div class="sect-h"><h2>Client statements</h2><span>one template, three households — the range a bot would generate</span></div>
+      <div class="grid">
+        <a class="card" href="client/archetype-prime-time.html">
+          <div class="thumb"><img src="previews/archetype-prime-time.png" alt="Prime-Time household statement"></div>
+          <div class="card-body"><div class="t">The Prime-Time Household</div>
+            <div class="d">Streaming-dominant, evening-peaked. Three tailored "Have you tried?" suggestions.</div>
+            <span class="open">Open statement &rarr;</span></div>
+        </a>
+        <a class="card" href="client/archetype-home-office.html">
+          <div class="thumb"><img src="previews/archetype-home-office.png" alt="Home Office statement"></div>
+          <div class="card-body"><div class="t">The Home Office</div>
+            <div class="d">Cloud + video-call macros, daytime-peaked. UPS / call-priority / wired suggestions.</div>
+            <span class="open">Open statement &rarr;</span></div>
+        </a>
+        <a class="card" href="client/archetype-connected-family.html">
+          <div class="thumb"><img src="previews/archetype-connected-family.png" alt="Connected Family statement"></div>
+          <div class="card-body"><div class="t">The Connected Family</div>
+            <div class="d">18 devices. Shows the affirmation path — "nothing to change this month."</div>
+            <span class="open">Open statement &rarr;</span></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="sect">
+      <div class="sect-h"><h2>Operator portfolio</h2><span>the member-side view across a whole book of homes</span></div>
+      <div class="grid one">
+        <a class="card" href="operator/alliance-member-portfolio.html">
+          <div class="thumb" style="height:300px"><img src="previews/alliance-member-portfolio.png" alt="Alliance Member Portfolio"></div>
+          <div class="card-body"><div class="t">Alliance Member Portfolio — Jose Marin</div>
+            <div class="d">20 homes in one view: fleet KPIs, issues percolated to the top, the monthly work log, and the full roster.</div>
+            <span class="open">Open portfolio &rarr;</span></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="foot">
+      Generated by <a href="tools/generate_client.py">tools/generate_client.py</a> and
+      <a href="tools/generate_operator.py">tools/generate_operator.py</a> from per-home JSON in
+      <code>data/</code>. QR codes are real (segno) and inlined as SVG — every statement is a
+      single self-contained file. &nbsp;·&nbsp; A777ANCE · hello@a777ance.com
+    </div>
+  </div>
+</body>
+</html>

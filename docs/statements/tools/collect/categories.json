@@ -1,0 +1,50 @@
+{
+  "_comment": "Domain -> category map. Matched as a suffix/substring against the SLD of each query (and, for flow accounting, against rDNS/SNI of each destination). Order does not matter; longest match wins. Categories must match the buckets the statement template renders.",
+  "categories": {
+    "Streaming & Video": [
+      "netflix.com", "nflxvideo.net", "youtube.com", "googlevideo.com", "ytimg.com",
+      "hulu.com", "disneyplus.com", "dssott.com", "max.com", "hbomax.com",
+      "primevideo.com", "aiv-cdn.net", "twitch.tv", "ttvnw.net", "spotify.com",
+      "scdn.co", "pandora.com", "tubi.tv", "peacocktv.com", "paramountplus.com",
+      "roku.com", "vimeo.com", "plex.tv", "plex.direct"
+    ],
+    "Social & Messaging": [
+      "facebook.com", "fbcdn.net", "instagram.com", "cdninstagram.com", "whatsapp.net",
+      "messenger.com", "x.com", "twitter.com", "twimg.com", "tiktok.com", "tiktokcdn.com",
+      "snapchat.com", "sc-cdn.net", "reddit.com", "redditstatic.com", "discord.com",
+      "discord.gg", "discordapp.net", "telegram.org", "t.me", "pinterest.com", "linkedin.com"
+    ],
+    "Cloud & Backups": [
+      "icloud.com", "icloud-content.com", "cdn-apple.com", "dropbox.com", "dropboxusercontent.com",
+      "drive.google.com", "googleapis.com", "googleusercontent.com", "onedrive.live.com",
+      "1drv.com", "backblazeb2.com", "b2-api.com", "s3.amazonaws.com", "amazonaws.com",
+      "box.com", "mega.nz", "sync.com"
+    ],
+    "Video Conferencing": [
+      "zoom.us", "zoom.com", "zmcdn.us", "teams.microsoft.com", "teams.live.com",
+      "meet.google.com", "webex.com", "wbx2.com", "gotomeeting.com", "bluejeans.com"
+    ],
+    "Gaming & Downloads": [
+      "steampowered.com", "steamcontent.com", "steamstatic.com", "epicgames.com",
+      "playstation.net", "playstation.com", "xboxlive.com", "xbox.com", "nintendo.net",
+      "nintendo.com", "riotgames.com", "riotcdn.net", "battle.net", "blizzard.com",
+      "ea.com", "origin.com", "ubisoft.com", "rockstargames.com"
+    ],
+    "Smart Home / IoT": [
+      "nest.com", "dropcam.com", "ring.com", "amazonalexa.com", "alexa.amazon.com",
+      "tuyaus.com", "tuya.com", "wyze.com", "ecobee.com", "philips-hue.com", "meethue.com",
+      "smartthings.com", "lifx.com", "sonos.com", "ihome.com", "rachio.com", "myq.com"
+    ],
+    "Web & SaaS": [
+      "google.com", "gstatic.com", "microsoft.com", "office.com", "office365.com",
+      "live.com", "bing.com", "cloudflare.com", "github.com", "githubusercontent.com",
+      "slack.com", "atlassian.net", "notion.so", "salesforce.com", "adobe.com",
+      "wikipedia.org", "stackoverflow.com"
+    ],
+    "Shopping & Web": [
+      "amazon.com", "media-amazon.com", "ssl-images-amazon.com", "ebay.com", "etsy.com",
+      "walmart.com", "target.com", "bestbuy.com", "shopify.com", "shopifycdn.com",
+      "aliexpress.com", "wayfair.com", "instacart.com", "doordash.com", "ubereats.com"
+    ]
+  }
+}

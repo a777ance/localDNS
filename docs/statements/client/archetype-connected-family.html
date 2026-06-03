@@ -77,19 +77,26 @@ table.summary tr:last-child td{border-bottom:none;}
 .legend .pct{text-align:right;font-family:Georgia,serif;color:var(--navy);width:44px;}
 .legend .vol{text-align:right;font-family:Georgia,serif;color:var(--muted);width:64px;font-size:11.5px;}
 
-/* BENCHMARK */
-.bench-row{margin-bottom:16px;}
-.bench-row:last-child{margin-bottom:0;}
-.bench-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;}
-.bench-label .metric{color:var(--ink);}
-.bench-label .verdict{color:var(--muted);font-size:11px;}
-.bar{height:13px;border-radius:2px;display:flex;align-items:center;}
-.bar.you{background:var(--bronze);margin-bottom:3px;}
-.bar.avg{background:#c8cfd6;}
-.bar .tag{font-size:8.5px;letter-spacing:0.08em;text-transform:uppercase;color:#fff;padding-left:7px;font-weight:600;}
-.bar.avg .tag{color:#5d6b78;}
-.bar .val{margin-left:auto;padding-right:7px;font-family:Georgia,serif;font-size:10.5px;color:#fff;}
-.bar.avg .val{color:#4a5663;}
+/* COMPARE — diverging axis vs. the average home */
+.cmp-axislabels{display:grid;grid-template-columns:176px 1fr;margin-bottom:10px;}
+.cmp-axislabels .ends{position:relative;display:flex;justify-content:space-between;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#aab2bd;}
+.cmp-axislabels .ctr{position:absolute;left:50%;transform:translateX(-50%);}
+.cmp-axislabels .ctr span{font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);background:var(--paper);padding:0 6px;}
+.cmp-row{display:grid;grid-template-columns:176px 1fr;align-items:center;margin-bottom:14px;}
+.cmp-row:last-child{margin-bottom:0;}
+.cmp-metric{font-size:12px;color:#3a4553;padding-right:14px;text-align:right;}
+.cmp-metric .vd{font-size:10px;color:var(--muted);margin-top:2px;}
+.cmp-track{position:relative;height:18px;}
+.cmp-track::before{content:'';position:absolute;left:50%;top:-4px;bottom:-4px;border-left:1px dashed #c2b89c;}
+.cmp-bar{position:absolute;top:2px;height:14px;border-radius:3px;}
+.cmp-bar.right{left:50%;}
+.cmp-bar.left{right:50%;}
+.cmp-bar.good{background:var(--pos);}
+.cmp-bar.neutral{background:#a8adb4;}
+.cmp-bar.bad{background:#a0524a;}
+.cmp-val{position:absolute;top:50%;transform:translateY(-50%);font-family:Georgia,serif;font-size:11px;color:var(--ink);white-space:nowrap;}
+.cmp-bar.right .cmp-val{left:100%;margin-left:7px;}
+.cmp-bar.left .cmp-val{right:100%;margin-right:7px;text-align:right;}
 
 /* SUGGESTIONS */
 .suggest{display:flex;flex-direction:column;gap:13px;}
@@ -209,7 +216,7 @@ table.summary tr:last-child td{border-bottom:none;}
 
     <div class="section"><div class="section-head"><div class="section-title">How You Compare</div>
       <div class="section-note">vs. similar households — large families, 12+ devices</div></div>
-      <div class="bench-row"><div class="bench-label"><span class="metric">Total monthly volume</span><span class="verdict">2.0× the peer average</span></div><div class="bar you" style="width:92%"><span class="tag">You</span><span class="val">934 GB</span></div><div class="bar avg" style="width:46%"><span class="tag">Peer avg</span><span class="val">470 GB</span></div></div><div class="bench-row"><div class="bench-label"><span class="metric">Devices on the network</span><span class="verdict">among the most we manage</span></div><div class="bar you" style="width:90%"><span class="tag">You</span><span class="val">18</span></div><div class="bar avg" style="width:45%"><span class="tag">Peer avg</span><span class="val">9</span></div></div><div class="bench-row"><div class="bench-label"><span class="metric">Threats blocked per day</span><span class="verdict">keeping a big household clean</span></div><div class="bar you" style="width:88%"><span class="tag">You</span><span class="val">566</span></div><div class="bar avg" style="width:50%"><span class="tag">Peer avg</span><span class="val">320</span></div></div><div class="bench-row"><div class="bench-label"><span class="metric">Responsiveness under load</span><span class="verdict">steady despite the crowd</span></div><div class="bar you" style="width:16%"><span class="tag">You</span><span class="val">14ms</span></div><div class="bar avg" style="width:90%"><span class="tag">Peer avg</span><span class="val">~800 ms</span></div></div></div>
+      <div class="cmp-axislabels"><div></div><div class="ends"><span>&#9666; below average</span><div class="ctr"><span>Average home</span></div><span>above average &#9656;</span></div></div><div class="cmp-row"><div class="cmp-metric">Total monthly volume</div><div class="cmp-track"><div class="cmp-bar neutral right" style="width:45.5%"><span class="cmp-val">934 GB &middot; +99%</span></div></div></div><div class="cmp-row"><div class="cmp-metric">Devices on the network</div><div class="cmp-track"><div class="cmp-bar neutral right" style="width:46.0%"><span class="cmp-val">18 &middot; +100%</span></div></div></div><div class="cmp-row"><div class="cmp-metric">Threats blocked / day<div class="vd">keeping a big house clean</div></div><div class="cmp-track"><div class="cmp-bar good right" style="width:35.4%"><span class="cmp-val">566/day &middot; +77%</span></div></div></div><div class="cmp-row"><div class="cmp-metric">Responsiveness under load<div class="vd">steady despite the crowd</div></div><div class="cmp-track"><div class="cmp-bar good left" style="width:24.4%"><span class="cmp-val">14 ms &middot; &minus;53%</span></div></div></div></div>
 
     <div class="section"><div class="section-head"><div class="section-title">Our Read This Month</div>
       <div class="section-note">our read this month</div></div>

@@ -1,0 +1,77 @@
+#!/usr/sbin/nft -f
+#
+# Per-category byte accounting for the A777ance statement pipeline.
+# ---------------------------------------------------------------------------
+# Pi-hole tells us how many DNS *lookups* happened, not how many *bytes* moved.
+# The Traffic Allocation donut, the Household Profile, and the benchmark all
+# need per-category VOLUME. This ruleset is the missing flow-accounting layer:
+# it tags each category's destination IPs into a named set and attaches a
+# counter, so `nft -j list counters` yields bytes-per-category that
+# collect_stats.py reads.
+#
+# How the IP sets get populated:
+#   The destinations behind a category are CDNs whose IPs rotate, so we don't
+#   hard-code them. A small resolver job (see collect/README.md) walks
+#   categories.json, resolves each domain (and follows it over time from the
+#   Pi-hole query log's answered A/AAAA records), and feeds the IPs into the
+#   matching set with:  nft add element inet a777acct cat_streaming { 1.2.3.4 }
+#   Elements carry a timeout so stale CDN IPs age out automatically.
+#
+# Deploy on the t630 (the box already forwards LAN/WG traffic):
+#   sudo nft -f nftables-accounting.nft
+#   # then run the set-populator from cron (collect/README.md)
+#
+# Read the counters:
+#   sudo nft -j list counters table inet a777acct
+# ---------------------------------------------------------------------------
+
+table inet a777acct {
+
+    # One set per category. `flags interval` lets us add CIDR ranges too.
+    set cat_streaming   { type ipv4_addr; flags interval, timeout; }
+    set cat_social      { type ipv4_addr; flags interval, timeout; }
+    set cat_cloud       { type ipv4_addr; flags interval, timeout; }
+    set cat_conferencing{ type ipv4_addr; flags interval, timeout; }
+    set cat_gaming      { type ipv4_addr; flags interval, timeout; }
+    set cat_iot         { type ipv4_addr; flags interval, timeout; }
+    set cat_saas        { type ipv4_addr; flags interval, timeout; }
+    set cat_shopping    { type ipv4_addr; flags interval, timeout; }
+
+    counter c_streaming    {}
+    counter c_social       {}
+    counter c_cloud        {}
+    counter c_conferencing {}
+    counter c_gaming       {}
+    counter c_iot          {}
+    counter c_saas         {}
+    counter c_shopping     {}
+    counter c_other        {}   # everything that matched no set
+
+    # Account both directions on the forward path. Match on either end of the
+    # flow so downloads (dst in set) and uploads (src in set) both count.
+    chain account {
+        type filter hook forward priority -150; policy accept;
+
+        ip daddr @cat_streaming    counter name c_streaming
+        ip saddr @cat_streaming    counter name c_streaming
+        ip daddr @cat_social       counter name c_social
+        ip saddr @cat_social       counter name c_social
+        ip daddr @cat_cloud        counter name c_cloud
+        ip saddr @cat_cloud        counter name c_cloud
+        ip daddr @cat_conferencing counter name c_conferencing
+        ip saddr @cat_conferencing counter name c_conferencing
+        ip daddr @cat_gaming       counter name c_gaming
+        ip saddr @cat_gaming       counter name c_gaming
+        ip daddr @cat_iot          counter name c_iot
+        ip saddr @cat_iot          counter name c_iot
+        ip daddr @cat_saas         counter name c_saas
+        ip saddr @cat_saas         counter name c_saas
+        ip daddr @cat_shopping     counter name c_shopping
+        ip saddr @cat_shopping     counter name c_shopping
+
+        # Uncategorised traffic on the LAN/WG forward path -> "Other".
+        # (Refine the match to your subnets; 192.168.1.0/24 + 10.8.0.0/24.)
+        ip saddr 192.168.1.0/24 counter name c_other
+        ip saddr 10.8.0.0/24    counter name c_other
+    }
+}

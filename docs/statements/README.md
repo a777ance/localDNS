@@ -5,14 +5,26 @@ Portfolio** — the recurring artifacts that make the stack's invisible work vis
 justify the subscription on both sides of the equation.
 
 The model is **pest control, not lawn care**: the value is the quiet, and the statement is
-the sticker on the door that proves the work happened. Designed to be both emailed and
-printed/mailed on paper, and **scrollable on a phone** when opened via the QR code.
+the sticker on the door that proves the work happened. Designed to be emailed, printed/mailed
+on paper, and **scrollable on a phone** when opened via the QR code.
 
-Open any `.html` in a browser; **Print → Save as PDF** for the mailed copy. Each file is
-fully self-contained — inline CSS + inline SVG QR codes, no external assets, no JavaScript.
+> These are **mockups of the target output** — what the generator should produce. Some figures
+> need a real data source first; see [Data sourcing](#data-sourcing).
 
-> These are **mockups of the target output** — what the generator bots should produce. Some
-> figures need a real data source first; see [Data sourcing](#data-sourcing) below.
+---
+
+## Open the statements
+
+GitHub shows `.html` as source code, not a rendered page, so there are three ways to actually *open* these:
+
+1. **Preview images** (below) render right here on GitHub — no setup, instant look.
+2. **[`index.html`](index.html)** is a gallery linking to every statement. Open it locally
+   (clone/download, double-click) and each card opens the live statement.
+3. **GitHub Pages** publishes the gallery at a public URL so anyone can open it in a browser.
+   One-time setup: **Settings → Pages → Source: "GitHub Actions"**. The
+   [`pages.yml`](../../.github/workflows/pages.yml) workflow then regenerates and publishes
+   `docs/statements/` on every change; the gallery lands at the site root
+   (`https://<owner>.github.io/<repo>/`).
 
 ---
 
@@ -27,9 +39,9 @@ fully self-contained — inline CSS + inline SVG QR codes, no external assets, n
 
 ## Client statements — the archetypes
 
-One template, populated per household. The **profile**, **macros**, **benchmark**,
+One template, populated per household. The **profile**, **macros**, **compare axis**,
 **suggestions**, and **"Handled For You"** log all vary with the home — this is the range a
-bot would generate.
+generator would produce.
 
 ### [`client/archetype-prime-time.html`](client/archetype-prime-time.html)
 Streaming-dominant household. Three tailored suggestions.
@@ -55,11 +67,14 @@ instead of inventing upsells.
 - **Handled For You This Month** — the personal touch. Work done on the client's behalf,
   written like **local patch notes** and attributed by name ("*Cloudflare pushed a security
   update; your appliance was patched the same day — Jose*"). Always framed as *your home*,
-  *your appliance*, *your living-room TV* — specific, not generic IT-speak. This is what
-  reminds the client the subscription is alive.
+  *your appliance*, *your living-room TV* — specific, not generic IT-speak.
 - **Traffic Allocation** — a donut of volume by category. Categories only, never domains.
 - **Household Profile** — traffic as "macros"; the balance assigns a monthly archetype.
-- **How You Compare** — benchmark against a demographic cohort.
+- **How You Compare** — a **diverging axis** against the average home. A dotted centre line is
+  the average; each bar swings **left (below) or right (above)**, coloured by *sentiment* not
+  direction — green when the deviation is good regardless of which way it points (lower latency
+  swings left and is green; more threats blocked swings right and is green), **grey** when it's
+  merely neutral (data volume, streaming share). Real units stay on every bar.
 - **Have You Tried? / Our Read** — continuous-improvement suggestions, or the affirmation.
 - **Connect in the Alliance** — a profile-matched member (face + blurb + connect QR). Opt-in.
 - **See For Yourself** — QR codes to the live status page and the scrollable online statement.
@@ -70,40 +85,61 @@ instead of inventing upsells.
 ## Operator portfolio — earning the keep
 
 ### [`operator/alliance-member-portfolio.html`](operator/alliance-member-portfolio.html)
-Jose manages 20 homes. Every month he gets one view of the whole book:
-
-- **KPIs across all homes** — total threats blocked, average uptime, count needing attention.
-- **Needs Your Attention** — issues **percolated to the top** across the fleet, most urgent
-  first (High / Med / Watch), each owned by name with status and ETA.
-- **This Month, Across Your Homes** — the operator's work log / fleet changelog: what was
-  rolled out, patched, swapped, and onboarded ("*Cloudflare v2026.5 → 20/20 homes, same day*").
-  This is the record that carries the subscription.
-- **Your Homes** — the full roster with health dots; the index to the bundle of 1-pagers.
+Jose manages 20 homes. Every month he gets one view of the whole book: fleet KPIs, issues
+**percolated to the top** (High / Med / Watch, each owned by name with status + ETA), the
+monthly work log / fleet changelog that carries the subscription, and the full roster that
+indexes the bundle of 1-pagers.
 
 ![Alliance Member Portfolio](previews/alliance-member-portfolio.png)
 
 ---
 
-## The generator (the bots)
+## The pipeline (the generator)
 
-The repeatable pipeline these mockups aim toward, ~$0.01/client/month:
+Everything renders from JSON — the template never holds data. The flow:
 
 ```
-Pi-hole FTL + Uptime Kuma + wg + flow accounting   →   stats.json (per home)
-stats.json + template   →   Claude (Haiku) writes the profile, suggestions & "Handled" copy
-                        →   rendered HTML  →  Print-to-PDF  →  email / Lob.com mail
-                        →   roll all homes up  →  operator portfolio
+ ON THE BOX (t630)                          THE BRAIN                    RENDER
+ collect/collect_stats.py  ──► stats.json ──► compose.py ──► data/clients/<home>.json ──► generate_client.py ──► client/*.html
+   • Pi-hole FTL (queries/blocks/devices)      • classifies the archetype                                         │
+   • Uptime Kuma /metrics (uptime/latency)       from the traffic mix                                             ├─► roll up ─► generate_operator.py ─► operator/*.html
+   • wg show (VPN sessions)                     • computes the compare-axis deltas
+   • nftables counters (per-category bytes)     • picks chips + suggestions
+                                                • merges the operator sidecar
+                                                  (Handled-For-You log, Alliance match)
 ```
 
-[`tools/`](tools/) holds the seed generators (run with no arguments; they write into
-`client/` and `operator/`):
-- [`generate_client.py`](tools/generate_client.py) — the parametrized client-statement
-  template + per-archetype configs (profile, suggestions, "Handled For You" log).
-- [`generate_operator.py`](tools/generate_operator.py) — the fleet roll-up across the book.
-- `style.css`, `avatar.svg` — shared assets the client generator inlines.
+| Path | What it is |
+| ---- | ---------- |
+| [`data/clients/*.json`](data/clients) | One file per home = the single source of truth a statement renders from |
+| [`data/portfolio.json`](data) | The operator's book (KPIs, attention queue, work log, roster) |
+| [`tools/generate_client.py`](tools/generate_client.py) | Template + renderer; self-seeds the sample JSON, then renders from `data/` |
+| [`tools/generate_operator.py`](tools/generate_operator.py) | The fleet roll-up renderer |
+| [`tools/compose.py`](tools/compose.py) | The classifier + assembler — turns measured stats into a statement JSON |
+| [`tools/collect/collect_stats.py`](tools/collect/collect_stats.py) | On-box gatherer (Pi-hole / Kuma / wg / nft). `--sample` runs anywhere |
+| [`tools/collect/categories.json`](tools/collect/categories.json) | Domain → category map |
+| [`tools/collect/nftables-accounting.nft`](tools/collect/nftables-accounting.nft) | The flow-accounting ruleset that yields per-category bytes |
+| [`tools/collect/sample-sidecar.json`](tools/collect/sample-sidecar.json) | Example operator sidecar (narrative + cohort + prior/YTD) |
 
-QR codes are generated with `segno` (pure Python) and inlined as SVG so every statement stays
-a single self-contained file.
+Regenerate the mockups (only dependency is `segno`):
+
+```bash
+cd docs/statements
+python3 tools/generate_client.py      # renders client/*.html from data/clients/*.json
+python3 tools/generate_operator.py    # renders operator/*.html from data/portfolio.json
+```
+
+Run the real pipeline end-to-end (works with no box via `--sample`):
+
+```bash
+python3 tools/collect/collect_stats.py --sample --out /tmp/s.json
+python3 tools/compose.py --stats /tmp/s.json --sidecar tools/collect/sample-sidecar.json \
+        --out data/clients/archetype-prime-time.json
+python3 tools/generate_client.py
+```
+
+Prose is deterministic and templated today; `compose_prose()` is the single seam to swap in a
+Claude (Haiku) call for richer copy (~$0.01/home) once you want it — the inputs are already assembled.
 
 ---
 
@@ -113,12 +149,14 @@ Read before shipping to a paying client. Be honest about which figures are real:
 
 | Figure | Source | Status |
 | ------ | ------ | ------ |
-| Queries resolved, threats blocked, protection rate | Pi-hole FTL (`pihole-FTL.db` / FTL API) | **Real** — available today |
-| Uptime, latency, VPN session count | Uptime Kuma API + `wg show` | **Real** — available today |
-| "Handled For You" log | The operator's own change/ticket record | **Real** — operator-maintained |
-| **Traffic volume in GB, by category** | — | **Not measured today.** Pi-hole logs DNS *lookups*, not *bytes*. The donut, profile, and benchmark need a flow-accounting layer (nftables counters / `ntopng` / `nfdump`) + a domain→category map. |
-| Demographic benchmark averages | — | **Needs a real cohort dataset**, or it's fabricated. Don't print invented peer averages on a kept document. |
+| Queries resolved, threats blocked, protection rate, device count | Pi-hole FTL (`pihole-FTL.db`) | **Real** — available today |
+| Uptime, peak latency | Uptime Kuma `/metrics` | **Real** — available today |
+| VPN session count | `wg show` | **Real** — available today |
+| "Handled For You" log | The operator's own change record (the sidecar) | **Real** — operator-maintained |
+| **Traffic volume in GB, by category** | nftables accounting (`nftables-accounting.nft`) | **Buildable** — the ruleset + IP-set populator are scaffolded here; stand it up on the box before these sections are real |
+| Demographic benchmark averages | the cohort block in the sidecar | **Needs a real cohort dataset**, or it's a placeholder. Don't print invented peer averages on a kept document. |
 
-The examples use **sample data** for the volume-based sections. Before these go out for money,
-either (a) add flow accounting to the appliance, or (b) scope the statement to what
-Pi-hole + Uptime Kuma can already prove.
+The committed examples use **sample data** for the volume-based sections. Before these go out for
+money, stand up the flow-accounting layer (or scope the statement to what Pi-hole + Uptime Kuma
+already prove). QR codes are real (`segno`) and inlined as SVG — every statement is a single
+self-contained file with no external assets and no JavaScript.

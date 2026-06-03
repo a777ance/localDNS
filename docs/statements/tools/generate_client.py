@@ -1,4 +1,4 @@
-import io, segno, os
+import io, segno, os, json
 HERE=os.path.dirname(os.path.abspath(__file__))
 
 RAMP = ["#13314f","#2d5a82","#4d82a8","#7aa6c4","#a9803f","#c6a463","#ddd6c6"]
@@ -33,14 +33,25 @@ def summary(rows):
 def chips(cs):
     return "".join(f'<span class="chip">{c}</span>' for c in cs)
 
-def bench(rows):
+def cmp(rows):
+    """Diverging axis vs. the average home. Bars swing left (below) / right (above);
+    colour is by sentiment (good=green, bad=red, neutral=grey) — independent of direction,
+    so 'smaller is better' metrics (latency, downtime) read green when they swing left.
+    Real units stay on the bar alongside the % deviation."""
+    head=('<div class="cmp-axislabels"><div></div><div class="ends">'
+          '<span>&#9666; below average</span><div class="ctr"><span>Average home</span></div>'
+          '<span>above average &#9656;</span></div></div>')
     out=""
-    for metric,verdict,yw,yv,aw,av in rows:
-        out+=(f'<div class="bench-row"><div class="bench-label"><span class="metric">{metric}</span>'
-              f'<span class="verdict">{verdict}</span></div>'
-              f'<div class="bar you" style="width:{yw}%"><span class="tag">You</span><span class="val">{yv}</span></div>'
-              f'<div class="bar avg" style="width:{aw}%"><span class="tag">Peer avg</span><span class="val">{av}</span></div></div>')
-    return out
+    for r in rows:
+        d=r["delta"]; w=min(abs(d),100)/100*46.0
+        side="right" if d>=0 else "left"
+        sign="+" if d>0 else ("&minus;" if d<0 else "")
+        dd=f'{sign}{abs(d):g}%'
+        vd=f'<div class="vd">{r["verdict"]}</div>' if r.get("verdict") else ""
+        out+=(f'<div class="cmp-row"><div class="cmp-metric">{r["metric"]}{vd}</div>'
+              f'<div class="cmp-track"><div class="cmp-bar {r["sentiment"]} {side}" style="width:{w:.1f}%">'
+              f'<span class="cmp-val">{r["value"]} &middot; {dd}</span></div></div></div>')
+    return head+out
 
 def handled_block(items):
     out=""
@@ -108,7 +119,7 @@ def build(cfg):
 
     <div class="section"><div class="section-head"><div class="section-title">How You Compare</div>
       <div class="section-note">vs. similar households — {cfg["cohort"]}</div></div>
-      {bench(cfg["bench"])}</div>
+      {cmp(cfg["compare"])}</div>
 
     <div class="section"><div class="section-head"><div class="section-title">{cfg["sug_title"]}</div>
       <div class="section-note">{sug_note}</div></div>
@@ -171,10 +182,10 @@ ARCHES = {
   chips=["&#127902; <b>Screen-forward</b>","&#127769; Evening-peaked","&#127918; Steady gamer","&#127968; Always-on IoT"],
   macro_line='Think of these as your network\'s macros — like a diet, it\'s the <b>balance</b> that defines the month. Vs. April you shifted <b>+4 pts</b> toward gaming and eased off social.',
   cohort="suburban, 4–6 devices",
-  bench=[("Daily data volume","18% above peer average",78,"15.7 GB/day",66,"13.3 GB/day"),
-         ("Streaming share of traffic","below peer average",62,"41%",72,"48%"),
-         ("Threats blocked per day","57% more — protection working harder",84,"330",53,"210"),
-         ("Responsiveness under load","far better than unmanaged homes",8,"12ms",90,"~800 ms")],
+  compare=[dict(metric="Daily data volume", value="15.7 GB/day", delta=18, sentiment="neutral"),
+           dict(metric="Streaming share", value="41%", delta=-15, sentiment="neutral"),
+           dict(metric="Threats blocked / day", value="330/day", delta=57, sentiment="good", verdict="working harder for you"),
+           dict(metric="Loaded latency", value="12 ms", delta=-57, sentiment="good", verdict="less than half the average")],
   sug_title="Have You Tried?",
   suggestions=[("&#128225;","Have you tried a second Wi-Fi point near the living room?","Your 4K streaming concentrates in one room on weeknights. A mesh node there would smooth playback when several screens are on at once.","Ask us &rarr; we keep a couple on hand"),
                ("&#127909;","Have you considered a streaming-priority tuning?","We can weight your traffic shaping so video never competes with a backup or a big download after 7pm — no buffering during movie night.","Ask us &rarr; a 5-minute change, no cost"),
@@ -201,10 +212,10 @@ ARCHES = {
   chips=["&#9728; <b>Daytime-peaked</b>","&#128222; Call-heavy","&#9729; Cloud-reliant","&#11014; Upload-sensitive"],
   macro_line='These macros say "professional, not playful." Vs. April, video conferencing rose <b>+3 pts</b> as cloud backups held flat — a busier month of calls.',
   cohort="home-based workers, 3–5 devices",
-  bench=[("Workday data volume","31% above peer average",82,"24.1 GB/day",58,"18.4 GB/day"),
-         ("Video-call share of traffic","well above peer average",80,"22%",48,"13%"),
-         ("Uptime during 9–5","best-in-class — zero call drops",96,"99.99%",72,"99.7%"),
-         ("Upload responsiveness","calls stay crisp under load",90,"9ms",30,"~300 ms")],
+  compare=[dict(metric="Workday data volume", value="24.1 GB/day", delta=31, sentiment="neutral"),
+           dict(metric="Video-call share", value="22%", delta=69, sentiment="neutral"),
+           dict(metric="Downtime this month", value="4 min", delta=-97, sentiment="good", verdict="vs ~2 hours for peers"),
+           dict(metric="Upload responsiveness", value="9 ms", delta=-59, sentiment="good", verdict="calls stay crisp under load")],
   sug_title="Have You Tried?",
   suggestions=[("&#128267;","Have you considered a battery backup (UPS)?","Your livelihood runs over this connection. A small UPS keeps the appliance and router alive through brief outages — so a flickering power line never drops you mid-call.","Ask us &rarr; we can spec one to your gear"),
                ("&#128249;","Have you tried locking video calls to top priority?","We can pin conferencing above everything in your traffic shaping, so a cloud backup kicking off never steals from a live Zoom.","Ask us &rarr; a 5-minute change, no cost"),
@@ -231,10 +242,10 @@ ARCHES = {
   chips=["&#128241; <b>Device-dense (18)</b>","&#128126; IoT-heavy","&#128118; Family hours","&#127777; Weekend-peaked"],
   macro_line='A wonderfully balanced spread — no single macro dominates, which is exactly what you want in a full house. Vs. April, volume eased <b>2%</b> even as device count grew.',
   cohort="large families, 12+ devices",
-  bench=[("Total monthly volume","2.0× the peer average",92,"934 GB",46,"470 GB"),
-         ("Devices on the network","among the most we manage",90,"18",45,"9"),
-         ("Threats blocked per day","keeping a big household clean",88,"566",50,"320"),
-         ("Responsiveness under load","steady despite the crowd",16,"14ms",90,"~800 ms")],
+  compare=[dict(metric="Total monthly volume", value="934 GB", delta=99, sentiment="neutral"),
+           dict(metric="Devices on the network", value="18", delta=100, sentiment="neutral"),
+           dict(metric="Threats blocked / day", value="566/day", delta=77, sentiment="good", verdict="keeping a big house clean"),
+           dict(metric="Responsiveness under load", value="14 ms", delta=-53, sentiment="good", verdict="steady despite the crowd")],
   sug_title="Our Read This Month",
   affirmation=dict(ic="&#9989;", t="Nothing to change this month.",
     d="We looked hard — with 18 devices and nearly a terabyte of traffic, your network stayed fast, filtered, and congestion-free all month. There's genuinely nothing we'd tune right now. Beautifully boring. We'll keep watching."),
@@ -243,11 +254,37 @@ ARCHES = {
   ally_blurb="&ldquo;I wrangle big smart-home setups — VLANs for IoT, guest networks, parental schedules. Always glad to swap tips.&rdquo;"),
 }
 
-import os
-out_dir=os.path.join(HERE,"..","client")
-os.makedirs(out_dir, exist_ok=True)
-names={"prime-time":"archetype-prime-time.html","home-office":"archetype-home-office.html","connected-family":"archetype-connected-family.html"}
-for key,cfg in ARCHES.items():
-    html=build(cfg)
-    open(os.path.join(out_dir,names[key]),"w").write(html)
-    print("wrote",names[key],len(html),"bytes")
+# ───────── data-driven pipeline ─────────
+# Each statement is rendered from a JSON file in ../data/clients/. The configs above
+# are the built-in SAMPLE data: on first run they seed the JSON files, then rendering
+# always reads from JSON. The on-box collector (tools/collect/) overwrites these JSON
+# files with a home's real figures — that's the only handoff between data and template.
+DATA = os.path.join(HERE, "..", "data", "clients")
+OUT  = os.path.join(HERE, "..", "client")
+NAMES = {"prime-time":"archetype-prime-time", "home-office":"archetype-home-office",
+         "connected-family":"archetype-connected-family"}
+
+def seed():
+    os.makedirs(DATA, exist_ok=True)
+    for key, cfg in ARCHES.items():
+        p = os.path.join(DATA, NAMES[key] + ".json")
+        if not os.path.exists(p):
+            with open(p, "w") as f:
+                json.dump(cfg, f, indent=2, ensure_ascii=False)
+            print("seeded", os.path.relpath(p, HERE))
+
+def render_all():
+    os.makedirs(OUT, exist_ok=True)
+    for fn in sorted(os.listdir(DATA)):
+        if not fn.endswith(".json"):
+            continue
+        with open(os.path.join(DATA, fn)) as f:
+            cfg = json.load(f)
+        html = build(cfg)
+        with open(os.path.join(OUT, fn[:-5] + ".html"), "w") as f:
+            f.write(html)
+        print("wrote", fn[:-5] + ".html", len(html), "bytes")
+
+if __name__ == "__main__":
+    seed()
+    render_all()
