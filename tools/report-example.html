@@ -3,251 +3,437 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clearline — May 2026 — Johnson Residence</title>
+<title>Clearline — Network Activity Statement — May 2026</title>
 <style>
 @media print {
-  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white; padding: 0; }
   .page { box-shadow: none; margin: 0; }
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+:root {
+  --navy:   #13314f;
+  --ink:    #1f2733;
+  --bronze: #a9803f;
+  --paper:  #fbfaf7;
+  --rule:   #e6e2d6;
+  --rule-2: #eceef1;
+  --muted:  #8a93a0;
+  --slate:  #9aa7b4;
+  --pos:    #3f7a4d;
+  --neg:    #a0524a;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  background: #eef2f7;
+  background: #e9ecf0;
   padding: 40px 20px;
-  color: #1a2332;
+  color: var(--ink);
 }
 
 .page {
-  max-width: 720px;
+  max-width: 740px;
   margin: 0 auto;
-  background: white;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.12);
+  background: var(--paper);
+  box-shadow: 0 6px 40px rgba(0,0,0,0.13);
 }
+
+.num { font-family: Georgia, 'Times New Roman', serif; font-feature-settings: "tnum"; }
 
 /* ── Header ── */
 .header {
-  background: #0f1f35;
+  background: var(--navy);
   color: white;
-  padding: 32px 40px;
+  padding: 30px 44px 26px;
+  border-bottom: 3px solid var(--bronze);
+}
+.header-top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start;
 }
+.brand { font-size: 21px; font-weight: 700; letter-spacing: 0.12em; }
+.brand-sub { font-size: 9.5px; color: #8fb0cc; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 6px; }
+.doc-title { text-align: right; }
+.doc-title .label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #8fb0cc; }
+.doc-title .period { font-family: Georgia, serif; font-size: 17px; margin-top: 5px; color: #fff; }
 
-.brand { font-size: 22px; font-weight: 700; letter-spacing: 0.06em; color: white; }
-.brand-sub { font-size: 10px; color: #6e9abb; letter-spacing: 0.14em; text-transform: uppercase; margin-top: 5px; }
-
-.report-meta { text-align: right; }
-.report-meta .month { font-size: 18px; font-weight: 600; color: white; }
-.report-meta .client { font-size: 12px; color: #6e9abb; margin-top: 4px; }
-
-/* ── Stats bar ── */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-bottom: 1px solid #e4eaf1;
+.acct-bar {
+  display: flex;
+  gap: 40px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255,255,255,0.13);
 }
+.acct-field .k { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #7e9fbb; }
+.acct-field .v { font-size: 13px; color: #fff; margin-top: 4px; font-family: Georgia, serif; }
 
-.stat {
-  padding: 28px 20px;
-  border-right: 1px solid #e4eaf1;
-  text-align: center;
+/* ── Section scaffolding ── */
+.body { padding: 0 44px; }
+.section { padding: 26px 0; border-bottom: 1px solid var(--rule); }
+.section:last-child { border-bottom: none; }
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 18px;
 }
-.stat:last-child { border-right: none; }
-
-.stat-value { font-size: 30px; font-weight: 700; color: #0f1f35; line-height: 1; }
-.stat-value.accent { color: #0e7fc1; }
-.stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: #8099b0; margin-top: 7px; }
-.stat-sub { font-size: 11px; color: #b0c2d0; margin-top: 4px; }
-
-/* ── Body ── */
-.body { padding: 32px 40px; }
-
-/* Narrative */
-.narrative {
-  font-size: 14.5px;
-  line-height: 1.75;
-  color: #2d3f52;
-  padding-bottom: 28px;
-  border-bottom: 1px solid #e4eaf1;
-}
-.narrative p { margin-bottom: 12px; }
-.narrative p:last-child { margin-bottom: 0; }
-
-/* Two-col */
-.two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 36px;
-  padding: 28px 0;
-  border-bottom: 1px solid #e4eaf1;
-}
-
 .section-title {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: #8099b0;
-  font-weight: 600;
-  margin-bottom: 16px;
-}
-
-/* Breakdown */
-.breakdown-row { display: flex; align-items: center; margin-bottom: 11px; }
-.breakdown-row:last-child { margin-bottom: 0; }
-.breakdown-label { font-size: 13px; color: #2d3f52; flex: 1; }
-.breakdown-bar-wrap { width: 72px; height: 4px; background: #e4eaf1; border-radius: 2px; margin: 0 10px; }
-.breakdown-bar { height: 4px; background: #0e7fc1; border-radius: 2px; }
-.breakdown-count { font-size: 12px; color: #8099b0; width: 44px; text-align: right; }
-
-/* Devices */
-.device-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 7px 0;
-  border-bottom: 1px solid #f0f4f8;
-  font-size: 13px;
-  color: #2d3f52;
-}
-.device-row:last-child { border-bottom: none; }
-.device-status { font-size: 11px; color: #16a34a; font-weight: 500; }
-
-/* Status grid */
-.status-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  padding: 24px 0;
-  border-bottom: 1px solid #e4eaf1;
-}
-
-.status-item { display: flex; align-items: center; gap: 9px; font-size: 13px; color: #2d3f52; }
-.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; flex-shrink: 0; }
-
-/* Note */
-.note {
-  padding: 16px 0 4px;
   font-size: 12px;
-  color: #8099b0;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--navy);
+  font-weight: 700;
+}
+.section-note { font-size: 10.5px; color: var(--muted); font-style: italic; }
+
+/* ── Account summary table ── */
+table.summary { width: 100%; border-collapse: collapse; }
+table.summary th {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  font-weight: 600;
+  text-align: right;
+  padding: 0 0 9px;
+  border-bottom: 1px solid var(--rule);
+}
+table.summary th.lead { text-align: left; }
+table.summary td {
+  padding: 9px 0;
+  font-size: 13.5px;
+  text-align: right;
+  border-bottom: 1px solid var(--rule-2);
+  color: var(--ink);
+}
+table.summary td.lead { text-align: left; color: #3a4553; font-family: -apple-system, sans-serif; font-size: 13px; }
+table.summary tr:last-child td { border-bottom: none; }
+.chg-pos { color: var(--pos); }
+.chg-neg { color: var(--neg); }
+.figure { font-family: Georgia, serif; }
+
+/* ── Traffic allocation ── */
+.alloc { display: grid; grid-template-columns: 200px 1fr; gap: 40px; align-items: center; }
+
+.donut-wrap { position: relative; width: 184px; height: 184px; margin: 0 auto; }
+.donut {
+  width: 184px; height: 184px; border-radius: 50%;
+  background: conic-gradient(
+    #13314f 0% 41%,
+    #2d5a82 41% 59%,
+    #4d82a8 59% 73%,
+    #7aa6c4 73% 84%,
+    #a9803f 84% 92%,
+    #c6a463 92% 97%,
+    #ddd6c6 97% 100%
+  );
+}
+.donut::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 108px; height: 108px;
+  border-radius: 50%;
+  background: var(--paper);
+}
+.donut-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 108px;
+}
+.donut-center .big { font-family: Georgia, serif; font-size: 23px; color: var(--navy); line-height: 1; }
+.donut-center .lbl { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+.legend { width: 100%; border-collapse: collapse; }
+.legend td { padding: 5px 0; font-size: 12.5px; vertical-align: middle; }
+.legend .sw { width: 16px; }
+.legend .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 2px; }
+.legend .cat { color: var(--ink); padding-left: 4px; }
+.legend .pct { text-align: right; font-family: Georgia, serif; color: var(--navy); width: 44px; }
+.legend .vol { text-align: right; font-family: Georgia, serif; color: var(--muted); width: 64px; font-size: 11.5px; }
+
+/* ── Benchmark ── */
+.bench-row { margin-bottom: 16px; }
+.bench-row:last-child { margin-bottom: 0; }
+.bench-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+.bench-label .metric { color: var(--ink); }
+.bench-label .verdict { color: var(--muted); font-size: 11px; }
+.bar-track { position: relative; }
+.bar { height: 13px; border-radius: 2px; display: flex; align-items: center; }
+.bar.you { background: var(--bronze); margin-bottom: 3px; }
+.bar.avg { background: #c8cfd6; }
+.bar .tag { font-size: 8.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; padding-left: 7px; font-weight: 600; }
+.bar.avg .tag { color: #5d6b78; }
+.bar .val { margin-left: auto; padding-right: 7px; font-family: Georgia, serif; font-size: 10.5px; color: #fff; }
+.bar.avg .val { color: #4a5663; }
+
+/* ── Service attestation ── */
+.attest { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 24px; }
+.attest-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #3a4553; padding: 3px 0; }
+.attest-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--pos); flex-shrink: 0; }
+
+.privacy-note {
+  margin-top: 18px;
+  padding: 13px 16px;
+  background: #f2efe7;
+  border-left: 3px solid var(--bronze);
+  font-size: 11.5px;
   line-height: 1.6;
+  color: #5a5446;
 }
 
 /* ── Footer ── */
 .footer {
-  padding: 18px 40px;
+  padding: 16px 44px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f5f8fb;
-  border-top: 1px solid #e4eaf1;
+  background: var(--navy);
+  color: #8fb0cc;
+  font-size: 10.5px;
 }
-
-.footer-brand { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: #0f1f35; }
-.footer-contact { font-size: 11px; color: #8099b0; }
-.footer-contact a { color: #0e7fc1; text-decoration: none; }
+.footer .fb { font-weight: 700; letter-spacing: 0.1em; color: #fff; font-size: 11px; }
+.footer a { color: #b8d0e6; text-decoration: none; }
 </style>
 </head>
 <body>
 <div class="page">
 
+  <!-- HEADER -->
   <div class="header">
-    <div>
-      <div class="brand">CLEARLINE</div>
-      <div class="brand-sub">Residential Network Services</div>
+    <div class="header-top">
+      <div>
+        <div class="brand">CLEARLINE</div>
+        <div class="brand-sub">Residential Network Services</div>
+      </div>
+      <div class="doc-title">
+        <div class="label">Network Activity Statement</div>
+        <div class="period">Statement Period: May 1 – May 31, 2026</div>
+      </div>
     </div>
-    <div class="report-meta">
-      <div class="month">May 2026</div>
-      <div class="client">Johnson Residence &nbsp;·&nbsp; 14 Maple Drive</div>
-    </div>
-  </div>
-
-  <div class="stats">
-    <div class="stat">
-      <div class="stat-value accent">9,847</div>
-      <div class="stat-label">Threats Blocked</div>
-      <div class="stat-sub">18.8% of all requests</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value">52,441</div>
-      <div class="stat-label">DNS Queries</div>
-      <div class="stat-sub">5 active devices</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value">99.9%</div>
-      <div class="stat-label">Network Uptime</div>
-      <div class="stat-sub">8 min ISP interruption</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value">12ms</div>
-      <div class="stat-label">Peak Latency</div>
-      <div class="stat-sub">vs. ~800ms unmanaged</div>
+    <div class="acct-bar">
+      <div class="acct-field">
+        <div class="k">Account Holder</div>
+        <div class="v">Johnson Residence</div>
+      </div>
+      <div class="acct-field">
+        <div class="k">Service Address</div>
+        <div class="v">14 Maple Drive</div>
+      </div>
+      <div class="acct-field">
+        <div class="k">Account No.</div>
+        <div class="v">CL-0047</div>
+      </div>
+      <div class="acct-field">
+        <div class="k">Statement Date</div>
+        <div class="v">June 1, 2026</div>
+      </div>
     </div>
   </div>
 
   <div class="body">
 
-    <div class="narrative">
-      <p>Your home network had a quiet month. Nearly 10,000 requests to advertising servers, tracking scripts, and known malicious domains were stopped before they ever reached your devices — about 330 blocked requests every day, handled automatically with nothing required from you.</p>
-      <p>Performance was strong throughout May. Traffic shaping kept your connection responsive during peak evening hours: while other households on the same ISP segment were seeing response times climb above half a second, your network held steady under 15 milliseconds. Streaming, video calls, and gaming ran on the same connection without competing with each other.</p>
-      <p>Your VPN was active and healthy all month. Your iPhone connected through the secure tunnel on 14 days when you were away from home, meaning your traffic on public Wi-Fi was encrypted and routed through your own network rather than exposed to the local hotspot.</p>
+    <!-- ACCOUNT SUMMARY -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Account Summary</div>
+        <div class="section-note">All figures for the statement period</div>
+      </div>
+      <table class="summary">
+        <thead>
+          <tr>
+            <th class="lead">Activity</th>
+            <th>This Period</th>
+            <th>Prior Period</th>
+            <th>Change</th>
+            <th>Year to Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="lead">Queries resolved</td>
+            <td class="figure">52,441</td>
+            <td class="figure">48,902</td>
+            <td class="figure chg-pos">+7.2%</td>
+            <td class="figure">251,330</td>
+          </tr>
+          <tr>
+            <td class="lead">Threats &amp; trackers blocked</td>
+            <td class="figure">9,847</td>
+            <td class="figure">8,123</td>
+            <td class="figure chg-pos">+21.2%</td>
+            <td class="figure">47,221</td>
+          </tr>
+          <tr>
+            <td class="lead">Protection rate</td>
+            <td class="figure">18.8%</td>
+            <td class="figure">16.6%</td>
+            <td class="figure chg-pos">+2.2 pts</td>
+            <td class="figure">18.1%</td>
+          </tr>
+          <tr>
+            <td class="lead">Network availability</td>
+            <td class="figure">99.9%</td>
+            <td class="figure">99.7%</td>
+            <td class="figure chg-pos">+0.2 pts</td>
+            <td class="figure">99.8%</td>
+          </tr>
+          <tr>
+            <td class="lead">Peak loaded latency</td>
+            <td class="figure">12 ms</td>
+            <td class="figure">14 ms</td>
+            <td class="figure chg-pos">−2 ms</td>
+            <td class="figure">13 ms</td>
+          </tr>
+          <tr>
+            <td class="lead">Secure VPN sessions</td>
+            <td class="figure">14</td>
+            <td class="figure">9</td>
+            <td class="figure chg-pos">+5</td>
+            <td class="figure">68</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <div class="two-col">
-      <div>
-        <div class="section-title">What We Blocked</div>
-        <div class="breakdown-row">
-          <span class="breakdown-label">Ads &amp; trackers</span>
-          <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:73%"></div></div>
-          <span class="breakdown-count">7,214</span>
+    <!-- TRAFFIC ALLOCATION -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Traffic Allocation</div>
+        <div class="section-note">487 GB total · by category</div>
+      </div>
+      <div class="alloc">
+        <div class="donut-wrap">
+          <div class="donut"></div>
+          <div class="donut-center">
+            <div class="big">487<span style="font-size:13px"> GB</span></div>
+            <div class="lbl">Total Volume</div>
+          </div>
         </div>
-        <div class="breakdown-row">
-          <span class="breakdown-label">Device telemetry</span>
-          <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:35%"></div></div>
-          <span class="breakdown-count">1,389</span>
-        </div>
-        <div class="breakdown-row">
-          <span class="breakdown-label">Malware domains</span>
-          <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:22%"></div></div>
-          <span class="breakdown-count">847</span>
-        </div>
-        <div class="breakdown-row">
-          <span class="breakdown-label">Other</span>
-          <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:10%"></div></div>
-          <span class="breakdown-count">397</span>
-        </div>
+        <table class="legend">
+          <tr>
+            <td class="sw"><span class="swatch" style="background:#13314f"></span></td>
+            <td class="cat">Streaming &amp; Video</td>
+            <td class="pct">41%</td>
+            <td class="vol">199.7 GB</td>
+          </tr>
+          <tr>
+            <td class="sw"><span class="swatch" style="background:#2d5a82"></span></td>
+            <td class="cat">Social &amp; Messaging</td>
+            <td class="pct">18%</td>
+            <td class="vol">87.7 GB</td>
+          </tr>
+          <tr>
+            <td class="sw"><span class="swatch" style="background:#4d82a8"></span></td>
+            <td class="cat">Cloud &amp; Backups</td>
+            <td class="pct">14%</td>
+            <td class="vol">68.2 GB</td>
+          </tr>
+          <tr>
+            <td class="sw"><span class="swatch" style="background:#7aa6c4"></span></td>
+            <td class="cat">Gaming &amp; Downloads</td>
+            <td class="pct">11%</td>
+            <td class="vol">53.6 GB</td>
+          </tr>
+          <tr>
+            <td class="sw"><span class="swatch" style="background:#a9803f"></span></td>
+            <td class="cat">Smart Home / IoT</td>
+            <td class="pct">8%</td>
+            <td class="vol">39.0 GB</td>
+          </tr>
+          <tr>
+            <td class="sw"><span class="swatch" style="background:#c6a463"></span></td>
+            <td class="cat">Shopping &amp; Web</td>
+            <td class="pct">5%</td>
+            <td class="vol">24.4 GB</td>
+          </tr>
+          <tr>
+            <td class="sw"><span class="swatch" style="background:#ddd6c6"></span></td>
+            <td class="cat">Other</td>
+            <td class="pct">3%</td>
+            <td class="vol">14.4 GB</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- BENCHMARK -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">How You Compare</div>
+        <div class="section-note">vs. similar households — suburban, 4–6 devices</div>
       </div>
 
-      <div>
-        <div class="section-title">Your Devices</div>
-        <div class="device-row"><span>iPhone (Sarah)</span><span class="device-status">Active</span></div>
-        <div class="device-row"><span>MacBook Pro</span><span class="device-status">Active</span></div>
-        <div class="device-row"><span>iPad</span><span class="device-status">Active</span></div>
-        <div class="device-row"><span>Samsung TV</span><span class="device-status">Active</span></div>
-        <div class="device-row"><span>Nintendo Switch</span><span class="device-status">Active</span></div>
+      <div class="bench-row">
+        <div class="bench-label">
+          <span class="metric">Daily data volume</span>
+          <span class="verdict">18% above peer average</span>
+        </div>
+        <div class="bar you" style="width:78%"><span class="tag">You</span><span class="val">15.7 GB/day</span></div>
+        <div class="bar avg" style="width:66%"><span class="tag">Peer avg</span><span class="val">13.3 GB/day</span></div>
+      </div>
+
+      <div class="bench-row">
+        <div class="bench-label">
+          <span class="metric">Streaming share of traffic</span>
+          <span class="verdict">below peer average</span>
+        </div>
+        <div class="bar you" style="width:62%"><span class="tag">You</span><span class="val">41%</span></div>
+        <div class="bar avg" style="width:72%"><span class="tag">Peer avg</span><span class="val">48%</span></div>
+      </div>
+
+      <div class="bench-row">
+        <div class="bench-label">
+          <span class="metric">Threats blocked per day</span>
+          <span class="verdict">57% more — protection working harder</span>
+        </div>
+        <div class="bar you" style="width:84%"><span class="tag">You</span><span class="val">330</span></div>
+        <div class="bar avg" style="width:53%"><span class="tag">Peer avg</span><span class="val">210</span></div>
+      </div>
+
+      <div class="bench-row">
+        <div class="bench-label">
+          <span class="metric">Network responsiveness under load</span>
+          <span class="verdict">far better than unmanaged homes</span>
+        </div>
+        <div class="bar you" style="width:8%"><span class="tag" style="padding-left:4px">12ms</span></div>
+        <div class="bar avg" style="width:90%"><span class="tag">Unmanaged avg</span><span class="val">~800 ms</span></div>
       </div>
     </div>
 
-    <div class="status-grid">
-      <div class="status-item"><div class="status-dot"></div>DNS filtering active</div>
-      <div class="status-item"><div class="status-dot"></div>VPN tunnel healthy</div>
-      <div class="status-item"><div class="status-dot"></div>DNS queries encrypted</div>
-      <div class="status-item"><div class="status-dot"></div>Firewall — no incidents</div>
-      <div class="status-item"><div class="status-dot"></div>DNSSEC validation on</div>
-      <div class="status-item"><div class="status-dot"></div>Traffic shaping active</div>
-    </div>
-
-    <div class="note">
-      Your dedicated network appliance — a compact Linux server running in your home — handled all of this quietly in the background. No subscription fees to a third-party service. No data leaving your network to a provider. Just your hardware, your rules.
+    <!-- SERVICE ATTESTATION -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Service Status</div>
+        <div class="section-note">All systems verified through statement close</div>
+      </div>
+      <div class="attest">
+        <div class="attest-item"><span class="attest-dot"></span>DNS filtering active</div>
+        <div class="attest-item"><span class="attest-dot"></span>DNS queries encrypted</div>
+        <div class="attest-item"><span class="attest-dot"></span>DNSSEC validation on</div>
+        <div class="attest-item"><span class="attest-dot"></span>VPN tunnel healthy</div>
+        <div class="attest-item"><span class="attest-dot"></span>Firewall — no incidents</div>
+        <div class="attest-item"><span class="attest-dot"></span>Traffic shaping active</div>
+      </div>
+      <div class="privacy-note">
+        <strong>A note on privacy.</strong> Individual websites and domains are never logged, stored, or
+        reported. The categories above are aggregated in real time and discarded — this statement reflects
+        volume by type only. Your network appliance runs entirely within your home; no browsing data is
+        sent to Clearline or any third party.
+      </div>
     </div>
 
   </div>
 
+  <!-- FOOTER -->
   <div class="footer">
-    <div class="footer-brand">CLEARLINE</div>
-    <div class="footer-contact">Questions? <a href="mailto:hello@clearline.io">hello@clearline.io</a> &nbsp;·&nbsp; (555) 000-0000</div>
+    <div class="fb">CLEARLINE</div>
+    <div>Managed on-premises · HP t630 appliance · Account CL-0047 &nbsp;·&nbsp; <a href="mailto:hello@clearline.io">hello@clearline.io</a> · (555) 000-0000</div>
   </div>
 
 </div>
