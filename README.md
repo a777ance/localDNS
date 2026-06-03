@@ -14,9 +14,6 @@ manually deployed — **the live t630 is the source of truth.**
 For the surrounding network — router, ISP, and the rationale behind these design
 choices — see **[network-context.md](network-context.md)**.
 
-For fresh-install gotchas, break points, and workarounds discovered during setup — see
-**[INSTALL-NOTES.md](INSTALL-NOTES.md)**.
-
 ---
 
 ## Thesis
@@ -52,6 +49,71 @@ boundary holds with a single command.
 
 ---
 
+## Network topology
+
+The whole stack on one page. Follow the **DNS path**: clients and VPN peers hand every
+lookup to the t630, Pi-hole filters it, then Unbound — the single decision point —
+either resolves it privately by recursion or, for streaming domains only, forwards it
+to Cloudflare over an encrypted channel. Outbound resolution traverses the router/WAN
+to reach the targets at the top. `[Step N]` tags map each piece to its setup step in
+[Section A](#a-setup-quick-start); full peer and port tables are in
+[Section B](#wireguard-peers--service-ports).
+
+```
+RESOLUTION TARGETS — what the t630 reaches out to (out on the internet)
+   ├─ Cloudflare DoT  1.1.1.1@853 · 1.0.0.1@853  ◄─ streaming/CDN domains only (encrypted)
+   ├─ Root + authoritative nameservers           ◄─ everything else — Unbound recurses
+   │                                                 it itself · DNSSEC · stays private
+   └─ Quad9 / Cloudflare  9.9.9.9 · 1.1.1.1       ◄─ the t630's OWN lookups (apt/git/curl)
+                              ▲ outbound DNS
+  ═══════════════════════════╪══════════════════════════════  ISP · Spectrum ~200/100 Mbps
+                              │ WAN
+   ┌─ Netgear R7000 · 192.168.1.1 · [Step 0] — routing · NAT · DHCP
+   │    • WAN 51820/UDP ──► t630           (WireGuard ingress from cellular)
+   │    • hands LAN clients  DNS = 192.168.1.118
+   │    • secondary DNS 1.1.1.1            (failover — network survives if t630 is down)
+   └────────────┬─────────────────────────────────────────────────────────────────
+                │ LAN 192.168.1.0/24
+                ▼
+   ┌─ t630 · 192.168.1.118 · Ubuntu 24.04 · AMD Carrizo · ~10 W
+   │
+   │   enp1s0  (wired NIC; Wi-Fi disabled)
+   │     └─ CAKE on egress  [Step 1] — 85 Mbit · diffserv4 · DNS responses → DSCP EF
+   │          (upload bufferbloat ~400–800 ms → ~11 ms under load)
+   │
+   │   UFW  [Step 6] — default-deny incoming · "allow routed" so wg0 forwards out enp1s0
+   │
+   │   ── DNS query path · the single decision point ──────────────────────────
+   │      a query enters and cascades down:
+   │        client ─► Pi-hole :53         [Step 5] · Docker host-net · ad-block filter
+   │                    └─► Unbound :5335  [Step 2] · host OS · upstream 127.0.0.1#5335
+   │                          splits per domain:
+   │                            ├─ streaming       ─► Cloudflare DoT :853  (encrypted)
+   │                            └─ everything else ─► recursive + DNSSEC
+   │                                 (root + authoritative NS — Cloudflare never sees it)
+   │
+   │   ── other services on the host ─────────────────────────────────────────
+   │      Pi-hole web UI :8080    ·    Uptime Kuma :3001   [Step 8]
+   │        (Pi-hole & Kuma both run on Docker CE [Step 3], network_mode: host)
+   │      WireGuard   wg0 10.8.0.1/24 · listens :51820/UDP   [Step 7]
+   │      SSH :22    ·    NoMachine :4000    ·    xrdp :3389   [Step 10]
+   │      systemd-resolved [Step 4] ─► 9.9.9.9 / 1.1.1.1   (host's OWN DNS, NOT Pi-hole)
+   │      GPU + CPU pinned to "performance"  [Step 9]   (keeps remote-desktop smooth)
+   │
+   └─ who points at this box for DNS:
+        ├─► LAN clients  [Step 11] — phones · laptops · smart TVs
+        │      query  192.168.1.118 :53
+        └─► WireGuard peers  [Step 7] — full-tunnel, remote, enter via WAN 51820/UDP
+               iPhone 10.8.0.2 · Win laptop 10.8.0.3 · Mac 10.8.0.7
+               10.8.0.4–6 (unidentified — see Known issues)
+               query  10.8.0.1 :53 · all their traffic exits via the home WAN
+```
+
+**Legend:** `[Step N]` → setup step in Section A · `:NNN` → listening port ·
+`─►` / `◄─` traffic direction · `═══` the ISP/WAN boundary.
+
+---
+
 ## Operational notes
 
 - Pi-hole blocklists update weekly via cron inside the container
@@ -63,6 +125,9 @@ boundary holds with a single command.
 - Add a streaming domain to Cloudflare DoT: append a `forward-zone:` block to `01-unbound/streaming-forward.conf`, deploy to `/etc/unbound/unbound.conf.d/`, and `sudo systemctl restart unbound`. Never add sensitive domains.
 - Add a WireGuard peer: see `05-wireguard/peer-template.conf`. Next free IP starts at `10.8.0.8`. Use `sudo systemctl reload wg-quick@wg0` — no restart needed.
 - SSH to the t630: `ssh <user>@192.168.1.118` from the LAN, or `ssh <user>@10.8.0.1` (the tunnel address) from a connected WireGuard peer once Step 7 is up — port 22 is open to both `192.168.0.0/16` and `10.8.0.0/24` in `04-ufw/setup.sh`.
+
+For fresh-install gotchas, break points, and workarounds discovered during setup — see
+**[INSTALL-NOTES.md](INSTALL-NOTES.md)**.
 
 ---
 
@@ -85,7 +150,7 @@ boundary holds with a single command.
   - [Step 11: Point LAN Clients at t630](#step-11-point-lan-clients-at-t630)
 - [B. Detailed Specs / Network context](#b-detailed-specs--network-context)
   - [Hardware](#hardware)
-  - [Network topology](#network-topology)
+  - [WireGuard peers & service ports](#wireguard-peers--service-ports)
   - [Repository layout](#repository-layout)
 - [C. How it works / FAQ / Troubleshooting](#c-how-it-works--faq--troubleshooting)
   - [DNS resolution chain](#dns-resolution-chain)
@@ -858,17 +923,11 @@ nslookup example.com   # Server field must show 192.168.1.118
 | OS | Ubuntu 24.04.4 LTS, kernel 6.17 series |
 | NIC | `enp1s0` (wired only — Wi-Fi disabled) |
 
-### Network topology
+### WireGuard peers & service ports
 
-```
-ISP (Spectrum ~200/100 Mbps asymmetric)
-  │
-  └── Netgear R7000     192.168.1.1    main router (routing, NAT, DHCP, WAN)
-        │
-        └── t630        192.168.1.118  DNS + VPN server (DHCP reservation)
-              │
-              └── wg0   10.8.0.1/24   WireGuard tunnel interface
-```
+The full map of how these pieces connect is the [Network topology](#network-topology)
+diagram near the top. This section is the reference detail behind it: every WireGuard
+peer and every listening service.
 
 **WireGuard peers**
 
