@@ -12,18 +12,64 @@ manually deployed — **the live t630 is the source of truth.**
 
 ---
 
+## Thesis
+
+This stack delivers measurable, verifiable outcomes from a single low-power node:
+
+- **DNSSEC validation works** — signed zones return the `ad` flag, so tampered
+  responses are rejected rather than trusted.
+- **The privacy/speed split does what it claims** — `unbound-control lookup` proves
+  streaming domains forward to Cloudflare over TLS while everything else (banking,
+  email, health) resolves recursively and is *never* forwarded to a third party.
+- **Ad and tracker blocking is network-wide** — every device benefits with no
+  client-side software, and blocked domains are answered with `0.0.0.0`.
+- **VPN peers get the full stack on cellular** — identical ad-blocking and DNSSEC over
+  the WireGuard tunnel, with the t630 as the only DNS address peers need.
+- **Bufferbloat is gone** — loaded latency under upload dropped from ~400–800 ms to
+  ~11 ms (14 ms idle), measured on Spectrum ~200/100 Mbps.
+- **The whole system is reproducible and reversible** — clean Ubuntu 24.04 to a fully
+  running stack by following Section A, and every file maps to a documented deploy
+  path for rollback.
+
+**What it is not.** This is a single-node home stack, not a high-availability
+deployment. The router's secondary DNS (`1.1.1.1`) is the only redundancy — it keeps
+the network online if the t630 goes down, at the cost of ad-blocking until it
+recovers. A few items remain open (see [Known issues](#known-issues)): the Windows
+laptop key should be rotated, and WireGuard peers `10.8.0.4`–`10.8.0.6` need to be
+identified or removed.
+
+**The takeaway.** A ~$50 used thin client drawing ~10 W replaces a stack of cloud
+DNS, VPN, and monitoring services — while keeping the query log those services would
+otherwise collect on hardware you physically control, and proving the privacy
+boundary holds with a single command.
+
+---
+
+## Operational notes
+
+- Pi-hole blocklists update weekly via cron inside the container
+- Unbound cache persists hourly and restores at boot automatically
+- Pi-hole data backup: `docker run --rm -v pihole_data:/data busybox tar czf - /data > pihole-backup.tar.gz`
+- Uptime Kuma data: back up `~/uptime-kuma/data/` directly
+- Refresh root hints: `sudo curl -o /var/lib/unbound/root.hints https://www.internic.net/domain/named.root && sudo systemctl restart unbound`
+- Reset firewall rules: `sudo bash 04-ufw/setup.sh` (idempotent — safe to re-run)
+- Add a streaming domain to Cloudflare DoT: append a `forward-zone:` block to `01-unbound/streaming-forward.conf`, deploy to `/etc/unbound/unbound.conf.d/`, and `sudo systemctl restart unbound`. Never add sensitive domains.
+- Add a WireGuard peer: see `05-wireguard/peer-template.conf`. Next free IP starts at `10.8.0.8`. Use `sudo systemctl reload wg-quick@wg0` — no restart needed.
+
+---
+
 ## Contents
 
 - [0. Introduction](#0-introduction)
 - [A. Setup (Quick-Start)](#a-setup-quick-start)
   - [Before you begin](#before-you-begin)
   - [Step 0: Router — DHCP reservation](#step-0-router--dhcp-reservation)
-  - [Step 1: Unbound — Recursive DNS](#step-1-unbound--recursive-dns)
-  - [Step 2: Docker CE](#step-2-docker-ce)
-  - [Steps 3 + 4: Host DNS Fix, then Pi-hole](#steps-3--4-host-dns-fix-then-pi-hole)
-  - [Step 5: UFW Firewall](#step-5-ufw-firewall)
-  - [Step 6: WireGuard VPN](#step-6-wireguard-vpn)
-  - [Step 7: CAKE SQM](#step-7-cake-sqm)
+  - [Step 1: CAKE SQM](#step-1-cake-sqm)
+  - [Step 2: Unbound — Recursive DNS](#step-2-unbound--recursive-dns)
+  - [Step 3: Docker CE](#step-3-docker-ce)
+  - [Steps 4 + 5: Host DNS Fix, then Pi-hole](#steps-4--5-host-dns-fix-then-pi-hole)
+  - [Step 6: UFW Firewall](#step-6-ufw-firewall)
+  - [Step 7: WireGuard VPN](#step-7-wireguard-vpn)
   - [Step 8: Uptime Kuma](#step-8-uptime-kuma)
   - [Step 9: GPU Performance](#step-9-gpu-performance)
   - [Step 10: Remote Desktop](#step-10-remote-desktop)
@@ -38,11 +84,9 @@ manually deployed — **the live t630 is the source of truth.**
   - [Why the host resolves its own DNS through external servers](#why-the-host-resolves-its-own-dns-through-external-servers)
   - [Unbound config files](#unbound-config-files)
   - [AMD Carrizo GPU](#amd-carrizo-gpu)
-- [1. Conclusions](#1-conclusions)
-- [2. References](#2-references)
+- [1. References](#1-references)
   - [Verification checklist](#verification-checklist)
   - [Configuration reference](#configuration-reference)
-  - [Operational notes](#operational-notes)
   - [Known issues](#known-issues)
   - [Further reading](#further-reading)
 
@@ -121,7 +165,51 @@ LAN device before Pi-hole is ready.
 
 ---
 
-### Step 1: Unbound — Recursive DNS
+### Step 1: CAKE SQM
+
+CAKE eliminates upload bufferbloat. Without it, latency spikes 400–800 ms under VPN
+upload load. With it: 11 ms loaded vs 14 ms idle (measured on Spectrum ~200/100 Mbps).
+
+**Scope:** shapes `enp1s0` egress — all traffic the t630 forwards toward the router.
+Covers upload bufferbloat for WireGuard VPN clients. Does not address download
+bufferbloat for general LAN devices (the Netgear R7000 is the correct fix point
+for that; DD-WRT/FreshTomato both support CAKE).
+
+#### Install
+
+```bash
+# iproute2 (tc) is already present on Ubuntu 24.04
+sudo cp 06-cake/setup.sh /usr/local/sbin/cake-setup.sh
+sudo chmod 755 /usr/local/sbin/cake-setup.sh
+sudo cp 06-cake/cake.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now cake
+```
+
+#### Tune bandwidth cap
+
+Open `06-cake/setup.sh` and adjust `UPLOAD_MBPS` to 90% of your measured ISP upload
+**before** deploying. Current value: `85` (90% of ~94 Mbps on Spectrum). Keep it
+below the ISP ceiling so CAKE's queue fills before the modem's unmanaged FIFO.
+
+#### DNS priority marking
+
+`cake-setup.sh` marks DNS response packets (source port 53, UDP and TCP) with DSCP
+EF. CAKE's `diffserv4` scheduler places them in the highest-priority tin — DNS answers
+skip bulk traffic so every new connection resolves before its first byte is queued.
+
+#### Verify
+
+```bash
+systemctl status cake
+tc qdisc show dev enp1s0                                       # → cake bandwidth 85Mbit
+sudo iptables -t mangle -L POSTROUTING -v | grep DSCP         # → two rules, sport 53 → EF
+watch -n1 tc -s qdisc show dev enp1s0                         # live queue stats
+```
+
+---
+
+### Step 2: Unbound — Recursive DNS
 
 Unbound runs on the host OS, not in a container. It is the DNS decision point — all
 queries that pass Pi-hole's blocklist come here. It must exist before Pi-hole.
@@ -161,7 +249,7 @@ sudo unbound-control lookup netflix.com   # → forwarding request to 1.1.1.1@85
 sudo unbound-control lookup chase.com    # → iterative delegation (recursive, private)
 ```
 
-#### Step 1a: Encrypted streaming forward-path (Cloudflare DoT)
+#### Step 2a: Encrypted streaming forward-path (Cloudflare DoT)
 
 Already deployed by the `cp` above. `streaming-forward.conf` forwards streaming and
 media domains to Cloudflare over DNS-over-TLS at port 853. Everything not listed
@@ -176,7 +264,7 @@ sudo unbound-control lookup chase.com        # iterative delegation → private 
 **Invariant:** never add sensitive domains (banking, email, health) to
 `streaming-forward.conf` — that hands Cloudflare your private lookups.
 
-#### Step 1b: Cache persistence
+#### Step 2b: Cache persistence
 
 Cache dumps hourly and on Unbound stop; restores 2 seconds after start (socket settle
 time). Warm cache survives reboots.
@@ -195,7 +283,7 @@ sudo systemctl enable --now unbound-cache-dump.timer
 
 ---
 
-### Step 2: Docker CE
+### Step 3: Docker CE
 
 Install from the official Docker repository, not Ubuntu's `docker.io` package.
 
@@ -222,7 +310,7 @@ step — the `docker` group change is not active in the current session. Running
 
 ---
 
-### Steps 3 + 4: Host DNS Fix, then Pi-hole
+### Steps 4 + 5: Host DNS Fix, then Pi-hole
 
 **Run these back-to-back. The host DNS fix comes FIRST — do it before starting Pi-hole.**
 
@@ -301,9 +389,9 @@ containers. Safe here because UFW (next step) restricts access at the network la
 
 ---
 
-### Step 5: UFW Firewall
+### Step 6: UFW Firewall
 
-Lock down before opening the WAN port in Step 6.
+Lock down before opening the WAN port in Step 7.
 
 ```bash
 sudo bash 04-ufw/setup.sh
@@ -330,13 +418,13 @@ workaround — they land after UFW's DROP rule and are silently ignored.
 
 ---
 
-### Step 6: WireGuard VPN
+### Step 7: WireGuard VPN
 
 WireGuard tunnels peers back to the home network from anywhere on cellular or
 untrusted Wi-Fi. DNS routes through Pi-hole over the tunnel, so ad-blocking and
 DNSSEC work identically on cellular.
 
-UFW's `allow routed` (Step 5) must be in place before enabling WireGuard — without
+UFW's `allow routed` (Step 6) must be in place before enabling WireGuard — without
 it the FORWARD chain drops peer traffic silently.
 
 #### Install
@@ -429,50 +517,6 @@ From the peer, test in order — each failure level points to a different proble
 ping 10.8.0.1    # tunnel up
 ping 1.1.1.1     # NAT/forwarding working
 ping google.com  # DNS working
-```
-
----
-
-### Step 7: CAKE SQM
-
-CAKE eliminates upload bufferbloat. Without it, latency spikes 400–800 ms under VPN
-upload load. With it: 11 ms loaded vs 14 ms idle (measured on Spectrum ~200/100 Mbps).
-
-**Scope:** shapes `enp1s0` egress — all traffic the t630 forwards toward the router.
-Covers upload bufferbloat for WireGuard VPN clients. Does not address download
-bufferbloat for general LAN devices (the Netgear R7000 is the correct fix point
-for that; DD-WRT/FreshTomato both support CAKE).
-
-#### Install
-
-```bash
-# iproute2 (tc) is already present on Ubuntu 24.04
-sudo cp 06-cake/setup.sh /usr/local/sbin/cake-setup.sh
-sudo chmod 755 /usr/local/sbin/cake-setup.sh
-sudo cp 06-cake/cake.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now cake
-```
-
-#### Tune bandwidth cap
-
-Open `06-cake/setup.sh` and adjust `UPLOAD_MBPS` to 90% of your measured ISP upload
-**before** deploying. Current value: `85` (90% of ~94 Mbps on Spectrum). Keep it
-below the ISP ceiling so CAKE's queue fills before the modem's unmanaged FIFO.
-
-#### DNS priority marking
-
-`cake-setup.sh` marks DNS response packets (source port 53, UDP and TCP) with DSCP
-EF. CAKE's `diffserv4` scheduler places them in the highest-priority tin — DNS answers
-skip bulk traffic so every new connection resolves before its first byte is queued.
-
-#### Verify
-
-```bash
-systemctl status cake
-tc qdisc show dev enp1s0                                       # → cake bandwidth 85Mbit
-sudo iptables -t mangle -L POSTROUTING -v | grep DSCP         # → two rules, sport 53 → EF
-watch -n1 tc -s qdisc show dev enp1s0                         # live queue stats
 ```
 
 ---
@@ -737,28 +781,28 @@ ISP (Spectrum ~200/100 Mbps asymmetric)
 
 ### Repository layout
 
-Folders are numbered by installation order.
+Listed in setup-step order. CAKE now installs first (Step 1), so folder numbers no longer track step order — the **Step** column is the mapping.
 
 | Step | Path | Purpose |
 |------|------|---------|
-| 1 | `01-unbound/server.conf` | Interfaces, ACLs, port, security flags |
-| 1 | `01-unbound/tuning.conf` | Cache sizes, TTL policy, threading — single source of truth |
-| 1 | `01-unbound/streaming-forward.conf` | Domain split: streaming → Cloudflare DoT, all else → recursive |
-| 1 | `01-unbound/remote-control.conf` | Unix socket for `unbound-control` |
-| 1 | `01-unbound/root-auto-trust-anchor-file.conf` | DNSSEC trust anchor |
-| 1 | `01-unbound/unbound-cache-dump` | Dumps Unbound cache to disk |
-| 1 | `01-unbound/unbound-cache-load` | Restores cache at startup |
-| 1 | `01-unbound/unbound-cache-dump.timer` | Hourly cache backup timer |
-| 1 | `01-unbound/unbound-cache-dump.service` | One-shot cache backup worker |
-| 1 | `01-unbound/unbound.service.d/override.conf` | Hooks cache load/dump into service lifecycle |
-| 2 | *(Docker CE — install only, no config files)* | |
-| 3 | `02-pihole/docker-compose.yml` | Pi-hole container |
+| 1 | `06-cake/setup.sh` | CAKE QoS script — apply qdisc and DNS DSCP marking |
+| 1 | `06-cake/cake.service` | CAKE systemd service |
+| 2 | `01-unbound/server.conf` | Interfaces, ACLs, port, security flags |
+| 2 | `01-unbound/tuning.conf` | Cache sizes, TTL policy, threading — single source of truth |
+| 2 | `01-unbound/streaming-forward.conf` | Domain split: streaming → Cloudflare DoT, all else → recursive |
+| 2 | `01-unbound/remote-control.conf` | Unix socket for `unbound-control` |
+| 2 | `01-unbound/root-auto-trust-anchor-file.conf` | DNSSEC trust anchor |
+| 2 | `01-unbound/unbound-cache-dump` | Dumps Unbound cache to disk |
+| 2 | `01-unbound/unbound-cache-load` | Restores cache at startup |
+| 2 | `01-unbound/unbound-cache-dump.timer` | Hourly cache backup timer |
+| 2 | `01-unbound/unbound-cache-dump.service` | One-shot cache backup worker |
+| 2 | `01-unbound/unbound.service.d/override.conf` | Hooks cache load/dump into service lifecycle |
+| 3 | *(Docker CE — install only, no config files)* | |
 | 4 | `03-host-dns/host-dns.conf` | Host resolver fix — external DNS after Pi-hole takes port 53 |
-| 5 | `04-ufw/setup.sh` | Firewall: LAN + WG subnet, WireGuard WAN port open to Anywhere |
-| 6 | `05-wireguard/wg0.conf` | WireGuard server config — interface, peers, NAT |
-| 6 | `05-wireguard/peer-template.conf` | Annotated reference config for adding a new peer |
-| 7 | `06-cake/setup.sh` | CAKE QoS script — apply qdisc and DNS DSCP marking |
-| 7 | `06-cake/cake.service` | CAKE systemd service |
+| 5 | `02-pihole/docker-compose.yml` | Pi-hole container |
+| 6 | `04-ufw/setup.sh` | Firewall: LAN + WG subnet, WireGuard WAN port open to Anywhere |
+| 7 | `05-wireguard/wg0.conf` | WireGuard server config — interface, peers, NAT |
+| 7 | `05-wireguard/peer-template.conf` | Annotated reference config for adding a new peer |
 | 8 | `07-uptime-kuma/docker-compose.yml` | Uptime Kuma monitoring container |
 | 8 | `07-uptime-kuma/packet-loss-monitor.sh` | Packet loss cron monitor feeding Uptime Kuma Push |
 | 8 | `07-uptime-kuma/cake-monitor.sh` | CAKE qdisc health monitor feeding Uptime Kuma Push |
@@ -817,7 +861,7 @@ for the root-cause analysis.
 
 > **Stub listener vs Pi-hole on `:53`:** because Pi-hole wants `0.0.0.0:53`, it
 > collides with systemd-resolved's stub on `127.0.0.53:53`. `host-dns.conf` therefore
-> also sets `DNSStubListener=no` to free the port, and Part A of Steps 3-4 re-points
+> also sets `DNSStubListener=no` to free the port, and Part A of Steps 4-5 re-points
 > `/etc/resolv.conf` off the now-disabled stub to `/run/systemd/resolve/resolv.conf`
 > (which lists the external resolvers directly). On the **live t630**, confirm which
 > mechanism already frees `:53` before re-applying — see the queued live-box steps.
@@ -849,40 +893,7 @@ are required to prevent it:
 
 ---
 
-## 1. Conclusions
-
-This stack delivers measurable, verifiable outcomes from a single low-power node:
-
-- **DNSSEC validation works** — signed zones return the `ad` flag, so tampered
-  responses are rejected rather than trusted.
-- **The privacy/speed split does what it claims** — `unbound-control lookup` proves
-  streaming domains forward to Cloudflare over TLS while everything else (banking,
-  email, health) resolves recursively and is *never* forwarded to a third party.
-- **Ad and tracker blocking is network-wide** — every device benefits with no
-  client-side software, and blocked domains are answered with `0.0.0.0`.
-- **VPN peers get the full stack on cellular** — identical ad-blocking and DNSSEC over
-  the WireGuard tunnel, with the t630 as the only DNS address peers need.
-- **Bufferbloat is gone** — loaded latency under upload dropped from ~400–800 ms to
-  ~11 ms (14 ms idle), measured on Spectrum ~200/100 Mbps.
-- **The whole system is reproducible and reversible** — clean Ubuntu 24.04 to a fully
-  running stack by following Section A, and every file maps to a documented deploy
-  path for rollback.
-
-**What it is not.** This is a single-node home stack, not a high-availability
-deployment. The router's secondary DNS (`1.1.1.1`) is the only redundancy — it keeps
-the network online if the t630 goes down, at the cost of ad-blocking until it
-recovers. A few items remain open (see [Known issues](#known-issues)): the Windows
-laptop key should be rotated, and WireGuard peers `10.8.0.4`–`10.8.0.6` need to be
-identified or removed.
-
-**The takeaway.** A ~$50 used thin client drawing ~10 W replaces a stack of cloud
-DNS, VPN, and monitoring services — while keeping the query log those services would
-otherwise collect on hardware you physically control, and proving the privacy
-boundary holds with a single command.
-
----
-
-## 2. References
+## 1. References
 
 ### Verification checklist
 
@@ -944,17 +955,6 @@ item must pass before Step 11.
 | `08-gpu-performance/cpu-performance.service` | `/etc/systemd/system/cpu-performance.service` | `sudo systemctl daemon-reload` |
 | `08-gpu-performance/99-amdgpu-performance.rules` | `/etc/udev/rules.d/99-amdgpu-performance.rules` | `sudo udevadm control --reload-rules` |
 | `09-remote-desktop/server.cfg` | `/usr/NX/etc/server.cfg` | `sudo /usr/NX/bin/nxserver --restart` |
-
-### Operational notes
-
-- Pi-hole blocklists update weekly via cron inside the container
-- Unbound cache persists hourly and restores at boot automatically
-- Pi-hole data backup: `docker run --rm -v pihole_data:/data busybox tar czf - /data > pihole-backup.tar.gz`
-- Uptime Kuma data: back up `~/uptime-kuma/data/` directly
-- Refresh root hints: `sudo curl -o /var/lib/unbound/root.hints https://www.internic.net/domain/named.root && sudo systemctl restart unbound`
-- Reset firewall rules: `sudo bash 04-ufw/setup.sh` (idempotent — safe to re-run)
-- Add a streaming domain to Cloudflare DoT: append a `forward-zone:` block to `01-unbound/streaming-forward.conf`, deploy to `/etc/unbound/unbound.conf.d/`, and `sudo systemctl restart unbound`. Never add sensitive domains.
-- Add a WireGuard peer: see `05-wireguard/peer-template.conf`. Next free IP starts at `10.8.0.8`. Use `sudo systemctl reload wg-quick@wg0` — no restart needed.
 
 ### Known issues
 

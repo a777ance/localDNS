@@ -13,7 +13,7 @@ severity and fix. See the summary table at the bottom for a quick reference.
   - [1. No `git clone` step in the setup guide](#1-no-git-clone-step-in-the-setup-guide)
   - [2. `wg0.conf` fails to parse — WireGuard will not start](#2-wg0conf-fails-to-parse--wireguard-will-not-start)
 - [A. HIGH — will cause significant confusion or debugging time](#a-high--will-cause-significant-confusion-or-debugging-time)
-  - [3. Host DNS breaks between Steps 3 and 4 and the warning is in the wrong place](#3-host-dns-breaks-between-steps-3-and-4-and-the-warning-is-in-the-wrong-place)
+  - [3. Host DNS breaks between Steps 4 and 5 and the warning is in the wrong place](#3-host-dns-breaks-between-steps-4-and-5-and-the-warning-is-in-the-wrong-place)
   - [4. `FTLCONF_webserver_api_password: "CHANGE_ME"` — easy to overlook, starts Pi-hole with a known password](#4-ftlconf_webserver_api_password-change_me--easy-to-overlook-starts-pi-hole-with-a-known-password)
 - [B. MEDIUM — silent or hard-to-diagnose failures](#b-medium--silent-or-hard-to-diagnose-failures)
   - [5. Monitoring script placeholder tokens cause silent `curl` failures](#5-monitoring-script-placeholder-tokens-cause-silent-curl-failures)
@@ -91,9 +91,9 @@ now has an explicit "fix the peer blocks before deploying" instruction.
 
 ## A. HIGH — will cause significant confusion or debugging time
 
-### 3. Host DNS breaks between Steps 3 and 4 and the warning is in the wrong place
+### 3. Host DNS breaks between Steps 4 and 5 and the warning is in the wrong place
 
-**Location:** README.md, Steps 3–4
+**Location:** README.md, Steps 4–5
 
 When `docker compose up -d` succeeds and Pi-hole starts, it binds `0.0.0.0:53`
 directly on the host (Pi-hole is `network_mode: host`). That collides with the
@@ -206,7 +206,7 @@ Unbound's parser is whitespace-insensitive so this is harmless, but it looks wro
 
 ### 9. `sysctl.conf` append is not idempotent
 
-**Location:** SETUP.md Step 6 (now README.md Step 6)
+**Location:** SETUP.md Step 6 (now README.md Step 7)
 
 The original command:
 ```bash
@@ -284,7 +284,7 @@ fails to bind `:53` until the stub listener is disabled.
 
 **Fix (now applied):** `03-host-dns/host-dns.conf` now sets `DNSStubListener=no`
 alongside `DNS=9.9.9.9 1.1.1.1`. Because disabling the stub removes the
-`127.0.0.53` listener that `/etc/resolv.conf` normally points at, README Step 3
+`127.0.0.53` listener that `/etc/resolv.conf` normally points at, README Step 4
 also re-points `/etc/resolv.conf` to `/run/systemd/resolve/resolv.conf` (the file
 that lists the external resolvers directly), and the install order was changed so
 the host-DNS fix runs *before* Pi-hole starts — `:53` is free when FTL launches.
@@ -343,7 +343,7 @@ an old volume is now overridden on start.
 
 ### 13 (resolved). Host-net Pi-hole vs systemd-resolved stub — now asserted
 
-`DNSStubListener=no` added to `03-host-dns/host-dns.conf`; README Steps 3–4 reordered
+`DNSStubListener=no` added to `03-host-dns/host-dns.conf`; README Steps 4–5 reordered
 to free `:53` before Pi-hole starts and to re-point `/etc/resolv.conf` off the stub.
 See the updated item 13 above. Live-box reconciliation is now a guided check, not an
 unknown.
@@ -376,13 +376,13 @@ Confirmed against the running t630 (SSH `192.168.1.118`):
 |---|----------|----------|--------|
 | 1 | **BLOCKER** | README.md preamble | No `git clone` — all `cp` commands fail immediately |
 | 2 | **BLOCKER** | `05-wireguard/wg0.conf` | Malformed peer blocks — `wg-quick@wg0.service` fails to parse |
-| 3 | High | README.md Steps 3–4 | Host DNS breaks silently; warning was in the wrong place |
+| 3 | High | README.md Steps 4–5 | Host DNS breaks silently; warning was in the wrong place |
 | 4 | High | `02-pihole/docker-compose.yml` | Known-weak default password easy to miss in prose |
 | 5 | Medium | `07-uptime-kuma/*.sh` | Silent `curl` failures when push tokens not replaced |
 | 6 | Medium | README.md Step 8 | `USERNAME` crontab placeholder creates broken cron job |
 | 7 | Resolved | `04-ufw/setup.sh`, `02-pihole/` | UFW port-53 bypass — closed by moving Pi-hole to host networking |
 | 8 | Minor | `01-unbound/server.conf` | Indentation inconsistency on `interface:` line |
-| 9 | Minor | README.md Step 6 | `sysctl.conf` append not idempotent |
+| 9 | Minor | README.md Step 7 | `sysctl.conf` append not idempotent |
 | 10 | Minor | README.md Step 9 | GRUB edit guidance incomplete — risk of clobbering existing flags |
 | 11 | Minor | README.md Step 0 | No guidance on finding the MAC address |
 | 12 | Minor | `unbound.service.d/override.conf` | Cache dump assumes base unit has no `ExecStop` |

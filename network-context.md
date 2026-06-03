@@ -409,7 +409,7 @@ caused a silent failure.
 
 ### IP forwarding
 
-Set via a dedicated `sysctl.d` drop-in (idempotent — see README Step 6):
+Set via a dedicated `sysctl.d` drop-in (idempotent — see README Step 7):
 ```
 # /etc/sysctl.d/99-wireguard-forward.conf
 net.ipv4.ip_forward=1
@@ -689,7 +689,7 @@ properly with a ULA prefix + NAT66, mirroring the existing IPv4 NAT:
 # 3) Add IPv6 MASQUERADE to PostUp/PreDown in wg0.conf (mirrors the IPv4 rule):
 #      PostUp:  ip6tables -t nat -A POSTROUTING -s fd00:8::/64 -o enp1s0 -j MASQUERADE
 #      PreDown: ip6tables -t nat -D POSTROUTING -s fd00:8::/64 -o enp1s0 -j MASQUERADE
-# 4) IPv6 forwarding is already on (net.ipv6.conf.all.forwarding=1 — README Step 6).
+# 4) IPv6 forwarding is already on (net.ipv6.conf.all.forwarding=1 — README Step 7).
 # 5) Restore ::/0 in the peer's AllowedIPs.
 ```
 
