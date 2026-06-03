@@ -832,12 +832,11 @@ the script), lowered to 5% once the router hardware is stable.
 
 ## Step 9. GPU performance
 
-No network dimension — included only to keep this document aligned with the README's
-step order. The headless AMD Carrizo iGPU downclock fix is purely a local
-display/performance concern and has no bearing on DNS, VPN, or firewalling. The full
-rationale and the four required pieces (GRUB flags, two systemd services, the udev
-rule) are in CLAUDE.md § E and README Step 9. It is also entirely optional — skip it
-unless you run a graphical remote desktop on the box.
+No network dimension — purely a local display/performance fix for the headless AMD
+Carrizo iGPU downclock, with no bearing on DNS, VPN, or firewalling. See
+[`08-gpu-performance/`](08-gpu-performance/) for the units and udev rule (rationale in
+CLAUDE.md § E and README Step 9). Optional — skip unless you run a graphical remote
+desktop on the box.
 
 ---
 
