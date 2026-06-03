@@ -14,16 +14,8 @@ manually deployed — **the live t630 is the source of truth.**
 
 ## Contents
 
-- [Hardware](#hardware)
-- [Network topology](#network-topology)
-- [How it works](#how-it-works)
-  - [DNS resolution chain](#dns-resolution-chain)
-  - [Why Unbound runs on the host, not in Docker](#why-unbound-runs-on-the-host-not-in-docker)
-  - [Why the host resolves its own DNS through external servers](#why-the-host-resolves-its-own-dns-through-external-servers)
-  - [Unbound config files](#unbound-config-files)
-  - [AMD Carrizo GPU](#amd-carrizo-gpu)
-- [Repository layout](#repository-layout)
-- [Setup](#setup)
+- [0. Introduction](#0-introduction)
+- [A. Setup (Quick-Start)](#a-setup-quick-start)
   - [Before you begin](#before-you-begin)
   - [Step 0: Router — DHCP reservation](#step-0-router--dhcp-reservation)
   - [Step 1: Unbound — Recursive DNS](#step-1-unbound--recursive-dns)
@@ -36,180 +28,68 @@ manually deployed — **the live t630 is the source of truth.**
   - [Step 9: GPU Performance](#step-9-gpu-performance)
   - [Step 10: Remote Desktop](#step-10-remote-desktop)
   - [Step 11: Point LAN Clients at t630](#step-11-point-lan-clients-at-t630)
-- [Verification checklist](#verification-checklist)
-- [Configuration reference](#configuration-reference)
-- [Operational notes](#operational-notes)
-- [Known issues](#known-issues)
-- [Further reading](#further-reading)
+- [B. Detailed Specs / Network context](#b-detailed-specs--network-context)
+  - [Hardware](#hardware)
+  - [Network topology](#network-topology)
+  - [Repository layout](#repository-layout)
+- [C. How it works / FAQ / Troubleshooting](#c-how-it-works--faq--troubleshooting)
+  - [DNS resolution chain](#dns-resolution-chain)
+  - [Why Unbound runs on the host, not in Docker](#why-unbound-runs-on-the-host-not-in-docker)
+  - [Why the host resolves its own DNS through external servers](#why-the-host-resolves-its-own-dns-through-external-servers)
+  - [Unbound config files](#unbound-config-files)
+  - [AMD Carrizo GPU](#amd-carrizo-gpu)
+- [1. Conclusions](#1-conclusions)
+- [2. References](#2-references)
+  - [Verification checklist](#verification-checklist)
+  - [Configuration reference](#configuration-reference)
+  - [Operational notes](#operational-notes)
+  - [Known issues](#known-issues)
+  - [Further reading](#further-reading)
 
 ---
 
-## Hardware
+## 0. Introduction
 
-| | |
-|---|---|
-| Device | HP t630 thin client |
-| CPU | AMD Carrizo GX-420GI quad-core |
-| RAM | 16 GB |
-| Storage | 16 GB eMMC |
-| OS | Ubuntu 24.04.4 LTS, kernel 6.17 series |
-| NIC | `enp1s0` (wired only — Wi-Fi disabled) |
+**The philosophy.** DNS is the most complete log of your online life — every site,
+app, and device you touch starts with a name lookup. This stack is built on the
+premise that you should own that log, not rent it from whoever runs your resolver.
+Two rules follow from that: privacy is the default, and speed is traded for it only
+where the trade costs no privacy. The WireGuard tunnel — not your physical location —
+defines what counts as "inside" the network. And the whole thing is
+infrastructure-as-config: every file in this repo maps to an exact path on the box,
+so the system is reproducible and reversible, not a pile of undocumented tweaks.
 
----
+**The sales pitch.** One small, silent, always-on box gives the entire household:
 
-## Network topology
+- **Network-wide ad and tracker blocking** (Pi-hole) — every device, no per-client app
+- **DNSSEC-validated recursive resolution** (Unbound) — banking, email, and health
+  lookups are resolved by you, talking directly to the authoritative nameservers,
+  and are never handed to a third-party resolver
+- **Encrypted streaming lookups** (Cloudflare DoT) — speed for Netflix / YouTube /
+  Spotify without leaking those lookups to the ISP in cleartext
+- **Home VPN from anywhere** (WireGuard) — full ad-blocking and DNSSEC on cellular,
+  exactly as if you were sitting at home
+- **Bufferbloat eliminated** (CAKE) — loaded latency drops from ~400–800 ms to ~11 ms
+- **Full monitoring** (Uptime Kuma) — you find out something broke before the
+  household does
 
-```
-ISP (Spectrum ~200/100 Mbps asymmetric)
-  │
-  └── Netgear R7000     192.168.1.1    main router (routing, NAT, DHCP, WAN)
-        │
-        └── t630        192.168.1.118  DNS + VPN server (DHCP reservation)
-              │
-              └── wg0   10.8.0.1/24   WireGuard tunnel interface
-```
+**The cost.** A used HP t630 thin client runs about $30–70 on the secondhand market
+and draws roughly 10 W idle — a few dollars a year in electricity. Every component in
+the stack is open-source: no subscriptions, no per-seat fees, no cloud bill. The real
+cost is time — an afternoon to build it the first time, plus occasional maintenance.
+Blocklist and cache upkeep are automated; key rotation and package upgrades are manual.
 
-**WireGuard peers**
-
-| Peer | Tunnel IP | Notes |
-| ---- | --------- | ----- |
-| t630 wg0 | 10.8.0.1 | Server gateway; DNS address for all peers |
-| iPhone | 10.8.0.2 | |
-| Windows laptop | 10.8.0.3 | Key rotation needed — see Known issues |
-| *(unidentified)* | 10.8.0.4 | In `wg0.conf`, no recent handshake — identify or remove |
-| *(unidentified)* | 10.8.0.5 | In `wg0.conf`, no recent handshake — identify or remove |
-| *(unidentified)* | 10.8.0.6 | In `wg0.conf`, no recent handshake — identify or remove |
-| Mac | 10.8.0.7 | |
-
-**Services**
-
-| Service | Runtime | Port(s) | Accessible from |
-| ------- | ------- | ------- | --------------- |
-| Pi-hole | Docker host-net | 53 (DNS), 8080 (UI) | LAN + WG subnet |
-| Unbound | host OS | 5335 | Pi-hole only (via `127.0.0.1`) |
-| Uptime Kuma | Docker host-net | 3001 | LAN + WG subnet |
-| WireGuard | host OS | 51820/UDP | Internet (open to Anywhere) |
-| NoMachine | host OS | 4000 | LAN only |
-| xrdp | host OS | 3389 | LAN only |
-| SSH | host OS | 22 | LAN + WG subnet |
+**The appeal.** Privacy you can actually verify (`unbound-control lookup` shows you
+exactly which queries leave the box and which don't), control over your own
+infrastructure, dramatically lower latency under load, and a genuinely educational
+build that touches DNS, TLS, VPN, firewalling, QoS, containers, and systemd. It also
+fails gracefully: if the t630 goes down, the router's secondary DNS keeps the network
+online — you lose ad-blocking until it recovers, not connectivity — so the convenience
+never hardens into a single point of failure.
 
 ---
 
-## How it works
-
-### DNS resolution chain
-
-Every query from a LAN or VPN client flows through two layers:
-
-**Pi-hole** receives all queries, strips blocklisted domains (ad/tracker domains
-answered with `0.0.0.0` — no request, no payload, no CPU cost on the client), and
-forwards everything that passes to Unbound at `127.0.0.1#5335`. Pi-hole runs with
-`network_mode: host`, so it reaches Unbound directly on the host loopback. Pi-hole
-does no resolver selection of its own.
-
-**Unbound** is the single decision point for where each query goes:
-
-- **Streaming and media domains** (Netflix, YouTube, Spotify, Steam, etc.) forward
-  to Cloudflare over **DNS-over-TLS** (`1.1.1.1@853`, `forward-tls-upstream: yes`).
-  The ISP sees an encrypted TLS channel instead of cleartext DNS lookups — privacy
-  for speed on traffic whose destination is not sensitive.
-- **Everything else** — banking, email, health, personal services, the default —
-  resolves recursively with DNSSEC. Cloudflare never sees these queries. This is the
-  private recursive path.
-
-The domain split lives entirely in `01-unbound/streaming-forward.conf`. **Invariant:**
-never add sensitive domains to that file — doing so hands Cloudflare your private
-lookups, defeating the point of the design.
-
-If Cloudflare's port 853 is ever blocked by an ISP, `forward-first: yes` falls back
-to full recursion. Streaming keeps working, just slower.
-
-### Why Unbound runs on the host, not in Docker
-
-DNSSEC validation needs low overhead and no bridge routing. Unbound runs directly on
-the host OS at `0.0.0.0:5335`. Both containers that talk to it — Pi-hole and Uptime
-Kuma — run with `network_mode: host`, so each reaches Unbound directly at
-`127.0.0.1:5335` on the host loopback, with no Docker bridge in the path.
-
-### Why the host resolves its own DNS through external servers
-
-Pi-hole (host-networked) binds `:53` directly on the host across every interface.
-The host therefore cannot cleanly use its own Pi-hole for its own lookups — and
-`/etc/resolv.conf` cannot carry Unbound's non-standard `:5335` port either.
-`03-host-dns/host-dns.conf` points systemd-resolved at `9.9.9.9` and `1.1.1.1`
-directly, decoupling the host's own resolution from the DNS stack so it is never
-stranded while Pi-hole/Unbound restart. See `network-context.md` "Host resolver"
-for the root-cause analysis.
-
-> **Stub listener vs Pi-hole on `:53`:** because Pi-hole wants `0.0.0.0:53`, it
-> collides with systemd-resolved's stub on `127.0.0.53:53`. `host-dns.conf` therefore
-> also sets `DNSStubListener=no` to free the port, and Part A of Steps 3-4 re-points
-> `/etc/resolv.conf` off the now-disabled stub to `/run/systemd/resolve/resolv.conf`
-> (which lists the external resolvers directly). On the **live t630**, confirm which
-> mechanism already frees `:53` before re-applying — see the queued live-box steps.
-
-### Unbound config files
-
-Five drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
-
-| File | Purpose |
-| ---- | ------- |
-| `remote-control.conf` | Unix socket for `unbound-control` |
-| `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
-| `server.conf` | Interface, port, access-control, security flags |
-| `streaming-forward.conf` | Domain split: streaming/media → Cloudflare DoT; all else recursive |
-| `tuning.conf` | All performance and cache values — single source of truth |
-
-`tuning.conf` is the only place to change cache sizes, TTLs, or threading. Do not
-split these into separate files.
-
-### AMD Carrizo GPU
-
-The iGPU downclocks to ~200 MHz headless, making remote desktop unusable. Four pieces
-are required to prevent it:
-
-1. GRUB: `amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1`
-2. `gpu-performance.service` — sets `high` at boot
-3. `cpu-performance.service` — locks CPU governor to `performance`
-4. `99-amdgpu-performance.rules` — re-asserts `high` on every DRM event (the critical piece)
-
----
-
-## Repository layout
-
-Folders are numbered by installation order.
-
-| Step | Path | Purpose |
-|------|------|---------|
-| 1 | `01-unbound/server.conf` | Interfaces, ACLs, port, security flags |
-| 1 | `01-unbound/tuning.conf` | Cache sizes, TTL policy, threading — single source of truth |
-| 1 | `01-unbound/streaming-forward.conf` | Domain split: streaming → Cloudflare DoT, all else → recursive |
-| 1 | `01-unbound/remote-control.conf` | Unix socket for `unbound-control` |
-| 1 | `01-unbound/root-auto-trust-anchor-file.conf` | DNSSEC trust anchor |
-| 1 | `01-unbound/unbound-cache-dump` | Dumps Unbound cache to disk |
-| 1 | `01-unbound/unbound-cache-load` | Restores cache at startup |
-| 1 | `01-unbound/unbound-cache-dump.timer` | Hourly cache backup timer |
-| 1 | `01-unbound/unbound-cache-dump.service` | One-shot cache backup worker |
-| 1 | `01-unbound/unbound.service.d/override.conf` | Hooks cache load/dump into service lifecycle |
-| 2 | *(Docker CE — install only, no config files)* | |
-| 3 | `02-pihole/docker-compose.yml` | Pi-hole container |
-| 4 | `03-host-dns/host-dns.conf` | Host resolver fix — external DNS after Pi-hole takes port 53 |
-| 5 | `04-ufw/setup.sh` | Firewall: LAN + WG subnet, WireGuard WAN port open to Anywhere |
-| 6 | `05-wireguard/wg0.conf` | WireGuard server config — interface, peers, NAT |
-| 6 | `05-wireguard/peer-template.conf` | Annotated reference config for adding a new peer |
-| 7 | `06-cake/setup.sh` | CAKE QoS script — apply qdisc and DNS DSCP marking |
-| 7 | `06-cake/cake.service` | CAKE systemd service |
-| 8 | `07-uptime-kuma/docker-compose.yml` | Uptime Kuma monitoring container |
-| 8 | `07-uptime-kuma/packet-loss-monitor.sh` | Packet loss cron monitor feeding Uptime Kuma Push |
-| 8 | `07-uptime-kuma/cake-monitor.sh` | CAKE qdisc health monitor feeding Uptime Kuma Push |
-| 9 | `08-gpu-performance/gpu-performance.service` | AMD GPU forced to high-performance at boot |
-| 9 | `08-gpu-performance/cpu-performance.service` | CPU governor locked to performance |
-| 9 | `08-gpu-performance/99-amdgpu-performance.rules` | Re-asserts GPU profile on every DRM event |
-| 10 | `09-remote-desktop/server.cfg` | NoMachine server config |
-
----
-
-## Setup
+## A. Setup (Quick-Start)
 
 ### Before you begin
 
@@ -806,7 +686,205 @@ nslookup example.com   # Server field must show 192.168.1.118
 
 ---
 
-## Verification checklist
+## B. Detailed Specs / Network context
+
+### Hardware
+
+| | |
+|---|---|
+| Device | HP t630 thin client |
+| CPU | AMD Carrizo GX-420GI quad-core |
+| RAM | 16 GB |
+| Storage | 16 GB eMMC |
+| OS | Ubuntu 24.04.4 LTS, kernel 6.17 series |
+| NIC | `enp1s0` (wired only — Wi-Fi disabled) |
+
+### Network topology
+
+```
+ISP (Spectrum ~200/100 Mbps asymmetric)
+  │
+  └── Netgear R7000     192.168.1.1    main router (routing, NAT, DHCP, WAN)
+        │
+        └── t630        192.168.1.118  DNS + VPN server (DHCP reservation)
+              │
+              └── wg0   10.8.0.1/24   WireGuard tunnel interface
+```
+
+**WireGuard peers**
+
+| Peer | Tunnel IP | Notes |
+| ---- | --------- | ----- |
+| t630 wg0 | 10.8.0.1 | Server gateway; DNS address for all peers |
+| iPhone | 10.8.0.2 | |
+| Windows laptop | 10.8.0.3 | Key rotation needed — see Known issues |
+| *(unidentified)* | 10.8.0.4 | In `wg0.conf`, no recent handshake — identify or remove |
+| *(unidentified)* | 10.8.0.5 | In `wg0.conf`, no recent handshake — identify or remove |
+| *(unidentified)* | 10.8.0.6 | In `wg0.conf`, no recent handshake — identify or remove |
+| Mac | 10.8.0.7 | |
+
+**Services**
+
+| Service | Runtime | Port(s) | Accessible from |
+| ------- | ------- | ------- | --------------- |
+| Pi-hole | Docker host-net | 53 (DNS), 8080 (UI) | LAN + WG subnet |
+| Unbound | host OS | 5335 | Pi-hole only (via `127.0.0.1`) |
+| Uptime Kuma | Docker host-net | 3001 | LAN + WG subnet |
+| WireGuard | host OS | 51820/UDP | Internet (open to Anywhere) |
+| NoMachine | host OS | 4000 | LAN only |
+| xrdp | host OS | 3389 | LAN only |
+| SSH | host OS | 22 | LAN + WG subnet |
+
+### Repository layout
+
+Folders are numbered by installation order.
+
+| Step | Path | Purpose |
+|------|------|---------|
+| 1 | `01-unbound/server.conf` | Interfaces, ACLs, port, security flags |
+| 1 | `01-unbound/tuning.conf` | Cache sizes, TTL policy, threading — single source of truth |
+| 1 | `01-unbound/streaming-forward.conf` | Domain split: streaming → Cloudflare DoT, all else → recursive |
+| 1 | `01-unbound/remote-control.conf` | Unix socket for `unbound-control` |
+| 1 | `01-unbound/root-auto-trust-anchor-file.conf` | DNSSEC trust anchor |
+| 1 | `01-unbound/unbound-cache-dump` | Dumps Unbound cache to disk |
+| 1 | `01-unbound/unbound-cache-load` | Restores cache at startup |
+| 1 | `01-unbound/unbound-cache-dump.timer` | Hourly cache backup timer |
+| 1 | `01-unbound/unbound-cache-dump.service` | One-shot cache backup worker |
+| 1 | `01-unbound/unbound.service.d/override.conf` | Hooks cache load/dump into service lifecycle |
+| 2 | *(Docker CE — install only, no config files)* | |
+| 3 | `02-pihole/docker-compose.yml` | Pi-hole container |
+| 4 | `03-host-dns/host-dns.conf` | Host resolver fix — external DNS after Pi-hole takes port 53 |
+| 5 | `04-ufw/setup.sh` | Firewall: LAN + WG subnet, WireGuard WAN port open to Anywhere |
+| 6 | `05-wireguard/wg0.conf` | WireGuard server config — interface, peers, NAT |
+| 6 | `05-wireguard/peer-template.conf` | Annotated reference config for adding a new peer |
+| 7 | `06-cake/setup.sh` | CAKE QoS script — apply qdisc and DNS DSCP marking |
+| 7 | `06-cake/cake.service` | CAKE systemd service |
+| 8 | `07-uptime-kuma/docker-compose.yml` | Uptime Kuma monitoring container |
+| 8 | `07-uptime-kuma/packet-loss-monitor.sh` | Packet loss cron monitor feeding Uptime Kuma Push |
+| 8 | `07-uptime-kuma/cake-monitor.sh` | CAKE qdisc health monitor feeding Uptime Kuma Push |
+| 9 | `08-gpu-performance/gpu-performance.service` | AMD GPU forced to high-performance at boot |
+| 9 | `08-gpu-performance/cpu-performance.service` | CPU governor locked to performance |
+| 9 | `08-gpu-performance/99-amdgpu-performance.rules` | Re-asserts GPU profile on every DRM event |
+| 10 | `09-remote-desktop/server.cfg` | NoMachine server config |
+
+---
+
+## C. How it works / FAQ / Troubleshooting
+
+### DNS resolution chain
+
+Every query from a LAN or VPN client flows through two layers:
+
+**Pi-hole** receives all queries, strips blocklisted domains (ad/tracker domains
+answered with `0.0.0.0` — no request, no payload, no CPU cost on the client), and
+forwards everything that passes to Unbound at `127.0.0.1#5335`. Pi-hole runs with
+`network_mode: host`, so it reaches Unbound directly on the host loopback. Pi-hole
+does no resolver selection of its own.
+
+**Unbound** is the single decision point for where each query goes:
+
+- **Streaming and media domains** (Netflix, YouTube, Spotify, Steam, etc.) forward
+  to Cloudflare over **DNS-over-TLS** (`1.1.1.1@853`, `forward-tls-upstream: yes`).
+  The ISP sees an encrypted TLS channel instead of cleartext DNS lookups — privacy
+  for speed on traffic whose destination is not sensitive.
+- **Everything else** — banking, email, health, personal services, the default —
+  resolves recursively with DNSSEC. Cloudflare never sees these queries. This is the
+  private recursive path.
+
+The domain split lives entirely in `01-unbound/streaming-forward.conf`. **Invariant:**
+never add sensitive domains to that file — doing so hands Cloudflare your private
+lookups, defeating the point of the design.
+
+If Cloudflare's port 853 is ever blocked by an ISP, `forward-first: yes` falls back
+to full recursion. Streaming keeps working, just slower.
+
+### Why Unbound runs on the host, not in Docker
+
+DNSSEC validation needs low overhead and no bridge routing. Unbound runs directly on
+the host OS at `0.0.0.0:5335`. Both containers that talk to it — Pi-hole and Uptime
+Kuma — run with `network_mode: host`, so each reaches Unbound directly at
+`127.0.0.1:5335` on the host loopback, with no Docker bridge in the path.
+
+### Why the host resolves its own DNS through external servers
+
+Pi-hole (host-networked) binds `:53` directly on the host across every interface.
+The host therefore cannot cleanly use its own Pi-hole for its own lookups — and
+`/etc/resolv.conf` cannot carry Unbound's non-standard `:5335` port either.
+`03-host-dns/host-dns.conf` points systemd-resolved at `9.9.9.9` and `1.1.1.1`
+directly, decoupling the host's own resolution from the DNS stack so it is never
+stranded while Pi-hole/Unbound restart. See `network-context.md` "Host resolver"
+for the root-cause analysis.
+
+> **Stub listener vs Pi-hole on `:53`:** because Pi-hole wants `0.0.0.0:53`, it
+> collides with systemd-resolved's stub on `127.0.0.53:53`. `host-dns.conf` therefore
+> also sets `DNSStubListener=no` to free the port, and Part A of Steps 3-4 re-points
+> `/etc/resolv.conf` off the now-disabled stub to `/run/systemd/resolve/resolv.conf`
+> (which lists the external resolvers directly). On the **live t630**, confirm which
+> mechanism already frees `:53` before re-applying — see the queued live-box steps.
+
+### Unbound config files
+
+Five drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
+
+| File | Purpose |
+| ---- | ------- |
+| `remote-control.conf` | Unix socket for `unbound-control` |
+| `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
+| `server.conf` | Interface, port, access-control, security flags |
+| `streaming-forward.conf` | Domain split: streaming/media → Cloudflare DoT; all else recursive |
+| `tuning.conf` | All performance and cache values — single source of truth |
+
+`tuning.conf` is the only place to change cache sizes, TTLs, or threading. Do not
+split these into separate files.
+
+### AMD Carrizo GPU
+
+The iGPU downclocks to ~200 MHz headless, making remote desktop unusable. Four pieces
+are required to prevent it:
+
+1. GRUB: `amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1`
+2. `gpu-performance.service` — sets `high` at boot
+3. `cpu-performance.service` — locks CPU governor to `performance`
+4. `99-amdgpu-performance.rules` — re-asserts `high` on every DRM event (the critical piece)
+
+---
+
+## 1. Conclusions
+
+This stack delivers measurable, verifiable outcomes from a single low-power node:
+
+- **DNSSEC validation works** — signed zones return the `ad` flag, so tampered
+  responses are rejected rather than trusted.
+- **The privacy/speed split does what it claims** — `unbound-control lookup` proves
+  streaming domains forward to Cloudflare over TLS while everything else (banking,
+  email, health) resolves recursively and is *never* forwarded to a third party.
+- **Ad and tracker blocking is network-wide** — every device benefits with no
+  client-side software, and blocked domains are answered with `0.0.0.0`.
+- **VPN peers get the full stack on cellular** — identical ad-blocking and DNSSEC over
+  the WireGuard tunnel, with the t630 as the only DNS address peers need.
+- **Bufferbloat is gone** — loaded latency under upload dropped from ~400–800 ms to
+  ~11 ms (14 ms idle), measured on Spectrum ~200/100 Mbps.
+- **The whole system is reproducible and reversible** — clean Ubuntu 24.04 to a fully
+  running stack by following Section A, and every file maps to a documented deploy
+  path for rollback.
+
+**What it is not.** This is a single-node home stack, not a high-availability
+deployment. The router's secondary DNS (`1.1.1.1`) is the only redundancy — it keeps
+the network online if the t630 goes down, at the cost of ad-blocking until it
+recovers. A few items remain open (see [Known issues](#known-issues)): the Windows
+laptop key should be rotated, and WireGuard peers `10.8.0.4`–`10.8.0.6` need to be
+identified or removed.
+
+**The takeaway.** A ~$50 used thin client drawing ~10 W replaces a stack of cloud
+DNS, VPN, and monitoring services — while keeping the query log those services would
+otherwise collect on hardware you physically control, and proving the privacy
+boundary holds with a single command.
+
+---
+
+## 2. References
+
+### Verification checklist
 
 Run these after completing all steps to confirm the full stack is operating. Every
 item must pass before Step 11.
@@ -838,9 +916,7 @@ item must pass before Step 11.
 - [ ] `cat /sys/class/drm/card*/device/power_dpm_force_performance_level` → `high`
 - [ ] `nslookup example.com` from LAN client → Server shows `192.168.1.118`
 
----
-
-## Configuration reference
+### Configuration reference
 
 | Repo path | System path | Reload |
 | --------- | ----------- | ------ |
@@ -869,9 +945,7 @@ item must pass before Step 11.
 | `08-gpu-performance/99-amdgpu-performance.rules` | `/etc/udev/rules.d/99-amdgpu-performance.rules` | `sudo udevadm control --reload-rules` |
 | `09-remote-desktop/server.cfg` | `/usr/NX/etc/server.cfg` | `sudo /usr/NX/bin/nxserver --restart` |
 
----
-
-## Operational notes
+### Operational notes
 
 - Pi-hole blocklists update weekly via cron inside the container
 - Unbound cache persists hourly and restores at boot automatically
@@ -882,9 +956,7 @@ item must pass before Step 11.
 - Add a streaming domain to Cloudflare DoT: append a `forward-zone:` block to `01-unbound/streaming-forward.conf`, deploy to `/etc/unbound/unbound.conf.d/`, and `sudo systemctl restart unbound`. Never add sensitive domains.
 - Add a WireGuard peer: see `05-wireguard/peer-template.conf`. Next free IP starts at `10.8.0.8`. Use `sudo systemctl reload wg-quick@wg0` — no restart needed.
 
----
-
-## Known issues
+### Known issues
 
 | Issue | Status | Action |
 | ----- | ------ | ------ |
@@ -897,9 +969,7 @@ item must pass before Step 11.
 | Host-net Pi-hole vs systemd-resolved on `:53` | Resolved in repo | `network_mode: host` makes Pi-hole bind `0.0.0.0:53`, colliding with systemd-resolved's stub listener (`127.0.0.53:53`). `03-host-dns/host-dns.conf` now sets `DNSStubListener=no` (and the host-DNS step re-points `/etc/resolv.conf` off the stub) so `:53` is free for Pi-hole on a fresh install. On the live box, verify which mechanism already frees `:53` before re-applying. |
 | Pi-hole v5 → v6 env vars | Resolved in repo | `pihole/pihole:latest` is v6, which ignores the v5 env vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`, …). `02-pihole/docker-compose.yml` now uses `FTLCONF_*` keys. See `INSTALL-NOTES.md` for the mapping. |
 
----
-
-## Further reading
+### Further reading
 
 - **SKILLS.md** — the networking, Linux/infra, and automation skills this stack
   exercises, each mapped to the concrete config and scripts that prove it
