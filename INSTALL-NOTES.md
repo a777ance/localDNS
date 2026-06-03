@@ -9,33 +9,33 @@ severity and fix. See the summary table at the bottom for a quick reference.
 
 ## Contents
 
-- [BLOCKERS — will stop a fresh install cold](#blockers--will-stop-a-fresh-install-cold)
+- [0. BLOCKERS — will stop a fresh install cold](#0-blockers--will-stop-a-fresh-install-cold)
   - [1. No `git clone` step in the setup guide](#1-no-git-clone-step-in-the-setup-guide)
   - [2. `wg0.conf` fails to parse — WireGuard will not start](#2-wg0conf-fails-to-parse--wireguard-will-not-start)
-- [HIGH — will cause significant confusion or debugging time](#high--will-cause-significant-confusion-or-debugging-time)
+- [A. HIGH — will cause significant confusion or debugging time](#a-high--will-cause-significant-confusion-or-debugging-time)
   - [3. Host DNS breaks between Steps 3 and 4 and the warning is in the wrong place](#3-host-dns-breaks-between-steps-3-and-4-and-the-warning-is-in-the-wrong-place)
   - [4. `FTLCONF_webserver_api_password: "CHANGE_ME"` — easy to overlook, starts Pi-hole with a known password](#4-ftlconf_webserver_api_password-change_me--easy-to-overlook-starts-pi-hole-with-a-known-password)
-- [MEDIUM — silent or hard-to-diagnose failures](#medium--silent-or-hard-to-diagnose-failures)
+- [B. MEDIUM — silent or hard-to-diagnose failures](#b-medium--silent-or-hard-to-diagnose-failures)
   - [5. Monitoring script placeholder tokens cause silent `curl` failures](#5-monitoring-script-placeholder-tokens-cause-silent-curl-failures)
   - [6. Crontab `USERNAME` placeholder must be replaced manually](#6-crontab-username-placeholder-must-be-replaced-manually)
   - [7. UFW INPUT rules did not restrict Pi-hole's published port 53 (now fixed by host networking)](#7-ufw-input-rules-did-not-restrict-pi-holes-published-port-53-now-fixed-by-host-networking)
-- [MINOR — cosmetic or low-impact](#minor--cosmetic-or-low-impact)
+- [C. MINOR — cosmetic or low-impact](#c-minor--cosmetic-or-low-impact)
   - [8. `server.conf` indentation inconsistency](#8-serverconf-indentation-inconsistency)
   - [9. `sysctl.conf` append is not idempotent](#9-sysctlconf-append-is-not-idempotent)
   - [10. GRUB edit shows the target string but not a safe append command](#10-grub-edit-shows-the-target-string-but-not-a-safe-append-command)
   - [11. MAC address not mentioned in Step 0](#11-mac-address-not-mentioned-in-step-0)
   - [12. Cache dump correctness depends on Ubuntu's base unbound unit having no `ExecStop`](#12-cache-dump-correctness-depends-on-ubuntus-base-unbound-unit-having-no-execstop)
   - [13. Host-networked Pi-hole vs systemd-resolved on port 53 — now asserted in repo](#13-host-networked-pi-hole-vs-systemd-resolved-on-port-53--now-asserted-in-repo)
-- [Consolidation note (2026-06-02)](#consolidation-note-2026-06-02)
-- [Replicability pass (2026-06-02)](#replicability-pass-2026-06-02)
+- [1. Consolidation note (2026-06-02)](#1-consolidation-note-2026-06-02)
+- [2. Replicability pass (2026-06-02)](#2-replicability-pass-2026-06-02)
   - [14. Pi-hole v5 → v6 environment scheme — compose used variables v6 ignores (BLOCKER)](#14-pi-hole-v5--v6-environment-scheme--compose-used-variables-v6-ignores-blocker)
   - [13 (resolved). Host-net Pi-hole vs systemd-resolved stub — now asserted](#13-resolved-host-net-pi-hole-vs-systemd-resolved-stub--now-asserted)
   - [Live-box verification (2026-06-02)](#live-box-verification-2026-06-02)
-- [Summary](#summary)
+- [3. Summary](#3-summary)
 
 ---
 
-## BLOCKERS — will stop a fresh install cold
+## 0. BLOCKERS — will stop a fresh install cold
 
 ### 1. No `git clone` step in the setup guide
 
@@ -89,7 +89,7 @@ now has an explicit "fix the peer blocks before deploying" instruction.
 
 ---
 
-## HIGH — will cause significant confusion or debugging time
+## A. HIGH — will cause significant confusion or debugging time
 
 ### 3. Host DNS breaks between Steps 3 and 4 and the warning is in the wrong place
 
@@ -135,7 +135,7 @@ the Pi-hole start step, before the `docker compose up -d` command.
 
 ---
 
-## MEDIUM — silent or hard-to-diagnose failures
+## B. MEDIUM — silent or hard-to-diagnose failures
 
 ### 5. Monitoring script placeholder tokens cause silent `curl` failures
 
@@ -191,7 +191,7 @@ the VPN-peer-DNS fix. README.md's UFW note reflects this.
 
 ---
 
-## MINOR — cosmetic or low-impact
+## C. MINOR — cosmetic or low-impact
 
 ### 8. `server.conf` indentation inconsistency
 
@@ -297,7 +297,7 @@ live-box command list rather than blindly copying the fresh-install steps.
 
 ---
 
-## Consolidation note (2026-06-02)
+## 1. Consolidation note (2026-06-02)
 
 This file and the rest of the repo were consolidated from five divergent branches
 into a single source of truth on `main`. The substantive behavioral change adopted
@@ -310,7 +310,7 @@ introduced by the host-networking change.
 
 ---
 
-## Replicability pass (2026-06-02)
+## 2. Replicability pass (2026-06-02)
 
 A second walkthrough against current upstream package versions found two more
 fresh-install breaks and made item 13 deterministic:
@@ -370,7 +370,7 @@ Confirmed against the running t630 (SSH `192.168.1.118`):
 
 ---
 
-## Summary
+## 3. Summary
 
 | # | Severity | Location | Impact |
 |---|----------|----------|--------|

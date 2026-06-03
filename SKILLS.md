@@ -11,14 +11,14 @@ the resume name-drops, this explains.
 
 ## Contents
 
-- [Networking, VPN & Security](#networking-vpn--security)
-- [Systems & Infrastructure](#systems--infrastructure)
-- [Automation, Scripting & Tooling](#automation-scripting--tooling)
-- [Professional background (beyond this repo)](#professional-background-beyond-this-repo)
+- [0. Networking, VPN & Security](#0-networking-vpn--security)
+- [A. Systems & Infrastructure](#a-systems--infrastructure)
+- [B. Automation, Scripting & Tooling](#b-automation-scripting--tooling)
+- [1. Professional background (beyond this repo)](#1-professional-background-beyond-this-repo)
 
 ---
 
-## Networking, VPN & Security
+## 0. Networking, VPN & Security
 
 - **WireGuard VPN** — self-hosted server; multi-peer (iOS / macOS / Windows);
   key-pair lifecycle and rotation; full-tunnel routing with NAT masquerade;
@@ -48,7 +48,7 @@ the resume name-drops, this explains.
 
 ---
 
-## Systems & Infrastructure
+## A. Systems & Infrastructure
 
 - **Linux administration** — Ubuntu / Debian; headless server operation.
 - **systemd** — authoring services, timers, and `service.d` drop-in overrides;
@@ -81,7 +81,7 @@ the resume name-drops, this explains.
 
 ---
 
-## Automation, Scripting & Tooling
+## B. Automation, Scripting & Tooling
 
 - **Bash** — idempotent provisioning and monitoring scripts (`set -euo
   pipefail`, delete-before-add idempotency, PCRE parsing, curl push reporting).
@@ -100,7 +100,7 @@ the resume name-drops, this explains.
 
 ---
 
-## Professional background (beyond this repo)
+## 1. Professional background (beyond this repo)
 
 Domain skills from prior work, not exercised by this project but part of the
 broader toolkit:

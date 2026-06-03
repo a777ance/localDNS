@@ -8,20 +8,20 @@ network-context.md has detailed rationale for non-obvious design decisions.
 
 ## Contents
 
-- [What this repo is](#what-this-repo-is)
-- [Hardware](#hardware)
-- [Network topology](#network-topology)
-- [Deploy paths](#deploy-paths)
-- [Unbound config](#unbound-config)
-- [AMD Carrizo GPU](#amd-carrizo-gpu)
-- [Known issues](#known-issues)
-- [Verification](#verification)
-- [Working philosophy](#working-philosophy)
-- [Further reading](#further-reading)
+- [0. What this repo is](#0-what-this-repo-is)
+- [A. Hardware](#a-hardware)
+- [B. Network topology](#b-network-topology)
+- [C. Deploy paths](#c-deploy-paths)
+- [D. Unbound config](#d-unbound-config)
+- [E. AMD Carrizo GPU](#e-amd-carrizo-gpu)
+- [1. Known issues](#1-known-issues)
+- [2. Verification](#2-verification)
+- [3. Working philosophy](#3-working-philosophy)
+- [4. Further reading](#4-further-reading)
 
 ---
 
-## What this repo is
+## 0. What this repo is
 
 Config snapshot and rollback target for a self-hosted DNS + monitoring + VPN
 stack on an HP t630 thin client. Every file maps to a specific location on the
@@ -32,7 +32,7 @@ manually deployed.
 
 ---
 
-## Hardware
+## A. Hardware
 
 - **HP t630** — AMD Carrizo GX-420GI quad-core, 16 GB RAM, 16 GB eMMC
 - **OS:** Ubuntu 24.04.4 LTS, kernel 6.17 series
@@ -40,7 +40,7 @@ manually deployed.
 
 ---
 
-## Network topology
+## B. Network topology
 
 ```
 ISP (Spectrum ~200/100 Mbps asymmetric)
@@ -108,7 +108,7 @@ both containers sit directly on the host network stack.
 
 ---
 
-## Deploy paths
+## C. Deploy paths
 
 Folders are numbered by installation order. README adds two folder-less steps
 (Step 0 Router, Step 2 Docker CE), so a folder's number is not its README step
@@ -143,7 +143,7 @@ number — use this table to map repo path → system path, not the step numbers
 
 ---
 
-## Unbound config
+## D. Unbound config
 
 Five drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
 
@@ -167,7 +167,7 @@ blocked).
 
 ---
 
-## AMD Carrizo GPU
+## E. AMD Carrizo GPU
 
 The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 
@@ -178,7 +178,7 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 
 ---
 
-## Known issues
+## 1. Known issues
 
 | Issue | Action |
 | ----- | ------ |
@@ -193,7 +193,7 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 
 ---
 
-## Verification
+## 2. Verification
 
 ```bash
 systemctl status unbound
@@ -211,18 +211,17 @@ cat /sys/class/drm/card*/device/power_dpm_force_performance_level  # high
 
 ---
 
-## Working philosophy
+## 3. Working philosophy
 
 Every commit to `main` must leave README.md able to reproduce a working system on
 clean Ubuntu 24.04. Use feature branches for half-finished work.
 
 ---
 
-## Further reading
+## 4. Further reading
 
 - **README.md** — complete setup guide and system reference (SETUP.md absorbed here)
 - **INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
 - **SKILLS.md** — skills demonstrated by the stack, each mapped to proving artifacts
 - **network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
-

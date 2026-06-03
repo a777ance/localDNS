@@ -3,26 +3,28 @@
 Documents the router and DNS/VPN configuration that the t630 stack depends on.
 This is not reproduced by README.md — it describes the surrounding network environment.
 
+---
+
 ## Contents
 
-- [Router topology](#router-topology)
+- [0. Router topology](#0-router-topology)
   - [Diagnosing future packet loss](#diagnosing-future-packet-loss)
-- [Router: Netgear R7000 (192.168.1.1)](#router-netgear-r7000-19216811)
+- [A. Router: Netgear R7000 (192.168.1.1)](#a-router-netgear-r7000-19216811)
   - [DHCP reservation](#dhcp-reservation)
   - [DNS pushed to LAN clients](#dns-pushed-to-lan-clients)
   - [Router's own DNS](#routers-own-dns)
   - [WAN security settings (Advanced → WAN Setup)](#wan-security-settings-advanced--wan-setup)
-- [Pi-hole DNS settings (Settings → DNS)](#pi-hole-dns-settings-settings--dns)
+- [B. Pi-hole DNS settings (Settings → DNS)](#b-pi-hole-dns-settings-settings--dns)
   - [Why 127.0.0.1#5335 — and why it used to be 172.17.0.1#5335](#why-1270015335--and-why-it-used-to-be-17217015335)
   - [Why "Permit all origins" is checked](#why-permit-all-origins-is-checked)
   - [No preset upstream servers checked](#no-preset-upstream-servers-checked)
-- [Unbound DNS split (streaming-forward.conf)](#unbound-dns-split-streaming-forwardconf)
+- [C. Unbound DNS split (streaming-forward.conf)](#c-unbound-dns-split-streaming-forwardconf)
   - [Why DoT-in-Unbound, not the old plaintext pool (or a separate proxy)](#why-dot-in-unbound-not-the-old-plaintext-pool-or-a-separate-proxy)
-- [Host resolver — why the t630 uses external DNS for itself](#host-resolver--why-the-t630-uses-external-dns-for-itself)
-- [Uptime Kuma — monitoring](#uptime-kuma--monitoring)
+- [D. Host resolver — why the t630 uses external DNS for itself](#d-host-resolver--why-the-t630-uses-external-dns-for-itself)
+- [E. Uptime Kuma — monitoring](#e-uptime-kuma--monitoring)
   - [Why network_mode: host — not a bridge network](#why-network_mode-host--not-a-bridge-network)
   - [Uptime Kuma monitors](#uptime-kuma-monitors)
-- [WireGuard VPN](#wireguard-vpn)
+- [F. WireGuard VPN](#f-wireguard-vpn)
   - [Topology](#topology)
   - [Server config: 05-wireguard/wg0.conf](#server-config-05-wireguardwg0conf)
   - [IP forwarding](#ip-forwarding)
@@ -32,30 +34,30 @@ This is not reproduced by README.md — it describes the surrounding network env
   - [Does the router need a DHCP or DNS reservation for WireGuard peers?](#does-the-router-need-a-dhcp-or-dns-reservation-for-wireguard-peers)
   - [IP address assignments](#ip-address-assignments)
   - [Windows client security (laptop peer)](#windows-client-security-laptop-peer)
-- [WireGuard: adding a new peer](#wireguard-adding-a-new-peer)
+- [G. WireGuard: adding a new peer](#g-wireguard-adding-a-new-peer)
   - [Each device needs its own key pair](#each-device-needs-its-own-key-pair)
   - [Adding a peer live (no restart)](#adding-a-peer-live-no-restart)
   - [Key derivation: the safe way to get a peer's public key](#key-derivation-the-safe-way-to-get-a-peers-public-key)
   - [Do not add the server's own public key as a peer](#do-not-add-the-servers-own-public-key-as-a-peer)
   - [SSH when a full tunnel is active](#ssh-when-a-full-tunnel-is-active)
   - [UFW: services reachable from VPN peers](#ufw-services-reachable-from-vpn-peers)
-- [WireGuard: UFW forwarding — what went wrong and why](#wireguard-ufw-forwarding--what-went-wrong-and-why)
+- [H. WireGuard: UFW forwarding — what went wrong and why](#h-wireguard-ufw-forwarding--what-went-wrong-and-why)
   - [The failure](#the-failure)
   - [Root cause](#root-cause)
   - [The fix](#the-fix)
-- [WireGuard peer onboarding — what not to do](#wireguard-peer-onboarding--what-not-to-do)
+- [I. WireGuard peer onboarding — what not to do](#i-wireguard-peer-onboarding--what-not-to-do)
   - [Use the App Store app, not Homebrew](#use-the-app-store-app-not-homebrew)
   - [Peer config mistakes that break everything](#peer-config-mistakes-that-break-everything)
   - [WireGuard IPv6 black hole (handshake OK, nothing loads)](#wireguard-ipv6-black-hole-handshake-ok-nothing-loads)
   - [How to verify the tunnel is actually working](#how-to-verify-the-tunnel-is-actually-working)
   - [Pi-hole must accept queries from the wg0 subnet](#pi-hole-must-accept-queries-from-the-wg0-subnet)
-- [CAKE / bufferbloat](#cake--bufferbloat)
+- [J. CAKE / bufferbloat](#j-cake--bufferbloat)
   - [What CAKE on the t630 covers](#what-cake-on-the-t630-covers)
   - [For whole-network bufferbloat: Netgear R7000](#for-whole-network-bufferbloat-netgear-r7000)
 
 ---
 
-## Router topology
+## 0. Router topology
 
 The Netgear R7000 is the sole router (routing, NAT, DHCP, WAN). The t630 is the
 DNS and VPN server, hanging off the LAN.
@@ -93,7 +95,7 @@ signal levels require an ISP technician.
 
 ---
 
-## Router: Netgear R7000 (192.168.1.1)
+## A. Router: Netgear R7000 (192.168.1.1)
 
 ### DHCP reservation
 
@@ -143,7 +145,7 @@ filtered too.
 
 ---
 
-## Pi-hole DNS settings (Settings → DNS)
+## B. Pi-hole DNS settings (Settings → DNS)
 
 ### Why 127.0.0.1#5335 — and why it used to be 172.17.0.1#5335
 
@@ -191,7 +193,7 @@ lookups; keeping a single upstream is what preserves the private path.
 
 ---
 
-## Unbound DNS split (streaming-forward.conf)
+## C. Unbound DNS split (streaming-forward.conf)
 
 Unbound is the single decision point for where each query goes:
 
@@ -262,7 +264,7 @@ lookups too — a separate, optional change.
 
 ---
 
-## Host resolver — why the t630 uses external DNS for itself
+## D. Host resolver — why the t630 uses external DNS for itself
 
 The t630 runs the network's DNS, but it must NOT resolve its *own* queries (apt,
 git, curl) through its own Pi-hole. With `network_mode: host`, Pi-hole binds
@@ -316,7 +318,7 @@ after the restart, an entry may be pinned at the link level —
 
 ---
 
-## Uptime Kuma — monitoring
+## E. Uptime Kuma — monitoring
 
 Uptime Kuma runs in Docker on port 3001 and monitors Unbound via a DNS monitor
 querying `127.0.0.1:5335`.
@@ -370,7 +372,7 @@ the script), lowered to 5% once the router hardware is stable.
 
 ---
 
-## WireGuard VPN
+## F. WireGuard VPN
 
 The t630 runs a WireGuard server that tunnels the phone back to the home network
 from anywhere on cellular or untrusted Wi-Fi.
@@ -479,7 +481,7 @@ unaffected by this setting.
 
 ---
 
-## WireGuard: adding a new peer
+## G. WireGuard: adding a new peer
 
 ### Each device needs its own key pair
 
@@ -589,7 +591,7 @@ subnet, not the WG subnet. Adding `ufw allow from 10.8.0.0/24 to any port
 
 ---
 
-## WireGuard: UFW forwarding — what went wrong and why
+## H. WireGuard: UFW forwarding — what went wrong and why
 
 ### The failure
 
@@ -633,7 +635,7 @@ is the correct and only place for it.
 
 ---
 
-## WireGuard peer onboarding — what not to do
+## I. WireGuard peer onboarding — what not to do
 
 Lessons from adding a Mac as a second peer (May 2026).
 
@@ -718,7 +720,7 @@ regardless of this setting.
 
 ---
 
-## CAKE / bufferbloat
+## J. CAKE / bufferbloat
 
 **What bufferbloat is:** when a big download or upload fills the modem/router's
 packet buffer, everything else has to wait behind it. A 16 ms idle ping becomes
@@ -771,4 +773,3 @@ download/upload caps to 90% of measured ISP speeds, enable fq_codel.
 
 Until then, the t630 CAKE handles the VPN client case, and the home network
 bufferbloat remains for direct LAN devices.
-
