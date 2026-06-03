@@ -66,6 +66,7 @@ boundary holds with a single command.
 
 - [0. Introduction](#0-introduction)
 - [A. Setup (Quick-Start)](#a-setup-quick-start)
+  - [Which steps do you need?](#which-steps-do-you-need)
   - [Before you begin](#before-you-begin)
   - [Step 0: Router — DHCP reservation](#step-0-router--dhcp-reservation)
   - [Step 1: CAKE SQM](#step-1-cake-sqm)
@@ -138,6 +139,26 @@ never hardens into a single point of failure.
 ---
 
 ## A. Setup (Quick-Start)
+
+### Which steps do you need?
+
+Not every step applies to every household. The DNS stack is the whole point of the
+box; the rest is optional and depends on what you want — not on how many computers you
+own. Phones benefit from network-wide ad-blocking and private DNS exactly like any
+other device, so a phone-only home still wants the core stack.
+
+| If you want… | Steps | Notes |
+| ------------ | ----- | ----- |
+| **Network-wide ad-blocking + private DNS** (the core reason to build this) | 0, 2, 3–5, 6, 11 | Required. Every device on the Wi-Fi benefits automatically once Step 11 points the router at the t630. |
+| **Home DNS + LAN access from cellular** | + 7 (VPN) | Self-hosted WireGuard tunnel. (Cloudflare WARP is *not* a substitute — it routes DNS to Cloudflare, bypassing this stack; see Step 7.) |
+| **Bufferbloat control for VPN traffic** | + 1 (CAKE) | Only shapes traffic the t630 forwards — i.e. Step 7 VPN clients. Skip it if you don't run the VPN. |
+| **Monitoring / alerting** | + 8 (Uptime Kuma) | Optional dashboard. |
+| **Graphical remote desktop *on the t630*** | + 9–10 (GPU + Remote Desktop) | Skip if you administer the box over SSH only — a phone-only or headless setup never needs these. |
+
+Steps **9 and 10** are the ones to skip for a phone-only or headless household. The
+DNS stack (Pi-hole + Unbound) is **not** — phones are a prime beneficiary of it.
+
+---
 
 ### Before you begin
 
@@ -669,8 +690,10 @@ can push the heartbeat to second 61–62; the 90s window absorbs that without fa
 
 ### Step 9: GPU Performance
 
-**Only required for remote desktop.** DNS and VPN are unaffected by the GPU clock
-speed — skip this step entirely if you only use SSH.
+**Only required for remote desktop on the t630 itself.** DNS, VPN, ad-blocking, and
+monitoring are all unaffected by the GPU clock speed — **skip Steps 9 and 10 entirely
+if you administer the box over SSH only** (a phone-only or otherwise headless
+household never needs them). See [Which steps do you need?](#which-steps-do-you-need).
 
 **Requires a reboot.** Do this before installing NoMachine.
 
@@ -726,6 +749,10 @@ cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor | sort -u  # → perfo
 ---
 
 ### Step 10: Remote Desktop
+
+**Skip this step (and Step 9) if you only administer the t630 over SSH.** Remote
+desktop runs a graphical session *on the box* — a phone-only or headless setup never
+needs it.
 
 ```bash
 sudo apt install -y xubuntu-desktop xfce4 xfce4-goodies
