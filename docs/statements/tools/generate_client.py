@@ -169,8 +169,8 @@ def build(cfg):
 # ───────── ARCHETYPE CONFIGS ─────────
 ARCHES = {
 "prime-time": dict(
-  holder="David Allum", acct="A77-001", period="Statement Period: May 1 – May 31, 2026", stmt_date="June 1, 2026",
-  live_url="https://status.a777ance.com/allum", stmt_url="https://my.a777ance.com/A77-001", conn_url="https://alliance.a777ance.com/connect/m-reyes",
+  holder="Marcus Bennett", acct="A77-001", period="Statement Period: May 1 – May 31, 2026", stmt_date="June 1, 2026",
+  live_url="https://status.a777ance.com/bennett", stmt_url="https://my.a777ance.com/A77-001", conn_url="https://alliance.a777ance.com/connect/m-reyes",
   handled=[("May 17","Cloudflare pushed a security update to its encrypted-DNS service. <b>Your appliance was updated the same day</b> — your private lookups kept flowing, a little faster than before.","Patched on your t630 by <span class='nm'>Jose</span>"),
            ("May 14","When Spectrum changed its routing, <b>your home's DNS was re-pointed in minutes</b> — the movie you were streaming never skipped.","Done on your line by <span class='nm'>Jose</span> · you never noticed"),
            ("May 28","<b>Your living-room smart-TV</b> hung on a bad connection; it was cleared remotely at 11:40 pm.","Fixed in your home by <span class='nm'>Jose</span> · while you slept")],

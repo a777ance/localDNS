@@ -14,7 +14,7 @@ def sample_portfolio():
     """Built-in sample book of 20 homes (deterministic)."""
     random.seed(77)
     ARCH = ["Prime-Time", "Home Office", "Connected Family"]
-    names = ["Allum","Chen","Okafor Family","Delgado","Park Household","Nguyen","Brooks","Romano",
+    names = ["Bennett","Chen","Okafor Family","Delgado","Park Household","Nguyen","Brooks","Romano",
              "Haddad","Ferreira","Whitlock","Osei","Sandberg","Cruz","Tanaka","Mbeki",
              "Lindqvist","Patel","Dubois","Reyes Loft"]
     roster = []
