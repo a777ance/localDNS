@@ -259,6 +259,8 @@ ARCHES = {
 # are the built-in SAMPLE data: on first run they seed the JSON files, then rendering
 # always reads from JSON. The on-box collector (tools/collect/) overwrites these JSON
 # files with a home's real figures — that's the only handoff between data and template.
+# Real customer data is PRIVATE: pass --data-dir/--out-dir to render a home's real
+# statement into a private location, never into this public tree (see --help).
 DATA = os.path.join(HERE, "..", "data", "clients")
 OUT  = os.path.join(HERE, "..", "client")
 NAMES = {"prime-time":"archetype-prime-time", "home-office":"archetype-home-office",
@@ -273,18 +275,34 @@ def seed():
                 json.dump(cfg, f, indent=2, ensure_ascii=False)
             print("seeded", os.path.relpath(p, HERE))
 
-def render_all():
-    os.makedirs(OUT, exist_ok=True)
-    for fn in sorted(os.listdir(DATA)):
+def render_all(data_dir=DATA, out_dir=OUT):
+    os.makedirs(out_dir, exist_ok=True)
+    for fn in sorted(os.listdir(data_dir)):
         if not fn.endswith(".json"):
             continue
-        with open(os.path.join(DATA, fn)) as f:
+        with open(os.path.join(data_dir, fn)) as f:
             cfg = json.load(f)
         html = build(cfg)
-        with open(os.path.join(OUT, fn[:-5] + ".html"), "w") as f:
+        with open(os.path.join(out_dir, fn[:-5] + ".html"), "w") as f:
             f.write(html)
-        print("wrote", fn[:-5] + ".html", len(html), "bytes")
+        print("wrote", os.path.join(out_dir, fn[:-5] + ".html"), len(html), "bytes")
 
 if __name__ == "__main__":
-    seed()
-    render_all()
+    import argparse
+    ap = argparse.ArgumentParser(
+        description="Render client statements (<home>.json -> <home>.html). Point "
+                    "--data-dir/--out-dir at a PRIVATE location to render a real customer's "
+                    "statement outside this public repo.")
+    ap.add_argument("--data-dir", default=DATA,
+                    help="dir of <home>.json files to render (default: ../data/clients)")
+    ap.add_argument("--out-dir", default=OUT,
+                    help="dir to write <home>.html into (default: ../client)")
+    ap.add_argument("--no-seed", action="store_true",
+                    help="don't seed the built-in sample homes (already implied for a custom --data-dir)")
+    args = ap.parse_args()
+    data_dir, out_dir = os.path.abspath(args.data_dir), os.path.abspath(args.out_dir)
+    # Seed the three sample homes ONLY into the default public data dir — never a private
+    # one, so a real customer's dir is never polluted with the built-in mockups.
+    if data_dir == os.path.abspath(DATA) and not args.no_seed:
+        seed()
+    render_all(data_dir, out_dir)

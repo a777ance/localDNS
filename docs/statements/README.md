@@ -142,6 +142,21 @@ python3 tools/compose.py --stats /tmp/s.json --sidecar tools/collect/sample-side
 python3 tools/generate_client.py
 ```
 
+**Real customers render PRIVATELY.** This repo is public (GitHub Pages), so a real home's
+name and figures must never be written here. The tools are generic and carry no customer
+data — only the JSON does — so point the generator at a private location instead:
+
+```bash
+# stats.json comes from the box; sidecar + output live in a PRIVATE repo
+python3 tools/compose.py --stats /tmp/HH-0001.stats.json --sidecar ~/customers/households/HH-0001-dave/sidecar.json \
+        --out ~/customers/households/HH-0001-dave/data/2026-06.json
+python3 tools/generate_client.py --data-dir ~/customers/households/HH-0001-dave/data \
+        --out-dir  ~/customers/households/HH-0001-dave/statements
+```
+
+`--data-dir` skips the built-in mockups automatically, so a private dir only ever holds that
+home's real statement. Keep both the JSON and the rendered HTML in the private repo.
+
 Prose is deterministic and templated today; `compose_prose()` is the single seam to swap in a
 Claude (Haiku) call for richer copy (~$0.01/home) once you want it — the inputs are already assembled.
 
