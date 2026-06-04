@@ -223,5 +223,7 @@ clean Ubuntu 24.04. Use feature branches for half-finished work.
 - **README.md** — complete setup guide and system reference (SETUP.md absorbed here)
 - **INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
 - **SKILLS.md** — skills demonstrated by the stack, each mapped to proving artifacts
+- **PLUGINS.md** — which Claude Code Directory plugins apply to this config repo (short
+  answer: none of the business ones — keep it lean)
 - **network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
