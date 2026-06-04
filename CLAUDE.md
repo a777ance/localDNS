@@ -18,6 +18,7 @@ network-context.md has detailed rationale for non-obvious design decisions.
 - [2. Verification](#2-verification)
 - [3. Working philosophy](#3-working-philosophy)
 - [4. Further reading](#4-further-reading)
+- [5. AI CTO state](#5-ai-cto-state)
 
 ---
 
@@ -227,3 +228,11 @@ clean Ubuntu 24.04. Use feature branches for half-finished work.
   answer: none of the business ones — keep it lean)
 - **network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
+
+---
+
+## 5. AI CTO state
+
+Read `docs/ai-cto/context.md` in this repo for current open items and component status.
+The portfolio hub (cross-repo roadmap, decisions log, tech debt) lives in
+`DESIGN-Full-Workflow-Integration-end-to-end-/docs/ai-cto/portfolio.md`.
