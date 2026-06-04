@@ -179,3 +179,11 @@ The committed examples use **sample data** for the volume-based sections. Before
 money, stand up the flow-accounting layer (or scope the statement to what Pi-hole + Uptime Kuma
 already prove). QR codes are real (`segno`) and inlined as SVG — every statement is a single
 self-contained file with no external assets and no JavaScript.
+
+**The generator self-scopes — honest by construction.** `compose.py`/`generate_client.py` omit
+any section they lack real data for, rather than fake it: no per-category volume → no Traffic
+Allocation donut **and** no Household Profile/suggestions (both are traffic-mix–derived); no real
+cohort (or a `_DO_NOT_SHIP` placeholder) → no "How You Compare"; no real Alliance match → no
+Connect card. So a first statement built from only Pi-hole + Uptime Kuma + `wg` renders cleanly
+as Account Summary + Handled For You + See For Yourself + Service Status. Full `cfg`s (the three
+sample homes) are unaffected — they still render every section, byte-for-byte as before.

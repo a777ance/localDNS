@@ -130,20 +130,28 @@ def compose_prose(archetype, alloc, devices):
     return body, macro
 
 
-def compose(stats, sidecar):
-    by_cat = stats["volume"]["by_category"]
-    total = sum(by_cat.values()) or 1
-    shares = {k: v / total for k, v in by_cat.items()}
-    devices = stats.get("devices")
-    archetype = sidecar.get("force_archetype") or classify(shares, devices)
-    rule = RULES[archetype]
-    alloc, total_bytes = build_alloc(by_cat)
-    body, macro = compose_prose(archetype, alloc, devices)
+def _real(v):
+    """True only for genuine data — not None, blank, or a CHANGE_ME placeholder."""
+    if v is None:
+        return False
+    if isinstance(v, str):
+        s = v.strip()
+        return bool(s) and not s.upper().startswith("CHANGE_ME")
+    return True
 
+
+def compose(stats, sidecar):
+    by_cat = stats.get("volume", {}).get("by_category", {}) or {}
+    vol_total = sum(by_cat.values())
+    volume_known = vol_total > 0
+    shares = {k: v / vol_total for k, v in by_cat.items()} if volume_known else {}
+    devices = stats.get("devices")
+
+    # Account Summary — always real (Pi-hole FTL / Uptime Kuma / wg).
     q = stats["queries"]
     prot = round(100 * q["blocked"] / q["total"], 1) if q["total"] else 0
-    pr = sidecar.get("prior", {})           # prior-period values (operator/last run)
-    ytd = sidecar.get("ytd", {})
+    pr = sidecar.get("prior") or {}         # prior-period values; {} on month one → "—"
+    ytd = sidecar.get("ytd") or {}
     summary = [
         ["Queries resolved", f"{q['total']:,}", pr.get("queries", "—"), pr.get("queries_chg", ""), ytd.get("queries", "—")],
         ["Threats &amp; trackers blocked", f"{q['blocked']:,}", pr.get("blocked", "—"), pr.get("blocked_chg", ""), ytd.get("blocked", "—")],
@@ -156,23 +164,46 @@ def compose(stats, sidecar):
     acct = sidecar["account"]
     cfg = dict(
         holder=acct["holder"], acct=acct["acct"], period=acct["period"], stmt_date=acct["stmt_date"],
-        live_url=acct["live_url"], stmt_url=acct["stmt_url"], conn_url=sidecar["ally"]["conn_url"],
-        handled=sidecar["handled"], handled_foot=sidecar["handled_foot"],
-        summary=summary, total_gb=f"{total_bytes / GB:.0f}", alloc=alloc,
-        emoji=rule["emoji"], arch_name=rule["name"], arch_tag=rule["tag"],
-        arch_body=body, chips=rule["chips"], macro_line=macro,
-        cohort=sidecar["cohort"]["label"],
-        compare=compare_rows(stats, sidecar["cohort"], archetype, shares),
-        sug_title=rule["sug_title"],
-        ally_intro=sidecar["ally"]["intro"], ally_name=sidecar["ally"]["name"],
-        ally_role=sidecar["ally"]["role"], ally_loc=sidecar["ally"]["loc"],
-        ally_blurb=sidecar["ally"]["blurb"],
+        live_url=acct["live_url"], stmt_url=acct["stmt_url"],
+        handled=sidecar.get("handled", []), handled_foot=sidecar.get("handled_foot", ""),
+        summary=summary,
     )
-    if "affirmation" in rule:
-        cfg["affirmation"] = rule["affirmation"]
-    else:
-        cfg["suggestions"] = rule["suggestions"]
-    return cfg, archetype
+
+    # Volume-derived sections (donut + profile + suggestions) need real per-category bytes.
+    # Without nftables on the box there is no honest traffic mix, so these are OMITTED, not faked.
+    archetype = None
+    if volume_known:
+        archetype = sidecar.get("force_archetype") or classify(shares, devices)
+        rule = RULES[archetype]
+        alloc, total_bytes = build_alloc(by_cat)
+        body, macro = compose_prose(archetype, alloc, devices)
+        cfg.update(
+            total_gb=f"{total_bytes / GB:.0f}", alloc=alloc,
+            emoji=rule["emoji"], arch_name=rule["name"], arch_tag=rule["tag"],
+            arch_body=body, chips=rule["chips"], macro_line=macro,
+            sug_title=rule["sug_title"],
+        )
+        if "affirmation" in rule:
+            cfg["affirmation"] = rule["affirmation"]
+        else:
+            cfg["suggestions"] = rule["suggestions"]
+
+        # How You Compare — needs real volume AND a real cohort dataset. Never invented peers.
+        cohort = sidecar.get("cohort") or {}
+        if not cohort.get("_DO_NOT_SHIP") and _real(cohort.get("label")) and _real(cohort.get("avg_daily_gb")):
+            cfg["cohort"] = cohort["label"]
+            cfg["compare"] = compare_rows(stats, cohort, archetype, shares)
+
+    # Connect in the Alliance — only with a real, named match (omit while you're the only member).
+    ally = sidecar.get("ally") or {}
+    if not ally.get("_DO_NOT_SHIP") and _real(ally.get("name")) and _real(ally.get("conn_url")):
+        cfg.update(
+            conn_url=ally["conn_url"], ally_intro=ally.get("intro", ""),
+            ally_name=ally["name"], ally_role=ally.get("role", ""),
+            ally_loc=ally.get("loc", ""), ally_blurb=ally.get("blurb", ""),
+        )
+
+    return cfg, (archetype or "no-volume")
 
 
 def main():

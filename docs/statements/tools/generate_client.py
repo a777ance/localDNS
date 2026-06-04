@@ -74,8 +74,46 @@ def suggestions_block(cfg):
 STYLE = open(os.path.join(HERE,'style.css')).read()
 
 def build(cfg):
-    qr_live = qr(cfg["live_url"]); qr_stmt = qr(cfg["stmt_url"]); qr_conn = qr(cfg["conn_url"])
-    sug_note = "what we'd gently suggest this month" if "suggestions" in cfg else "our read this month"
+    qr_live = qr(cfg["live_url"]); qr_stmt = qr(cfg["stmt_url"])
+    # Optional sections — rendered only when honest data is present, otherwise omitted
+    # entirely (no faked donut, no invented peer cohort, no phantom Alliance match).
+    sec_alloc = (f'''\n\n    <div class="section"><div class="section-head"><div class="section-title">Traffic Allocation</div>
+      <div class="section-note">{cfg["total_gb"]} GB total · by category</div></div>
+      <div class="alloc"><div class="donut-wrap"><div class="donut" style="{conic(cfg["alloc"])}"></div>
+        <div class="donut-center"><div class="big">{cfg["total_gb"]}<span style="font-size:13px"> GB</span></div>
+          <div class="lbl">Total Volume</div></div></div>
+        <table class="legend">{legend(cfg["alloc"])}</table></div></div>''' if cfg.get("alloc") else "")
+    sec_profile = (f'''\n\n    <div class="section"><div class="section-head"><div class="section-title">Your Household Profile</div>
+      <div class="section-note">your network's "macros" this month</div></div>
+      <div class="profile"><div class="profile-badge"><div class="emoji">{cfg["emoji"]}</div>
+        <div class="of">Profile of the Month</div></div>
+        <div><div class="profile-name">{cfg["arch_name"]}</div><div class="profile-tag">{cfg["arch_tag"]}</div>
+          <div class="profile-body">{cfg["arch_body"]}</div>
+          <div class="chips">{chips(cfg["chips"])}</div>
+          <div class="macro-line">{cfg["macro_line"]}</div></div></div></div>''' if cfg.get("arch_name") else "")
+    sec_compare = (f'''\n\n    <div class="section"><div class="section-head"><div class="section-title">How You Compare</div>
+      <div class="section-note">vs. similar households — {cfg["cohort"]}</div></div>
+      {cmp(cfg["compare"])}</div>''' if cfg.get("compare") else "")
+    if cfg.get("suggestions") or cfg.get("affirmation"):
+        sug_note = "what we'd gently suggest this month" if "suggestions" in cfg else "our read this month"
+        sec_sug = f'''\n\n    <div class="section"><div class="section-head"><div class="section-title">{cfg["sug_title"]}</div>
+      <div class="section-note">{sug_note}</div></div>
+      {suggestions_block(cfg)}</div>'''
+    else:
+        sec_sug = ""
+    if cfg.get("ally_name"):
+        qr_conn = qr(cfg["conn_url"])
+        match_span = (f'\n          <span class="ally-match">Matched to: {cfg["arch_name"]}</span>' if cfg.get("arch_name") else "")
+        sec_ally = f'''\n\n    <div class="section"><div class="section-head"><div class="section-title">Connect in the Alliance</div>
+      <div class="section-note">optional · always opt-in</div></div>
+      <div class="ally-intro">{cfg["ally_intro"]}</div>
+      <div class="ally-card"><div class="avatar">{AVATAR}</div>
+        <div><div class="ally-name">{cfg["ally_name"]}</div><div class="ally-role">{cfg["ally_role"]}</div>
+          <div class="ally-loc">{cfg["ally_loc"]}</div><div class="ally-blurb">{cfg["ally_blurb"]}</div>{match_span}</div>
+        <div class="ally-qr"><div class="frame">{qr_conn}</div><div class="cap">Scan to connect</div></div></div>
+      <div class="ally-opt">Prefer to keep to yourself? The Alliance directory is opt-in — you'll only ever appear, or be matched, if you choose to.</div></div>'''
+    else:
+        sec_ally = ""
     html = f'''<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>A777ance — Network Activity Statement — {cfg["holder"]}</title>
@@ -99,41 +137,7 @@ def build(cfg):
     <div class="section"><div class="section-head"><div class="section-title">Handled For You This Month</div>
       <div class="section-note">work done on your behalf — usually before you noticed</div></div>
       {handled_block(cfg["handled"])}
-      <div class="handled-foot">{cfg["handled_foot"]}</div></div>
-
-    <div class="section"><div class="section-head"><div class="section-title">Traffic Allocation</div>
-      <div class="section-note">{cfg["total_gb"]} GB total · by category</div></div>
-      <div class="alloc"><div class="donut-wrap"><div class="donut" style="{conic(cfg["alloc"])}"></div>
-        <div class="donut-center"><div class="big">{cfg["total_gb"]}<span style="font-size:13px"> GB</span></div>
-          <div class="lbl">Total Volume</div></div></div>
-        <table class="legend">{legend(cfg["alloc"])}</table></div></div>
-
-    <div class="section"><div class="section-head"><div class="section-title">Your Household Profile</div>
-      <div class="section-note">your network's "macros" this month</div></div>
-      <div class="profile"><div class="profile-badge"><div class="emoji">{cfg["emoji"]}</div>
-        <div class="of">Profile of the Month</div></div>
-        <div><div class="profile-name">{cfg["arch_name"]}</div><div class="profile-tag">{cfg["arch_tag"]}</div>
-          <div class="profile-body">{cfg["arch_body"]}</div>
-          <div class="chips">{chips(cfg["chips"])}</div>
-          <div class="macro-line">{cfg["macro_line"]}</div></div></div></div>
-
-    <div class="section"><div class="section-head"><div class="section-title">How You Compare</div>
-      <div class="section-note">vs. similar households — {cfg["cohort"]}</div></div>
-      {cmp(cfg["compare"])}</div>
-
-    <div class="section"><div class="section-head"><div class="section-title">{cfg["sug_title"]}</div>
-      <div class="section-note">{sug_note}</div></div>
-      {suggestions_block(cfg)}</div>
-
-    <div class="section"><div class="section-head"><div class="section-title">Connect in the Alliance</div>
-      <div class="section-note">optional · always opt-in</div></div>
-      <div class="ally-intro">{cfg["ally_intro"]}</div>
-      <div class="ally-card"><div class="avatar">{AVATAR}</div>
-        <div><div class="ally-name">{cfg["ally_name"]}</div><div class="ally-role">{cfg["ally_role"]}</div>
-          <div class="ally-loc">{cfg["ally_loc"]}</div><div class="ally-blurb">{cfg["ally_blurb"]}</div>
-          <span class="ally-match">Matched to: {cfg["arch_name"]}</span></div>
-        <div class="ally-qr"><div class="frame">{qr_conn}</div><div class="cap">Scan to connect</div></div></div>
-      <div class="ally-opt">Prefer to keep to yourself? The Alliance directory is opt-in — you'll only ever appear, or be matched, if you choose to.</div></div>
+      <div class="handled-foot">{cfg["handled_foot"]}</div></div>{sec_alloc}{sec_profile}{sec_compare}{sec_sug}{sec_ally}
 
     <div class="section"><div class="section-head"><div class="section-title">See For Yourself</div>
       <div class="section-note">scan with your phone camera</div></div>
