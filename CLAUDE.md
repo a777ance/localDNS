@@ -141,6 +141,42 @@ number — use this table to map repo path → system path, not the step numbers
 | `08-gpu-performance/cpu-performance.service` | `/etc/systemd/system/cpu-performance.service` | `sudo systemctl daemon-reload` |
 | `08-gpu-performance/99-amdgpu-performance.rules` | `/etc/udev/rules.d/99-amdgpu-performance.rules` | `sudo udevadm control --reload-rules` |
 | `09-remote-desktop/server.cfg` | `/usr/NX/etc/server.cfg` | `sudo /usr/NX/bin/nxserver --restart` |
+| `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
+| `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
+| `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
+
+---
+
+## F. nftables volume layer — deploy checklist
+
+Run this once on the t630 to stand up per-category byte accounting. All four
+steps can be done in one SSH session.
+
+```bash
+# 1. Copy the collect tools to the box (from your machine)
+scp -r docs/statements/tools/collect/ user@192.168.1.118:~/a777ance/collect/
+
+# 2. Load the accounting ruleset (idempotent — safe to re-run)
+sudo nft -f ~/a777ance/collect/nftables-accounting.nft
+sudo nft list table inet a777acct          # sets + counters exist, all zero — expected
+
+# 3. Dry-run the set populator (resolves DNS, touches nothing)
+python3 ~/a777ance/collect/populate_sets.py | head
+
+# 4. Apply for real (programs the IP sets; counters start counting)
+sudo python3 ~/a777ance/collect/populate_sets.py --apply
+sudo nft -j list counters table inet a777acct   # should show non-zero bytes within minutes
+
+# 5. Add to cron (crontab -e)
+# refresh IP sets every 6h (CDN IPs rotate; elements time out in 24h)
+3 */6 * * *  sudo /usr/bin/python3 /home/USER/a777ance/collect/populate_sets.py --apply >/dev/null 2>&1
+# collect monthly stats nightly
+30 0 * * *   /usr/bin/python3 /home/USER/a777ance/collect/collect_stats.py \
+             --out /var/lib/a777ance/$(date +\%Y-\%m).stats.json
+```
+
+Replace `USER` with the actual username on the t630. After the cron runs once,
+verify with: `sudo nft -j list counters table inet a777acct`
 
 ---
 
