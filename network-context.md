@@ -894,7 +894,9 @@ from DHCP automatically (on cellular, they reach it through the Step 7 VPN inste
 
 Optional add-on. A LiteLLM proxy on the t630 gives the household one
 OpenAI-compatible endpoint (`ai.home.lan:4040`) that routes to whole-model backends:
-local Ollama models by default, a cloud tier as failover/overflow.
+local Ollama models by default, a cloud tier as failover/overflow. An Open WebUI
+container (`chat.home.lan:3000`) is the browser front-end and talks only to the
+router, so routing and failover apply to UI traffic too.
 
 ### Why route, not shard
 

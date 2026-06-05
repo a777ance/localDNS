@@ -21,7 +21,7 @@ The live HP t630 configuration snapshot AND the Statement artifacts under `docs/
 | CAKE QoS | Running | 85 Mbit on `enp1s0` |
 | Statement PWA | Merged, not deployed | Commit 6134824; not tested on real device |
 | nftables volume populator | Scaffolded, not deployed | Blocking per-category data in statements |
-| LLM router (LiteLLM) | Config in repo, not deployed | Stage 10: fronts local Ollama on the t630 + cloud overflow; routes whole models, no sharding; t630 is CPU-only |
+| LLM router (LiteLLM) + Open WebUI | Config in repo, not deployed | Stage 10: LiteLLM (ai.home.lan:4040) fronts local Ollama + cloud overflow; Open WebUI (chat.home.lan:3000) browser UI; routes whole models, no sharding; t630 is CPU-only |
 
 ## Open items
 

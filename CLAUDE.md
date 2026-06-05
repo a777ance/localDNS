@@ -97,6 +97,7 @@ ISP (Spectrum ~200/100 Mbps asymmetric)
 | xrdp | host OS | 3389 | LAN only |
 | SSH | host OS | 22 | LAN + WG subnet |
 | LLM router (LiteLLM) | Docker host-net | 4040 | LAN + WG subnet |
+| Open WebUI (LLM chat UI) | Docker host-net | 3000 | LAN + WG subnet |
 
 **Pi-hole upstream DNS:** a single upstream — `127.0.0.1#5335` (Unbound on the host;
 reachable directly because Pi-hole runs `network_mode: host`). Pi-hole does no
@@ -258,6 +259,7 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 | `FTLCONF_webserver_api_password` in pihole compose | Placeholder (`CHANGE_ME`) — do not commit real credentials |
 | LLM router port vs NoMachine | The router (LiteLLM, stage 10) listens on **4040**, not LiteLLM's default 4000 — NoMachine already holds 4000 on this box. UFW gates 4040 to LAN + WG. |
 | LLM router secrets (`~/llm-router/.env`) | `LITELLM_MASTER_KEY` + `ANTHROPIC_API_KEY` live in `.env` (git-ignored); repo ships `.env.example` with `CHANGE_ME`. Never commit the real keys. |
+| Open WebUI port + first-run admin | Chat UI on **3000** (8080 is the Pi-hole UI). First account created at `chat.home.lan:3000` becomes admin — create it from a trusted device. State in `~/llm-router/open-webui-data/`. |
 
 ---
 
@@ -282,7 +284,11 @@ cat /sys/class/drm/card*/device/power_dpm_force_performance_level  # high
 ## 3. Working philosophy
 
 Every commit to `main` must leave README.md able to reproduce a working system on
-clean Ubuntu 24.04. Use feature branches for half-finished work.
+clean Ubuntu 24.04.
+
+**Push to `main`, no branches** — founder's standing instruction (2026-06-05). Don't
+open PRs or park work on feature branches for these repos; land each change as a
+coherent, deployable commit straight on `main`.
 
 ---
 
