@@ -96,6 +96,7 @@ ISP (Spectrum ~200/100 Mbps asymmetric)
 | NoMachine | host OS | 4000 | LAN only |
 | xrdp | host OS | 3389 | LAN only |
 | SSH | host OS | 22 | LAN + WG subnet |
+| LLM router (LiteLLM) | Docker host-net | 4040 | LAN + WG subnet |
 
 **Pi-hole upstream DNS:** a single upstream — `127.0.0.1#5335` (Unbound on the host;
 reachable directly because Pi-hole runs `network_mode: host`). Pi-hole does no
@@ -144,6 +145,7 @@ number — use this table to map repo path → system path, not the step numbers
 | `01-unbound/remote-control.conf` | `/etc/unbound/unbound.conf.d/remote-control.conf` | `sudo systemctl restart unbound` |
 | `01-unbound/root-auto-trust-anchor-file.conf` | `/etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf` | `sudo systemctl restart unbound` |
 | `01-unbound/streaming-forward.conf` | `/etc/unbound/unbound.conf.d/streaming-forward.conf` | `sudo systemctl restart unbound` |
+| `01-unbound/local-records.conf` | `/etc/unbound/unbound.conf.d/local-records.conf` | `sudo systemctl restart unbound` |
 | `01-unbound/unbound-cache-dump` | `/usr/local/bin/unbound-cache-dump` | — |
 | `01-unbound/unbound-cache-load` | `/usr/local/bin/unbound-cache-load` | — |
 | `01-unbound/unbound-cache-dump.service` | `/etc/systemd/system/unbound-cache-dump.service` | `sudo systemctl daemon-reload` |
@@ -163,6 +165,9 @@ number — use this table to map repo path → system path, not the step numbers
 | `08-gpu-performance/cpu-performance.service` | `/etc/systemd/system/cpu-performance.service` | `sudo systemctl daemon-reload` |
 | `08-gpu-performance/99-amdgpu-performance.rules` | `/etc/udev/rules.d/99-amdgpu-performance.rules` | `sudo udevadm control --reload-rules` |
 | `09-remote-desktop/server.cfg` | `/usr/NX/etc/server.cfg` | `sudo /usr/NX/bin/nxserver --restart` |
+| `10-llm-router/docker-compose.yml` | `~/llm-router/docker-compose.yml` | `cd ~/llm-router && docker compose up -d` |
+| `10-llm-router/config.yaml` | `~/llm-router/config.yaml` | `cd ~/llm-router && docker compose up -d` |
+| `10-llm-router/.env.example` | `~/llm-router/.env` (copy, then fill in) | `cd ~/llm-router && docker compose up -d` |
 | `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
@@ -204,7 +209,7 @@ verify with: `sudo nft -j list counters table inet a777acct`
 
 ## D. Unbound config
 
-Five drop-ins, loaded alphabetically (A→Z) by Unbound from `/etc/unbound/unbound.conf.d/`
+Six drop-ins, loaded alphabetically (A→Z) by Unbound from `/etc/unbound/unbound.conf.d/`
 — listed Z→A here per house style:
 
 | File | Purpose |
@@ -214,6 +219,7 @@ Five drop-ins, loaded alphabetically (A→Z) by Unbound from `/etc/unbound/unbou
 | `server.conf` | Interface, port, access-control, security flags |
 | `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
 | `remote-control.conf` | Unix socket for `unbound-control` |
+| `local-records.conf` | LAN-only A records answered authoritatively (`ai.home.lan` → the t630, for the LLM router). `local-zone … transparent` overrides only the names defined, not the whole zone. |
 
 `tuning.conf` is the only place to change cache sizes, TTLs, or threading.
 Do not split these into separate files.
@@ -250,6 +256,8 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 | Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
 | Pi-hole v5 → v6 env vars | `pihole/pihole:latest` is v6; compose migrated from v5 vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`) to `FTLCONF_*`. The v5 names are silently ignored by v6. |
 | `FTLCONF_webserver_api_password` in pihole compose | Placeholder (`CHANGE_ME`) — do not commit real credentials |
+| LLM router port vs NoMachine | The router (LiteLLM, stage 10) listens on **4040**, not LiteLLM's default 4000 — NoMachine already holds 4000 on this box. UFW gates 4040 to LAN + WG. |
+| LLM router secrets (`~/llm-router/.env`) | `LITELLM_MASTER_KEY` + `ANTHROPIC_API_KEY` live in `.env` (git-ignored); repo ships `.env.example` with `CHANGE_ME`. Never commit the real keys. |
 
 ---
 

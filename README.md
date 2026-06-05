@@ -145,6 +145,7 @@ For fresh-install gotchas, break points, and workarounds discovered during setup
 - [A. Setup (Quick-Start)](#a-setup-quick-start)
   - [Which steps do you need?](#which-steps-do-you-need)
   - [Before you begin](#before-you-begin)
+  - [Step 12: LLM Router (LiteLLM)](#step-12-llm-router-litellm)
   - [Step 11: Point LAN Clients at t630](#step-11-point-lan-clients-at-t630)
   - [Step 10: Remote Desktop](#step-10-remote-desktop)
   - [Step 9: GPU Performance](#step-9-gpu-performance)
@@ -256,6 +257,39 @@ root. Without this, every `cp` command fails immediately.
 git clone https://github.com/a777ance/localdns ~/localdns
 cd ~/localdns
 ```
+
+---
+
+### Step 12: LLM Router (LiteLLM)
+
+**Optional add-on — the core build ends at Step 11.** A local-first LLM gateway: one
+OpenAI-compatible front door (`ai.home.lan:4040`) in front of whole-model backends —
+local models on the t630 by default, a cloud tier as failover/overflow. It reuses the
+stack you already run (Unbound for the name, UFW for access, CAKE for transport) and
+does **not** shard one model across machines — it routes between whole models.
+
+**Files — [`10-llm-router/`](10-llm-router/):**
+- [`docker-compose.yml`](10-llm-router/docker-compose.yml) — LiteLLM container, host-net, port 4040
+- [`config.yaml`](10-llm-router/config.yaml) — backends + routing/failover rules
+- [`.env.example`](10-llm-router/.env.example) — master key + Anthropic key (copy to `~/llm-router/.env`)
+- [`01-unbound/local-records.conf`](01-unbound/local-records.conf) — `ai.home.lan` → the t630
+
+```bash
+# 1. Local engine + models
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull qwen2.5:3b && ollama pull qwen2.5:7b
+# 2. Configure + launch the router
+mkdir -p ~/llm-router && cp 10-llm-router/{docker-compose.yml,config.yaml} ~/llm-router/
+cp 10-llm-router/.env.example ~/llm-router/.env && nano ~/llm-router/.env   # set the keys
+cd ~/llm-router && docker compose up -d
+# 3. Firewall (4040 already in the script) + optional DNS name
+sudo bash ~/localdns/04-ufw/setup.sh
+sudo cp ~/localdns/01-unbound/local-records.conf /etc/unbound/unbound.conf.d/ && sudo systemctl restart unbound
+```
+
+Full walkthrough, verification, failover test, and the honest performance caveat are
+in **[`10-llm-router/README.md`](10-llm-router/README.md)**. Port is **4040**, not
+LiteLLM's default 4000 (NoMachine holds 4000 here).
 
 ---
 
@@ -962,6 +996,7 @@ peer and every listening service.
 | NoMachine | host OS | 4000 | LAN only |
 | xrdp | host OS | 3389 | LAN only |
 | SSH | host OS | 22 | LAN + WG subnet |
+| LLM router (LiteLLM) | Docker host-net | 4040 | LAN + WG subnet |
 
 ### Repository layout
 
@@ -974,6 +1009,7 @@ Listed in setup-step order. CAKE now installs first (Step 1), so folder numbers 
 | 2 | [`01-unbound/server.conf`](01-unbound/server.conf) | Interfaces, ACLs, port, security flags |
 | 2 | [`01-unbound/tuning.conf`](01-unbound/tuning.conf) | Cache sizes, TTL policy, threading — single source of truth |
 | 2 | [`01-unbound/streaming-forward.conf`](01-unbound/streaming-forward.conf) | Domain split: streaming → Cloudflare DoT, all else → recursive |
+| 2 | [`01-unbound/local-records.conf`](01-unbound/local-records.conf) | LAN-only A records (`ai.home.lan` → t630) for the LLM router (Step 12) |
 | 2 | [`01-unbound/remote-control.conf`](01-unbound/remote-control.conf) | Unix socket for `unbound-control` |
 | 2 | [`01-unbound/root-auto-trust-anchor-file.conf`](01-unbound/root-auto-trust-anchor-file.conf) | DNSSEC trust anchor |
 | 2 | [`01-unbound/unbound-cache-dump`](01-unbound/unbound-cache-dump) | Dumps Unbound cache to disk |
@@ -994,6 +1030,9 @@ Listed in setup-step order. CAKE now installs first (Step 1), so folder numbers 
 | 9 | [`08-gpu-performance/cpu-performance.service`](08-gpu-performance/cpu-performance.service) | CPU governor locked to performance |
 | 9 | [`08-gpu-performance/99-amdgpu-performance.rules`](08-gpu-performance/99-amdgpu-performance.rules) | Re-asserts GPU profile on every DRM event |
 | 10 | [`09-remote-desktop/server.cfg`](09-remote-desktop/server.cfg) | NoMachine server config |
+| 12 | [`10-llm-router/docker-compose.yml`](10-llm-router/docker-compose.yml) | LiteLLM router container (host-net, port 4040) |
+| 12 | [`10-llm-router/config.yaml`](10-llm-router/config.yaml) | Router backends + routing/failover (local Ollama → cloud overflow) |
+| 12 | [`10-llm-router/.env.example`](10-llm-router/.env.example) | Template for `~/llm-router/.env` — master key + Anthropic key (`CHANGE_ME`) |
 | — | [`docs/`](docs/) | Screenshots and other documentation assets (e.g. the Pi-hole dashboard above) |
 | — | [`tools/check-docs.py`](tools/check-docs.py) | Cross-doc link checker — verifies every relative link in the Markdown files resolves |
 
@@ -1180,5 +1219,7 @@ a link to the file that resolves it — now lives in
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack, WireGuard IPv6
 - **[CLAUDE.md](CLAUDE.md)** — structural summary and deploy-path reference for AI assistants
   working on this repo
+- **[10-llm-router/README.md](10-llm-router/README.md)** — optional Step 12: a LiteLLM router that
+  fronts local Ollama on the t630 with cloud overflow, named `ai.home.lan` via Unbound
 - **[tools/check-docs.py](tools/check-docs.py)** — link checker; run `python3 tools/check-docs.py`
   to verify every relative link across these docs still resolves

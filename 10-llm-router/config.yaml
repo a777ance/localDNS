@@ -1,0 +1,70 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# LiteLLM router — config.yaml
+# Deploys to: ~/llm-router/config.yaml    Reload: cd ~/llm-router && docker compose up -d
+#
+# One OpenAI-compatible front door (ai.home.lan:4040) in front of WHOLE-MODEL
+# backends. The local Ollama tiers on the t630 are the default; the cloud tier is a
+# failover/overflow path, never the primary. This router does NOT split one model
+# across machines — see 10-llm-router/README.md, "Route, don't shard".
+#
+# Secrets are read from ~/llm-router/.env (LITELLM_MASTER_KEY, ANTHROPIC_API_KEY)
+# via the os.environ/ indirection below — never inline real keys in this file.
+# ─────────────────────────────────────────────────────────────────────────────
+
+model_list:
+  # ── Local, on the t630 — CPU inference, the privacy-preserving default ──
+  # The box is a 4-core AMD Carrizo, 16 GB RAM, no usable GPU offload, so these run
+  # on the CPU. Only list tags you have actually `ollama pull`-ed.
+  - model_name: local-fast            # interactive / snappy — small model
+    litellm_params:
+      model: ollama_chat/qwen2.5:3b
+      api_base: http://127.0.0.1:11434
+
+  - model_name: local-smart           # better reasoning — 7B, slower on CPU
+    litellm_params:
+      model: ollama_chat/qwen2.5:7b
+      api_base: http://127.0.0.1:11434
+
+  # ── Reasoning-tuned local option (after `ollama pull deepseek-r1:7b`) ──
+  # The "distilled DeepSeek" from the design chat — a Qwen-7B base fine-tuned on
+  # R1 reasoning traces. Uncomment to expose it; compare against local-smart.
+  # - model_name: local-reason
+  #   litellm_params:
+  #     model: ollama_chat/deepseek-r1:7b
+  #     api_base: http://127.0.0.1:11434
+
+  # ── A second box, when you add one (a WHOLE model on another machine) ──
+  # Reuse a model_name and LiteLLM load-balances + fails over across the copies.
+  # - model_name: local-smart
+  #   litellm_params:
+  #     model: ollama_chat/qwen2.5:7b
+  #     api_base: http://192.168.1.120:11434   # CHANGE_ME — the other machine's Ollama
+
+  # ── Cloud overflow — failover target only; bills per token ──
+  - model_name: cloud-overflow
+    litellm_params:
+      model: anthropic/claude-opus-4-8
+      api_key: os.environ/ANTHROPIC_API_KEY
+  # Cheaper / faster cloud swaps (exact current IDs): anthropic/claude-sonnet-4-6,
+  # anthropic/claude-haiku-4-5. Change the `model:` above to switch the overflow tier.
+
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 2
+  timeout: 600                        # CPU 7B is slow — don't cut a generation off early
+  allowed_fails: 2                    # failures before a backend is cooled down
+  cooldown_time: 60                   # seconds a dead backend stays out of rotation
+  # "Turn a laptop off and it re-routes": when a backend stops answering, LiteLLM
+  # cools it down and falls through this map to the next. Local tiers spill to cloud.
+  fallbacks:
+    - local-fast: ["local-smart", "cloud-overflow"]
+    - local-smart: ["cloud-overflow"]
+
+litellm_settings:
+  drop_params: true                   # tolerate OpenAI params a local model ignores
+  request_timeout: 600
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY   # clients send: Authorization: Bearer <key>
+  background_health_checks: true              # /health reflects which backends are up
+  health_check_interval: 120

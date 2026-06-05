@@ -1,0 +1,22 @@
+# Deploys to: ~/llm-router/docker-compose.yml
+# Reload:     cd ~/llm-router && docker compose up -d
+# Beside it:  ~/llm-router/config.yaml (router config) and ~/llm-router/.env (secrets —
+#             git-ignored; copy from .env.example and fill in before first start).
+#
+# network_mode: host so the router reaches a local Ollama at 127.0.0.1:11434 directly
+# (same reason Pi-hole and Uptime Kuma use host-net to reach Unbound on loopback) and
+# binds its port straight on the host. The proxy listens on 4040 — NOT LiteLLM's
+# default 4000, which NoMachine already holds on this box. UFW (04-ufw/setup.sh)
+# gates 4040 to the LAN and the WireGuard subnet.
+
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    container_name: llm-router
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - .env
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    command: ["--config", "/app/config.yaml", "--port", "4040"]
