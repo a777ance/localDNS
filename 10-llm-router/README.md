@@ -1,8 +1,9 @@
 # 10-llm-router — a local-first LLM gateway on the t630
 
 **Optional Step 12.** A LiteLLM router that puts one OpenAI-compatible front door
-(`ai.home.lan:4040`) in front of whole-model backends: the local models running on
-the t630 by default, with a cloud tier as failover/overflow. It is the practical,
+(`ai.home.lan:4040`) in front of whole-model backends — the local models running on
+the t630 by default, with a cloud tier as failover/overflow — plus an **Open WebUI**
+browser chat UI (`chat.home.lan:3000`) in front of that. It is the practical,
 buildable version of the "let the network pick the best resource and adapt when a
 machine drops" idea — **route between whole models, don't shard one model across
 machines.**
@@ -11,18 +12,18 @@ This is an add-on layered on the finished core stack (README Steps 0–11). Noth
 here touches DNS resolution, the VPN, or QoS; it reuses them.
 
 ```
-                 every device on LAN + WG tunnel
-                          │  OpenAI-compatible HTTP (Authorization: Bearer <master key>)
-                          ▼
-        ai.home.lan:4040  ─►  LiteLLM router  (this stage, on the t630)
-                                   │  picks a backend, retries, fails over
-              ┌────────────────────┼──────────────────────────┐
-              ▼                     ▼                          ▼
-        local-fast            local-smart                cloud-overflow
-      Ollama qwen2.5:3b     Ollama qwen2.5:7b        anthropic/claude-opus-4-8
-        (t630, CPU)           (t630, CPU)              (failover only — $/token)
-              └──── whole models, one per backend ────┘
-                  NOT one model split across machines
+        you (browser) ──► chat.home.lan:3000  Open WebUI ──┐
+                                                           │  OpenAI API
+        scripts / SDKs / apps ──► ai.home.lan:4040 ◄───────┘
+                                       │  LiteLLM router (this stage, on the t630)
+                                       │  picks a backend, retries, fails over
+              ┌────────────────────────┼──────────────────────────┐
+              ▼                         ▼                          ▼
+        local-fast                 local-smart               cloud-overflow
+      Ollama qwen2.5:3b          Ollama qwen2.5:7b       anthropic/claude-opus-4-8
+        (t630, CPU)                (t630, CPU)             (failover only — $/token)
+              └────── whole models, one per backend ──────┘
+                    NOT one model split across machines
 ```
 
 ---
@@ -44,13 +45,13 @@ failover between whole endpoints, not migration of a split model. The mental mod
 
 ## How it fits the existing stack
 
-- **DNS name (Unbound).** [`../01-unbound/local-records.conf`](../01-unbound/local-records.conf)
-  answers `ai.home.lan` → `192.168.1.118` authoritatively, so every client has one
-  stable address regardless of which backend serves the request. This is the right job
-  for the resolver you already run: a stable front door.
-- **Firewall (UFW).** [`../04-ufw/setup.sh`](../04-ufw/setup.sh) gates **4040** to the
-  LAN and the WireGuard subnet — so VPN peers reach the router on the tunnel, and the
-  WAN never does.
+- **DNS names (Unbound).** [`../01-unbound/local-records.conf`](../01-unbound/local-records.conf)
+  answers `ai.home.lan` (the API) and `chat.home.lan` (the UI) → `192.168.1.118`
+  authoritatively, so every client has one stable address regardless of which backend
+  serves the request. This is the right job for the resolver you already run.
+- **Firewall (UFW).** [`../04-ufw/setup.sh`](../04-ufw/setup.sh) gates **4040** (API)
+  and **3000** (UI) to the LAN and the WireGuard subnet — so VPN peers reach them on
+  the tunnel, and the WAN never does.
 - **QoS (CAKE).** CAKE shapes the *transport*, not the inference: if a request spills
   to the cloud tier, CAKE keeps that egress from saturating the link and wrecking
   latency for everything else. It does not make the network compute.
@@ -63,9 +64,12 @@ cluster.
 
 | File | Deploys to | Purpose |
 | ---- | ---------- | ------- |
-| [`docker-compose.yml`](docker-compose.yml) | `~/llm-router/docker-compose.yml` | LiteLLM container, host-net, port 4040 |
+| [`docker-compose.yml`](docker-compose.yml) | `~/llm-router/docker-compose.yml` | `litellm` router (4040) + `open-webui` UI (3000), both host-net |
 | [`config.yaml`](config.yaml) | `~/llm-router/config.yaml` | Backends + routing/failover rules |
 | [`.env.example`](.env.example) | copy to `~/llm-router/.env` | `LITELLM_MASTER_KEY` + `ANTHROPIC_API_KEY` (git-ignored) |
+
+Open WebUI keeps its state in `~/llm-router/open-webui-data/` (created at runtime,
+git-ignored).
 
 ---
 
@@ -76,56 +80,63 @@ number, 1 → 6.** The numbered steps *within* each block run in order.
 
 ### Block 6 — Verify & use
 
-1. Health and catalogue (from any LAN/WG client; substitute your master key):
+1. The UI: browse to `http://chat.home.lan:3000`, create the first account (it becomes
+   the admin), then pick a model (`local-fast`, `local-smart`, `cloud-overflow`) and
+   chat. All UI traffic goes through the router.
+2. The API — health and catalogue (from any LAN/WG client; substitute your master key):
    ```bash
    curl http://ai.home.lan:4040/health \
      -H "Authorization: Bearer $LITELLM_MASTER_KEY"
    curl http://ai.home.lan:4040/v1/models \
      -H "Authorization: Bearer $LITELLM_MASTER_KEY"
    ```
-2. A real completion against the fast local tier:
+3. A real completion against the fast local tier:
    ```bash
    curl http://ai.home.lan:4040/v1/chat/completions \
      -H "Authorization: Bearer $LITELLM_MASTER_KEY" \
      -H "Content-Type: application/json" \
      -d '{"model":"local-fast","messages":[{"role":"user","content":"say hi in five words"}]}'
    ```
-3. Prove failover ("turn a laptop off"): `sudo systemctl stop ollama`, then call
+4. Prove failover ("turn a laptop off"): `sudo systemctl stop ollama`, then call
    `local-smart` — the request should fall through to `cloud-overflow` (if a real
    `ANTHROPIC_API_KEY` is set) instead of erroring. `sudo systemctl start ollama` to
    restore.
-4. Point any OpenAI-compatible client (Open WebUI, an SDK, a script) at base URL
-   `http://ai.home.lan:4040/v1` with the master key as the API key.
 
 ### Block 5 — Name it (Unbound) · optional
 
-1. Deploy the local record and reload Unbound:
+1. Deploy the local records and reload Unbound:
    ```bash
    sudo cp 01-unbound/local-records.conf /etc/unbound/unbound.conf.d/local-records.conf
    sudo systemctl restart unbound
    ```
 2. From another LAN/WG client (not the t630 itself — see the note in the conf file):
-   `dig ai.home.lan +short` should return `192.168.1.118`. Without this block, use the
-   IP directly: `http://192.168.1.118:4040`.
+   ```bash
+   dig ai.home.lan +short      # 192.168.1.118
+   dig chat.home.lan +short    # 192.168.1.118
+   ```
+   Without this block, use the IP directly: `http://192.168.1.118:4040` (API) and
+   `http://192.168.1.118:3000` (UI).
 
 ### Block 4 — Open the firewall (UFW)
 
-1. Re-run the firewall script; it already includes the 4040 LAN + WG rules:
+1. Re-run the firewall script; it already includes the 4040 + 3000 LAN + WG rules:
    ```bash
    sudo bash 04-ufw/setup.sh
-   sudo ufw status verbose | grep 4040     # expect LAN + 10.8.0.0/24, not Anywhere
+   sudo ufw status verbose | grep -E '4040|3000'   # expect LAN + 10.8.0.0/24, not Anywhere
    ```
 
-### Block 3 — Launch the router
+### Block 3 — Launch (router + UI)
 
-1. Stage the files and bring it up:
+1. Stage the files and bring both services up (one compose file):
    ```bash
    mkdir -p ~/llm-router && cp 10-llm-router/{docker-compose.yml,config.yaml} ~/llm-router/
    cd ~/llm-router && docker compose up -d
-   docker logs -f llm-router        # watch it load the config; Ctrl-C when healthy
+   docker logs -f llm-router        # watch LiteLLM load the config; Ctrl-C when healthy
    ```
+2. First visit to `chat.home.lan:3000` creates the Open WebUI admin account — do it
+   from a trusted device before exposing the UI to the whole household.
 
-### Block 2 — Configure the router
+### Block 2 — Configure
 
 1. Copy the env template and fill in real values (never commit `.env`):
    ```bash
@@ -133,6 +144,8 @@ number, 1 → 6.** The numbered steps *within* each block run in order.
    nano ~/llm-router/.env           # set LITELLM_MASTER_KEY (start it "sk-…")
                                     # set ANTHROPIC_API_KEY, or leave CHANGE_ME for local-only
    ```
+   Open WebUI reuses `LITELLM_MASTER_KEY` as its key to the router (compose
+   interpolates it), so there's nothing extra to set for the UI.
 2. Edit `config.yaml` so each `model_name` points at a tag you actually pulled in
    Block 1. The shipped defaults are `qwen2.5:3b` (fast) and `qwen2.5:7b` (smart).
 
@@ -183,6 +196,10 @@ for the tasks a CPU 7B can't carry — and it's one `model:` line to point elsew
 
 *(newest first, per house style)*
 
+- **Open WebUI: first user is admin; UI is on 3000, not 8080.** Create the admin
+  account from a trusted device before opening it to the household. 8080 is already the
+  Pi-hole UI on this box, so the chat UI uses 3000. State lives in
+  `~/llm-router/open-webui-data/`.
 - **Local-only by default is fail-closed, not silent local.** With `ANTHROPIC_API_KEY`
   left as `CHANGE_ME`, a request that falls through to `cloud-overflow` errors rather
   than leaking — intended, but worth knowing when a `local-*` call returns an auth
@@ -191,8 +208,7 @@ for the tasks a CPU 7B can't carry — and it's one `model:` line to point elsew
   that's a bigger-single-box (or rented-GPU) decision, not a "pool the LAN" one.
 - **CPU-bound throughput.** 7B on the Carrizo is usable for async work, sluggish for
   back-and-forth chat. Reach for `local-fast` (3B) when latency matters.
-- **No persistence / admin UI.** This is a config-only proxy (no Postgres). Virtual
-  keys, budgets, and the LiteLLM admin UI would need a database — out of scope for the
-  lean homelab default.
+- **No virtual keys / budgets.** LiteLLM runs config-only (no Postgres); per-user keys
+  and spend caps would need a database — out of scope for the lean homelab default.
 - **Port 4040, not 4000.** LiteLLM defaults to 4000; NoMachine holds 4000 on this box.
   4040 is the router here, gated to LAN + WG by UFW.

@@ -24,6 +24,7 @@ ufw allow in from "$LAN" to any port 4000 proto udp
 ufw allow in from "$LAN" to any port 5353 proto udp
 ufw allow in from "$LAN" to any port 3001 proto tcp
 ufw allow in from "$LAN" to any port 4040 proto tcp   # LLM router (LiteLLM); 4000 is NoMachine
+ufw allow in from "$LAN" to any port 3000 proto tcp   # LLM chat UI (Open WebUI); 8080 is Pi-hole
 # Docker bridge → Unbound on 5335. Now vestigial: both Pi-hole and Uptime Kuma run
 # network_mode: host and reach Unbound over the host loopback (127.0.0.1:5335, not
 # filtered by UFW), so no container crosses docker0 for DNS anymore. Kept as a
@@ -43,6 +44,7 @@ ufw allow in from "$WG" to any port 22 proto tcp
 ufw allow in from "$WG" to any port 8080 proto tcp
 ufw allow in from "$WG" to any port 3001 proto tcp
 ufw allow in from "$WG" to any port 4040 proto tcp
+ufw allow in from "$WG" to any port 3000 proto tcp
 ufw allow out to any port 53 proto udp
 ufw --force enable
 ufw status verbose
