@@ -2,7 +2,7 @@
 
 Read alongside the portfolio hub: `DESIGN-Full-Workflow-Integration-end-to-end-/docs/ai-cto/portfolio.md`.
 
-**Last updated:** 2026-06-04
+**Last updated:** 2026-06-05
 
 ---
 
@@ -21,6 +21,7 @@ The live HP t630 configuration snapshot AND the Statement artifacts under `docs/
 | CAKE QoS | Running | 85 Mbit on `enp1s0` |
 | Statement PWA | Merged, not deployed | Commit 6134824; not tested on real device |
 | nftables volume populator | Scaffolded, not deployed | Blocking per-category data in statements |
+| LLM router (LiteLLM) | Config in repo, not deployed | Stage 10: fronts local Ollama on the t630 + cloud overflow; routes whole models, no sharding; t630 is CPU-only |
 
 ## Open items
 
@@ -32,6 +33,7 @@ The live HP t630 configuration snapshot AND the Statement artifacts under `docs/
 | Identify or remove WG peers 10.8.0.4–6 | P2 | Physical access / device identification |
 | Rotate Windows laptop WireGuard key | P2 | Physical access |
 | Verify live Pi-hole upstream after volume migration | P2 | Next deploy cycle |
+| Stand up LLM router on t630 (install Ollama, pull models, start LiteLLM) | P3 | SSH to t630 + an Anthropic API key for the overflow tier |
 
 ## Key file locations (repo → system)
 

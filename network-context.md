@@ -62,6 +62,7 @@ README step.
 - [Step 9. GPU performance](#step-9-gpu-performance)
 - [Step 10. Remote Desktop](#step-10-remote-desktop)
 - [Step 11. Point LAN Clients at t630](#step-11-point-lan-clients-at-t630)
+- [Step 12. LLM router (route, not shard)](#step-12-llm-router-route-not-shard)
 
 ---
 
@@ -886,3 +887,55 @@ Do this last, after README's verification checklist passes, then renew DHCP leas
 and confirm `nslookup example.com` reports `192.168.1.118` as the server. Phones and
 other clients need no per-device configuration: they pick up the t630 as resolver
 from DHCP automatically (on cellular, they reach it through the Step 7 VPN instead).
+
+## Step 12. LLM router (route, not shard)
+
+**Repo:** [`10-llm-router/`](10-llm-router/) — config; `01-unbound/local-records.conf` for the name
+
+Optional add-on. A LiteLLM proxy on the t630 gives the household one
+OpenAI-compatible endpoint (`ai.home.lan:4040`) that routes to whole-model backends:
+local Ollama models by default, a cloud tier as failover/overflow.
+
+### Why route, not shard
+
+The intuitive ask is to pool every machine into one model that auto-uses the best
+RAM/GPU/CPU anywhere and re-balances when a box drops. Over Ethernet that loses to
+physics, not tooling. Inference is sequential and latency-bound: generating each token
+depends on the last, and splitting a model's layers across machines pushes activation
+state across the LAN *for every token*. A gigabit hop is thousands of times slower than
+the interconnect inside one box (this is why datacenters use NVLink/InfiniBand, not
+Cat6). So a model split across two boxes runs slower than the better box alone, and
+the heterogeneous case is worse — the system runs at the pace of the slowest node.
+Mid-generation migration ("turn a laptop off and it re-balances") is not a packaged
+capability; yanking a sharded node fails the request rather than healing it.
+
+What works is one router in front of several independent endpoints, each running a
+**whole** model. You get the felt experience — "use the best available resource, adapt
+when a machine goes away" — as health-checked **failover between whole endpoints**, not
+migration of a split model. LiteLLM does the load-balance + retry + cooldown +
+fallback; reusing a `model_name` across deployments balances across copies, and the
+`fallbacks` map spills local tiers to the cloud tier when a backend stops answering.
+
+### Why these pieces
+
+- **LiteLLM, config-only (no DB).** A reverse proxy with a backend list and a fallback
+  map is the whole job; virtual keys / budgets / admin UI would need Postgres and earn
+  no keep on a lean homelab. Keeps with "easier to debug at 11pm."
+- **`network_mode: host`.** Same rationale as Pi-hole and Uptime Kuma (Step 8): the
+  router reaches a co-located Ollama at `127.0.0.1:11434` directly and binds its port
+  on the host for UFW to gate. Port **4040**, because NoMachine owns 4000.
+- **The name lives in Unbound, the compute does not.** `ai.home.lan` is a `local-data`
+  record (`01-unbound/local-records.conf`) so clients get one stable front door; the
+  resolver's job here is to be addressable, not to compute. CAKE (Step 1) shapes the
+  transport if a request spills to the cloud, so overflow egress can't wreck loaded
+  latency for the rest of the house. None of these turn the LAN into a cluster — they
+  make it addressable and well-behaved, which is what a multi-endpoint router needs.
+
+### Honesty on performance
+
+The t630 is CPU-only for this (Carrizo iGPU: old GCN, ROCm unsupported, Vulkan offload
+marginal and sharing the same RAM), so throughput is memory-bandwidth bound. No
+tokens/sec figure is recorded here on purpose — the honest number is the one measured
+on the box (`10-llm-router/README.md` shows the `time` probe). Start interactive on a
+3B; treat 7B as submit-and-wait. The durable win at any size is data control: with the
+cloud key unset, every request stays on your network and overflow calls fail closed.
