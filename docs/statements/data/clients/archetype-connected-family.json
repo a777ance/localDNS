@@ -8,9 +8,9 @@
   "conn_url": "https://alliance.a777ance.com/connect/t-bishop",
   "handled": [
     [
-      "May 8",
-      "Pi-hole shipped a filtering upgrade. <b>Your home's blocklists were updated the same day</b> — all 18 devices, in one sweep.",
-      "Patched on your t630 by <span class='nm'>Jose</span>"
+      "May 12",
+      "<b>Two new devices</b> — a tablet and a console — were added to your secure network, no setup needed from you.",
+      "Onboarded in your home by <span class='nm'>Jose</span>"
     ],
     [
       "May 9",
@@ -18,9 +18,9 @@
       "Diagnosed in your home by <span class='nm'>Jose</span>"
     ],
     [
-      "May 12",
-      "<b>Two new devices</b> — a tablet and a console — were added to your secure network, no setup needed from you.",
-      "Onboarded in your home by <span class='nm'>Jose</span>"
+      "May 8",
+      "Pi-hole shipped a filtering upgrade. <b>Your home's blocklists were updated the same day</b> — all 18 devices, in one sweep.",
+      "Patched on your t630 by <span class='nm'>Jose</span>"
     ]
   ],
   "handled_foot": "A busy house, kept quiet. Eighteen devices, one calm network — and someone watching it.",

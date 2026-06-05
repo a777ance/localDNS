@@ -7,6 +7,6 @@
   </defs>
   <rect width="512" height="512" fill="url(#bg)"/>
   <text x="256" y="256" text-anchor="middle" dominant-baseline="central"
-        font-family="Georgia, 'Liberation Serif', 'DejaVu Serif', serif"
+        font-family="'Gill Sans MT', 'Gill Sans', Calibri, 'Trebuchet MS', sans-serif"
         font-weight="700" font-size="200" fill="#c6a463" letter-spacing="6">A7</text>
 </svg>

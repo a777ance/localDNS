@@ -3,9 +3,10 @@
 Results of a full walkthrough of the setup guide against the actual config files in
 this repo, simulating a fresh Ubuntu 24.04 install on identical hardware (HP t630).
 Every point of breakage, confusion, or security risk is catalogued below with its
-severity and fix. Items are numbered and ordered by where they surface during a
-fresh install (README Steps 0–11). Original discovery numbers are cross-referenced
-in the Summary Table. Ongoing operational issues — moved here from the README's
+severity and fix. Items are numbered by where they surface during a fresh install
+(README Steps 0–11), and listed here in **reverse install order** (newest break
+points first) per house style — the numbers preserve the install sequence.
+Original discovery numbers are cross-referenced in the Summary Table. Ongoing operational issues — moved here from the README's
 old "Known issues" table, and *not* fresh-install break points — are collected
 under [Operational & Open Issues](#operational--open-issues).
 
@@ -16,17 +17,18 @@ is one click away.
 
 ## Contents
 
-**Fresh-install break points** (in install order)
+**Fresh-install break points** (in reverse install order — newest break points first)
 
-**Pre-install**
-- [1. No `git clone` step in the setup guide](#1-no-git-clone-step-in-the-setup-guide) `BLOCKER` — **--RESOLVED 2026-06-02--**
+**Step 9 — GPU Performance**
+- [14. GRUB edit shows the target string but not a safe append command](#14-grub-edit-shows-the-target-string-but-not-a-safe-append-command) `MINOR` — **--RESOLVED 2026-06-02--**
 
-**Step 0 — Router DHCP Reservation**
-- [2. MAC address not mentioned in Step 0](#2-mac-address-not-mentioned-in-step-0) `MINOR` — **--RESOLVED 2026-06-02--**
+**Step 8 — Uptime Kuma**
+- [12. Monitoring script placeholder tokens cause silent `curl` failures](#12-monitoring-script-placeholder-tokens-cause-silent-curl-failures) `MEDIUM` `OPERATIONAL CAUTION`
+- [13. Crontab `USERNAME` placeholder must be replaced manually](#13-crontab-username-placeholder-must-be-replaced-manually) `MEDIUM` `OPERATIONAL CAUTION`
 
-**Step 2 — Unbound**
-- [3. `server.conf` indentation inconsistency](#3-serverconf-indentation-inconsistency) `MINOR` — **--RESOLVED 2026-06-02--**
-- [4. Cache dump correctness depends on Ubuntu's base unbound unit having no `ExecStop`](#4-cache-dump-correctness-depends-on-ubuntus-base-unbound-unit-having-no-execstop) `MINOR` `ONGOING CAUTION`
+**Step 7 — VPN (WireGuard)**
+- [10. `wg0.conf` fails to parse — WireGuard will not start](#10-wg0conf-fails-to-parse--wireguard-will-not-start) `BLOCKER` — **--RESOLVED 2026-06-02--**
+- [11. `sysctl.conf` append is not idempotent](#11-sysctlconf-append-is-not-idempotent) `MINOR` — **--RESOLVED 2026-06-02--**
 
 **Steps 4+5 — Host DNS Fix, then Pi-hole**
 - [5. Host DNS breaks between Steps 4 and 5, warning in the wrong place](#5-host-dns-breaks-between-steps-4-and-5-warning-in-the-wrong-place) `HIGH` — **--RESOLVED 2026-06-02--**
@@ -35,16 +37,15 @@ is one click away.
 - [8. UFW INPUT rules did not restrict Pi-hole's published port 53](#8-ufw-input-rules-did-not-restrict-pi-holes-published-port-53) `MEDIUM` — **--RESOLVED 2026-06-02--**
 - [9. Host-networked Pi-hole vs systemd-resolved stub on port 53](#9-host-networked-pi-hole-vs-systemd-resolved-stub-on-port-53) `MEDIUM` — **--RESOLVED 2026-06-02--**
 
-**Step 7 — VPN (WireGuard)**
-- [10. `wg0.conf` fails to parse — WireGuard will not start](#10-wg0conf-fails-to-parse--wireguard-will-not-start) `BLOCKER` — **--RESOLVED 2026-06-02--**
-- [11. `sysctl.conf` append is not idempotent](#11-sysctlconf-append-is-not-idempotent) `MINOR` — **--RESOLVED 2026-06-02--**
+**Step 2 — Unbound**
+- [3. `server.conf` indentation inconsistency](#3-serverconf-indentation-inconsistency) `MINOR` — **--RESOLVED 2026-06-02--**
+- [4. Cache dump correctness depends on Ubuntu's base unbound unit having no `ExecStop`](#4-cache-dump-correctness-depends-on-ubuntus-base-unbound-unit-having-no-execstop) `MINOR` `ONGOING CAUTION`
 
-**Step 8 — Uptime Kuma**
-- [12. Monitoring script placeholder tokens cause silent `curl` failures](#12-monitoring-script-placeholder-tokens-cause-silent-curl-failures) `MEDIUM` `OPERATIONAL CAUTION`
-- [13. Crontab `USERNAME` placeholder must be replaced manually](#13-crontab-username-placeholder-must-be-replaced-manually) `MEDIUM` `OPERATIONAL CAUTION`
+**Step 0 — Router DHCP Reservation**
+- [2. MAC address not mentioned in Step 0](#2-mac-address-not-mentioned-in-step-0) `MINOR` — **--RESOLVED 2026-06-02--**
 
-**Step 9 — GPU Performance**
-- [14. GRUB edit shows the target string but not a safe append command](#14-grub-edit-shows-the-target-string-but-not-a-safe-append-command) `MINOR` — **--RESOLVED 2026-06-02--**
+**Pre-install**
+- [1. No `git clone` step in the setup guide](#1-no-git-clone-step-in-the-setup-guide) `BLOCKER` — **--RESOLVED 2026-06-02--**
 
 **Other**
 - [Operational & Open Issues](#operational--open-issues) (moved from README)
@@ -53,105 +54,158 @@ is one click away.
 
 ---
 
-## Pre-install
+## Step 9 — GPU Performance
 
 ---
 
-### 1. No `git clone` step in the setup guide
+### 14. GRUB edit shows the target string but not a safe append command
 
-`BLOCKER` | `docs` | **Location:** [`README.md`](README.md), top of Setup section
+`MINOR` | `grub` `gpu` | **Location:** [`README.md`](README.md), Step 9
 
 > ✓ **RESOLVED — 2026-06-02**
 
 **Problem**
 
-Every `cp` command in the setup guide uses relative paths (`01-unbound/*.conf`,
-`06-cake/setup.sh`, etc.). Without first cloning the repo to the t630 and
-`cd`-ing into it, every single one of those commands fails with
-"No such file or directory" — before a single service is configured.
+Showing the desired final value of `GRUB_CMDLINE_LINUX_DEFAULT` without showing
+how to get there safely invites someone to copy the line verbatim and overwrite
+existing kernel flags (`quiet splash`, or custom power management parameters
+they may have already set).
 
 **Fix**
 
-[`README.md`](README.md) now opens the Setup section with an explicit
-clone-and-cd step:
+[`README.md`](README.md) now shows an explicit "append to whatever is already
+there" instruction with a before/after example.
 
-```bash
-git clone https://github.com/a777ance/localdns ~/localdns
-cd ~/localdns
+---
+
+## Step 8 — Uptime Kuma
+
+---
+
+### 12. Monitoring script placeholder tokens cause silent `curl` failures
+
+`MEDIUM` | `uptime-kuma` `monitoring` | **Location:** [`07-uptime-kuma/packet-loss-monitor.sh`](07-uptime-kuma/packet-loss-monitor.sh), [`07-uptime-kuma/cake-monitor.sh`](07-uptime-kuma/cake-monitor.sh)
+
+> ⚠ **OPERATIONAL CAUTION — Replace tokens and test manually before scheduling**
+
+**Problem**
+
+Both scripts ship with placeholder push tokens:
+- `<PUSH_TOKEN_ROUTER>`, `<PUSH_TOKEN_INTERNET>` in [`packet-loss-monitor.sh`](07-uptime-kuma/packet-loss-monitor.sh)
+- `<PUSH_TOKEN_CAKE>` in [`cake-monitor.sh`](07-uptime-kuma/cake-monitor.sh)
+
+`curl` requests to URLs containing literal `<>` fail. All output is redirected to
+`/dev/null`, so there is no visible error. The cron jobs fire every minute
+indefinitely and the Uptime Kuma monitors never go green. Nothing in the system
+logs tells you why.
+
+**Fix**
+
+[`README.md`](README.md) adds an explicit manual test step — run each script once
+by hand and confirm the Uptime Kuma monitor flips green *before* adding it to
+crontab. Push tokens are per-install values from the Uptime Kuma UI and cannot be
+pre-filled in the repo.
+
+---
+
+### 13. Crontab `USERNAME` placeholder must be replaced manually
+
+`MEDIUM` | `uptime-kuma` `cron` | **Location:** [`README.md`](README.md), Step 8 crontab instructions
+
+> ⚠ **OPERATIONAL CAUTION — Substitute real username before adding to crontab**
+
+**Problem**
+
+```
+* * * * * /home/USERNAME/packet-loss-monitor.sh
 ```
 
+Copying this literally into crontab creates a job that runs a path that doesn't
+exist. No obvious error — `cron` just logs "command not found" to syslog.
+
+**Fix**
+
+[`README.md`](README.md) replaces `USERNAME` with `USER` and adds a reminder to
+substitute the actual username before adding to crontab.
+
 ---
 
-## Step 0 — Router DHCP Reservation
+## Step 7 — VPN (WireGuard)
 
 ---
 
-### 2. MAC address not mentioned in Step 0
+### 10. `wg0.conf` fails to parse — WireGuard will not start
 
-`MINOR` | `docs` | **Location:** [`README.md`](README.md), Step 0
+`BLOCKER` | `wireguard` `config` | **Location:** [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf)
 
 > ✓ **RESOLVED — 2026-06-02**
 
 **Problem**
 
-DHCP reservation requires the t630's MAC address. On a fresh install the MAC is
-on a label on the device or in the router's current lease table — but a
-first-time installer may not know how to find it in the OS.
+Two problems in the repo file caused `wg-quick@wg0.service` to fail at parse time:
+
+**Problem A — empty `[Peer]` block (Mac peer):**
+
+```
+[Peer]
+# Mac peer — added via WireGuard macOS (App Store, NOT Homebrew)
+# PublicKey = REPLACE_WITH_MAC_PUBLIC_KEY
+# AllowedIPs = 10.8.0.7/32
+```
+
+The `[Peer]` section header was uncommented but both required fields were
+commented out. `wg-quick` encountering a `[Peer]` block with no `PublicKey`
+errors out: "A peer is missing a public key."
+
+**Problem B — invalid placeholder key (laptop peer):**
+
+```
+PublicKey = REPLACE_WITH_LAPTOP_PUBLIC_KEY
+```
+
+`REPLACE_WITH_LAPTOP_PUBLIC_KEY` is not valid base64. `wg` fails with an
+invalid key decode error.
+
+The setup instructions only told you to replace the server private key and the
+phone public key — they said nothing about fixing the Mac and laptop peer blocks.
+An installer following the guide literally would hit `wg-quick@wg0.service`
+failing with no obvious reason.
 
 **Fix**
 
-[`README.md`](README.md) now adds `ip link show enp1s0` (read the `link/ether`
-value) as the first sub-step of Step 0.
+In [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf), the Mac `[Peer]` header is
+now commented out alongside its body, and the laptop `PublicKey` line is
+commented out with an explicit warning. [`README.md`](README.md) now has an
+explicit "fix the peer blocks before deploying" instruction.
 
 ---
 
-## Step 2 — Unbound
+### 11. `sysctl.conf` append is not idempotent
 
----
-
-### 3. `server.conf` indentation inconsistency
-
-`MINOR` | `config` | **Location:** [`01-unbound/server.conf`](01-unbound/server.conf), line 6
+`MINOR` | `wireguard` `sysctl` | **Location:** [`README.md`](README.md), Step 7 (IP forwarding)
 
 > ✓ **RESOLVED — 2026-06-02**
 
 **Problem**
 
-The `interface:` line has 6 spaces of indentation while all other lines have 4.
-Unbound's parser is whitespace-insensitive so this is harmless, but it looks wrong.
+The original command:
+```bash
+sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
+```
+
+Appends to `/etc/sysctl.conf` every time it runs. Running the step twice creates
+duplicate lines. Functionally harmless (last value wins) but bad practice.
 
 **Fix**
 
-Corrected to 4 spaces.
+[`README.md`](README.md) now uses a dedicated drop-in file:
+```bash
+printf 'net.ipv4.ip_forward=1\nnet.ipv6.conf.all.forwarding=1\n' \
+  | sudo tee /etc/sysctl.d/99-wireguard-forward.conf
+sudo sysctl --system
+```
 
----
-
-### 4. Cache dump correctness depends on Ubuntu's base unbound unit having no `ExecStop`
-
-`MINOR` | `systemd` | **Location:** [`01-unbound/unbound.service.d/override.conf`](01-unbound/unbound.service.d/override.conf)
-
-> ⚠ **ONGOING CAUTION — Monitor on Ubuntu package upgrades**
-
-**Problem**
-
-[`override.conf`](01-unbound/unbound.service.d/override.conf) adds
-`ExecStop=/usr/local/bin/unbound-cache-dump`. Systemd runs `ExecStop` commands
-before sending SIGTERM to the main process, so `unbound-control dump_cache` can
-still talk to a running Unbound. This is correct — *provided* the base
-`unbound.service` unit on Ubuntu has no explicit `ExecStop` of its own. On
-Ubuntu 24.04 LTS, the base unit uses SIGTERM with no `ExecStop`: the assumption
-holds.
-
-A future distro update adding `ExecStop=/usr/sbin/unbound-control stop` to the
-base unit would silently break cache dumps on every shutdown — the base
-`ExecStop` would fire first, shut Unbound down, and the dump script would then
-fail to connect.
-
-**Mitigation**
-
-Monitor Ubuntu's `unbound` package changelogs when upgrading. If the base unit
-ever gains an explicit stop command, migrate the dump to `ExecStopPost` or reset
-the `ExecStop=` list in the override before redefining it.
+This is idempotent and follows the proper `sysctl.d` pattern for Ubuntu.
 
 ---
 
@@ -306,158 +360,105 @@ Pi-hole starts — `:53` is free when FTL launches.
 
 ---
 
-## Step 7 — VPN (WireGuard)
+## Step 2 — Unbound
 
 ---
 
-### 10. `wg0.conf` fails to parse — WireGuard will not start
+### 3. `server.conf` indentation inconsistency
 
-`BLOCKER` | `wireguard` `config` | **Location:** [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf)
+`MINOR` | `config` | **Location:** [`01-unbound/server.conf`](01-unbound/server.conf), line 6
 
 > ✓ **RESOLVED — 2026-06-02**
 
 **Problem**
 
-Two problems in the repo file caused `wg-quick@wg0.service` to fail at parse time:
-
-**Problem A — empty `[Peer]` block (Mac peer):**
-
-```
-[Peer]
-# Mac peer — added via WireGuard macOS (App Store, NOT Homebrew)
-# PublicKey = REPLACE_WITH_MAC_PUBLIC_KEY
-# AllowedIPs = 10.8.0.7/32
-```
-
-The `[Peer]` section header was uncommented but both required fields were
-commented out. `wg-quick` encountering a `[Peer]` block with no `PublicKey`
-errors out: "A peer is missing a public key."
-
-**Problem B — invalid placeholder key (laptop peer):**
-
-```
-PublicKey = REPLACE_WITH_LAPTOP_PUBLIC_KEY
-```
-
-`REPLACE_WITH_LAPTOP_PUBLIC_KEY` is not valid base64. `wg` fails with an
-invalid key decode error.
-
-The setup instructions only told you to replace the server private key and the
-phone public key — they said nothing about fixing the Mac and laptop peer blocks.
-An installer following the guide literally would hit `wg-quick@wg0.service`
-failing with no obvious reason.
+The `interface:` line has 6 spaces of indentation while all other lines have 4.
+Unbound's parser is whitespace-insensitive so this is harmless, but it looks wrong.
 
 **Fix**
 
-In [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf), the Mac `[Peer]` header is
-now commented out alongside its body, and the laptop `PublicKey` line is
-commented out with an explicit warning. [`README.md`](README.md) now has an
-explicit "fix the peer blocks before deploying" instruction.
+Corrected to 4 spaces.
 
 ---
 
-### 11. `sysctl.conf` append is not idempotent
+### 4. Cache dump correctness depends on Ubuntu's base unbound unit having no `ExecStop`
 
-`MINOR` | `wireguard` `sysctl` | **Location:** [`README.md`](README.md), Step 7 (IP forwarding)
+`MINOR` | `systemd` | **Location:** [`01-unbound/unbound.service.d/override.conf`](01-unbound/unbound.service.d/override.conf)
+
+> ⚠ **ONGOING CAUTION — Monitor on Ubuntu package upgrades**
+
+**Problem**
+
+[`override.conf`](01-unbound/unbound.service.d/override.conf) adds
+`ExecStop=/usr/local/bin/unbound-cache-dump`. Systemd runs `ExecStop` commands
+before sending SIGTERM to the main process, so `unbound-control dump_cache` can
+still talk to a running Unbound. This is correct — *provided* the base
+`unbound.service` unit on Ubuntu has no explicit `ExecStop` of its own. On
+Ubuntu 24.04 LTS, the base unit uses SIGTERM with no `ExecStop`: the assumption
+holds.
+
+A future distro update adding `ExecStop=/usr/sbin/unbound-control stop` to the
+base unit would silently break cache dumps on every shutdown — the base
+`ExecStop` would fire first, shut Unbound down, and the dump script would then
+fail to connect.
+
+**Mitigation**
+
+Monitor Ubuntu's `unbound` package changelogs when upgrading. If the base unit
+ever gains an explicit stop command, migrate the dump to `ExecStopPost` or reset
+the `ExecStop=` list in the override before redefining it.
+
+---
+
+## Step 0 — Router DHCP Reservation
+
+---
+
+### 2. MAC address not mentioned in Step 0
+
+`MINOR` | `docs` | **Location:** [`README.md`](README.md), Step 0
 
 > ✓ **RESOLVED — 2026-06-02**
 
 **Problem**
 
-The original command:
+DHCP reservation requires the t630's MAC address. On a fresh install the MAC is
+on a label on the device or in the router's current lease table — but a
+first-time installer may not know how to find it in the OS.
+
+**Fix**
+
+[`README.md`](README.md) now adds `ip link show enp1s0` (read the `link/ether`
+value) as the first sub-step of Step 0.
+
+---
+
+## Pre-install
+
+---
+
+### 1. No `git clone` step in the setup guide
+
+`BLOCKER` | `docs` | **Location:** [`README.md`](README.md), top of Setup section
+
+> ✓ **RESOLVED — 2026-06-02**
+
+**Problem**
+
+Every `cp` command in the setup guide uses relative paths (`01-unbound/*.conf`,
+`06-cake/setup.sh`, etc.). Without first cloning the repo to the t630 and
+`cd`-ing into it, every single one of those commands fails with
+"No such file or directory" — before a single service is configured.
+
+**Fix**
+
+[`README.md`](README.md) now opens the Setup section with an explicit
+clone-and-cd step:
+
 ```bash
-sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
+git clone https://github.com/a777ance/localdns ~/localdns
+cd ~/localdns
 ```
-
-Appends to `/etc/sysctl.conf` every time it runs. Running the step twice creates
-duplicate lines. Functionally harmless (last value wins) but bad practice.
-
-**Fix**
-
-[`README.md`](README.md) now uses a dedicated drop-in file:
-```bash
-printf 'net.ipv4.ip_forward=1\nnet.ipv6.conf.all.forwarding=1\n' \
-  | sudo tee /etc/sysctl.d/99-wireguard-forward.conf
-sudo sysctl --system
-```
-
-This is idempotent and follows the proper `sysctl.d` pattern for Ubuntu.
-
----
-
-## Step 8 — Uptime Kuma
-
----
-
-### 12. Monitoring script placeholder tokens cause silent `curl` failures
-
-`MEDIUM` | `uptime-kuma` `monitoring` | **Location:** [`07-uptime-kuma/packet-loss-monitor.sh`](07-uptime-kuma/packet-loss-monitor.sh), [`07-uptime-kuma/cake-monitor.sh`](07-uptime-kuma/cake-monitor.sh)
-
-> ⚠ **OPERATIONAL CAUTION — Replace tokens and test manually before scheduling**
-
-**Problem**
-
-Both scripts ship with placeholder push tokens:
-- `<PUSH_TOKEN_ROUTER>`, `<PUSH_TOKEN_INTERNET>` in [`packet-loss-monitor.sh`](07-uptime-kuma/packet-loss-monitor.sh)
-- `<PUSH_TOKEN_CAKE>` in [`cake-monitor.sh`](07-uptime-kuma/cake-monitor.sh)
-
-`curl` requests to URLs containing literal `<>` fail. All output is redirected to
-`/dev/null`, so there is no visible error. The cron jobs fire every minute
-indefinitely and the Uptime Kuma monitors never go green. Nothing in the system
-logs tells you why.
-
-**Fix**
-
-[`README.md`](README.md) adds an explicit manual test step — run each script once
-by hand and confirm the Uptime Kuma monitor flips green *before* adding it to
-crontab. Push tokens are per-install values from the Uptime Kuma UI and cannot be
-pre-filled in the repo.
-
----
-
-### 13. Crontab `USERNAME` placeholder must be replaced manually
-
-`MEDIUM` | `uptime-kuma` `cron` | **Location:** [`README.md`](README.md), Step 8 crontab instructions
-
-> ⚠ **OPERATIONAL CAUTION — Substitute real username before adding to crontab**
-
-**Problem**
-
-```
-* * * * * /home/USERNAME/packet-loss-monitor.sh
-```
-
-Copying this literally into crontab creates a job that runs a path that doesn't
-exist. No obvious error — `cron` just logs "command not found" to syslog.
-
-**Fix**
-
-[`README.md`](README.md) replaces `USERNAME` with `USER` and adds a reminder to
-substitute the actual username before adding to crontab.
-
----
-
-## Step 9 — GPU Performance
-
----
-
-### 14. GRUB edit shows the target string but not a safe append command
-
-`MINOR` | `grub` `gpu` | **Location:** [`README.md`](README.md), Step 9
-
-> ✓ **RESOLVED — 2026-06-02**
-
-**Problem**
-
-Showing the desired final value of `GRUB_CMDLINE_LINUX_DEFAULT` without showing
-how to get there safely invites someone to copy the line verbatim and overwrite
-existing kernel flags (`quiet splash`, or custom power management parameters
-they may have already set).
-
-**Fix**
-
-[`README.md`](README.md) now shows an explicit "append to whatever is already
-there" instruction with a before/after example.
 
 ---
 
@@ -485,18 +486,6 @@ section by category.
 
 ## Audit Log
 
-### Consolidation (2026-06-02)
-
-This file and the rest of the repo were consolidated from five divergent branches
-into a single source of truth on `main`. The substantive behavioral change:
-**Pi-hole moved from Docker bridge networking to `network_mode: host`**, which
-resolved the project's headline open issue (VPN-peer DNS over the tunnel) and,
-as a side effect, brought Pi-hole's ports under UFW's control (issue 8 above).
-Issues 1, 2, 3, 11, 14 (originally #1, #11, #8, #9, #10) were already fixed in
-the renovated docs; issues 12 and 13 remain operational cautions; issue 9
-(originally #13) is the one new verify-on-box item introduced by the
-host-networking change.
-
 ### Replicability Pass (2026-06-02)
 
 A second walkthrough against current upstream package versions found two more
@@ -521,6 +510,18 @@ fresh-install breaks and made issue 9 deterministic:
   outstanding.
 
 ---
+
+### Consolidation (2026-06-02)
+
+This file and the rest of the repo were consolidated from five divergent branches
+into a single source of truth on `main`. The substantive behavioral change:
+**Pi-hole moved from Docker bridge networking to `network_mode: host`**, which
+resolved the project's headline open issue (VPN-peer DNS over the tunnel) and,
+as a side effect, brought Pi-hole's ports under UFW's control (issue 8 above).
+Issues 1, 2, 3, 11, 14 (originally #1, #11, #8, #9, #10) were already fixed in
+the renovated docs; issues 12 and 13 remain operational cautions; issue 9
+(originally #13) is the one new verify-on-box item introduced by the
+host-networking change.
 
 ## Summary Table
 

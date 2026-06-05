@@ -145,27 +145,27 @@ For fresh-install gotchas, break points, and workarounds discovered during setup
 - [A. Setup (Quick-Start)](#a-setup-quick-start)
   - [Which steps do you need?](#which-steps-do-you-need)
   - [Before you begin](#before-you-begin)
-  - [Step 0: Router — DHCP reservation](#step-0-router--dhcp-reservation)
-  - [Step 1: CAKE SQM](#step-1-cake-sqm)
-  - [Step 2: Unbound — Recursive DNS](#step-2-unbound--recursive-dns)
-  - [Step 3: Docker CE](#step-3-docker-ce)
-  - [Steps 4 + 5: Host DNS Fix, then Pi-hole](#steps-4--5-host-dns-fix-then-pi-hole)
-  - [Step 6: UFW Firewall](#step-6-ufw-firewall)
-  - [Step 7: VPN](#step-7-vpn)
-  - [Step 8: Uptime Kuma](#step-8-uptime-kuma)
-  - [Step 9: GPU Performance](#step-9-gpu-performance)
-  - [Step 10: Remote Desktop](#step-10-remote-desktop)
   - [Step 11: Point LAN Clients at t630](#step-11-point-lan-clients-at-t630)
+  - [Step 10: Remote Desktop](#step-10-remote-desktop)
+  - [Step 9: GPU Performance](#step-9-gpu-performance)
+  - [Step 8: Uptime Kuma](#step-8-uptime-kuma)
+  - [Step 7: VPN](#step-7-vpn)
+  - [Step 6: UFW Firewall](#step-6-ufw-firewall)
+  - [Steps 4 + 5: Host DNS Fix, then Pi-hole](#steps-4--5-host-dns-fix-then-pi-hole)
+  - [Step 3: Docker CE](#step-3-docker-ce)
+  - [Step 2: Unbound — Recursive DNS](#step-2-unbound--recursive-dns)
+  - [Step 1: CAKE SQM](#step-1-cake-sqm)
+  - [Step 0: Router — DHCP reservation](#step-0-router--dhcp-reservation)
 - [B. Detailed Specs / Network context](#b-detailed-specs--network-context)
   - [Hardware](#hardware)
   - [WireGuard peers & service ports](#wireguard-peers--service-ports)
   - [Repository layout](#repository-layout)
 - [C. How it works / FAQ / Troubleshooting](#c-how-it-works--faq--troubleshooting)
-  - [DNS resolution chain](#dns-resolution-chain)
-  - [Why Unbound runs on the host, not in Docker](#why-unbound-runs-on-the-host-not-in-docker)
-  - [Why the host resolves its own DNS through external servers](#why-the-host-resolves-its-own-dns-through-external-servers)
-  - [Unbound config files](#unbound-config-files)
   - [AMD Carrizo GPU](#amd-carrizo-gpu)
+  - [Unbound config files](#unbound-config-files)
+  - [Why the host resolves its own DNS through external servers](#why-the-host-resolves-its-own-dns-through-external-servers)
+  - [Why Unbound runs on the host, not in Docker](#why-unbound-runs-on-the-host-not-in-docker)
+  - [DNS resolution chain](#dns-resolution-chain)
 - [1. References](#1-references)
   - [Verification checklist](#verification-checklist)
   - [Configuration reference](#configuration-reference)
@@ -259,301 +259,231 @@ cd ~/localdns
 
 ---
 
-### Step 0: Router — DHCP reservation
+### Step 11: Point LAN Clients at t630
 
-Do this **before** touching the t630 so it boots with a stable address from the start.
+Do this **last**, after every item on the verification checklist below passes.
 
-Find the t630's MAC address:
-```bash
-ip link show enp1s0   # MAC is the link/ether value
+On the Netgear R7000: Basic → Internet Setup → Domain Name Server (DNS Address):
+- Primary DNS: `192.168.1.118`
+- Secondary DNS: `1.1.1.1` (resilience — if the t630 goes down the network stays
+  online, losing ad-blocking until it recovers)
+
+Renew DHCP leases on all client devices. Verify on any client:
 ```
-
-On the Netgear R7000: Advanced → Setup → LAN Setup → Address Reservation. Reserve
-`192.168.1.118` for the t630's MAC.
-
-Do **not** set the router's DNS to `192.168.1.118` yet. That happens in Step 11,
-after the full stack is verified. Setting it now breaks name resolution for every
-LAN device before Pi-hole is ready.
-
----
-
-### Step 1: CAKE SQM
-
-CAKE eliminates upload bufferbloat. Without it, latency spikes 400–800 ms under VPN
-upload load. With it: 11 ms loaded vs 14 ms idle (measured on Spectrum ~200/100 Mbps).
-
-**Scope:** shapes `enp1s0` egress — all traffic the t630 forwards toward the router.
-Covers upload bufferbloat for WireGuard VPN clients. Does not address download
-bufferbloat for general LAN devices (the Netgear R7000 is the correct fix point
-for that; DD-WRT/FreshTomato both support CAKE).
-
-**Files — [`06-cake/`](06-cake/):**
-- [`setup.sh`](06-cake/setup.sh) — CAKE setup script; set `UPLOAD_MBPS` before deploying
-- [`cake.service`](06-cake/cake.service) — systemd service
-
-#### Install
-
-```bash
-# iproute2 (tc) is already present on Ubuntu 24.04
-sudo cp 06-cake/setup.sh /usr/local/sbin/cake-setup.sh
-sudo chmod 755 /usr/local/sbin/cake-setup.sh
-sudo cp 06-cake/cake.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now cake
-```
-
-#### Tune bandwidth cap
-
-Open `06-cake/setup.sh` and adjust `UPLOAD_MBPS` to 90% of your measured ISP upload
-**before** deploying. Current value: `85` (90% of ~94 Mbps on Spectrum). Keep it
-below the ISP ceiling so CAKE's queue fills before the modem's unmanaged FIFO.
-
-#### DNS priority marking
-
-`cake-setup.sh` marks DNS response packets (source port 53, UDP and TCP) with DSCP
-EF. CAKE's `diffserv4` scheduler places them in the highest-priority tin — DNS answers
-skip bulk traffic so every new connection resolves before its first byte is queued.
-
-#### Verify
-
-```bash
-systemctl status cake
-tc qdisc show dev enp1s0                                       # → cake bandwidth 85Mbit
-sudo iptables -t mangle -L POSTROUTING -v | grep DSCP         # → two rules, sport 53 → EF
-watch -n1 tc -s qdisc show dev enp1s0                         # live queue stats
+nslookup example.com   # Server field must show 192.168.1.118
 ```
 
 ---
 
-### Step 2: Unbound — Recursive DNS
+### Step 10: Remote Desktop
 
-Unbound runs on the host OS, not in a container. It is the DNS decision point — all
-queries that pass Pi-hole's blocklist come here. It must exist before Pi-hole.
+**Skip this step (and Step 9) if you only administer the t630 over SSH.** Remote
+desktop runs a graphical session *on the box* — a phone-only or headless setup never
+needs it.
 
-**Files — [`01-unbound/`](01-unbound/):**
-- [`server.conf`](01-unbound/server.conf) — interface, port, access-control, security flags
-- [`tuning.conf`](01-unbound/tuning.conf) — cache sizes, TTLs, threading (single source of truth for performance)
-- [`streaming-forward.conf`](01-unbound/streaming-forward.conf) — streaming domains → Cloudflare DoT; all else recursive
-- [`remote-control.conf`](01-unbound/remote-control.conf) — Unix socket for `unbound-control`
-- [`root-auto-trust-anchor-file.conf`](01-unbound/root-auto-trust-anchor-file.conf) — DNSSEC root trust anchor
-- [`unbound-cache-dump`](01-unbound/unbound-cache-dump) / [`unbound-cache-load`](01-unbound/unbound-cache-load) — cache persistence scripts (dump hourly + on stop; restore 2 s after start)
-- [`unbound-cache-dump.service`](01-unbound/unbound-cache-dump.service) / [`unbound-cache-dump.timer`](01-unbound/unbound-cache-dump.timer) — systemd units for hourly cache dump
-- [`unbound.service.d/override.conf`](01-unbound/unbound.service.d/override.conf) — service override (triggers cache restore on start)
-
-#### Install
+**Files — [`09-remote-desktop/`](09-remote-desktop/):**
+- [`server.cfg`](09-remote-desktop/server.cfg) — NoMachine server config
 
 ```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y unbound ca-certificates
+sudo apt install -y xubuntu-desktop xfce4 xfce4-goodies
+sudo apt install -y cpufrequtils gamemode schedtool
 ```
 
-#### Root hints and DNSSEC anchor
+**NoMachine** (primary, port 4000) — download the `.deb` from nomachine.com
+(Linux → DEB package for x86_64):
 
 ```bash
-sudo curl -o /var/lib/unbound/root.hints https://www.internic.net/domain/named.root
-sudo unbound-anchor -a /var/lib/unbound/root.key
-sudo chown unbound:unbound /var/lib/unbound/root.key
+# After downloading to the current directory:
+sudo dpkg -i nomachine_*.deb
+sudo cp 09-remote-desktop/server.cfg /usr/NX/etc/server.cfg
+sudo /usr/NX/bin/nxserver --restart
 ```
 
-#### Deploy configuration
+**xrdp** (RDP fallback, port 3389):
 
 ```bash
-sudo cp 01-unbound/*.conf /etc/unbound/unbound.conf.d/
-sudo unbound-checkconf
-sudo systemctl enable --now unbound
+sudo apt install -y xrdp && sudo systemctl enable --now xrdp
 ```
 
-Five drop-ins deploy together. `unbound-checkconf` must pass before the next command.
-
-#### Verify
+**x2goserver** (low-bandwidth alternative):
 
 ```bash
-dig @127.0.0.1 -p 5335 example.com +dnssec | grep "ad;"
-# 'ad' flag = DNSSEC validation working
-
-sudo unbound-control lookup netflix.com   # → forwarding request to 1.1.1.1@853 / 1.0.0.1@853
-sudo unbound-control lookup chase.com    # → iterative delegation (recursive, private)
-```
-
-#### Step 2a: Encrypted streaming forward-path (Cloudflare DoT)
-
-Already deployed by the `cp` above.
-[`streaming-forward.conf`](01-unbound/streaming-forward.conf) forwards streaming and
-media domains to Cloudflare over DNS-over-TLS at port 853. Everything not listed
-resolves recursively — Cloudflare never sees those queries. Its header comment is the
-fully-annotated rationale for the split (see [DNS resolution chain](#dns-resolution-chain)).
-
-Confirm end-to-end:
-```bash
-dig @127.0.0.1 -p 5335 netflix.com +short    # resolves → DoT path works
-sudo unbound-control lookup chase.com        # iterative delegation → private recursive path
-```
-
-**Invariant:** never add sensitive domains (banking, email, health) to
-`streaming-forward.conf` — that hands Cloudflare your private lookups.
-
-#### Step 2b: Cache persistence
-
-Cache dumps hourly and on Unbound stop; restores 2 seconds after start (socket settle
-time). Warm cache survives reboots.
-
-```bash
-sudo cp 01-unbound/unbound-cache-dump 01-unbound/unbound-cache-load /usr/local/bin/
-sudo chmod +x /usr/local/bin/unbound-cache-dump /usr/local/bin/unbound-cache-load
-sudo mkdir -p /var/lib/unbound/cache
-sudo mkdir -p /etc/systemd/system/unbound.service.d
-sudo cp 01-unbound/unbound.service.d/override.conf /etc/systemd/system/unbound.service.d/
-sudo cp 01-unbound/unbound-cache-dump.timer \
-        01-unbound/unbound-cache-dump.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now unbound-cache-dump.timer
+sudo apt install -y x2goserver x2goserver-xsession
 ```
 
 ---
 
-### Step 3: Docker CE
+### Step 9: GPU Performance
 
-Install from the official Docker repository, not Ubuntu's `docker.io` package.
+**Only required for remote desktop on the t630 itself.** DNS, VPN, ad-blocking, and
+monitoring are all unaffected by the GPU clock speed — **skip Steps 9 and 10 entirely
+if you administer the box over SSH only** (a phone-only or otherwise headless
+household never needs them). See [Which steps do you need?](#which-steps-do-you-need).
 
-```bash
-sudo apt-get install -y ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-  -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
-  https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
-  | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io \
-  docker-buildx-plugin docker-compose-plugin
-sudo systemctl enable --now docker
-sudo usermod -aG docker $USER
+**Requires a reboot.** Do this before installing NoMachine.
+
+**Files — [`08-gpu-performance/`](08-gpu-performance/):**
+- [`gpu-performance.service`](08-gpu-performance/gpu-performance.service) — sets GPU to `high` performance level on boot
+- [`cpu-performance.service`](08-gpu-performance/cpu-performance.service) — sets CPU governor to `performance` on boot
+- [`99-amdgpu-performance.rules`](08-gpu-performance/99-amdgpu-performance.rules) — udev rule; re-asserts `high` on every DRM event
+
+#### 1. Kernel parameters
+
+Edit `/etc/default/grub`. Find the `GRUB_CMDLINE_LINUX_DEFAULT` line and **append**
+the flags to whatever is already there — do not replace the existing value.
+
+If the current line is:
+```
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
 ```
 
-**Log out and back in** (or `exec su -l $USER` in the same shell) before the next
-step — the `docker` group change is not active in the current session. Running
-`docker compose` without this produces a "permission denied on socket" error.
+Change it to:
+```
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1"
+```
 
----
+- `amdgpu.runpm=0` — disables runtime power management (root cause of headless downclocking)
+- `amdgpu.dpm=1` — keeps dynamic power management active
+- `processor.max_cstate=1` — prevents deep CPU sleep; improves remote desktop latency
 
-### Steps 4 + 5: Host DNS Fix, then Pi-hole
+```bash
+sudo update-grub && sudo reboot
+```
 
-**Run these back-to-back. The host DNS fix comes FIRST — do it before starting Pi-hole.**
+#### 2–4. Services and udev rule
 
-Pi-hole runs `network_mode: host`, so it wants to bind `0.0.0.0:53` on every
-interface. That collides with systemd-resolved's stub listener on `127.0.0.53:53`:
-on a fresh box Pi-hole cannot bind `:53` until the stub is turned off. The fix is to
-free `:53` *first* (disable the stub) while simultaneously re-pointing the host's own
-resolution at external resolvers, so the host never loses DNS and `:53` is clear when
-Pi-hole launches. Doing it in this order avoids the "Temporary failure in name
-resolution" window entirely.
-
-#### Part A (do first): free port 53 and decouple host DNS — `03-host-dns/`
-
-`03-host-dns/host-dns.conf` sets `DNS=9.9.9.9 1.1.1.1` **and** `DNSStubListener=no`.
-Disabling the stub frees `:53`; because that also removes the `127.0.0.53` listener,
-`/etc/resolv.conf` must be re-pointed off the stub file to the one that lists the
-real upstreams.
-
-**Files — [`03-host-dns/`](03-host-dns/):**
-- [`host-dns.conf`](03-host-dns/host-dns.conf) — sets `DNS=9.9.9.9 1.1.1.1` and `DNSStubListener=no`
+After rebooting and SSH-ing back in:
 
 ```bash
 cd ~/localdns
-sudo mkdir -p /etc/systemd/resolved.conf.d
-sudo cp 03-host-dns/host-dns.conf /etc/systemd/resolved.conf.d/
-sudo systemctl restart systemd-resolved
-# Re-point resolv.conf off the (now-disabled) stub to the direct-resolver file:
-sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
-getent hosts security.ubuntu.com   # must return an IP — host DNS is working
-sudo ss -ulpn 'sport = :53'        # should show NOTHING bound on :53 yet
+sudo cp 08-gpu-performance/gpu-performance.service \
+        08-gpu-performance/cpu-performance.service /etc/systemd/system/
+sudo cp 08-gpu-performance/99-amdgpu-performance.rules /etc/udev/rules.d/
+sudo systemctl daemon-reload
+sudo systemctl enable --now gpu-performance cpu-performance
+sudo udevadm control --reload-rules
+sudo udevadm trigger --subsystem-match=drm
 ```
 
-#### Part B (then): start Pi-hole — `02-pihole/`
+The udev rule is the critical piece. The systemd services fire once at boot. The udev
+rule re-asserts `high` on every DRM event — catching display hotplug and runtime PM
+transitions that would otherwise re-throttle the GPU mid-session.
 
-**Files — [`02-pihole/`](02-pihole/):**
-- [`docker-compose.yml`](02-pihole/docker-compose.yml) — Pi-hole v6 compose; set `FTLCONF_webserver_api_password` before deploying
+#### Verify
 
 ```bash
-# 1. Set a real password before starting — the default is a placeholder
-nano 02-pihole/docker-compose.yml
-# Change: FTLCONF_webserver_api_password: "CHANGE_ME"
-# To:     FTLCONF_webserver_api_password: "your-actual-password"
-
-# 2. Copy compose file to its operational location and start
-mkdir -p ~/pihole
-cp 02-pihole/docker-compose.yml ~/pihole/
-cd ~/pihole && docker compose up -d
-docker compose logs -f pihole   # Ctrl-C once it reports listening on :53 / :8080
+cat /sys/class/drm/card*/device/power_dpm_force_performance_level   # → high
+cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor | sort -u  # → performance
 ```
-
-Web UI at `http://192.168.1.118:8080/admin/`. If `docker compose logs` shows FTL
-failing to bind `:53`, the stub is still up — re-check Part A (`sudo ss -ulpn 'sport
-= :53'` should be empty before Pi-hole starts).
-
-![Pi-hole dashboard showing query volume, percent blocked, and upstream forwarding to 127.0.0.1#5335 (Unbound)](docs/pihole-dashboard.png)
-
-#### Confirm Pi-hole upstream DNS in the UI
-
-Go to Settings → DNS. Verify:
-1. Custom upstream shows exactly: `127.0.0.1#5335`
-2. No preset resolvers (Google, Cloudflare, Quad9) are checked
-
-The `FTLCONF_dns_upstreams: "127.0.0.1#5335"` env var (Pi-hole v6) enforces this on
-every container start and locks it read-only in the UI, so the field above is
-informational — you are confirming, not editing (Pi-hole is host-networked, so the
-host loopback reaches Unbound directly). Do not add public resolvers — Pi-hole
-forwards everything to Unbound, and Unbound owns the streaming/personal split.
-Adding public resolvers here would race them for every query, including sensitive ones.
-
-#### Set Pi-hole interface mode
-
-`FTLCONF_dns_listeningMode: "all"` in the compose file already seeds and locks this
-to **"Permit all origins"** (Settings → DNS → Interface). This is required for
-Pi-hole to accept queries from WireGuard tunnel clients (`10.8.0.x`) and Docker
-containers. Safe here because UFW (next step) restricts access at the network layer.
-
-> **UFW now gates Pi-hole:** because Pi-hole runs `network_mode: host` (not Docker
-> bridge with published ports), its `:53` and `:8080` bind directly on the host and
-> are subject to UFW's INPUT chain like any host service — UFW's `from 192.168.0.0/16`
-> and `from 10.8.0.0/24` rules genuinely restrict them. (With the old bridge +
-> published-ports setup, Docker's DNAT in the `DOCKER` chain ran before UFW's INPUT
-> chain and bypassed these rules — host networking removes that gap.) The router's
-> NAT remains the outer boundary for WAN access.
 
 ---
 
-### Step 6: UFW Firewall
+### Step 8: Uptime Kuma
 
-Lock down before opening the WAN port in Step 7.
+Set up after everything else exists to monitor — the CAKE script depends on CAKE
+being installed first.
 
-**Files — [`04-ufw/`](04-ufw/):**
-- [`setup.sh`](04-ufw/setup.sh) — complete UFW ruleset; run directly with `sudo bash`
+**Files — [`07-uptime-kuma/`](07-uptime-kuma/):**
+- [`docker-compose.yml`](07-uptime-kuma/docker-compose.yml) — Uptime Kuma compose
+- [`packet-loss-monitor.sh`](07-uptime-kuma/packet-loss-monitor.sh) — packet loss monitoring script (cron, every minute)
+- [`cake-monitor.sh`](07-uptime-kuma/cake-monitor.sh) — CAKE health heartbeat script (cron, every minute)
 
 ```bash
-sudo bash 04-ufw/setup.sh
-sudo ufw status verbose   # verify: 51820/udp Anywhere; all else LAN-only
+mkdir -p ~/uptime-kuma
+cp 07-uptime-kuma/docker-compose.yml ~/uptime-kuma/
+cd ~/uptime-kuma && docker compose up -d
 ```
 
-Rules applied:
+Web UI at `http://192.168.1.118:3001`. Create an admin account on first run.
+Data persists in `~/uptime-kuma/data/` (bind mount — back this directory up directly).
 
-| Port | Protocol | Allowed from |
-|------|----------|--------------|
-| 53 | TCP/UDP | `192.168.0.0/16` + `10.8.0.0/24` |
-| 5335 | TCP/UDP | `192.168.0.0/16` + docker0 bridge |
-| 22 | TCP | `192.168.0.0/16` + `10.8.0.0/24` |
-| 8080 | TCP | `192.168.0.0/16` + `10.8.0.0/24` |
-| 3001 | TCP | `192.168.0.0/16` + `10.8.0.0/24` |
-| 3389 | TCP | `192.168.0.0/16` |
-| 4000 | TCP/UDP | `192.168.0.0/16` |
-| 5353 | UDP | `192.168.0.0/16` |
-| **51820** | **UDP** | **Anywhere** (WireGuard — phone connects from cellular) |
+Uptime Kuma uses `network_mode: host`, placing it on the host network stack. This lets
+it reach Unbound at `127.0.0.1:5335` directly. Pi-hole is host-networked for the same
+reason, so both containers reach Unbound on the host loopback.
 
-`ufw default allow routed` is set by the script. This is required for WireGuard to
-forward peer traffic out `enp1s0`. Do not add raw `iptables -A FORWARD` rules as a
-workaround — they land after UFW's DROP rule and are silently ignored.
+#### DNS monitors
+
+Create these in the Uptime Kuma UI (Add Monitor):
+
+| Friendly name | Type | Hostname | Resolver | Port | Record |
+| --- | --- | --- | --- | --- | --- |
+| Unbound – Basic | DNS | `cloudflare.com` | `127.0.0.1` | `5335` | A |
+| Unbound – DNSSEC | DNS | `internetsociety.org` | `127.0.0.1` | `5335` | A |
+| Pi-hole – Full Chain | DNS | `cloudflare.com` | `127.0.0.1` | `53` | A |
+| Pi-hole – Web UI | TCP Port | `192.168.1.118` | — | `8080` | — |
+| Home Router | HTTP(s) | `http://192.168.1.1` | — | — | — |
+
+Enter IP only in the resolver field — port goes in the separate Port field.
+`127.0.0.1:5335` in the resolver field creates an invalid double-port and causes
+intermittent failures.
+
+#### Packet loss monitors (Push type)
+
+Create three Push monitors in the UI:
+
+| Friendly name | Heartbeat interval | Retries |
+| --- | --- | --- |
+| Packet Loss – Router (LAN) | 60s | 2 |
+| Packet Loss – Internet (1.1.1.1) | 60s | 2 |
+| CAKE SQM | 90s | 2 |
+
+After saving each, copy the push URL token (strip `?status=…` — keep only the base
+URL up to and including the token) into the corresponding script.
+
+#### Packet loss monitoring script
+
+```bash
+cp 07-uptime-kuma/packet-loss-monitor.sh ~/
+chmod +x ~/packet-loss-monitor.sh
+# Fill in ROUTER_PUSH_URL and INTERNET_PUSH_URL with your tokens
+nano ~/packet-loss-monitor.sh
+
+# Test manually before scheduling — both monitors must flip green within 60s
+~/packet-loss-monitor.sh
+
+# Once confirmed working, add to crontab (replace USER with your actual username)
+crontab -e
+```
+
+Add to crontab:
+```
+* * * * * /home/USER/packet-loss-monitor.sh
+```
+
+The script sends 50 pings at 0.2 s intervals (~10 s total) so it fits in the 60-second
+window. Loss percentage is placed in the `ping` field so Uptime Kuma graphs it over time.
+
+#### CAKE monitoring script
+
+```bash
+cp 07-uptime-kuma/cake-monitor.sh ~/
+chmod +x ~/cake-monitor.sh
+# Fill in PUSH_URL with your token
+nano ~/cake-monitor.sh
+
+# Test manually — CAKE monitor must flip green
+~/cake-monitor.sh
+
+crontab -e
+```
+
+Add to crontab:
+```
+* * * * * /home/USER/cake-monitor.sh
+```
+
+CAKE SQM heartbeat is 90s (not 60s) — cron fires every 60s but scheduling jitter
+can push the heartbeat to second 61–62; the 90s window absorbs that without false
+"down" flaps.
+
+**Packet loss threshold guidance:**
+
+| Threshold | Meaning |
+| --- | --- |
+| 1–2% | Strict — catches early degradation |
+| 5% | Standard — video calls start glitching |
+| 10% | Lenient — things noticeably broken |
+| 15% | Severe events only |
 
 ---
 
@@ -692,231 +622,301 @@ ping google.com  # DNS working
 
 ---
 
-### Step 8: Uptime Kuma
+### Step 6: UFW Firewall
 
-Set up after everything else exists to monitor — the CAKE script depends on CAKE
-being installed first.
+Lock down before opening the WAN port in Step 7.
 
-**Files — [`07-uptime-kuma/`](07-uptime-kuma/):**
-- [`docker-compose.yml`](07-uptime-kuma/docker-compose.yml) — Uptime Kuma compose
-- [`packet-loss-monitor.sh`](07-uptime-kuma/packet-loss-monitor.sh) — packet loss monitoring script (cron, every minute)
-- [`cake-monitor.sh`](07-uptime-kuma/cake-monitor.sh) — CAKE health heartbeat script (cron, every minute)
+**Files — [`04-ufw/`](04-ufw/):**
+- [`setup.sh`](04-ufw/setup.sh) — complete UFW ruleset; run directly with `sudo bash`
 
 ```bash
-mkdir -p ~/uptime-kuma
-cp 07-uptime-kuma/docker-compose.yml ~/uptime-kuma/
-cd ~/uptime-kuma && docker compose up -d
+sudo bash 04-ufw/setup.sh
+sudo ufw status verbose   # verify: 51820/udp Anywhere; all else LAN-only
 ```
 
-Web UI at `http://192.168.1.118:3001`. Create an admin account on first run.
-Data persists in `~/uptime-kuma/data/` (bind mount — back this directory up directly).
+Rules applied:
 
-Uptime Kuma uses `network_mode: host`, placing it on the host network stack. This lets
-it reach Unbound at `127.0.0.1:5335` directly. Pi-hole is host-networked for the same
-reason, so both containers reach Unbound on the host loopback.
+| Port | Protocol | Allowed from |
+|------|----------|--------------|
+| 53 | TCP/UDP | `192.168.0.0/16` + `10.8.0.0/24` |
+| 5335 | TCP/UDP | `192.168.0.0/16` + docker0 bridge |
+| 22 | TCP | `192.168.0.0/16` + `10.8.0.0/24` |
+| 8080 | TCP | `192.168.0.0/16` + `10.8.0.0/24` |
+| 3001 | TCP | `192.168.0.0/16` + `10.8.0.0/24` |
+| 3389 | TCP | `192.168.0.0/16` |
+| 4000 | TCP/UDP | `192.168.0.0/16` |
+| 5353 | UDP | `192.168.0.0/16` |
+| **51820** | **UDP** | **Anywhere** (WireGuard — phone connects from cellular) |
 
-#### DNS monitors
-
-Create these in the Uptime Kuma UI (Add Monitor):
-
-| Friendly name | Type | Hostname | Resolver | Port | Record |
-| --- | --- | --- | --- | --- | --- |
-| Unbound – Basic | DNS | `cloudflare.com` | `127.0.0.1` | `5335` | A |
-| Unbound – DNSSEC | DNS | `internetsociety.org` | `127.0.0.1` | `5335` | A |
-| Pi-hole – Full Chain | DNS | `cloudflare.com` | `127.0.0.1` | `53` | A |
-| Pi-hole – Web UI | TCP Port | `192.168.1.118` | — | `8080` | — |
-| Home Router | HTTP(s) | `http://192.168.1.1` | — | — | — |
-
-Enter IP only in the resolver field — port goes in the separate Port field.
-`127.0.0.1:5335` in the resolver field creates an invalid double-port and causes
-intermittent failures.
-
-#### Packet loss monitors (Push type)
-
-Create three Push monitors in the UI:
-
-| Friendly name | Heartbeat interval | Retries |
-| --- | --- | --- |
-| Packet Loss – Router (LAN) | 60s | 2 |
-| Packet Loss – Internet (1.1.1.1) | 60s | 2 |
-| CAKE SQM | 90s | 2 |
-
-After saving each, copy the push URL token (strip `?status=…` — keep only the base
-URL up to and including the token) into the corresponding script.
-
-#### Packet loss monitoring script
-
-```bash
-cp 07-uptime-kuma/packet-loss-monitor.sh ~/
-chmod +x ~/packet-loss-monitor.sh
-# Fill in ROUTER_PUSH_URL and INTERNET_PUSH_URL with your tokens
-nano ~/packet-loss-monitor.sh
-
-# Test manually before scheduling — both monitors must flip green within 60s
-~/packet-loss-monitor.sh
-
-# Once confirmed working, add to crontab (replace USER with your actual username)
-crontab -e
-```
-
-Add to crontab:
-```
-* * * * * /home/USER/packet-loss-monitor.sh
-```
-
-The script sends 50 pings at 0.2 s intervals (~10 s total) so it fits in the 60-second
-window. Loss percentage is placed in the `ping` field so Uptime Kuma graphs it over time.
-
-#### CAKE monitoring script
-
-```bash
-cp 07-uptime-kuma/cake-monitor.sh ~/
-chmod +x ~/cake-monitor.sh
-# Fill in PUSH_URL with your token
-nano ~/cake-monitor.sh
-
-# Test manually — CAKE monitor must flip green
-~/cake-monitor.sh
-
-crontab -e
-```
-
-Add to crontab:
-```
-* * * * * /home/USER/cake-monitor.sh
-```
-
-CAKE SQM heartbeat is 90s (not 60s) — cron fires every 60s but scheduling jitter
-can push the heartbeat to second 61–62; the 90s window absorbs that without false
-"down" flaps.
-
-**Packet loss threshold guidance:**
-
-| Threshold | Meaning |
-| --- | --- |
-| 1–2% | Strict — catches early degradation |
-| 5% | Standard — video calls start glitching |
-| 10% | Lenient — things noticeably broken |
-| 15% | Severe events only |
+`ufw default allow routed` is set by the script. This is required for WireGuard to
+forward peer traffic out `enp1s0`. Do not add raw `iptables -A FORWARD` rules as a
+workaround — they land after UFW's DROP rule and are silently ignored.
 
 ---
 
-### Step 9: GPU Performance
+### Steps 4 + 5: Host DNS Fix, then Pi-hole
 
-**Only required for remote desktop on the t630 itself.** DNS, VPN, ad-blocking, and
-monitoring are all unaffected by the GPU clock speed — **skip Steps 9 and 10 entirely
-if you administer the box over SSH only** (a phone-only or otherwise headless
-household never needs them). See [Which steps do you need?](#which-steps-do-you-need).
+**Run these back-to-back. The host DNS fix comes FIRST — do it before starting Pi-hole.**
 
-**Requires a reboot.** Do this before installing NoMachine.
+Pi-hole runs `network_mode: host`, so it wants to bind `0.0.0.0:53` on every
+interface. That collides with systemd-resolved's stub listener on `127.0.0.53:53`:
+on a fresh box Pi-hole cannot bind `:53` until the stub is turned off. The fix is to
+free `:53` *first* (disable the stub) while simultaneously re-pointing the host's own
+resolution at external resolvers, so the host never loses DNS and `:53` is clear when
+Pi-hole launches. Doing it in this order avoids the "Temporary failure in name
+resolution" window entirely.
 
-**Files — [`08-gpu-performance/`](08-gpu-performance/):**
-- [`gpu-performance.service`](08-gpu-performance/gpu-performance.service) — sets GPU to `high` performance level on boot
-- [`cpu-performance.service`](08-gpu-performance/cpu-performance.service) — sets CPU governor to `performance` on boot
-- [`99-amdgpu-performance.rules`](08-gpu-performance/99-amdgpu-performance.rules) — udev rule; re-asserts `high` on every DRM event
+#### Part A (do first): free port 53 and decouple host DNS — `03-host-dns/`
 
-#### 1. Kernel parameters
+`03-host-dns/host-dns.conf` sets `DNS=9.9.9.9 1.1.1.1` **and** `DNSStubListener=no`.
+Disabling the stub frees `:53`; because that also removes the `127.0.0.53` listener,
+`/etc/resolv.conf` must be re-pointed off the stub file to the one that lists the
+real upstreams.
 
-Edit `/etc/default/grub`. Find the `GRUB_CMDLINE_LINUX_DEFAULT` line and **append**
-the flags to whatever is already there — do not replace the existing value.
-
-If the current line is:
-```
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
-```
-
-Change it to:
-```
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1"
-```
-
-- `amdgpu.runpm=0` — disables runtime power management (root cause of headless downclocking)
-- `amdgpu.dpm=1` — keeps dynamic power management active
-- `processor.max_cstate=1` — prevents deep CPU sleep; improves remote desktop latency
-
-```bash
-sudo update-grub && sudo reboot
-```
-
-#### 2–4. Services and udev rule
-
-After rebooting and SSH-ing back in:
+**Files — [`03-host-dns/`](03-host-dns/):**
+- [`host-dns.conf`](03-host-dns/host-dns.conf) — sets `DNS=9.9.9.9 1.1.1.1` and `DNSStubListener=no`
 
 ```bash
 cd ~/localdns
-sudo cp 08-gpu-performance/gpu-performance.service \
-        08-gpu-performance/cpu-performance.service /etc/systemd/system/
-sudo cp 08-gpu-performance/99-amdgpu-performance.rules /etc/udev/rules.d/
-sudo systemctl daemon-reload
-sudo systemctl enable --now gpu-performance cpu-performance
-sudo udevadm control --reload-rules
-sudo udevadm trigger --subsystem-match=drm
+sudo mkdir -p /etc/systemd/resolved.conf.d
+sudo cp 03-host-dns/host-dns.conf /etc/systemd/resolved.conf.d/
+sudo systemctl restart systemd-resolved
+# Re-point resolv.conf off the (now-disabled) stub to the direct-resolver file:
+sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+getent hosts security.ubuntu.com   # must return an IP — host DNS is working
+sudo ss -ulpn 'sport = :53'        # should show NOTHING bound on :53 yet
 ```
 
-The udev rule is the critical piece. The systemd services fire once at boot. The udev
-rule re-asserts `high` on every DRM event — catching display hotplug and runtime PM
-transitions that would otherwise re-throttle the GPU mid-session.
+#### Part B (then): start Pi-hole — `02-pihole/`
+
+**Files — [`02-pihole/`](02-pihole/):**
+- [`docker-compose.yml`](02-pihole/docker-compose.yml) — Pi-hole v6 compose; set `FTLCONF_webserver_api_password` before deploying
+
+```bash
+# 1. Set a real password before starting — the default is a placeholder
+nano 02-pihole/docker-compose.yml
+# Change: FTLCONF_webserver_api_password: "CHANGE_ME"
+# To:     FTLCONF_webserver_api_password: "your-actual-password"
+
+# 2. Copy compose file to its operational location and start
+mkdir -p ~/pihole
+cp 02-pihole/docker-compose.yml ~/pihole/
+cd ~/pihole && docker compose up -d
+docker compose logs -f pihole   # Ctrl-C once it reports listening on :53 / :8080
+```
+
+Web UI at `http://192.168.1.118:8080/admin/`. If `docker compose logs` shows FTL
+failing to bind `:53`, the stub is still up — re-check Part A (`sudo ss -ulpn 'sport
+= :53'` should be empty before Pi-hole starts).
+
+![Pi-hole dashboard showing query volume, percent blocked, and upstream forwarding to 127.0.0.1#5335 (Unbound)](docs/pihole-dashboard.png)
+
+#### Confirm Pi-hole upstream DNS in the UI
+
+Go to Settings → DNS. Verify:
+1. Custom upstream shows exactly: `127.0.0.1#5335`
+2. No preset resolvers (Google, Cloudflare, Quad9) are checked
+
+The `FTLCONF_dns_upstreams: "127.0.0.1#5335"` env var (Pi-hole v6) enforces this on
+every container start and locks it read-only in the UI, so the field above is
+informational — you are confirming, not editing (Pi-hole is host-networked, so the
+host loopback reaches Unbound directly). Do not add public resolvers — Pi-hole
+forwards everything to Unbound, and Unbound owns the streaming/personal split.
+Adding public resolvers here would race them for every query, including sensitive ones.
+
+#### Set Pi-hole interface mode
+
+`FTLCONF_dns_listeningMode: "all"` in the compose file already seeds and locks this
+to **"Permit all origins"** (Settings → DNS → Interface). This is required for
+Pi-hole to accept queries from WireGuard tunnel clients (`10.8.0.x`) and Docker
+containers. Safe here because UFW (next step) restricts access at the network layer.
+
+> **UFW now gates Pi-hole:** because Pi-hole runs `network_mode: host` (not Docker
+> bridge with published ports), its `:53` and `:8080` bind directly on the host and
+> are subject to UFW's INPUT chain like any host service — UFW's `from 192.168.0.0/16`
+> and `from 10.8.0.0/24` rules genuinely restrict them. (With the old bridge +
+> published-ports setup, Docker's DNAT in the `DOCKER` chain ran before UFW's INPUT
+> chain and bypassed these rules — host networking removes that gap.) The router's
+> NAT remains the outer boundary for WAN access.
+
+---
+
+### Step 3: Docker CE
+
+Install from the official Docker repository, not Ubuntu's `docker.io` package.
+
+```bash
+sudo apt-get install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+  -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+  https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+  | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io \
+  docker-buildx-plugin docker-compose-plugin
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
+```
+
+**Log out and back in** (or `exec su -l $USER` in the same shell) before the next
+step — the `docker` group change is not active in the current session. Running
+`docker compose` without this produces a "permission denied on socket" error.
+
+---
+
+### Step 2: Unbound — Recursive DNS
+
+Unbound runs on the host OS, not in a container. It is the DNS decision point — all
+queries that pass Pi-hole's blocklist come here. It must exist before Pi-hole.
+
+**Files — [`01-unbound/`](01-unbound/):**
+- [`server.conf`](01-unbound/server.conf) — interface, port, access-control, security flags
+- [`tuning.conf`](01-unbound/tuning.conf) — cache sizes, TTLs, threading (single source of truth for performance)
+- [`streaming-forward.conf`](01-unbound/streaming-forward.conf) — streaming domains → Cloudflare DoT; all else recursive
+- [`remote-control.conf`](01-unbound/remote-control.conf) — Unix socket for `unbound-control`
+- [`root-auto-trust-anchor-file.conf`](01-unbound/root-auto-trust-anchor-file.conf) — DNSSEC root trust anchor
+- [`unbound-cache-dump`](01-unbound/unbound-cache-dump) / [`unbound-cache-load`](01-unbound/unbound-cache-load) — cache persistence scripts (dump hourly + on stop; restore 2 s after start)
+- [`unbound-cache-dump.service`](01-unbound/unbound-cache-dump.service) / [`unbound-cache-dump.timer`](01-unbound/unbound-cache-dump.timer) — systemd units for hourly cache dump
+- [`unbound.service.d/override.conf`](01-unbound/unbound.service.d/override.conf) — service override (triggers cache restore on start)
+
+#### Install
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y unbound ca-certificates
+```
+
+#### Root hints and DNSSEC anchor
+
+```bash
+sudo curl -o /var/lib/unbound/root.hints https://www.internic.net/domain/named.root
+sudo unbound-anchor -a /var/lib/unbound/root.key
+sudo chown unbound:unbound /var/lib/unbound/root.key
+```
+
+#### Deploy configuration
+
+```bash
+sudo cp 01-unbound/*.conf /etc/unbound/unbound.conf.d/
+sudo unbound-checkconf
+sudo systemctl enable --now unbound
+```
+
+Five drop-ins deploy together. `unbound-checkconf` must pass before the next command.
 
 #### Verify
 
 ```bash
-cat /sys/class/drm/card*/device/power_dpm_force_performance_level   # → high
-cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor | sort -u  # → performance
+dig @127.0.0.1 -p 5335 example.com +dnssec | grep "ad;"
+# 'ad' flag = DNSSEC validation working
+
+sudo unbound-control lookup netflix.com   # → forwarding request to 1.1.1.1@853 / 1.0.0.1@853
+sudo unbound-control lookup chase.com    # → iterative delegation (recursive, private)
+```
+
+#### Step 2a: Encrypted streaming forward-path (Cloudflare DoT)
+
+Already deployed by the `cp` above.
+[`streaming-forward.conf`](01-unbound/streaming-forward.conf) forwards streaming and
+media domains to Cloudflare over DNS-over-TLS at port 853. Everything not listed
+resolves recursively — Cloudflare never sees those queries. Its header comment is the
+fully-annotated rationale for the split (see [DNS resolution chain](#dns-resolution-chain)).
+
+Confirm end-to-end:
+```bash
+dig @127.0.0.1 -p 5335 netflix.com +short    # resolves → DoT path works
+sudo unbound-control lookup chase.com        # iterative delegation → private recursive path
+```
+
+**Invariant:** never add sensitive domains (banking, email, health) to
+`streaming-forward.conf` — that hands Cloudflare your private lookups.
+
+#### Step 2b: Cache persistence
+
+Cache dumps hourly and on Unbound stop; restores 2 seconds after start (socket settle
+time). Warm cache survives reboots.
+
+```bash
+sudo cp 01-unbound/unbound-cache-dump 01-unbound/unbound-cache-load /usr/local/bin/
+sudo chmod +x /usr/local/bin/unbound-cache-dump /usr/local/bin/unbound-cache-load
+sudo mkdir -p /var/lib/unbound/cache
+sudo mkdir -p /etc/systemd/system/unbound.service.d
+sudo cp 01-unbound/unbound.service.d/override.conf /etc/systemd/system/unbound.service.d/
+sudo cp 01-unbound/unbound-cache-dump.timer \
+        01-unbound/unbound-cache-dump.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now unbound-cache-dump.timer
 ```
 
 ---
 
-### Step 10: Remote Desktop
+### Step 1: CAKE SQM
 
-**Skip this step (and Step 9) if you only administer the t630 over SSH.** Remote
-desktop runs a graphical session *on the box* — a phone-only or headless setup never
-needs it.
+CAKE eliminates upload bufferbloat. Without it, latency spikes 400–800 ms under VPN
+upload load. With it: 11 ms loaded vs 14 ms idle (measured on Spectrum ~200/100 Mbps).
 
-**Files — [`09-remote-desktop/`](09-remote-desktop/):**
-- [`server.cfg`](09-remote-desktop/server.cfg) — NoMachine server config
+**Scope:** shapes `enp1s0` egress — all traffic the t630 forwards toward the router.
+Covers upload bufferbloat for WireGuard VPN clients. Does not address download
+bufferbloat for general LAN devices (the Netgear R7000 is the correct fix point
+for that; DD-WRT/FreshTomato both support CAKE).
+
+**Files — [`06-cake/`](06-cake/):**
+- [`setup.sh`](06-cake/setup.sh) — CAKE setup script; set `UPLOAD_MBPS` before deploying
+- [`cake.service`](06-cake/cake.service) — systemd service
+
+#### Install
 
 ```bash
-sudo apt install -y xubuntu-desktop xfce4 xfce4-goodies
-sudo apt install -y cpufrequtils gamemode schedtool
+# iproute2 (tc) is already present on Ubuntu 24.04
+sudo cp 06-cake/setup.sh /usr/local/sbin/cake-setup.sh
+sudo chmod 755 /usr/local/sbin/cake-setup.sh
+sudo cp 06-cake/cake.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now cake
 ```
 
-**NoMachine** (primary, port 4000) — download the `.deb` from nomachine.com
-(Linux → DEB package for x86_64):
+#### Tune bandwidth cap
+
+Open `06-cake/setup.sh` and adjust `UPLOAD_MBPS` to 90% of your measured ISP upload
+**before** deploying. Current value: `85` (90% of ~94 Mbps on Spectrum). Keep it
+below the ISP ceiling so CAKE's queue fills before the modem's unmanaged FIFO.
+
+#### DNS priority marking
+
+`cake-setup.sh` marks DNS response packets (source port 53, UDP and TCP) with DSCP
+EF. CAKE's `diffserv4` scheduler places them in the highest-priority tin — DNS answers
+skip bulk traffic so every new connection resolves before its first byte is queued.
+
+#### Verify
 
 ```bash
-# After downloading to the current directory:
-sudo dpkg -i nomachine_*.deb
-sudo cp 09-remote-desktop/server.cfg /usr/NX/etc/server.cfg
-sudo /usr/NX/bin/nxserver --restart
-```
-
-**xrdp** (RDP fallback, port 3389):
-
-```bash
-sudo apt install -y xrdp && sudo systemctl enable --now xrdp
-```
-
-**x2goserver** (low-bandwidth alternative):
-
-```bash
-sudo apt install -y x2goserver x2goserver-xsession
+systemctl status cake
+tc qdisc show dev enp1s0                                       # → cake bandwidth 85Mbit
+sudo iptables -t mangle -L POSTROUTING -v | grep DSCP         # → two rules, sport 53 → EF
+watch -n1 tc -s qdisc show dev enp1s0                         # live queue stats
 ```
 
 ---
 
-### Step 11: Point LAN Clients at t630
+### Step 0: Router — DHCP reservation
 
-Do this **last**, after every item on the verification checklist below passes.
+Do this **before** touching the t630 so it boots with a stable address from the start.
 
-On the Netgear R7000: Basic → Internet Setup → Domain Name Server (DNS Address):
-- Primary DNS: `192.168.1.118`
-- Secondary DNS: `1.1.1.1` (resilience — if the t630 goes down the network stays
-  online, losing ad-blocking until it recovers)
-
-Renew DHCP leases on all client devices. Verify on any client:
+Find the t630's MAC address:
+```bash
+ip link show enp1s0   # MAC is the link/ether value
 ```
-nslookup example.com   # Server field must show 192.168.1.118
-```
+
+On the Netgear R7000: Advanced → Setup → LAN Setup → Address Reservation. Reserve
+`192.168.1.118` for the t630's MAC.
+
+Do **not** set the router's DNS to `192.168.1.118` yet. That happens in Step 11,
+after the full stack is verified. Setting it now breaks name resolution for every
+LAN device before Pi-hole is ready.
 
 ---
 
@@ -1001,6 +1001,57 @@ Listed in setup-step order. CAKE now installs first (Step 1), so folder numbers 
 
 ## C. How it works / FAQ / Troubleshooting
 
+### AMD Carrizo GPU
+
+The iGPU downclocks to ~200 MHz headless, making remote desktop unusable. Four pieces
+are required to prevent it:
+
+1. GRUB: `amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1`
+2. `gpu-performance.service` — sets `high` at boot
+3. `cpu-performance.service` — locks CPU governor to `performance`
+4. `99-amdgpu-performance.rules` — re-asserts `high` on every DRM event (the critical piece)
+
+---
+
+### Unbound config files
+
+Five drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
+
+| File | Purpose |
+| ---- | ------- |
+| `remote-control.conf` | Unix socket for `unbound-control` |
+| `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
+| `server.conf` | Interface, port, access-control, security flags |
+| `streaming-forward.conf` | Domain split: streaming/media → Cloudflare DoT; all else recursive |
+| `tuning.conf` | All performance and cache values — single source of truth |
+
+`tuning.conf` is the only place to change cache sizes, TTLs, or threading. Do not
+split these into separate files.
+
+### Why the host resolves its own DNS through external servers
+
+Pi-hole (host-networked) binds `:53` directly on the host across every interface.
+The host therefore cannot cleanly use its own Pi-hole for its own lookups — and
+`/etc/resolv.conf` cannot carry Unbound's non-standard `:5335` port either.
+`03-host-dns/host-dns.conf` points systemd-resolved at `9.9.9.9` and `1.1.1.1`
+directly, decoupling the host's own resolution from the DNS stack so it is never
+stranded while Pi-hole/Unbound restart. See `network-context.md` "Host resolver"
+for the root-cause analysis.
+
+> **Stub listener vs Pi-hole on `:53`:** because Pi-hole wants `0.0.0.0:53`, it
+> collides with systemd-resolved's stub on `127.0.0.53:53`. `host-dns.conf` therefore
+> also sets `DNSStubListener=no` to free the port, and Part A of Steps 4-5 re-points
+> `/etc/resolv.conf` off the now-disabled stub to `/run/systemd/resolve/resolv.conf`
+> (which lists the external resolvers directly). On the **live t630**, confirm which
+> mechanism already frees `:53` before re-applying — see the queued live-box steps.
+
+### Why Unbound runs on the host, not in Docker
+
+DNSSEC validation needs low overhead and no bridge routing. Unbound runs directly on
+the host OS at `0.0.0.0:5335`. Both containers that talk to it — Pi-hole and Uptime
+Kuma — run with `network_mode: host`, so each reaches Unbound directly at
+`127.0.0.1:5335` on the host loopback, with no Docker bridge in the path.
+
 ### DNS resolution chain
 
 Every query from a LAN or VPN client flows through two layers:
@@ -1038,57 +1089,6 @@ point of the design.
 
 If Cloudflare's port 853 is ever blocked by an ISP, `forward-first: yes` falls back
 to full recursion. Streaming keeps working, just slower.
-
-### Why Unbound runs on the host, not in Docker
-
-DNSSEC validation needs low overhead and no bridge routing. Unbound runs directly on
-the host OS at `0.0.0.0:5335`. Both containers that talk to it — Pi-hole and Uptime
-Kuma — run with `network_mode: host`, so each reaches Unbound directly at
-`127.0.0.1:5335` on the host loopback, with no Docker bridge in the path.
-
-### Why the host resolves its own DNS through external servers
-
-Pi-hole (host-networked) binds `:53` directly on the host across every interface.
-The host therefore cannot cleanly use its own Pi-hole for its own lookups — and
-`/etc/resolv.conf` cannot carry Unbound's non-standard `:5335` port either.
-`03-host-dns/host-dns.conf` points systemd-resolved at `9.9.9.9` and `1.1.1.1`
-directly, decoupling the host's own resolution from the DNS stack so it is never
-stranded while Pi-hole/Unbound restart. See `network-context.md` "Host resolver"
-for the root-cause analysis.
-
-> **Stub listener vs Pi-hole on `:53`:** because Pi-hole wants `0.0.0.0:53`, it
-> collides with systemd-resolved's stub on `127.0.0.53:53`. `host-dns.conf` therefore
-> also sets `DNSStubListener=no` to free the port, and Part A of Steps 4-5 re-points
-> `/etc/resolv.conf` off the now-disabled stub to `/run/systemd/resolve/resolv.conf`
-> (which lists the external resolvers directly). On the **live t630**, confirm which
-> mechanism already frees `:53` before re-applying — see the queued live-box steps.
-
-### Unbound config files
-
-Five drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
-
-| File | Purpose |
-| ---- | ------- |
-| `remote-control.conf` | Unix socket for `unbound-control` |
-| `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
-| `server.conf` | Interface, port, access-control, security flags |
-| `streaming-forward.conf` | Domain split: streaming/media → Cloudflare DoT; all else recursive |
-| `tuning.conf` | All performance and cache values — single source of truth |
-
-`tuning.conf` is the only place to change cache sizes, TTLs, or threading. Do not
-split these into separate files.
-
-### AMD Carrizo GPU
-
-The iGPU downclocks to ~200 MHz headless, making remote desktop unusable. Four pieces
-are required to prevent it:
-
-1. GRUB: `amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1`
-2. `gpu-performance.service` — sets `high` at boot
-3. `cpu-performance.service` — locks CPU governor to `performance`
-4. `99-amdgpu-performance.rules` — re-asserts `high` on every DRM event (the critical piece)
-
----
 
 ## 1. References
 

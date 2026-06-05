@@ -8,6 +8,6 @@
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
   <rect x="34" y="34" width="444" height="444" rx="86" fill="none" stroke="#a9803f" stroke-width="9"/>
   <text x="256" y="256" text-anchor="middle" dominant-baseline="central"
-        font-family="Georgia, 'Liberation Serif', 'DejaVu Serif', serif"
+        font-family="'Gill Sans MT', 'Gill Sans', Calibri, 'Trebuchet MS', sans-serif"
         font-weight="700" font-size="232" fill="#c6a463" letter-spacing="6">A7</text>
 </svg>

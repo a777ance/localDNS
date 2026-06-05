@@ -6,8 +6,30 @@ network-context.md has detailed rationale for non-obvious design decisions.
 
 ---
 
+## House style: ordering & typography
+
+These conventions apply across **every** A777ance repo — current and future. (Adopted 2026-06-05.)
+
+- **Time-based content reads newest-first (reverse-chronological).** Logs, changelogs,
+  decision logs (ADR / FIN), known-issues and issue trackers, FAQs, metrics and review
+  logs, and "Handled For You" entries all lead with the most recent item. Apply this
+  within the time-based *section* even when the whole file isn't time-based.
+- **Alphabetical lists run Z → A** (descending).
+- **Walkthroughs: reverse the blocks, keep the steps.** In a step-by-step guide, present
+  the major sections/blocks in reverse order (last block first — it helps "block" the
+  work), but keep the numbered steps *within* each block in forward order so every
+  procedure stays followable. A walkthrough's table of contents mirrors the reversed
+  block order. **Never renumber** — step and stage numbers stay fixed, so the intended
+  execution order is always readable from the numbers.
+- **Font: Gill Sans MT everywhere.** Every surface — customer-facing or internal — uses
+  Gill Sans MT. Web/CSS stack:
+  `'Gill Sans MT', 'Gill Sans', Calibri, 'Trebuchet MS', sans-serif`.
+
+---
+
 ## Contents
 
+- [House style: ordering & typography](#house-style-ordering--typography)
 - [0. What this repo is](#0-what-this-repo-is)
 - [A. Hardware](#a-hardware)
 - [B. Network topology](#b-network-topology)
@@ -182,15 +204,16 @@ verify with: `sudo nft -j list counters table inet a777acct`
 
 ## D. Unbound config
 
-Five drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
+Five drop-ins, loaded alphabetically (A→Z) by Unbound from `/etc/unbound/unbound.conf.d/`
+— listed Z→A here per house style:
 
 | File | Purpose |
 | ---- | ------- |
-| `remote-control.conf` | Unix socket for `unbound-control` |
-| `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
-| `server.conf` | Interface, port, access-control, security flags |
-| `streaming-forward.conf` | Forward-zones: streaming/media domains → Cloudflare over DoT (`1.1.1.1@853`, `forward-tls-upstream`); all else recursive. Sets `tls-cert-bundle` for upstream cert validation. |
 | `tuning.conf` | All performance and cache values — single source of truth |
+| `streaming-forward.conf` | Forward-zones: streaming/media domains → Cloudflare over DoT (`1.1.1.1@853`, `forward-tls-upstream`); all else recursive. Sets `tls-cert-bundle` for upstream cert validation. |
+| `server.conf` | Interface, port, access-control, security flags |
+| `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
+| `remote-control.conf` | Unix socket for `unbound-control` |
 
 `tuning.conf` is the only place to change cache sizes, TTLs, or threading.
 Do not split these into separate files.
@@ -219,14 +242,14 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 
 | Issue | Action |
 | ----- | ------ |
-| `FTLCONF_webserver_api_password` in pihole compose | Placeholder (`CHANGE_ME`) — do not commit real credentials |
-| Pi-hole v5 → v6 env vars | `pihole/pihole:latest` is v6; compose migrated from v5 vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`) to `FTLCONF_*`. The v5 names are silently ignored by v6. |
-| Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
-| WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Now reconciled into `05-wireguard/wg0.conf` (real public keys) but still UNIDENTIFIED with no recent handshake — identify each device or remove the stale peer. |
-| WireGuard `::/0` IPv6 black hole | Server is IPv4-only in-tunnel; peers routing `::/0` black-hole IPv6 (handshake OK, pages hang). Peer template now defaults to `0.0.0.0/0`. Leak-free dual-stack fix (ULA + NAT66) documented in network-context.md "WireGuard IPv6 black hole". |
-| VPN peer DNS over the tunnel | **Resolved.** Pi-hole switched to `network_mode: host` — Docker DNAT no longer in the path, so `10.8.0.1:53` is answered directly for queries sourced from `wg0`. Port 8080 also added to the WG UFW rules so the Pi-hole UI is reachable from VPN peers. |
-| Host-net Pi-hole vs systemd-resolved `:53` | Host-net Pi-hole binds `0.0.0.0:53`, colliding with the resolved stub on `127.0.0.53:53`. `03-host-dns/host-dns.conf` now sets `DNSStubListener=no` and README Steps 4-5 (Part A) re-points `/etc/resolv.conf` off the stub. On the live box, check current state before re-applying (see INSTALL-NOTES item 13). |
 | Live Pi-hole upstreams ≠ repo | Pi-hole v6 re-applies & locks `FTLCONF_dns_upstreams: 127.0.0.1#5335` on every start, overriding any `172.17.0.1#5335`/public resolvers left in the `pihole_data` volume. Confirm in the UI after deploying onto an old volume. |
+| Host-net Pi-hole vs systemd-resolved `:53` | Host-net Pi-hole binds `0.0.0.0:53`, colliding with the resolved stub on `127.0.0.53:53`. `03-host-dns/host-dns.conf` now sets `DNSStubListener=no` and README Steps 4-5 (Part A) re-points `/etc/resolv.conf` off the stub. On the live box, check current state before re-applying (see INSTALL-NOTES item 13). |
+| VPN peer DNS over the tunnel | **Resolved.** Pi-hole switched to `network_mode: host` — Docker DNAT no longer in the path, so `10.8.0.1:53` is answered directly for queries sourced from `wg0`. Port 8080 also added to the WG UFW rules so the Pi-hole UI is reachable from VPN peers. |
+| WireGuard `::/0` IPv6 black hole | Server is IPv4-only in-tunnel; peers routing `::/0` black-hole IPv6 (handshake OK, pages hang). Peer template now defaults to `0.0.0.0/0`. Leak-free dual-stack fix (ULA + NAT66) documented in network-context.md "WireGuard IPv6 black hole". |
+| WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Now reconciled into `05-wireguard/wg0.conf` (real public keys) but still UNIDENTIFIED with no recent handshake — identify each device or remove the stale peer. |
+| Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
+| Pi-hole v5 → v6 env vars | `pihole/pihole:latest` is v6; compose migrated from v5 vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`) to `FTLCONF_*`. The v5 names are silently ignored by v6. |
+| `FTLCONF_webserver_api_password` in pihole compose | Placeholder (`CHANGE_ME`) — do not commit real credentials |
 
 ---
 
