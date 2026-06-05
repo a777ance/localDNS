@@ -139,6 +139,39 @@ For fresh-install gotchas, break points, and workarounds discovered during setup
 
 ---
 
+## AI Support Team
+
+This repo can be maintained with help from several AI assistants, but the live DNS
+stack does not depend on them. The t630 keeps serving DNS, VPN, monitoring, and CAKE
+without a model connection in the path. AI belongs around the repo: reading evidence,
+proposing changes, checking config, and preparing commits for human deployment.
+
+| Assistant | Plain-language role | Useful work here |
+| --------- | ------------------- | ---------------- |
+| NotebookLM | Documentation desk | Indexes README, `network-context.md`, hardware notes, and install notes for fast question-answering. |
+| Grok | Outside watch | Checks current outage or security context before a change touches upstream DNS, VPN, or public exposure. |
+| Gemini | Log reader | Handles long logs, packet captures, exported Pi-hole data, and large troubleshooting transcripts. |
+| Codex | Local maintainer | Edits repo files, runs `tools/check-docs.py`, inspects git diffs, and prepares commits. |
+| Claude | Systems reviewer | Reviews DNS/firewall/VPN interactions, catches unsafe config changes, and turns evidence into a deploy plan. |
+
+A practical "mesh" is a handoff workflow, not a live dependency:
+
+1. Collect evidence from the t630: service status, logs, config diff, and monitor output.
+2. Send large evidence bundles to the log reader or documentation desk.
+3. Ask a reviewer for the smallest config change that fits the repo rules.
+4. Let Codex apply the patch, run the repo checks, and create the commit.
+5. Deploy to the live box by hand, then record the verification result.
+
+Guardrails:
+
+- Do not put AI services in the DNS resolution path.
+- Do not send WireGuard private keys, Pi-hole passwords, SSH keys, or client secrets to a model.
+- Treat model output as a proposal until a local command verifies it.
+- Keep each AI-generated change reproducible from files in this repo.
+- The live t630 remains the source of truth; this repo remains the rollback target.
+
+---
+
 ## Contents
 
 - [0. Introduction](#0-introduction)
