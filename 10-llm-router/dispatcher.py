@@ -123,10 +123,14 @@ def call_model(model: str, messages: list[dict], *, allow_cloud: bool = True) ->
 def _log(record: dict) -> None:
     """Reflection log — one JSONL line per route. Off unless LLM_ROUTER_LOG is set.
 
-    Respects the privacy lock: a privacy-locked task (allow_cloud=False) is never
-    persisted in the clear — text and result are redacted, only the routing metadata
-    (timestamp / model / rule) is kept. A log that leaked the sensitive text would
-    defeat the very boundary the dispatcher exists to hold.
+    Redacts the MATERIAL, keeps the INSIGHT. A privacy-locked task (allow_cloud=False)
+    never persists its text or result in the clear — but the routing metadata
+    (timestamp / model / rule) and the caller-supplied `note` ARE kept, so the log
+    stays reviewable without leaking the sensitive content. (`note` is the caller's
+    line to keep non-sensitive — it's the one-line takeaway, not the source text.)
+    A log that leaked the sensitive text would defeat the boundary the dispatcher
+    exists to hold; a log you can never read back teaches nothing. reflect() reads
+    these lines back.
     """
     if not LOG_PATH:
         return
@@ -138,11 +142,57 @@ def _log(record: dict) -> None:
         fh.write(json.dumps(entry) + "\n")
 
 
-def dispatch(task: str, *, dry_run: bool = False) -> dict:
-    """Classify -> route -> (optionally) call. Returns a small audit record."""
+def reflect(path: str = "", *, limit: int = 10) -> dict:
+    """Read the reflection log back — the half that makes it a log, not a drain.
+
+    Pure read, no network. Tallies routes by rule / model / privacy and surfaces the
+    most recent `note`s (the kept takeaways, which survive redaction). Notes are
+    newest-first, per house style. Falls back to LLM_ROUTER_LOG when no path is given.
+    """
+    path = os.path.expanduser(path or LOG_PATH)
+    if not path or not os.path.exists(path):
+        return {"entries": 0, "hint": "no log yet — set LLM_ROUTER_LOG and run some tasks"}
+    by_rule: dict[str, int] = {}
+    by_model: dict[str, int] = {}
+    notes: list[dict] = []
+    total = locked = 0
+    with open(path) as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                e = json.loads(line)
+            except json.JSONDecodeError:
+                continue          # a torn half-line shouldn't blind the whole mirror
+            total += 1
+            by_rule[e.get("rule", "?")] = by_rule.get(e.get("rule", "?"), 0) + 1
+            by_model[e.get("model", "?")] = by_model.get(e.get("model", "?"), 0) + 1
+            if not e.get("allow_cloud", True):
+                locked += 1
+            if e.get("note"):
+                notes.append({"ts": e.get("ts"), "rule": e.get("rule"), "note": e["note"]})
+    return {
+        "entries": total,
+        "privacy_locked": locked,
+        "by_rule": dict(sorted(by_rule.items(), key=lambda kv: -kv[1])),
+        "by_model": dict(sorted(by_model.items(), key=lambda kv: -kv[1])),
+        "recent_notes": notes[-limit:][::-1],          # newest-first
+    }
+
+
+def dispatch(task: str, *, dry_run: bool = False, note: str = "") -> dict:
+    """Classify -> route -> (optionally) call. Returns a small audit record.
+
+    `note` is an optional one-line takeaway from the caller; it is kept in the log
+    even when the task itself is redacted, so a privacy-locked route still leaves
+    something reviewable behind. Keep it non-sensitive.
+    """
     route = classify(task)
     record = {"task": task[:80], "model": route.model, "rule": route.rule,
               "allow_cloud": route.allow_cloud}
+    if note:
+        record["note"] = note
     if dry_run:
         record["status"] = "routed (dry-run, not called)"
     else:
@@ -172,10 +222,31 @@ def _selftest() -> None:
     s = classify("review my bank tax statement")
     assert s.rule == "sensitive" and s.model == LOCAL_REASON and s.allow_cloud is False
     assert classify("hi there").rule == "default"
-    print("selftest: OK — routing is deterministic and the privacy lock holds")
+
+    # reflection: material redacted, insight + metadata kept, and readable back
+    import tempfile
+    global LOG_PATH
+    _saved, fd_path = LOG_PATH, tempfile.mkstemp(suffix=".jsonl")[1]
+    LOG_PATH = fd_path
+    try:
+        dispatch("review my bank password 1234", dry_run=True, note="kept the takeaway")
+        dispatch("brainstorm wide ideas", dry_run=True, note="explore takeaway")
+        raw = open(fd_path).read()
+        assert "bank" not in raw and "password" not in raw and "1234" not in raw  # material gone
+        assert "kept the takeaway" in raw                                          # insight stays
+        r = reflect(fd_path)
+        assert r["entries"] == 2 and r["privacy_locked"] == 1
+        assert r["recent_notes"][0]["note"] == "explore takeaway"                  # newest-first
+    finally:
+        os.unlink(fd_path)
+        LOG_PATH = _saved
+    print("selftest: OK — routing deterministic, privacy lock holds, log is readable")
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "--reflect":
+        print(json.dumps(reflect(), indent=2))     # read the log back: python3 dispatcher.py --reflect
+        sys.exit(0)
     _selftest()
     print(f"\nfront door: {FRONT_DOOR}\n")
     samples = [
@@ -187,6 +258,7 @@ if __name__ == "__main__":
     ]
     for t in samples:
         print(json.dumps(dispatch(t, dry_run=True)))
-    # Real call: `python3 dispatcher.py --run "your task"` (needs the tiers + key)
+    # Real call: `python3 dispatcher.py --run "your task" ["one-line takeaway"]` (needs tiers + key)
     if len(sys.argv) > 2 and sys.argv[1] == "--run":
-        print(json.dumps(dispatch(sys.argv[2]), indent=2))
+        _note = sys.argv[3] if len(sys.argv) > 3 else ""
+        print(json.dumps(dispatch(sys.argv[2], note=_note), indent=2))
