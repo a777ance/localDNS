@@ -122,6 +122,12 @@ agent**:
 - **Not for v1:** an LLM-driven agent loop (Agent SDK / Managed Agents). That
   re-introduces the nondeterminism and token cost a scripted switch exists to avoid.
 
+A runnable starting point is committed alongside this doc:
+[`dispatcher.py`](dispatcher.py) — pure `classify()` rule table (token-matched, not
+substring), a single-front-door `call_model()`, the privacy lock (`sensitive` →
+local-only, `allow_cloud=False`), a fixed two-step `research_then_build()` pipeline, and
+an inline `_selftest()`. Zero pip deps; `python3 dispatcher.py` dry-runs the routing.
+
 ---
 
 ## 4. Decisions
