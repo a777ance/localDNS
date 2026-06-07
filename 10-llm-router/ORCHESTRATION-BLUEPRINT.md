@@ -22,19 +22,23 @@ analogy makes the split clean:
 | Layer | Robotics analogue | What it does | Status |
 | ----- | ----------------- | ------------ | ------ |
 | **Switchboard / HAL** | ROS transport, hardware abstraction | Given an *already-chosen* backend, route the call, retry, load-balance, fail over | **Exists** — LiteLLM, stage 10 |
-| **Supervisor / planner** | Behavior tree / HTN planner | Read the request, **decompose** it, decide *which specialist* each subtask goes to, integrate the results | **To build** — not LiteLLM |
+| **Dispatcher / router** | Behavior tree (hand-coded) | Classify the request by explicit rules, pick the backend, sequence a fixed pipeline if needed, integrate | **To build — plain scripted Python, no LLM** |
 
 **LiteLLM does not decompose or capability-route.** It dispatches by an explicit
 `model_name` the caller already picked, plus load-balancing and fallback. The "sandwich"
-(input → decompose → route to specialists → integrate → output) needs a **supervisor
-agent above** LiteLLM. Today that supervisor is a human picking a model in Open WebUI.
-Automating it is the core new component this blueprint specifies.
+(input → classify → route to specialists → integrate → output) needs a thin dispatch
+layer **above** LiteLLM — but that layer is **deterministic scripted Python, not an
+LLM.** This is deliberate: a rule-based switch is debuggable, free, and keeps all
+nondeterminism out of the control plane (no AI making the routing call). Today a human
+does this by picking a model in Open WebUI; the build replaces the human with a **rule
+table, not another model**. The routing decision is `if/elif` (or a dict dispatch), not
+inference.
 
 > **Terminology correction for anyone briefing on this:** **MCP = Model Context
 > Protocol** (Anthropic's open standard for connecting models to tools/data) — *not*
 > "Multi-Connector Protocol." It is a tool-connection standard, not the router itself.
 > The router here is plain OpenAI-compatible HTTP (LiteLLM); MCP is one possible way the
-> *supervisor* attaches tools, not a synonym for the routing layer.
+> *dispatcher* attaches tools, not a synonym for the routing layer.
 
 ---
 
@@ -48,9 +52,9 @@ Automating it is the core new component this blueprint specifies.
         │                                                                     │
         ▼                                                                     │
    ┌─────────────────────────────────────────────────────────────────────┐   │
-   │ SUPERVISOR (to build) — decompose · route · integrate                │   │
-   │   1. classify the request                                            │   │
-   │   2. fan out subtasks to specialists (below) via the same front door │   │
+   │ DISPATCHER (to build) — deterministic Python, NO LLM in this box     │   │
+   │   1. classify by explicit rules (task type / keyword / path)         │   │
+   │   2. dispatch to a specialist (or run a fixed, scripted pipeline)     │   │
    │   3. integrate partial results into one answer                       │   │
    └───────────────┬───────────────┬───────────────┬─────────────────────┘   │
                    ▼               ▼               ▼                          │
@@ -60,7 +64,7 @@ Automating it is the core new component this blueprint specifies.
 ```
 
 **Invariant — "route, don't shard"** (inherited from `README.md`): never split one model
-across machines. Each specialist is a whole model behind one endpoint; the supervisor
+across machines. Each specialist is a whole model behind one endpoint; the dispatcher
 routes *between* them. This is buildable and heals on node loss; sharding does not.
 
 ---
@@ -70,9 +74,12 @@ routes *between* them. This is buildable and heals on node loss; sharding does n
 Tiers are named by **capability**, not by vendor, so a backend can be swapped without
 touching callers. Candidate backends are listed; the **hosting decision is open** (§4).
 
+> **The dispatcher is not a tier.** It's the scripted Python that *chooses* a tier (§3) —
+> no model sits in the routing decision. Don't burn an LLM (local or cloud) on "which
+> backend"; that's a rule table.
+
 | Tier | Role (your words) | Candidate backend(s) | Notes |
 | ---- | ----------------- | -------------------- | ----- |
-| `router` | Edge controller / the supervisor's cheap classifier | `claude-haiku-4-5` (200K ctx, ~$1/$5 per 1M) **or** local `deepseek-r1:1.5b` on the t630 | Cheap + fast; do the decompose/route decision here, never on Opus. A tiny local model can do *routing*, but planning quality scales with model strength. |
 | `cloud-explore` | Wide-angle exploration, research, hypothesis | `claude-opus-4-8` (1M ctx, ~$5/$25) **or** self-hosted full DeepSeek-R1 | Deepest reasoning + largest context for divergent search. |
 | `cloud-code` | Precise execution, code synthesis, structured impl, diffs vs GitHub | `claude-sonnet-4-6` (1M, ~$3/$15), escalate to `claude-opus-4-8` | Sonnet 4.6 is the speed/intelligence sweet spot for code; Opus for the hardest. |
 | `cloud-vision` | Visual **understanding** — read a screenshot / chart / schematic | `claude-opus-4-8` (high-res image *input*; Opus 4.7+ supports up to 2576px long edge) | Vision **input** only — see the correction below. |
@@ -103,18 +110,30 @@ Current Claude model IDs (verify against the API's `/v1/models` at build time):
   `cloud-gpu-reason`).
 - UFW gating 4040/3000 to LAN + WireGuard; Unbound names; CAKE shaping egress.
 
-**To build (the supervisor):** an agent loop in front of LiteLLM that classifies →
-fans out → integrates. It calls the *same* OpenAI-compatible front door, so it inherits
-routing, retries, and failover for free. Candidate implementations (engineer's choice):
-- **Claude Agent SDK / Anthropic Managed Agents** — managed loop, tool use, sessions.
-- **Custom Python** — LangGraph / LlamaIndex, or a hand-rolled `while` loop.
-- **Open WebUI pipelines** — lightest touch if you want it inside the existing UI.
+**To build (the dispatcher):** a deterministic Python script in front of LiteLLM that
+classifies → dispatches → integrates. It calls the *same* OpenAI-compatible front door,
+so it inherits routing, retries, and failover for free. It is **plain code, not an
+agent**:
+- **Core (v1):** stdlib + an OpenAI-compatible client (`openai` / `httpx`) pointed at
+  `ai.home.lan:4040`. A dict / `if-elif` table maps task-type → `model_name`. Multi-step
+  jobs are an **explicit, fixed sequence of calls**, not an LLM deciding the steps.
+- **Optional later:** LangGraph / LlamaIndex *only* if you outgrow a flat script and
+  want stateful multi-step graphs — not needed for v1, and not where to start.
+- **Not for v1:** an LLM-driven agent loop (Agent SDK / Managed Agents). That
+  re-introduces the nondeterminism and token cost a scripted switch exists to avoid.
 
 ---
 
-## 4. Open decisions (for the engineer to resolve)
+## 4. Decisions
 
-These are **unresolved on purpose**; the founder has not chosen yet.
+**Decided — do not re-open:**
+
+- **The dispatcher is deterministic scripted Python. No LLM in the routing decision.**
+  A rule table (task-type / keyword / path → `model_name`) and fixed call sequences for
+  multi-step jobs. Chosen for determinism (same input → same route), zero token cost on
+  routing, and debuggability. No agent loop, no LLM classifier, no Agent SDK for v1.
+
+**Still open — for the engineer to resolve:**
 
 1. **Where the heavy specialists run** — decision matrix:
 
@@ -127,21 +146,14 @@ These are **unresolved on purpose**; the founder has not chosen yet.
    The repo already leans hybrid (local + rented-GPU + `cloud-overflow`). Pick per tier;
    each tier is one `model:` line in `config.yaml`.
 
-2. **What the supervisor decides with** — a cheap LLM classifier (`router` tier) vs. a
-   deterministic heuristic (keywords/regex → tier) vs. a hybrid (heuristic first, LLM on
-   ambiguity). Start heuristic; it's debuggable and free.
+2. **Privacy boundary** — `cloud-overflow` and any `cloud-*` Claude tier send the prompt
+   to a third party. If a class of task must stay self-hosted, the rule table must route
+   it only to local / rented-GPU tiers and **must not** carry a cloud fallback. This is a
+   line in the Python switch, not a hope.
 
-3. **Which orchestrator** — Agent SDK / Managed Agents / custom / Open WebUI pipeline
-   (see §3). Affects where it runs and how tools attach.
-
-4. **Privacy boundary** — `cloud-overflow` and any `cloud-*` Claude tier send the prompt
-   to a third party. If a class of task must stay self-hosted, it must route only to
-   local / rented-GPU tiers and **must not** carry a cloud fallback. Make this a routing
-   rule, not a hope.
-
-5. **Tool attachment** — if the supervisor needs tools (web, GitHub diffs, file ops),
-   decide MCP vs. native function-calling, and where credentials live (`.env`, never in
-   prompts or committed).
+3. **Tool attachment** — if the dispatcher needs tools (web, GitHub diffs, file ops), the
+   script calls them directly as Python functions; reach for MCP only if you want a
+   standard tool interface. Credentials in `.env` — never in prompts or committed.
 
 ---
 
@@ -150,16 +162,19 @@ These are **unresolved on purpose**; the founder has not chosen yet.
 Phases are presented **last-first** per the repo house style; **execute by phase number,
 1 → 4.** Each phase is shippable on its own.
 
-### Phase 4 — Full supervisor (the sandwich closes)
+### Phase 4 — Dispatch + integrate (the sandwich closes)
 
-1. Stand up the chosen orchestrator (§3) in front of `ai.home.lan:4040`.
-2. Implement classify → fan-out → integrate; specialists are `model_name`s from §2.
-3. Enforce the privacy routing rule (§4.4) and budgets/caps.
+1. Wrap the rule table in the Python dispatcher in front of `ai.home.lan:4040`.
+2. Implement classify → dispatch → integrate; specialists are `model_name`s from §2.
+   Multi-step jobs are an explicit, fixed sequence of calls — not an LLM choosing steps.
+3. Enforce the privacy routing rule (§4) and any budget caps.
 
-### Phase 3 — Routing logic
+### Phase 3 — Routing rules
 
-1. Implement the `router` decision (heuristic, then optional LLM classifier — §4.2).
-2. Expose it as one logical model (e.g. `auto`) that internally dispatches to a tier.
+1. Write the deterministic rule table (task-type / keyword / path → `model_name`) in
+   plain Python. No LLM in this decision.
+2. Expose it as one logical entry point (e.g. an `auto` endpoint, or a CLI / function)
+   that internally dispatches to a tier.
 
 ### Phase 2 — Specialist catalog
 
@@ -179,7 +194,7 @@ Phases are presented **last-first** per the repo house style; **execute by phase
 
 ## 6. Interfaces & contracts
 
-- **One front door.** Everything (UI, scripts, the supervisor itself) speaks the
+- **One front door.** Everything (UI, scripts, the dispatcher itself) speaks the
   OpenAI-compatible API at `ai.home.lan:4040`. Specialists are `model` names; swapping a
   backend never changes a caller.
 - **Whole models only.** Each backend serves a complete model (`README.md` →
@@ -188,7 +203,7 @@ Phases are presented **last-first** per the repo house style; **execute by phase
   Ollama has no auth (`README.md` → Block 2).
 - **Secrets.** `LITELLM_MASTER_KEY`, `ANTHROPIC_API_KEY` in `~/llm-router/.env`
   (git-ignored). Never inline keys; never put them in prompts (they persist in history).
-- **Network posture.** UFW gates 4040/3000 to LAN + WG; the supervisor, if it runs on
+- **Network posture.** UFW gates 4040/3000 to LAN + WG; the dispatcher, if it runs on
   the t630, sits behind the same gate.
 
 ---
