@@ -24,14 +24,14 @@ import json
 import os
 import re
 import sys
-import urllib.error
 import urllib.request
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
+from datetime import datetime, timezone
 
 # ── One front door. The dispatcher never talks to a provider directly. ──
 FRONT_DOOR = os.environ.get("LLM_ROUTER_URL", "http://ai.home.lan:4040/v1/chat/completions")
 MASTER_KEY = os.environ.get("LITELLM_MASTER_KEY", "")  # never hard-code; never log
+LOG_PATH = os.environ.get("LLM_ROUTER_LOG", "")        # set a path to enable the reflection log
 
 # ── Capability tiers (model_names served by LiteLLM). These must exist in
 #    10-llm-router/config.yaml. local-* exist today; cloud-explore / cloud-code /
@@ -120,6 +120,24 @@ def call_model(model: str, messages: list[dict], *, allow_cloud: bool = True) ->
     return body["choices"][0]["message"]["content"]
 
 
+def _log(record: dict) -> None:
+    """Reflection log — one JSONL line per route. Off unless LLM_ROUTER_LOG is set.
+
+    Respects the privacy lock: a privacy-locked task (allow_cloud=False) is never
+    persisted in the clear — text and result are redacted, only the routing metadata
+    (timestamp / model / rule) is kept. A log that leaked the sensitive text would
+    defeat the very boundary the dispatcher exists to hold.
+    """
+    if not LOG_PATH:
+        return
+    entry = {"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), **record}
+    if not entry.get("allow_cloud", True):
+        entry["task"] = "<redacted: privacy-locked>"
+        entry.pop("result", None)
+    with open(os.path.expanduser(LOG_PATH), "a") as fh:
+        fh.write(json.dumps(entry) + "\n")
+
+
 def dispatch(task: str, *, dry_run: bool = False) -> dict:
     """Classify -> route -> (optionally) call. Returns a small audit record."""
     route = classify(task)
@@ -127,11 +145,12 @@ def dispatch(task: str, *, dry_run: bool = False) -> dict:
               "allow_cloud": route.allow_cloud}
     if dry_run:
         record["status"] = "routed (dry-run, not called)"
-        return record
-    record["result"] = call_model(
-        route.model, [{"role": "user", "content": task}], allow_cloud=route.allow_cloud
-    )
-    record["status"] = "called"
+    else:
+        record["result"] = call_model(
+            route.model, [{"role": "user", "content": task}], allow_cloud=route.allow_cloud
+        )
+        record["status"] = "called"
+    _log(record)
     return record
 
 

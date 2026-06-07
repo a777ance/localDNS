@@ -125,8 +125,10 @@ agent**:
 A runnable starting point is committed alongside this doc:
 [`dispatcher.py`](dispatcher.py) — pure `classify()` rule table (token-matched, not
 substring), a single-front-door `call_model()`, the privacy lock (`sensitive` →
-local-only, `allow_cloud=False`), a fixed two-step `research_then_build()` pipeline, and
-an inline `_selftest()`. Zero pip deps; `python3 dispatcher.py` dry-runs the routing.
+local-only, `allow_cloud=False`), a fixed two-step `research_then_build()` pipeline, an
+opt-in reflection log (`LLM_ROUTER_LOG=path` → JSONL, one line per route; privacy-locked
+tasks are redacted so the audit trail never leaks what the lock protected), and an inline
+`_selftest()`. Zero pip deps; `python3 dispatcher.py` dry-runs the routing.
 
 ---
 
