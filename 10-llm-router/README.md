@@ -11,6 +11,12 @@ machines.**
 This is an add-on layered on the finished core stack (README Steps 0–11). Nothing
 here touches DNS resolution, the VPN, or QoS; it reuses them.
 
+> **Looking to grow this into a multi-model "route each subtask to the best specialist"
+> system?** The engineering design for that — the switchboard-vs-supervisor split, the
+> capability-named specialist tiers, and the open hosting decisions — is in
+> [`ORCHESTRATION-BLUEPRINT.md`](ORCHESTRATION-BLUEPRINT.md). This README is the
+> switchboard it builds on.
+
 ```
         you (browser) ──► chat.home.lan:3000  Open WebUI ──┐
                                                            │  OpenAI API
