@@ -24,6 +24,10 @@ here touches DNS resolution, the VPN, or QoS; it reuses them.
         (t630, CPU)                (t630, CPU)             (failover only — $/token)
               └────── whole models, one per backend ──────┘
                     NOT one model split across machines
+
+   plus a reasoning ladder (see "Offload heavy reasoning to a rented GPU"):
+     local-reason      deepseek-r1:1.5b on the t630 CPU   (light, runs cool)
+     cloud-gpu-reason  full DeepSeek-R1 on a rented GPU    (heavy, spin up on demand)
 ```
 
 ---
@@ -171,6 +175,93 @@ number, 1 → 6.** The numbered steps *within* each block run in order.
 
 ---
 
+## Offload heavy reasoning to a rented GPU (DeepSeek-R1)
+
+A full DeepSeek-R1 model thinks out loud — it emits a long chain-of-thought before
+the answer — so on a CPU it pins every core for minutes per prompt. Run that on a
+laptop and the fans scream and the chassis cooks; run it on the t630 and it just
+thermal-throttles and crawls. **So don't run the heavy reasoner on local CPU at all.**
+
+This is the "GeForce Now for LLMs" pattern, and the router you already built *is* the
+switch for it. The laptop stays a thin browser client (`chat.home.lan:3000`) and does
+no inference; the t630 routes each request to the right backend:
+
+```
+   quick chat            → local-fast / local-smart   (qwen2.5 on the t630 CPU)
+   light "show your work" → local-reason              (deepseek-r1:1.5b, t630 CPU, cool)
+   heavy reasoning        → cloud-gpu-reason           (full DeepSeek-R1 on a rented GPU)
+   pod is off / unset     → cloud-overflow             (Claude — graceful fallback)
+```
+
+The rented GPU is **rented, not always-on**: spin a pod up for a heavy session, stop
+it when you're done. While it's stopped, `cloud-gpu-reason` is unreachable and the
+router falls those requests over to `cloud-overflow` — so the catalogue never errors,
+it just costs a Claude call until the pod is back.
+
+Blocks are presented **last-first** per house style; **execute by block number, 1 → 4.**
+
+### Block 4 — Use it, then stop the pod
+
+1. In Open WebUI (`chat.home.lan:3000`) pick **cloud-gpu-reason** for a hard problem;
+   pick **local-reason** for something light. Same front door, no client changes.
+2. Confirm the router sees the backend (substitute your master key):
+   ```bash
+   curl -s http://ai.home.lan:4040/health \
+     -H "Authorization: Bearer $LITELLM_MASTER_KEY" | grep -i reason
+   ```
+3. **Stop the pod when the session ends** — this is where the bill is. Rented GPUs are
+   billed by the hour (marketplace/spot is cheapest; on-demand costs more but won't be
+   interrupted — check the provider's *current* pricing, it moves). An idle pod still
+   bills, so stop or terminate it; the router falls back to `cloud-overflow` meanwhile.
+
+### Block 3 — Point the router at it
+
+1. In `~/llm-router/config.yaml`, set `cloud-gpu-reason`'s `api_base` to the pod's
+   **Tailscale IP** (the `100.x.y.z` from Block 2) and its `model:` to the tag you
+   actually pulled (`deepseek-r1:32b`, `:70b`, …). Reload:
+   ```bash
+   cd ~/llm-router && docker compose up -d
+   ```
+2. There is **no API key** for an Ollama backend — access is gated by the tunnel, not a
+   token. That is exactly why Block 2 keeps the pod off the public internet.
+
+### Block 2 — Join it to the tunnel (never expose Ollama publicly)
+
+1. Ollama has no authentication, so it must **never** listen on a public IP. Put the
+   pod on a private tunnel instead — install Tailscale on it and join your tailnet:
+   ```bash
+   curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up
+   tailscale ip -4        # note the 100.x.y.z — this is what config.yaml points at
+   ```
+2. Bind Ollama to the tunnel (or to all interfaces *only* with the provider's public
+   firewall closed): `OLLAMA_HOST=0.0.0.0:11434`. The t630 reaches it over Tailscale;
+   the open internet cannot. This mirrors how the rest of this stack gates everything
+   to the LAN + WG subnet — the GPU pod just joins that private surface.
+
+### Block 1 — Rent the GPU + pull DeepSeek-R1
+
+1. Rent an hourly GPU pod (Vast.ai is the cheapest marketplace; RunPod is more managed,
+   with one-click Ollama templates). One modern data-centre GPU (A100/H100-class) holds
+   the larger DeepSeek-R1 distills comfortably.
+2. Install Ollama and pull the size you want the heavy tier to be:
+   ```bash
+   curl -fsSL https://ollama.com/install.sh | sh
+   ollama pull deepseek-r1:32b      # or :70b if the pod's VRAM allows
+   ```
+   Sized this way, the GPU — not your laptop — does the thinking, fast.
+
+> **Privacy note.** Self-hosting on a rented pod keeps prompts off a SaaS provider's
+> logs (better than sending the same data to a hosted chat API), but it is *your*
+> server to secure — the tunnel in Block 2 is what makes that true. One sharp edge:
+> both reasoning tiers list `cloud-overflow` as their final fallback, so when a local
+> backend or the pod is unreachable, the prompt **does** go to Anthropic. If a task
+> must never leave infra you control, keep the GPU pod up and call `cloud-gpu-reason`
+> while it's healthy — don't rely on a tier whose fallback can silently reroute to the
+> cloud. (To forbid that outright, drop the `cloud-overflow` entries from those tiers'
+> `fallbacks` and they'll fail closed instead.)
+
+---
+
 ## A note on speed — measure, don't trust this page
 
 The honesty rule of this repo applies to performance too: this file prints no
@@ -196,6 +287,12 @@ for the tasks a CPU 7B can't carry — and it's one `model:` line to point elsew
 
 *(newest first, per house style)*
 
+- **Heavy DeepSeek-R1 belongs on a rented GPU, not local CPU.** An R1 reasoner pins
+  every CPU core for minutes per prompt (the chain-of-thought) — that sustained load
+  is what overheats a laptop and throttles the t630. The reasoning ladder splits it:
+  `local-reason` (deepseek-r1:1.5b, t630 CPU, cool) for light work, `cloud-gpu-reason`
+  (full R1 on a rented GPU over a Tailscale tunnel) for heavy work, spun up on demand.
+  See "Offload heavy reasoning to a rented GPU." The laptop stays a thin browser client.
 - **Open WebUI: first user is admin; UI is on 3000, not 8080.** Create the admin
   account from a trusted device before opening it to the household. 8080 is already the
   Pi-hole UI on this box, so the chat UI uses 3000. State lives in

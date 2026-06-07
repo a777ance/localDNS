@@ -25,13 +25,30 @@ model_list:
       model: ollama_chat/qwen2.5:7b
       api_base: http://127.0.0.1:11434
 
-  # ── Reasoning-tuned local option (after `ollama pull deepseek-r1:7b`) ──
-  # The "distilled DeepSeek" from the design chat — a Qwen-7B base fine-tuned on
-  # R1 reasoning traces. Uncomment to expose it; compare against local-smart.
-  # - model_name: local-reason
-  #   litellm_params:
-  #     model: ollama_chat/deepseek-r1:7b
-  #     api_base: http://127.0.0.1:11434
+  # ── Reasoning ladder: light distill local, heavy DeepSeek-R1 offloaded ──
+  # WHY this is split, not a single deepseek-r1:7b on local CPU: an R1 model emits a
+  # long chain-of-thought before every answer, so on a CPU it pins all cores for
+  # minutes per prompt. That sustained 100%-CPU load is what cooks a laptop (fans
+  # screaming) — and the t630's Carrizo would just thermal-throttle and crawl. So the
+  # heavy reasoner never runs on local CPU. Two tiers instead:
+  #
+  #   local-reason       a SMALL distill for everyday "show your work" — runs cool on
+  #                      the t630 CPU. The t630 carries it, your laptop stays a thin
+  #                      browser client and never heats up.
+  #   cloud-gpu-reason   the FULL-size DeepSeek-R1 on a RENTED GPU (Vast.ai / RunPod),
+  #                      reached over a Tailscale tunnel — "GeForce Now for LLMs."
+  #                      Spin the pod up for a heavy session, stop it when done; while
+  #                      it's off, requests fall over to cloud-overflow (see fallbacks).
+  # See README "Offload heavy reasoning to a rented GPU" for the pod + tunnel setup.
+  - model_name: local-reason          # light reasoning, t630 CPU (after `ollama pull deepseek-r1:1.5b`)
+    litellm_params:
+      model: ollama_chat/deepseek-r1:1.5b
+      api_base: http://127.0.0.1:11434
+
+  - model_name: cloud-gpu-reason      # heavy reasoning — full DeepSeek-R1 on a rented GPU
+    litellm_params:
+      model: ollama_chat/deepseek-r1:32b          # size the pod for the tag you actually pull (32b/70b)
+      api_base: http://CHANGE_ME_GPU_HOST:11434   # the rented box's Tailscale IP (e.g. 100.x.y.z), NOT a public IP
 
   # ── A second box, when you add one (a WHOLE model on another machine) ──
   # Reuse a model_name and LiteLLM load-balances + fails over across the copies.
@@ -56,9 +73,14 @@ router_settings:
   cooldown_time: 60                   # seconds a dead backend stays out of rotation
   # "Turn a laptop off and it re-routes": when a backend stops answering, LiteLLM
   # cools it down and falls through this map to the next. Local tiers spill to cloud.
+  # The reasoning ladder degrades gracefully: light → heavy GPU → cloud. When the
+  # rented GPU pod is stopped (its normal idle state) cloud-gpu-reason can't be
+  # reached, so those requests fall to cloud-overflow instead of erroring.
   fallbacks:
     - local-fast: ["local-smart", "cloud-overflow"]
     - local-smart: ["cloud-overflow"]
+    - local-reason: ["cloud-gpu-reason", "cloud-overflow"]
+    - cloud-gpu-reason: ["cloud-overflow"]
 
 litellm_settings:
   drop_params: true                   # tolerate OpenAI params a local model ignores

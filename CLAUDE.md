@@ -249,6 +249,7 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 
 | Issue | Action |
 | ----- | ------ |
+| Heavy DeepSeek-R1 on local CPU overheats the client | Don't run `deepseek-r1:7b`+ on a CPU — its long chain-of-thought pins every core for minutes (cooks a laptop, throttles the t630). `10-llm-router/config.yaml` now ships a reasoning ladder: `local-reason` (deepseek-r1:1.5b, t630 CPU, cool) for light work and `cloud-gpu-reason` (full R1 on a rented GPU via Tailscale, spun up on demand) for heavy work, falling over to `cloud-overflow` when the pod is off. See `10-llm-router/README.md` "Offload heavy reasoning to a rented GPU." |
 | Live Pi-hole upstreams ≠ repo | Pi-hole v6 re-applies & locks `FTLCONF_dns_upstreams: 127.0.0.1#5335` on every start, overriding any `172.17.0.1#5335`/public resolvers left in the `pihole_data` volume. Confirm in the UI after deploying onto an old volume. |
 | Host-net Pi-hole vs systemd-resolved `:53` | Host-net Pi-hole binds `0.0.0.0:53`, colliding with the resolved stub on `127.0.0.53:53`. `03-host-dns/host-dns.conf` now sets `DNSStubListener=no` and README Steps 4-5 (Part A) re-points `/etc/resolv.conf` off the stub. On the live box, check current state before re-applying (see INSTALL-NOTES item 13). |
 | VPN peer DNS over the tunnel | **Resolved.** Pi-hole switched to `network_mode: host` — Docker DNAT no longer in the path, so `10.8.0.1:53` is answered directly for queries sourced from `wg0`. Port 8080 also added to the WG UFW rules so the Pi-hole UI is reachable from VPN peers. |
