@@ -1,4 +1,4 @@
-# 10-ai-orchestration — **Lionheart**, a local-first AI gateway on the t630
+# 10-ai-orchestration — **Odin** *(alias Lionheart)*, a local-first AI gateway on the t630
 
 **Optional Step 12.** A LiteLLM router that puts one OpenAI-compatible front door
 (`ai.home.lan:4040`) in front of whole-model backends — the local models running on
@@ -8,11 +8,14 @@ buildable version of the "let the network pick the best resource and adapt when 
 machine drops" idea — **route between whole models, don't shard one model across
 machines.**
 
-The stack is branded **Lionheart**: the LiteLLM front door is the keep, and on top sits
-the command layer in [`langgraph-router/`](langgraph-router/) — **Lionheart** (the
-supervisor brain) musters the **Paladins** (the capability tiers) once the **Gatekeeper**
-(a deterministic privacy guard) has ruled on the task. The flat
-[`dispatcher.py`](dispatcher.py) remains the dumb-switch default for simple routing.
+The stack is branded **Odin** *(alias Lionheart)*, on a Norse mythos: **Asgard** is the keep
+(this local stack), **Midgard** the realm of our clients, **Jotunheim** the cloud, and the
+**Bifröst** the WireGuard VPN that bridges them. On top of the LiteLLM front door sits the
+command layer in [`langgraph-router/`](langgraph-router/) — **Odin** musters his **host**
+(three orders of five + **Loki**, the bound adversary) once **Heimdall** (the deterministic
+Gatekeeper) has ruled who may cross the bridge. The flat [`dispatcher.py`](dispatcher.py)
+remains the dumb-switch default for simple routing. See
+[`langgraph-router/README.md`](langgraph-router/README.md) for the full roster.
 
 This is an add-on layered on the finished core stack (README Steps 0–11). Nothing
 here touches DNS resolution, the VPN, or QoS; it reuses them.

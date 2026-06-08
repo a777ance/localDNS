@@ -169,7 +169,7 @@ number — use this table to map repo path → system path, not the step numbers
 | `10-ai-orchestration/docker-compose.yml` | `~/llm-router/docker-compose.yml` | `cd ~/llm-router && docker compose up -d` |
 | `10-ai-orchestration/config.yaml` | `~/llm-router/config.yaml` | `cd ~/llm-router && docker compose up -d` |
 | `10-ai-orchestration/.env.example` | `~/llm-router/.env` (copy, then fill in) | `cd ~/llm-router && docker compose up -d` |
-| `10-ai-orchestration/langgraph-router/` | `~/llm-router/langgraph-router/` | **Lionheart** supervisor (LLM plans → Paladins ride → Gatekeeper guards privacy). `pip install -r requirements.txt` (venv); runs as a script, not a service |
+| `10-ai-orchestration/langgraph-router/` | `~/llm-router/langgraph-router/` | **Odin** supervisor (alias Lionheart): Heimdall guards the Bifröst → Odin musters the host (3 orders of 5 + Loki, bound). `pip install -r requirements.txt` (venv); runs as a script, not a service |
 | `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |

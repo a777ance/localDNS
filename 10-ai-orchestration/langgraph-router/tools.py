@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""The Herald — read-only GitHub grounding for Lionheart, stdlib only.
+"""Huginn (Thought) — read-only GitHub grounding for Odin, stdlib only.
 
-Lionheart plans better when it can see the relevant repo, so the Herald brings word from
-afar: it pulls a few files from GitHub over the REST API and stitches them into a
-`context` string the graph threads through every node. It is deliberately small: fetch +
-naive keyword pick, no vector store. (A real embedding index — Chroma/FAISS over the
-repos — is the obvious next step; it is NOT built here. Don't claim RAG we don't have.)
+Huginn is one of Odin's two ravens; he flies out and brings back word. Odin plans better
+when he can see the relevant repo, so Huginn pulls a few files from GitHub over the REST
+API and stitches them into a `context` string the graph threads through every node. He is
+deliberately small: fetch + naive keyword pick, no vector store. (A real embedding index —
+Chroma/FAISS over the repos — is the obvious next step; it is NOT built here. Don't claim
+RAG we don't have.) His brother Muninn (Memory) keeps the record — the audit log.
 
-PRIVACY, READ THIS: fetched content can come from a PRIVATE repo (DESIGN, MARKETING). The
-Gatekeeper (supervisor.gatekeeper()) therefore fails CLOSED — any attached context forces
-local-only routing unless GITHUB_CONTEXT_ALLOW_CLOUD=1. So word the Herald carries from a
-private repo does not quietly ship to a cloud model. Token is read from GITHUB_TOKEN (a
-fine-grained, read-only PAT in ~/llm-router/.env, git-ignored) — never inline it, never log it.
+PRIVACY, READ THIS: fetched content can come from a PRIVATE repo (DESIGN, MARKETING).
+Heimdall (supervisor.gatekeeper()) therefore fails CLOSED — any attached context forces
+local-only routing unless GITHUB_CONTEXT_ALLOW_CLOUD=1. So word Huginn carries from a
+private repo does not quietly cross the Bifröst to a cloud model. Token is read from
+GITHUB_TOKEN (a fine-grained, read-only PAT in ~/llm-router/.env, git-ignored) — never
+inline it, never log it.
 
 No pip deps. `python3 tools.py --selftest` checks the URL/snippet logic offline.
 """

@@ -1,122 +1,113 @@
-# Lionheart — the LLM-planned supervisor that musters the Paladins
+# Odin — the supervisor that musters the host *(alias: Lionheart)*
 
-**Lionheart** is the multi-agent **supervisor** that sits *above* the LiteLLM front door:
-it plans a multi-step workflow, musters the capability tiers it needs (the **Paladins** —
-reasoning / code / explore / vision / local), carries state across steps, and synthesizes
-their reports into one answer. This is the **"optional later" path the
-[`../ORCHESTRATION-BLUEPRINT.md`](../ORCHESTRATION-BLUEPRINT.md) named** (§3): reach for
-LangGraph only once a flat scripted pipeline isn't enough and you want stateful multi-step
-graphs. That's now.
+**Odin** sits the high seat (Hlidskjalf) and sees all worlds: he plans a multi-step
+campaign, musters the **host** he needs, carries state across steps, and integrates their
+reports into one answer. He sits *above* the LiteLLM front door — the realized **"optional
+later" path the [`../ORCHESTRATION-BLUEPRINT.md`](../ORCHESTRATION-BLUEPRINT.md) named**
+(§3): reach for LangGraph only once a flat scripted pipeline isn't enough and you want
+stateful multi-step graphs.
 
-> **The cast** (crusader-era command structure, made literal — Paladins in the *Song of
-> Roland* sense, Charlemagne's Twelve Peers, **not** the tabletop class):
-> | Name | Is | Does |
-> | ---- | -- | ---- |
-> | **Lionheart** | the supervisor LLM | plans the campaign, musters Paladins, unites their reports |
-> | **the Gatekeeper** | a deterministic guard (no LLM) | rules on privacy *before* Lionheart sees the task |
-> | **the Paladins** | the capability tiers | each a champion sworn to one craft (see the roster below) |
+## The mythos *is* the architecture
 
----
+The Norse map onto the privacy boundary so cleanly it's almost cheating:
 
-## Contents
+| Lore | System | Guarded by |
+| ---- | ------ | ---------- |
+| **Asgard** — the keep | The AI fortress we're building. Local, on the t630, inside the walls. Nothing here leaks. | the Vanguard |
+| **Midgard** — the mortal realm | Our **clients / customers** (the households). | the Crossing Guards |
+| **Jotunheim** — enemy territory | The **cloud** — where a third party could see the traffic. | (ridden to by the Avant-Garde) |
+| **Bifröst** — the rainbow bridge | The **WireGuard VPN** (`wg0`, stage 05): the encrypted crossing into the keep. | **Heimdall** |
 
-- [Read this first — what it does and does NOT change](#read-this-first)
-- [Architecture — the graph](#architecture)
-- [The Paladin roster](#the-paladin-roster)
-- [The privacy invariant (non-negotiable)](#privacy)
-- [Files](#files)
-- [Run it](#run-it)
-- [Honesty: what's real today vs. not built](#honesty)
+**Heimdall** is the **Gatekeeper**: a deterministic guard at the Bifröst who decides who may
+cross. *No LLM makes that call.* So "going behind enemy lines" = riding to Jotunheim (the
+cloud), and **Heimdall holds the bridge** — exactly the decided invariant *"no LLM decides
+the privacy route."*
+
+> **Chronikonomicon:** **Muninn** / the Chronicler keeps the record — the natural bridge to
+> that lore. This repo references the hook; it does not invent the canon.
 
 ---
 
-## Read this first
+## The host — three orders of five, and one bound adversary
 
-The blueprint marks one thing **decided, do-not-reopen**: *"no LLM decides the privacy
-route."* Lionheart does **not** reopen that. The split:
+Each member is autonomous; the chorus is the point — they guard **each other** and the
+human. Two orders supply the **workers Odin musters** (real model tiers in `../config.yaml`);
+the **Vanguard** is the deterministic guard around Odin himself (code paths, not tiers).
 
-| Decision | Who makes it | Where |
-| -------- | ------------ | ----- |
-| **The privacy route** (does this task leave the network?) | **The Gatekeeper — deterministic Python.** `dispatcher.classify()` runs *first*, before any LLM. A `sensitive` task is pinned to a local tier and Lionheart never sees it. | `supervisor.gatekeeper()` |
-| **The plan** (which Paladins, in what order, how to combine) | **Lionheart — the LLM.** This is the genuinely new capability over `../dispatcher.py`. | `supervisor.make_muster()` |
+### the Vanguard — guard Odin / the keep
+| Member | Is | Status |
+| ------ | -- | ------ |
+| **Heimdall** | the Gatekeeper — privacy classify at the Bifröst | built (`gatekeeper()`) |
+| **the Warden** | enforces the lock (cloud→local rewrite) **and binds Loki** | built (`parse_plan()`) |
+| **the Norn** | the step/loop cap — cuts the thread before it runs away | built (`MAX_STEPS`) |
+| **Muninn** (Memory) | the audit log / the record | built (`dispatcher.reflect`) |
+| **the Hoard-Warden** | a cloud-spend budget cap | roadmap |
 
-So Lionheart plans; it can never overrule the Gatekeeper. Everything still flows through
-the **one front door** (`ai.home.lan:4040`) via `dispatcher.call_model()` — same retries,
-failover, and "route, don't shard" as the dumb switch. Lionheart is orchestration, not a
-second router.
+### the Crossing Guards — guard the allies (Midgard, the human)
+| Member | Tier / role | Status |
+| ------ | ----------- | ------ |
+| **the Völva** | `local-reason` — light reasoning at the keep | built tier |
+| **the Skald** | `local-smart` — a capable local hand | built tier |
+| **the Húskarl** | `local-fast` — the quick household guard | built tier |
+| **Huginn** (Thought) | read-only repo grounding (`tools.py`) | built |
+| **Frigg** | PII/secret redaction (she knows every fate, speaks none) | roadmap |
 
-> **Hardware reality check.** The t630 is a **4-core / 16 GB** box — it *cannot* host a
-> 27B/32B Lionheart (a common suggestion). `SUPERVISOR_TIER` defaults to `local-smart`
-> (qwen2.5:7b, cheap local planning); crown a heavier brain by pointing it at
-> `cloud-explore` or the rented-GPU tier. Heavy weights never land on the t630 CPU — that's
-> the whole reason this stack exists (see `../README.md`, the DeepSeek-heat note).
+### the Avant-Garde — go behind enemy lines (Jotunheim) — the Valkyries
+| Member | Tier | Status |
+| ------ | ---- | ------ |
+| **Göndul** | `cloud-explore` — wide recon, research | built tier |
+| **Hildr** | `cloud-code` — forges code, diffs, diagrams | built tier |
+| **Sigrún** | `cloud-vision` — reads the field (images) | built tier |
+| **Brynhildr** | `cloud-gpu-reason` — heavy reasoning; rides far to the rented GPU but stays **sworn** (self-hosted over Tailscale, so allowed under a privacy lock) | built tier |
+| **Skuld** | `cloud-overflow` — the fallback that is there when needed | built tier |
+
+### Loki — the bound adversary
+The irritant in the pearl. **Loki red-teams Odin's plan** to harden it — but he is **bound
+by the Warden**: his revision passes back through `parse_plan()`, so he can never widen
+`allow_cloud` or cross the Bifröst. Opt-in (`LOKI=1`); bound (silent) by default, so a
+normal run is unchanged and pays for no extra critique. *In myth Loki is bound until
+Ragnarök; here, until you summon him — and even then, in chains.*
 
 ---
 
-## Architecture
+## Architecture — the graph
 
 ```
-task ─▶ Gatekeeper ──────────────────────────────────────▶ muster ─▶ paladin ─┐
-        (deterministic privacy classify;                   (Lionheart  (a tier  │ loop until
-         sensitive ⇒ pinned local, muster skipped)          plans)      rides)  │ plan done
-                                                                 ▲───────────────┘
-                                                                 │
-                                                  integrate (Lionheart) ─▶ answer
+task ─▶ Heimdall ───────────────────────────▶ muster ─▶ loki ─▶ agent ─┐
+        (deterministic privacy classify;     (Odin     (bound  (a member│ loop until
+         sensitive ⇒ pinned local, skip rest) plans)    critic) rides)  │ plan done
+                                                              ▲──────────┘
+                                                              │
+                                               integrate (Odin) ─▶ answer
 ```
 
-- **Gatekeeper** — `classify()` from the dumb switch. Sets `allow_cloud`; forces a single
-  local step for `sensitive`; fails closed to local if external (e.g. GitHub) context is attached.
-- **muster** — Lionheart returns a JSON plan; `parse_plan()` validates every tier against an
-  allowlist, rewrites any cloud step to local under a privacy lock, and caps the step count
-  (runaway protection). Unparseable output degrades to one deterministic step.
-- **paladin** — the mustered tier rides: executes the step at the cursor through the front
-  door, carrying prior reports forward (the cross-step "memory").
-- **integrate** — Lionheart unites the reports into one reply (stays local under a lock).
+- **Heimdall** — `classify()` from the dumb switch. Sets `allow_cloud`; forces a single
+  local step for `sensitive`; fails closed to local if external (Huginn) context is attached.
+- **muster** — Odin returns a JSON plan; the **Warden** (`parse_plan`) validates tiers,
+  rewrites cloud→local under a lock, and the **Norn** caps the length.
+- **loki** — if summoned, critiques the plan; the revision is re-bound by the Warden.
+- **agent** — the mustered member rides through the one front door, carrying prior reports
+  forward (the cross-step memory).
+- **integrate** — Odin unites the reports into one reply (stays local under a lock).
 
 State is a `RouterState` dataclass; with `LLM_ROUTER_CHECKPOINT` set, a SQLite checkpointer
-makes a long campaign **resumable by `thread_id`**.
+(Muninn's hoard) makes a long campaign **resumable by `thread_id`**.
 
 ---
 
-## The Paladin roster
+## Privacy — Heimdall holds the Bifröst
 
-Each capability tier is a champion sworn to one craft. The epithets are flavor for the
-trace/logs; the functional name is always the tier string (in `config.yaml`).
+The boundary is a **line of code, not a hope** (blueprint §4.2):
 
-| Paladin | Tier | Craft |
-| ------- | ---- | ----- |
-| **the Scout** | `cloud-explore` | rides wide — research, reconnaissance, hypotheses |
-| **the Sage** | `cloud-gpu-reason` | heavy step-by-step reasoning (off on the rented GPU) |
-| **the Watchman** | `cloud-vision` | reads the field — screenshots, charts, scans (input only) |
-| **the Squire** | `local-smart` | a capable local hand (qwen2.5:7b) |
-| **the Page** | `local-fast` | the quickest, lightest local turn |
-| **the Friar** | `local-reason` | light reasoning at the keep — runs cool on the t630 |
-| **the Armorer** | `cloud-code` | forges the work — code, diffs, diagrams |
+1. `sensitive` tasks (`bank`, `tax`, `password`, `medical`, …) are pinned local and Odin is
+   skipped — the text never reaches a cloud supervisor.
+2. Under `allow_cloud=False`, the Warden rewrites any cloud tier (Odin's **or Loki's**) down
+   to local. No plan — not even the adversary's — can smuggle a step across the bridge.
+3. Huginn's grounding forces local-only by default (private-repo content must not leak).
+   Override only for public sources with `GITHUB_CONTEXT_ALLOW_CLOUD=1`.
 
----
-
-## Privacy
-
-The boundary is a **line of code, not a hope** (inherited from the blueprint §4.2). The
-Gatekeeper holds it:
-
-1. `sensitive` tasks (`bank`, `tax`, `password`, `medical`, …) are pinned to a local tier
-   and the muster is skipped — the text never reaches a cloud Lionheart.
-2. Under `allow_cloud=False`, `parse_plan()` rewrites any cloud tier Lionheart proposes down
-   to a local one. The plan **cannot** smuggle a sensitive step to the cloud.
-3. Attaching GitHub context forces local-only by default (private-repo content must not
-   leak). Override only for public sources with `GITHUB_CONTEXT_ALLOW_CLOUD=1`.
-
-`python3 supervisor.py --selftest` asserts all three with no network and no `pip install`.
-
----
-
-## Files
-
-- `supervisor.py` — Lionheart: Gatekeeper → muster → paladin(loop) → integrate.
-  Deterministic parts run on stdlib; LangGraph is imported lazily.
-- `tools.py` — read-only GitHub grounding (fetch + keyword snippet). No vector store.
-- `requirements.txt` — `langgraph` (+ optional SQLite checkpointer). Nothing else.
+`python3 supervisor.py --selftest` asserts all of the above — including that **Loki is
+bound** — with no network and no `pip install`.
 
 ---
 
@@ -128,15 +119,15 @@ Gatekeeper holds it:
 ### Block 4 — Ride out (run the campaign)
 
 1. Execute a task: `python3 supervisor.py --run "research X, then write a config diff"`.
-2. Ground it on a repo first if useful — in Python: `run(task, context=tools.gather_context("a777ance/localDNS", "unbound DNS split"))`.
-3. For a resumable session, set `LLM_ROUTER_CHECKPOINT=~/llm-router/lionheart.sqlite` and pass a stable `thread_id`.
+2. Summon Loki to harden the plan: `LOKI=1 python3 supervisor.py --run "..."`.
+3. Ground on a repo (Huginn): `run(task, context=tools.gather_context("a777ance/localDNS", "unbound DNS split"))`; resume a long run with `LLM_ROUTER_CHECKPOINT` + a stable `thread_id`.
 
-### Block 3 — Point Lionheart at the front door
+### Block 3 — Point Odin at the front door
 
 1. Confirm the tiers exist in `../config.yaml` (`cloud-explore`, `cloud-code`,
    `cloud-vision` were added alongside this; `local-*` already shipped).
 2. Set `LLM_ROUTER_URL` + `LITELLM_MASTER_KEY` (same `.env` the switch uses).
-3. Optional: `GITHUB_TOKEN` (read-only PAT) for grounding; `SUPERVISOR_TIER` to crown the brain.
+3. Optional: `GITHUB_TOKEN` (Huginn), `SUPERVISOR_TIER` (crown Odin's brain), `LOKI=1`.
 
 ### Block 2 — Install deps (only to actually run the graph)
 
@@ -145,9 +136,9 @@ Gatekeeper holds it:
 
 ### Block 1 — Prove the safety logic (no deps, no network)
 
-1. `python3 supervisor.py --selftest` — the Gatekeeper, plan validation, step cap, roster.
+1. `python3 supervisor.py --selftest` — Heimdall, the Warden, Loki's binding, the Norn, the roster.
 2. `python3 supervisor.py --dry-run "summarize my bank statement"` — see the route without calling anything.
-3. `python3 tools.py --selftest` — grounding snippet logic.
+3. `python3 tools.py --selftest` — Huginn's grounding-snippet logic.
 
 ---
 
@@ -155,9 +146,11 @@ Gatekeeper holds it:
 
 Per the repo rule — *never print a capability the code doesn't have*:
 
-- **Real today:** the Gatekeeper, plan validation, the privacy lock, the step cap, the graph
-  wiring, and SQLite resume. All testable offline via `--selftest`.
+- **Real today:** Heimdall, the Warden, the Norn, Muninn (the log), Loki's binding, the
+  graph wiring, SQLite resume, and the 8 worker tiers (Crossing Guards + Avant-Garde). All
+  testable offline via `--selftest`.
 - **Real once you `pip install` + have a live front door:** the actual multi-step campaign.
-- **NOT built:** a vector/embedding index over the repos (`tools.py` is fetch + keyword
-  only — true RAG is the next step, not a current claim); any image *generation* Paladin
-  (the Watchman *reads* images, it does not draw them — see the blueprint's vision note).
+- **Roadmap (named, not built):** the Hoard-Warden (budget cap) and Frigg (PII redaction).
+- **NOT built:** a vector/embedding index over the repos (Huginn is fetch + keyword only —
+  true RAG is the next step); any image *generation* (Sigrún *reads* images, she does not
+  draw them — see the blueprint's vision note).
