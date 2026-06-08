@@ -890,7 +890,7 @@ from DHCP automatically (on cellular, they reach it through the Step 7 VPN inste
 
 ## Step 12. LLM router (route, not shard)
 
-**Repo:** [`10-llm-router/`](10-llm-router/) — config; `01-unbound/local-records.conf` for the name
+**Repo:** [`10-ai-orchestration/`](10-ai-orchestration/) — config; `01-unbound/local-records.conf` for the name
 
 Optional add-on. A LiteLLM proxy on the t630 gives the household one
 OpenAI-compatible endpoint (`ai.home.lan:4040`) that routes to whole-model backends:
@@ -938,6 +938,6 @@ fallback; reusing a `model_name` across deployments balances across copies, and 
 The t630 is CPU-only for this (Carrizo iGPU: old GCN, ROCm unsupported, Vulkan offload
 marginal and sharing the same RAM), so throughput is memory-bandwidth bound. No
 tokens/sec figure is recorded here on purpose — the honest number is the one measured
-on the box (`10-llm-router/README.md` shows the `time` probe). Start interactive on a
+on the box (`10-ai-orchestration/README.md` shows the `time` probe). Start interactive on a
 3B; treat 7B as submit-and-wait. The durable win at any size is data control: with the
 cloud key unset, every request stays on your network and overflow calls fail closed.

@@ -1,7 +1,7 @@
 # Multi-model orchestration — engineering blueprint
 
 **Status:** design, not built. **Audience:** an engineer implementing it. **Substrate:**
-the stage-10 router (`10-llm-router/`) already running on the t630.
+the stage-10 router (`10-ai-orchestration/`) already running on the t630.
 
 This is the buildable version of the "let one brain route each subtask to the best
 specialist, and keep the heavy compute off the laptop" idea. It exists because running
@@ -228,8 +228,8 @@ Phases are presented **last-first** per the repo house style; **execute by phase
 
 ## 7. References
 
-- `10-llm-router/README.md` — the switchboard + rented-GPU offload (the substrate).
-- `10-llm-router/config.yaml` — current backends + fallback map.
+- `10-ai-orchestration/README.md` — the switchboard + rented-GPU offload (the substrate).
+- `10-ai-orchestration/config.yaml` — current backends + fallback map.
 - `CLAUDE.md` → Known issues — the DeepSeek heat entry that started this.
 - Robotics framing this mirrors: offboard heavy compute (planning/SLAM) while keeping
   real-time control on-device — here, keep coordination cheap/local, offload heavy

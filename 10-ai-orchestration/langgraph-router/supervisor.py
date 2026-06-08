@@ -65,7 +65,7 @@ SUPERVISOR_TIER = os.environ.get("SUPERVISOR_TIER", LOCAL_SMART)
 MAX_STEPS = int(os.environ.get("LLM_ROUTER_MAX_STEPS", "6"))
 
 # Tiers the planner may target. Capability-named (provider-pluggable) — must exist in
-# 10-llm-router/config.yaml. cloud-* are the Phase-2 additions; local-*/gpu are today.
+# 10-ai-orchestration/config.yaml. cloud-* are the Phase-2 additions; local-*/gpu are today.
 CLOUD_TIERS = frozenset({CLOUD_EXPLORE, CLOUD_CODE, CLOUD_VISION, "cloud-overflow"})
 # Under a privacy lock, only self-hosted tiers are allowed. GPU_REASON is a RENTED GPU
 # reached over Tailscale — self-hosted infra you control — so it survives the lock,

@@ -1,4 +1,4 @@
-# 10-llm-router — a local-first LLM gateway on the t630
+# 10-ai-orchestration — a local-first LLM gateway on the t630
 
 **Optional Step 12.** A LiteLLM router that puts one OpenAI-compatible front door
 (`ai.home.lan:4040`) in front of whole-model backends — the local models running on
@@ -139,7 +139,7 @@ number, 1 → 6.** The numbered steps *within* each block run in order.
 
 1. Stage the files and bring both services up (one compose file):
    ```bash
-   mkdir -p ~/llm-router && cp 10-llm-router/{docker-compose.yml,config.yaml} ~/llm-router/
+   mkdir -p ~/llm-router && cp 10-ai-orchestration/{docker-compose.yml,config.yaml} ~/llm-router/
    cd ~/llm-router && docker compose up -d
    docker logs -f llm-router        # watch LiteLLM load the config; Ctrl-C when healthy
    ```
@@ -150,7 +150,7 @@ number, 1 → 6.** The numbered steps *within* each block run in order.
 
 1. Copy the env template and fill in real values (never commit `.env`):
    ```bash
-   cp 10-llm-router/.env.example ~/llm-router/.env
+   cp 10-ai-orchestration/.env.example ~/llm-router/.env
    nano ~/llm-router/.env           # set LITELLM_MASTER_KEY (start it "sk-…")
                                     # set ANTHROPIC_API_KEY, or leave CHANGE_ME for local-only
    ```

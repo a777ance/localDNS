@@ -302,10 +302,10 @@ WebUI chat UI at `chat.home.lan:3000`. It reuses the
 stack you already run (Unbound for the names, UFW for access, CAKE for transport) and
 does **not** shard one model across machines — it routes between whole models.
 
-**Files — [`10-llm-router/`](10-llm-router/):**
-- [`docker-compose.yml`](10-llm-router/docker-compose.yml) — LiteLLM container, host-net, port 4040
-- [`config.yaml`](10-llm-router/config.yaml) — backends + routing/failover rules
-- [`.env.example`](10-llm-router/.env.example) — master key + Anthropic key (copy to `~/llm-router/.env`)
+**Files — [`10-ai-orchestration/`](10-ai-orchestration/):**
+- [`docker-compose.yml`](10-ai-orchestration/docker-compose.yml) — LiteLLM container, host-net, port 4040
+- [`config.yaml`](10-ai-orchestration/config.yaml) — backends + routing/failover rules
+- [`.env.example`](10-ai-orchestration/.env.example) — master key + Anthropic key (copy to `~/llm-router/.env`)
 - [`01-unbound/local-records.conf`](01-unbound/local-records.conf) — `ai.home.lan` + `chat.home.lan` → the t630
 
 ```bash
@@ -313,8 +313,8 @@ does **not** shard one model across machines — it routes between whole models.
 curl -fsSL https://ollama.com/install.sh | sh
 ollama pull qwen2.5:3b && ollama pull qwen2.5:7b
 # 2. Configure + launch the router and the Open WebUI chat UI (one compose file)
-mkdir -p ~/llm-router && cp 10-llm-router/{docker-compose.yml,config.yaml} ~/llm-router/
-cp 10-llm-router/.env.example ~/llm-router/.env && nano ~/llm-router/.env   # set the keys
+mkdir -p ~/llm-router && cp 10-ai-orchestration/{docker-compose.yml,config.yaml} ~/llm-router/
+cp 10-ai-orchestration/.env.example ~/llm-router/.env && nano ~/llm-router/.env   # set the keys
 cd ~/llm-router && docker compose up -d
 # 3. Firewall (4040 + 3000 already in the script) + optional DNS names
 sudo bash ~/localdns/04-ufw/setup.sh
@@ -323,7 +323,7 @@ sudo cp ~/localdns/01-unbound/local-records.conf /etc/unbound/unbound.conf.d/ &&
 ```
 
 Full walkthrough, verification, failover test, and the honest performance caveat are
-in **[`10-llm-router/README.md`](10-llm-router/README.md)**. Port is **4040**, not
+in **[`10-ai-orchestration/README.md`](10-ai-orchestration/README.md)**. Port is **4040**, not
 LiteLLM's default 4000 (NoMachine holds 4000 here).
 
 ---
@@ -1066,9 +1066,9 @@ Listed in setup-step order. CAKE now installs first (Step 1), so folder numbers 
 | 9 | [`08-gpu-performance/cpu-performance.service`](08-gpu-performance/cpu-performance.service) | CPU governor locked to performance |
 | 9 | [`08-gpu-performance/99-amdgpu-performance.rules`](08-gpu-performance/99-amdgpu-performance.rules) | Re-asserts GPU profile on every DRM event |
 | 10 | [`09-remote-desktop/server.cfg`](09-remote-desktop/server.cfg) | NoMachine server config |
-| 12 | [`10-llm-router/docker-compose.yml`](10-llm-router/docker-compose.yml) | LiteLLM router (4040) + Open WebUI chat UI (3000), both host-net |
-| 12 | [`10-llm-router/config.yaml`](10-llm-router/config.yaml) | Router backends + routing/failover (local Ollama → cloud overflow) |
-| 12 | [`10-llm-router/.env.example`](10-llm-router/.env.example) | Template for `~/llm-router/.env` — master key + Anthropic key (`CHANGE_ME`) |
+| 12 | [`10-ai-orchestration/docker-compose.yml`](10-ai-orchestration/docker-compose.yml) | LiteLLM router (4040) + Open WebUI chat UI (3000), both host-net |
+| 12 | [`10-ai-orchestration/config.yaml`](10-ai-orchestration/config.yaml) | Router backends + routing/failover (local Ollama → cloud overflow) |
+| 12 | [`10-ai-orchestration/.env.example`](10-ai-orchestration/.env.example) | Template for `~/llm-router/.env` — master key + Anthropic key (`CHANGE_ME`) |
 | — | [`docs/`](docs/) | Screenshots and other documentation assets (e.g. the Pi-hole dashboard above) |
 | — | [`tools/check-docs.py`](tools/check-docs.py) | Cross-doc link checker — verifies every relative link in the Markdown files resolves |
 
@@ -1255,7 +1255,7 @@ a link to the file that resolves it — now lives in
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack, WireGuard IPv6
 - **[CLAUDE.md](CLAUDE.md)** — structural summary and deploy-path reference for AI assistants
   working on this repo
-- **[10-llm-router/README.md](10-llm-router/README.md)** — optional Step 12: a LiteLLM router that
+- **[10-ai-orchestration/README.md](10-ai-orchestration/README.md)** — optional Step 12: a LiteLLM router that
   fronts local Ollama on the t630 with cloud overflow, named `ai.home.lan` via Unbound
 - **[tools/check-docs.py](tools/check-docs.py)** — link checker; run `python3 tools/check-docs.py`
   to verify every relative link across these docs still resolves

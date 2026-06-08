@@ -34,7 +34,7 @@ MASTER_KEY = os.environ.get("LITELLM_MASTER_KEY", "")  # never hard-code; never 
 LOG_PATH = os.environ.get("LLM_ROUTER_LOG", "")        # set a path to enable the reflection log
 
 # ── Capability tiers (model_names served by LiteLLM). These must exist in
-#    10-llm-router/config.yaml. local-* exist today; cloud-explore / cloud-code /
+#    10-ai-orchestration/config.yaml. local-* exist today; cloud-explore / cloud-code /
 #    cloud-vision are the Phase-2 additions from the blueprint. ──
 LOCAL_FAST = "local-fast"          # qwen2.5:3b on the t630 — snappy, cool
 LOCAL_REASON = "local-reason"      # deepseek-r1:1.5b on the t630 — light reasoning, LOCAL ONLY

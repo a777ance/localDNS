@@ -4,7 +4,7 @@
 secrets/
 
 # LLM router runtime data (Open WebUI state — created on the box, not in the repo)
-10-llm-router/open-webui-data/
+10-ai-orchestration/open-webui-data/
 
 # Editor scratch
 *~
