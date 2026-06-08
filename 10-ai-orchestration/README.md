@@ -1,4 +1,4 @@
-# 10-ai-orchestration — a local-first LLM gateway on the t630
+# 10-ai-orchestration — **Lionheart**, a local-first AI gateway on the t630
 
 **Optional Step 12.** A LiteLLM router that puts one OpenAI-compatible front door
 (`ai.home.lan:4040`) in front of whole-model backends — the local models running on
@@ -7,6 +7,12 @@ browser chat UI (`chat.home.lan:3000`) in front of that. It is the practical,
 buildable version of the "let the network pick the best resource and adapt when a
 machine drops" idea — **route between whole models, don't shard one model across
 machines.**
+
+The stack is branded **Lionheart**: the LiteLLM front door is the keep, and on top sits
+the command layer in [`langgraph-router/`](langgraph-router/) — **Lionheart** (the
+supervisor brain) musters the **Paladins** (the capability tiers) once the **Gatekeeper**
+(a deterministic privacy guard) has ruled on the task. The flat
+[`dispatcher.py`](dispatcher.py) remains the dumb-switch default for simple routing.
 
 This is an add-on layered on the finished core stack (README Steps 0–11). Nothing
 here touches DNS resolution, the VPN, or QoS; it reuses them.

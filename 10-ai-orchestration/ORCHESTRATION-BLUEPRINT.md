@@ -117,14 +117,15 @@ agent**:
 - **Core (v1):** stdlib + an OpenAI-compatible client (`openai` / `httpx`) pointed at
   `ai.home.lan:4040`. A dict / `if-elif` table maps task-type → `model_name`. Multi-step
   jobs are an **explicit, fixed sequence of calls**, not an LLM deciding the steps.
-- **Optional later — now built:** LangGraph / LlamaIndex *only* if you outgrow a flat
-  script and want stateful multi-step graphs. This is realized in
-  [`langgraph-router/`](langgraph-router/): an LLM **supervisor** that plans a multi-step
-  workflow, recruits capability tiers as workers, keeps state (SQLite resume), and
-  integrates the results. Crucially it does **not** reopen the decided invariant below —
-  the privacy *route* is still chosen by deterministic `classify()` before any LLM runs;
-  the LLM only plans the *workflow*. Reach for it when a fixed scripted pipeline isn't
-  enough; the flat `dispatcher.py` remains the default for simple, single-shot routing.
+- **Optional later — now built (codename Lionheart):** LangGraph / LlamaIndex *only* if
+  you outgrow a flat script and want stateful multi-step graphs. This is realized in
+  [`langgraph-router/`](langgraph-router/): **Lionheart**, an LLM **supervisor** that
+  plans a multi-step workflow, musters the capability tiers (the **Paladins**) it needs,
+  keeps state (SQLite resume), and integrates their reports. Crucially it does **not**
+  reopen the decided invariant below — the privacy *route* is still chosen by the
+  deterministic **Gatekeeper** (`classify()`) before any LLM runs; Lionheart only plans
+  the *workflow*. Reach for it when a fixed scripted pipeline isn't enough; the flat
+  `dispatcher.py` remains the dumb-switch default for simple, single-shot routing.
 - **Not for v1:** an LLM-driven agent loop (Agent SDK / Managed Agents). That
   re-introduces the nondeterminism and token cost a scripted switch exists to avoid.
 

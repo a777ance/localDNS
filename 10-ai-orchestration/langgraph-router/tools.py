@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Grounding tools for the supervisor — read-only GitHub context, stdlib only.
+"""The Herald — read-only GitHub grounding for Lionheart, stdlib only.
 
-The supervisor plans better when it can see the relevant repo. This module pulls a few
-files from GitHub over the REST API and stitches them into a `context` string the graph
-threads through every node. It is deliberately small: fetch + naive keyword pick, no
-vector store. (A real embedding index — Chroma/FAISS over the repos — is the obvious
-next step; it is NOT built here. Don't claim RAG we don't have.)
+Lionheart plans better when it can see the relevant repo, so the Herald brings word from
+afar: it pulls a few files from GitHub over the REST API and stitches them into a
+`context` string the graph threads through every node. It is deliberately small: fetch +
+naive keyword pick, no vector store. (A real embedding index — Chroma/FAISS over the
+repos — is the obvious next step; it is NOT built here. Don't claim RAG we don't have.)
 
-PRIVACY, READ THIS: fetched content can come from a PRIVATE repo (DESIGN, MARKETING).
-supervisor.gate() therefore fails CLOSED — any attached context forces local-only
-routing unless GITHUB_CONTEXT_ALLOW_CLOUD=1. So pulling private code in does not quietly
-ship it to a cloud model. Token is read from GITHUB_TOKEN (a fine-grained, read-only PAT
-in ~/llm-router/.env, git-ignored) — never inline it, never log it.
+PRIVACY, READ THIS: fetched content can come from a PRIVATE repo (DESIGN, MARKETING). The
+Gatekeeper (supervisor.gatekeeper()) therefore fails CLOSED — any attached context forces
+local-only routing unless GITHUB_CONTEXT_ALLOW_CLOUD=1. So word the Herald carries from a
+private repo does not quietly ship to a cloud model. Token is read from GITHUB_TOKEN (a
+fine-grained, read-only PAT in ~/llm-router/.env, git-ignored) — never inline it, never log it.
 
 No pip deps. `python3 tools.py --selftest` checks the URL/snippet logic offline.
 """
