@@ -24,7 +24,9 @@ cloud), and **Heimdall holds the bridge** — exactly the decided invariant *"no
 the privacy route."*
 
 > **Chronikonomicon:** **Muninn** / the Chronicler keeps the record — the natural bridge to
-> that lore. This repo references the hook; it does not invent the canon.
+> that lore. The vibe that animates this order — a holy company of protectors, Edda and
+> scripture held at once — lives in
+> [`docs/chronikonomicon/the-alliance-codex.md`](../../docs/chronikonomicon/the-alliance-codex.md).
 
 ---
 
