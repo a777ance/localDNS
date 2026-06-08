@@ -2,7 +2,7 @@
 
 Read alongside the portfolio hub: `DESIGN-Full-Workflow-Integration-end-to-end-/docs/ai-cto/portfolio.md`.
 
-**Last updated:** 2026-06-05
+**Last updated:** 2026-06-08
 
 ---
 
@@ -21,7 +21,8 @@ The live HP t630 configuration snapshot AND the Statement artifacts under `docs/
 | CAKE QoS | Running | 85 Mbit on `enp1s0` |
 | Statement PWA | Merged, not deployed | Commit 6134824; not tested on real device |
 | nftables volume populator | Scaffolded, not deployed | Blocking per-category data in statements |
-| LLM router (LiteLLM) + Open WebUI | Config in repo, not deployed | Stage 10: LiteLLM (ai.home.lan:4040) fronts local Ollama + cloud overflow; Open WebUI (chat.home.lan:3000) browser UI; routes whole models, no sharding; t630 is CPU-only |
+| AI gateway (LiteLLM) + Open WebUI | Config in repo, not deployed | **Stage renamed `10-llm-router` → `10-ai-orchestration`.** LiteLLM (ai.home.lan:4040) fronts local Ollama + cloud tiers (now incl. cloud-explore/code/vision); Open WebUI (chat.home.lan:3000) browser UI; routes whole models, no sharding; t630 is CPU-only |
+| Odin orchestration layer (`10-ai-orchestration/langgraph-router/`) | Design + self-tested, not deployed | LangGraph supervisor **Odin** (alias Lionheart) above the front door: deterministic privacy gate (Heimdall), 3 orders of 5 + bound adversarial critic (Loki), Frigg (PII redaction), Hoard-Warden (spend cap), Muninn (resume). Deterministic safety logic runs stdlib-only (`--selftest`); a live run needs `pip install -r requirements.txt` + the front door. The flat `dispatcher.py` remains the dumb-switch default. Lore in `docs/chronikonomicon/the-alliance-codex.md`. |
 
 ## Open items
 
@@ -33,7 +34,8 @@ The live HP t630 configuration snapshot AND the Statement artifacts under `docs/
 | Identify or remove WG peers 10.8.0.4–6 | P2 | Physical access / device identification |
 | Rotate Windows laptop WireGuard key | P2 | Physical access |
 | Verify live Pi-hole upstream after volume migration | P2 | Next deploy cycle |
-| Stand up LLM router on t630 (install Ollama, pull models, start LiteLLM) | P3 | SSH to t630 + an Anthropic API key for the overflow tier |
+| Stand up the AI gateway on t630 (install Ollama, pull models, start LiteLLM at stage `10-ai-orchestration`) | P3 | SSH to t630 + an Anthropic API key for the cloud tiers |
+| Run the Odin supervisor live (venv + `pip install -r 10-ai-orchestration/langgraph-router/requirements.txt`, point at the front door) | P3 | The gateway being up first |
 
 ## Key file locations (repo → system)
 
@@ -53,3 +55,5 @@ See CLAUDE.md deploy table for the full map. Critical ones:
 - `docs/statements/` — Statement output directory (client + operator HTML)
 - `01-unbound/streaming-forward.conf` — the DNS split decision point
 - `01-unbound/tuning.conf` — single source of truth for cache/TTL/threading
+- `10-ai-orchestration/langgraph-router/` — the Odin supervisor (README has the full roster)
+- `10-ai-orchestration/ORCHESTRATION-BLUEPRINT.md` — the dumb-switch vs. supervisor design split
