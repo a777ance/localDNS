@@ -22,7 +22,7 @@ commands three orders of five, plus one bound adversary:
   * THE VANGUARD — guard Odin / the keep. Deterministic guards, no LLM among them:
       Heimdall (the Gatekeeper, privacy classify) · the Warden (privacy lock; binds Loki)
       · the Norn (the step/loop cap) · Muninn / Memory (the audit log) · the Hoard-Warden
-      (cloud-spend cap — roadmap).
+      (cloud-spend cap, hoard.py — refuses a crossing the treasure can't afford).
   * THE CROSSING GUARDS — guard the allies (Midgard, the human). Local workers + tools:
       the Völva / the Skald / the Húskarl (local-reason / -smart / -fast) · Huginn /
       Thought (read-only grounding, tools.py) · Frigg (PII/secret redaction at the cloud
@@ -35,6 +35,9 @@ commands three orders of five, plus one bound adversary:
       revision passes back through the same deterministic guards (parse_plan), so he can
       never widen `allow_cloud` or cross the Bifröst. Opt-in (LOKI=1); bound (a no-op hop)
       by default so a normal run stays cheap and unchanged.
+  * THE MEAD — what Odin brews at the end. He gathers the host's reports and integrates
+      them into one draught: the Mead of Poetry (Óðrœrir) — "our daily bread", the manna.
+      The brewed answer poured back to the user IS the product. run() returns it as `mead`.
 
 The deterministic parts (Heimdall, plan parsing, the binding of Loki) run on the stdlib
 alone — `python3 supervisor.py --selftest` proves the safety logic with zero installs. A
@@ -61,6 +64,7 @@ if _PARENT not in sys.path:
     sys.path.insert(0, _PARENT)
 import dispatcher  # noqa: E402  (path set above)
 import frigg  # noqa: E402  (sibling — the redactor)
+import hoard as hoard_mod  # noqa: E402  (sibling — the spend ledger)
 from dispatcher import (  # noqa: E402
     CLOUD_CODE,
     CLOUD_EXPLORE,
@@ -337,10 +341,12 @@ def make_agent(call: Callable[..., str]) -> Callable[[RouterState], RouterState]
     return agent_node
 
 
-# ── Node 4: ODIN integrates the reports. One reply from many. Local under a privacy lock. ──
+# ── Node 4: ODIN brews the MEAD. He gathers the host's reports and brews them into one
+#    draught — the Mead of Poetry (Óðrœrir), the daily bread, the manna: the sustenance
+#    poured back to the user. One reply from many; stays local under a privacy lock. ──
 def make_integrator(call: Callable[..., str]) -> Callable[[RouterState], RouterState]:
     def integrate_node(state: RouterState) -> RouterState:
-        if len(state.plan) == 1:                         # nothing to stitch
+        if len(state.plan) == 1:                         # a single draught — nothing to blend
             state.final = state.plan[0].result
             state.trace.append({"node": "integrate", "mode": "passthrough"})
             return state
@@ -377,13 +383,32 @@ def frigg_guard(call: Callable[..., str]) -> Callable[..., str]:
     return guarded
 
 
-def build_graph(call: Optional[Callable[..., str]] = None, *, checkpoint_path: str = ""):
+def hoard_guard(call: Callable[..., str], hoard: "hoard_mod.Hoard") -> Callable[..., str]:
+    """Wrap the model call so the Hoard-Warden refuses a cloud crossing the treasure can't
+    afford: the call falls back to a local tier (the keep) instead of running up a bill.
+    An unarmed hoard (cap<=0) and all local/GPU tiers pass straight through."""
+    def guarded(model: str, messages: list[dict], *, allow_cloud: bool = True) -> str:
+        if hoard.armed and model in CLOUD_TIERS:
+            if hoard.affordable(model, messages):
+                hoard.charge(model, messages)
+            else:
+                hoard.refuse()
+                model = LOCAL_SMART                       # the hoard is dry — fall to the keep
+        return call(model, messages, allow_cloud=allow_cloud)
+
+    return guarded
+
+
+def build_graph(call: Optional[Callable[..., str]] = None, *, checkpoint_path: str = "",
+                hoard: "Optional[hoard_mod.Hoard]" = None):
     """Assemble Odin's LangGraph StateGraph. Imported lazily so the deterministic logic
-    above (and --selftest) needs no pip install. `call` defaults to the one front door,
-    wrapped by Frigg so every cloud crossing is scrubbed."""
+    above (and --selftest) needs no pip install. The base `call` (the one front door) is
+    wrapped by the Hoard-Warden (spend cap) over Frigg (redaction), so every cloud crossing
+    is both affordable and scrubbed."""
     from langgraph.graph import END, StateGraph    # lazy: only when actually running
 
-    call = frigg_guard(call or dispatcher.call_model)
+    hoard = hoard if hoard is not None else hoard_mod.Hoard.from_env()
+    call = hoard_guard(frigg_guard(call or dispatcher.call_model), hoard)
     g = StateGraph(RouterState)
     g.add_node("heimdall", gatekeeper)
     g.add_node("muster", make_muster(call))
@@ -416,14 +441,20 @@ def _make_checkpointer(path: str):
 
 
 def run(task: str, *, context: str = "", thread_id: str = "default") -> dict:
-    """End-to-end: build the graph and invoke it. Needs langgraph + a live front door."""
-    graph = build_graph()
+    """End-to-end: build the graph and invoke it. Needs langgraph + a live front door.
+
+    Returns the Mead (the brewed answer), the trace, the muster roll, and the Hoard's
+    spend ledger for the run.
+    """
+    hoard = hoard_mod.Hoard.from_env()
+    graph = build_graph(hoard=hoard)
     init = RouterState(task=task, context=context)
     config = {"configurable": {"thread_id": thread_id}}
     out = graph.invoke(init, config=config)
     state = out if isinstance(out, RouterState) else RouterState(**out)
-    return {"final": state.final, "trace": state.trace,
-            "plan": [(s.tier, ROSTER.get(s.tier, ""), s.instruction) for s in state.plan]}
+    return {"mead": state.final, "trace": state.trace,
+            "plan": [(s.tier, ROSTER.get(s.tier, ""), s.instruction) for s in state.plan],
+            "spend": hoard.summary()}
 
 
 def _selftest() -> None:
@@ -505,9 +536,25 @@ def _selftest() -> None:
     finally:
         globals()["LOKI_ENABLED"], globals()["LOKI_ROUNDS"] = _le, _lr
 
+    # The Hoard-Warden: unarmed it never interferes; armed it charges affordable cloud
+    # calls and, when the treasure is dry, refuses — the crossing falls back to the keep.
+    seen: list = []
+    def _stub2(model, messages, *, allow_cloud=True):
+        seen.append(model)
+        return "ok"
+    h = hoard_mod.Hoard(cap_usd=0.0)                          # unarmed -> pass through
+    hoard_guard(_stub2, h)(CLOUD_EXPLORE, [{"role": "user", "content": "hi"}], allow_cloud=True)
+    assert seen[-1] == CLOUD_EXPLORE and h.spent == 0.0
+    h = hoard_mod.Hoard(cap_usd=1.0)                          # armed, affordable -> charge + ride
+    hoard_guard(_stub2, h)(CLOUD_EXPLORE, [{"role": "user", "content": "hi"}], allow_cloud=True)
+    assert seen[-1] == CLOUD_EXPLORE and h.spent > 0 and h.charges == 1
+    h = hoard_mod.Hoard(cap_usd=1e-9)                         # armed, can't afford -> downgrade
+    hoard_guard(_stub2, h)(CLOUD_EXPLORE, [{"role": "user", "content": "x" * 8000}], allow_cloud=True)
+    assert seen[-1] == LOCAL_SMART and h.downgrades == 1 and h.spent == 0.0
+
     print("selftest: OK — Heimdall holds the Bifröst, the Warden binds every plan (Odin's "
           f"and Loki's), the Norn caps at {MAX_STEPS}, Frigg scrubs only the cloud crossing, "
-          "Loki loops bounded, the roster is consistent")
+          "Loki loops bounded, the Hoard-Warden caps the spend, the roster is consistent")
 
 
 def _dry_run(task: str) -> None:
@@ -547,9 +594,12 @@ if __name__ == "__main__":
     # Default: self-test, then dry-run a few samples so `python3 supervisor.py` is safe.
     print(BANNER)
     _selftest()
+    _h = hoard_mod.Hoard.from_env()
     print(f"\nOdin's brain: {SUPERVISOR_TIER}   "
           f"Loki: {'summoned (≤%d rounds)' % LOKI_ROUNDS if LOKI_ENABLED else 'bound'}   "
-          f"Frigg: {'guarding' if FRIGG_ENABLED else 'off'}   front door: {dispatcher.FRONT_DOOR}\n")
+          f"Frigg: {'guarding' if FRIGG_ENABLED else 'off'}   "
+          f"Hoard: {('$%.2f cap' % _h.cap_usd) if _h.armed else 'unlimited'}   "
+          f"front door: {dispatcher.FRONT_DOOR}\n")
     for t in [
         "Research approaches to taming local AI heat, then write a config diff",
         "Summarize my bank tax statement",          # must stay local — Heimdall forces it
