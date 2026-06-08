@@ -65,6 +65,23 @@ model_list:
   # Cheaper / faster cloud swaps (exact current IDs): anthropic/claude-sonnet-4-6,
   # anthropic/claude-haiku-4-5. Change the `model:` above to switch the overflow tier.
 
+  # ── Capability tiers (Phase 2 of ORCHESTRATION-BLUEPRINT; used by the LangGraph
+  #    supervisor in langgraph-router/). Capability-named so a backend swaps without
+  #    touching callers. These are CLOUD tiers — the supervisor's deterministic privacy
+  #    gate guarantees a `sensitive` task never routes here (it's pinned local first).
+  - model_name: cloud-explore         # wide-angle research / brainstorm — deepest + biggest ctx
+    litellm_params:
+      model: anthropic/claude-opus-4-8
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: cloud-code            # code, diffs, structured build, diagrams (Mermaid/SVG)
+    litellm_params:
+      model: anthropic/claude-sonnet-4-6        # speed/intelligence sweet spot; escalate to opus for the hardest
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: cloud-vision          # READING an image (screenshot/chart/scan) — vision INPUT only
+    litellm_params:
+      model: anthropic/claude-opus-4-8
+      api_key: os.environ/ANTHROPIC_API_KEY
+
 router_settings:
   routing_strategy: simple-shuffle
   num_retries: 2
@@ -81,6 +98,12 @@ router_settings:
     - local-smart: ["cloud-overflow"]
     - local-reason: ["cloud-gpu-reason", "cloud-overflow"]
     - cloud-gpu-reason: ["cloud-overflow"]
+    # Capability tiers degrade to the overflow brain if their primary errors. Safe: only
+    # non-sensitive tasks ever reach a cloud-* tier (the supervisor's gate pins sensitive
+    # ones local before planning), so a cloud→cloud fallback can't leak a private lookup.
+    - cloud-explore: ["cloud-overflow"]
+    - cloud-code: ["cloud-overflow"]
+    - cloud-vision: ["cloud-overflow"]
 
 litellm_settings:
   drop_params: true                   # tolerate OpenAI params a local model ignores
