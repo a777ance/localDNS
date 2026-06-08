@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# odin — ride out. A thin shim over `supervisor.py --run` so a campaign is one word:
+#   ./odin "research approaches to taming local AI heat, then write a config diff"
+#
+# Uses the local venv if setup.sh built one; otherwise falls back to system python3
+# (fine for --dry-run / --selftest, which need no deps). Env knobs pass straight through:
+#   LOKI=1                  summon the looping adversary
+#   LOKI_ROUNDS=3           his round cap
+#   FRIGG=0                 disable redaction (on by default)
+#   LLM_ROUTER_BUDGET_USD=2 arm the Hoard-Warden
+#   SUPERVISOR_TIER=cloud-explore   crown a heavier brain
+#   LLM_ROUTER_INDEX=mimir.json     ground on Mímir's well (RAG)
+set -euo pipefail
+cd "$(dirname "$0")"
+
+PY="python3"
+[ -x ".venv/bin/python" ] && PY=".venv/bin/python"
+
+case "${1:-}" in
+  ""|-h|--help)
+    echo "usage: ./odin \"<task>\"        ride out (needs deps + a live front door)"
+    echo "       ./odin --dry-run \"<task>\"   show the route, call nothing"
+    echo "       ./odin --selftest          prove the guards (no deps, no network)"
+    exit 0 ;;
+  --selftest|--dry-run|--run)
+    exec "$PY" supervisor.py "$@" ;;        # pass through explicit modes
+  *)
+    exec "$PY" supervisor.py --run "$@" ;;  # bare task -> --run
+esac

@@ -93,13 +93,27 @@ def snippet(text: str, query: str, *, window: int = 1500) -> str:
     return text[start : start + window]
 
 
-def gather_context(repo: str, query: str, *, paths: list[str] | None = None) -> str:
-    """Build a grounding blob for the supervisor: a few relevant files, trimmed to budget.
+def gather_context(repo: str, query: str, *, paths: list[str] | None = None,
+                   index_path: str = "") -> str:
+    """Build a grounding blob for the supervisor: the most relevant chunks, trimmed to budget.
 
-    Give explicit `paths` to skip search (cheap, deterministic), or let code search find
-    candidates. Output is capped at MAX_CONTEXT_CHARS. Returning this into the graph
-    forces local-only routing by default (see module docstring + supervisor.gate).
+    Two paths: if a prebuilt RAG index is available (LLM_ROUTER_INDEX or `index_path`),
+    Huginn drinks from Mímir's well — semantic retrieval over the embedded repo (rag.py).
+    Otherwise he falls back to GitHub keyword fetch (explicit `paths`, or code search).
+    Either way the output forces local-only routing by default (see Heimdall / gatekeeper).
     """
+    # RAG path — semantic recall from the local embedding index, if one is built.
+    index_path = index_path or os.environ.get("LLM_ROUTER_INDEX", "")
+    if index_path and os.path.exists(os.path.expanduser(index_path)):
+        try:
+            import rag  # sibling — Mímir's well
+            blob = rag.retrieve(rag.Index.load(os.path.expanduser(index_path)), query,
+                                max_chars=MAX_CONTEXT_CHARS)
+            if blob:
+                return blob
+        except Exception:
+            pass                                          # fall back to keyword fetch below
+
     chosen = list(paths or [])
     if not chosen:
         chosen = search_code(repo, query, limit=3)

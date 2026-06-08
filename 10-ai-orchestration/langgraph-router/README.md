@@ -51,7 +51,7 @@ the **Vanguard** is the deterministic guard around Odin himself (code paths, not
 | **the Völva** | `local-reason` — light reasoning at the keep | built tier |
 | **the Skald** | `local-smart` — a capable local hand | built tier |
 | **the Húskarl** | `local-fast` — the quick household guard | built tier |
-| **Huginn** (Thought) | read-only repo grounding (`tools.py`) | built |
+| **Huginn** (Thought) | repo grounding (`tools.py`): keyword fetch **+ semantic RAG** over a local embedding index — **Mímir's well** (`rag.py`) | built |
 | **Frigg** | PII/secret redaction at the cloud crossing (`frigg.py`) — she knows every fate, speaks none | built |
 
 ### the Avant-Garde — go behind enemy lines (Jotunheim) — the Valkyries
@@ -133,29 +133,31 @@ bound** — with no network and no `pip install`.
 
 ### Block 4 — Ride out (run the campaign)
 
-1. Execute a task: `python3 supervisor.py --run "research X, then write a config diff"`.
-2. Summon Loki to harden the plan: `LOKI=1 python3 supervisor.py --run "..."`.
-3. Ground on a repo (Huginn): `run(task, context=tools.gather_context("a777ance/localDNS", "unbound DNS split"))`; resume a long run with `LLM_ROUTER_CHECKPOINT` + a stable `thread_id`.
+1. Ride out with the CLI shim: `./odin "research X, then write a config diff"` (bare task → `--run`).
+2. Summon Loki to harden the plan: `LOKI=1 ./odin "..."`; arm the Hoard: `LLM_ROUTER_BUDGET_USD=2 ./odin "..."`.
+3. Ground on **Mímir's well** (RAG): `python3 rag.py --build ../.. --out mimir.json`, then `export LLM_ROUTER_INDEX=$(pwd)/mimir.json` — Huginn now retrieves semantically. Resume a long run with `LLM_ROUTER_CHECKPOINT` + a stable `thread_id`.
 
 ### Block 3 — Point Odin at the front door
 
-1. Confirm the tiers exist in `../config.yaml` (`cloud-explore`, `cloud-code`,
-   `cloud-vision` were added alongside this; `local-*` already shipped).
+1. Confirm the tiers exist in `../config.yaml` (`cloud-explore`/`code`/`vision` and
+   `local-embed` for RAG were added alongside this; `local-*` already shipped). For RAG,
+   `ollama pull nomic-embed-text` on the box.
 2. Set `LLM_ROUTER_URL` + `LITELLM_MASTER_KEY` (same `.env` the switch uses).
 3. Optional knobs: `GITHUB_TOKEN` (Huginn) · `SUPERVISOR_TIER` (crown Odin's brain) ·
    `LOKI=1` + `LOKI_ROUNDS` (summon the looping critic) · `FRIGG=0` (disable redaction; on by
-   default) · `LLM_ROUTER_BUDGET_USD` (arm the Hoard-Warden; 0 = unlimited).
+   default) · `LLM_ROUTER_BUDGET_USD` (arm the Hoard-Warden; 0 = unlimited) ·
+   `LLM_ROUTER_INDEX` + `EMBED_MODEL` (Mímir's well).
 
 ### Block 2 — Install deps (only to actually run the graph)
 
-1. `python3 -m venv .venv && . .venv/bin/activate`
-2. `pip install -r requirements.txt`
+1. One shot: `bash setup.sh` — runs every self-test, builds the venv, installs requirements.
+2. Or by hand: `python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt`.
 
 ### Block 1 — Prove the safety logic (no deps, no network)
 
-1. `python3 supervisor.py --selftest` — Heimdall, the Warden, Loki's binding + loop control, Frigg's crossing-guard, the Hoard-Warden's spend cap, the Norn, the roster.
-2. `python3 supervisor.py --dry-run "summarize my bank statement"` — see the route without calling anything.
-3. `python3 tools.py --selftest` (Huginn) · `python3 frigg.py --selftest` (redaction) · `python3 hoard.py --selftest` (spend cap).
+1. `python3 supervisor.py --selftest` (or `./odin --selftest`) — Heimdall, the Warden, Loki's binding + loop control, Frigg's crossing-guard, the Hoard-Warden's spend cap, the Norn, the roster.
+2. `./odin --dry-run "summarize my bank statement"` — see the route without calling anything.
+3. `python3 tools.py --selftest` (Huginn) · `frigg.py` (redaction) · `hoard.py` (spend cap) · `rag.py` (Mímir's well).
 
 ---
 
@@ -164,11 +166,14 @@ bound** — with no network and no `pip install`.
 Per the repo rule — *never print a capability the code doesn't have*:
 
 - **Real today:** Heimdall, the Warden, the Norn, Muninn (the log), **Frigg (redaction)**,
-  **the Hoard-Warden (spend cap)**, **Loki's binding + bounded loop**, the graph wiring,
-  SQLite resume, and the 8 worker tiers (Crossing Guards + Avant-Garde). All testable offline
-  via `--selftest`. Every roster seat is now real code or a live tier — no roadmap stubs left.
+  **the Hoard-Warden (spend cap)**, **Loki's binding + bounded loop**, **Huginn's semantic RAG
+  (Mímir's well — local embeddings via the front door)**, the graph wiring, SQLite resume, and
+  the 8 worker tiers (Crossing Guards + Avant-Garde). All testable offline via `--selftest`.
+  Every roster seat is now real code or a live tier — no roadmap stubs left.
 - **Real once you `pip install` + have a live front door:** the actual multi-step campaign,
-  including Loki's critique→revise rounds (each round is two model calls).
-- **NOT built:** a vector/embedding index over the repos (Huginn is fetch + keyword only —
-  true RAG is the next step); any image *generation* (Sigrún *reads* images, she does not
-  draw them — see the blueprint's vision note).
+  including Loki's critique→revise rounds (each round is two model calls) and RAG retrieval
+  (needs the `local-embed` model pulled). The offline `--selftest` proves RAG's chunking /
+  cosine / ranking with a deterministic *lexical* embedder; the live index uses the neural one.
+- **NOT built:** any image *generation* (Sigrún *reads* images, she does not draw them — see
+  the blueprint's vision note). RAG is keyword-fetch's successor, now real; image-gen is out
+  of scope unless explicitly added.
