@@ -50,7 +50,7 @@ the **Vanguard** is the deterministic guard around Odin himself (code paths, not
 | **the Skald** | `local-smart` — a capable local hand | built tier |
 | **the Húskarl** | `local-fast` — the quick household guard | built tier |
 | **Huginn** (Thought) | read-only repo grounding (`tools.py`) | built |
-| **Frigg** | PII/secret redaction (she knows every fate, speaks none) | roadmap |
+| **Frigg** | PII/secret redaction at the cloud crossing (`frigg.py`) — she knows every fate, speaks none | built |
 
 ### the Avant-Garde — go behind enemy lines (Jotunheim) — the Valkyries
 | Member | Tier | Status |
@@ -62,32 +62,38 @@ the **Vanguard** is the deterministic guard around Odin himself (code paths, not
 | **Skuld** | `cloud-overflow` — the fallback that is there when needed | built tier |
 
 ### Loki — the bound adversary
-The irritant in the pearl. **Loki red-teams Odin's plan** to harden it — but he is **bound
-by the Warden**: his revision passes back through `parse_plan()`, so he can never widen
-`allow_cloud` or cross the Bifröst. Opt-in (`LOKI=1`); bound (silent) by default, so a
-normal run is unchanged and pays for no extra critique. *In myth Loki is bound until
-Ragnarök; here, until you summon him — and even then, in chains.*
+The irritant in the pearl. **Loki red-teams Odin's plan** to harden it, and when summoned
+he **loops**: he critiques → Odin revises → he re-critiques, up to `LOKI_ROUNDS` (default 2)
+or until the plan converges (he replies `SOUND`). But he is **bound by the Warden**: every
+revision passes back through `parse_plan()`, so no round can widen `allow_cloud` or cross
+the Bifröst, and the **Norn** still caps each plan's length. Opt-in (`LOKI=1`); bound (a
+silent no-op hop) by default, so a normal run is unchanged and pays for no extra critique.
+*In myth Loki is bound until Ragnarök; here, until you summon him — and even then, in chains.*
 
 ---
 
 ## Architecture — the graph
 
 ```
-task ─▶ Heimdall ───────────────────────────▶ muster ─▶ loki ─▶ agent ─┐
-        (deterministic privacy classify;     (Odin     (bound  (a member│ loop until
-         sensitive ⇒ pinned local, skip rest) plans)    critic) rides)  │ plan done
-                                                              ▲──────────┘
-                                                              │
-                                               integrate (Odin) ─▶ answer
+                              ┌─ loki ─┐ (critique→revise, ≤ LOKI_ROUNDS or converged)
+                              ▼        │
+task ─▶ Heimdall ─▶ muster ─▶ loki ────┘─▶ agent ─┐
+        (privacy     (Odin     (bound      (a member│ loop until
+         classify)    plans)    critic)     rides)  │ plan done
+                                               ▲─────┘
+                                               │
+                                integrate (Odin) ─▶ answer
+   (every cloud-bound call passes through Frigg, who scrubs PII/secrets)
 ```
 
 - **Heimdall** — `classify()` from the dumb switch. Sets `allow_cloud`; forces a single
   local step for `sensitive`; fails closed to local if external (Huginn) context is attached.
 - **muster** — Odin returns a JSON plan; the **Warden** (`parse_plan`) validates tiers,
   rewrites cloud→local under a lock, and the **Norn** caps the length.
-- **loki** — if summoned, critiques the plan; the revision is re-bound by the Warden.
+- **loki** — if summoned, loops: critiques → Odin revises → re-critiques, each revision
+  re-bound by the Warden, until convergence or `LOKI_ROUNDS`.
 - **agent** — the mustered member rides through the one front door, carrying prior reports
-  forward (the cross-step memory).
+  forward (the cross-step memory). **Frigg** scrubs every cloud-bound call.
 - **integrate** — Odin unites the reports into one reply (stays local under a lock).
 
 State is a `RouterState` dataclass; with `LLM_ROUTER_CHECKPOINT` set, a SQLite checkpointer
@@ -127,7 +133,8 @@ bound** — with no network and no `pip install`.
 1. Confirm the tiers exist in `../config.yaml` (`cloud-explore`, `cloud-code`,
    `cloud-vision` were added alongside this; `local-*` already shipped).
 2. Set `LLM_ROUTER_URL` + `LITELLM_MASTER_KEY` (same `.env` the switch uses).
-3. Optional: `GITHUB_TOKEN` (Huginn), `SUPERVISOR_TIER` (crown Odin's brain), `LOKI=1`.
+3. Optional knobs: `GITHUB_TOKEN` (Huginn) · `SUPERVISOR_TIER` (crown Odin's brain) ·
+   `LOKI=1` + `LOKI_ROUNDS` (summon the looping critic) · `FRIGG=0` (disable redaction; on by default).
 
 ### Block 2 — Install deps (only to actually run the graph)
 
@@ -136,9 +143,9 @@ bound** — with no network and no `pip install`.
 
 ### Block 1 — Prove the safety logic (no deps, no network)
 
-1. `python3 supervisor.py --selftest` — Heimdall, the Warden, Loki's binding, the Norn, the roster.
+1. `python3 supervisor.py --selftest` — Heimdall, the Warden, Loki's binding + loop control, Frigg's crossing-guard, the Norn, the roster.
 2. `python3 supervisor.py --dry-run "summarize my bank statement"` — see the route without calling anything.
-3. `python3 tools.py --selftest` — Huginn's grounding-snippet logic.
+3. `python3 tools.py --selftest` — Huginn's grounding-snippet logic; `python3 frigg.py --selftest` — Frigg's redaction.
 
 ---
 
@@ -146,11 +153,12 @@ bound** — with no network and no `pip install`.
 
 Per the repo rule — *never print a capability the code doesn't have*:
 
-- **Real today:** Heimdall, the Warden, the Norn, Muninn (the log), Loki's binding, the
-  graph wiring, SQLite resume, and the 8 worker tiers (Crossing Guards + Avant-Garde). All
-  testable offline via `--selftest`.
-- **Real once you `pip install` + have a live front door:** the actual multi-step campaign.
-- **Roadmap (named, not built):** the Hoard-Warden (budget cap) and Frigg (PII redaction).
+- **Real today:** Heimdall, the Warden, the Norn, Muninn (the log), **Frigg (redaction)**,
+  **Loki's binding + bounded loop**, the graph wiring, SQLite resume, and the 8 worker tiers
+  (Crossing Guards + Avant-Garde). All testable offline via `--selftest`.
+- **Real once you `pip install` + have a live front door:** the actual multi-step campaign,
+  including Loki's critique→revise rounds (each round is two model calls).
+- **Roadmap (named, not built):** the Hoard-Warden (cloud-spend cap) — the last Vanguard seat.
 - **NOT built:** a vector/embedding index over the repos (Huginn is fetch + keyword only —
   true RAG is the next step); any image *generation* (Sigrún *reads* images, she does not
   draw them — see the blueprint's vision note).

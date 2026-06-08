@@ -25,13 +25,16 @@ commands three orders of five, plus one bound adversary:
       (cloud-spend cap — roadmap).
   * THE CROSSING GUARDS — guard the allies (Midgard, the human). Local workers + tools:
       the Völva / the Skald / the Húskarl (local-reason / -smart / -fast) · Huginn /
-      Thought (read-only grounding, tools.py) · Frigg (PII redaction — roadmap).
+      Thought (read-only grounding, tools.py) · Frigg (PII/secret redaction at the cloud
+      crossing, frigg.py — she knows every fate and speaks none).
   * THE AVANT-GARDE — go behind enemy lines (Jotunheim). The Valkyries who ride out: the
       cloud tiers. Göndul / Hildr / Sigrún / Brynhildr / Skuld.
   * LOKI — the bound adversary, the "irritant in the pearl". Red-teams Odin's plan to make
-      it stronger, but is BOUND by the Warden: his revisions pass back through the same
-      deterministic guards (parse_plan), so he can never widen `allow_cloud` or cross the
-      Bifröst. Opt-in (LOKI=1); off by default so a normal run stays cheap and unchanged.
+      it stronger. When summoned he LOOPS: he critiques, Odin revises, he re-critiques —
+      up to LOKI_ROUNDS or until the plan converges. But he is BOUND by the Warden: every
+      revision passes back through the same deterministic guards (parse_plan), so he can
+      never widen `allow_cloud` or cross the Bifröst. Opt-in (LOKI=1); bound (a no-op hop)
+      by default so a normal run stays cheap and unchanged.
 
 The deterministic parts (Heimdall, plan parsing, the binding of Loki) run on the stdlib
 alone — `python3 supervisor.py --selftest` proves the safety logic with zero installs. A
@@ -57,6 +60,7 @@ _PARENT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PARENT not in sys.path:
     sys.path.insert(0, _PARENT)
 import dispatcher  # noqa: E402  (path set above)
+import frigg  # noqa: E402  (sibling — the redactor)
 from dispatcher import (  # noqa: E402
     CLOUD_CODE,
     CLOUD_EXPLORE,
@@ -101,8 +105,14 @@ ORDER_OF = {**{t: "Avant-Garde" for t in AVANT_GARDE},
 SUPERVISOR_TIER = os.environ.get("SUPERVISOR_TIER", LOCAL_SMART)
 
 # Loki rides only when summoned (he is bound). Off by default: a normal run is unchanged
-# and pays for no extra critique call.
+# and pays for no extra critique call. When on, he loops up to LOKI_ROUNDS times
+# (critique -> Odin revises -> re-critique), or until the plan stops changing.
 LOKI_ENABLED = os.environ.get("LOKI", "0") == "1"
+LOKI_ROUNDS = int(os.environ.get("LOKI_ROUNDS", "2"))
+
+# Frigg scrubs PII/secrets from anything crossing the Bifröst to a THIRD-PARTY cloud tier.
+# On by default (privacy stack); FRIGG=0 to disable. Local tiers are never altered.
+FRIGG_ENABLED = os.environ.get("FRIGG", "1") == "1"
 
 # Bound the campaign: an LLM-planned loop must not run away on cost or cycles. (The Norn.)
 MAX_STEPS = int(os.environ.get("LLM_ROUTER_MAX_STEPS", "6"))
@@ -136,6 +146,8 @@ class RouterState:
     context: str = ""                          # optional grounding (Huginn) — see tools.py
     plan: list[Step] = field(default_factory=list)
     cursor: int = 0
+    loki_round: int = 0                        # how many times Loki has critiqued
+    loki_changed: bool = False                 # did the last Loki round change the plan?
     final: str = ""
     trace: list[dict] = field(default_factory=list)   # one entry per node, for the audit log
 
@@ -220,10 +232,15 @@ _PLANNER_SYSTEM = (
 )
 
 _LOKI_SYSTEM = (
-    "You are Loki, the bound adversary. Red-team the plan below: name the weakest or "
-    "missing step, or a cheaper path, and return a BETTER plan. Reply with ONLY a JSON "
-    "array of {\"tier\": <tier>, \"instruction\": <text>} in the same format — or the "
-    "original array unchanged if it is already sound. Same allowed tiers as the planner."
+    "You are Loki, the bound adversary. Red-team the plan below: in 1-3 terse sentences, "
+    "name its weakest or missing step, or a cheaper path. If the plan is already sound, "
+    "reply with exactly: SOUND. No plan, just the critique."
+)
+
+_REVISE_SYSTEM = (
+    "You are Odin. Loki has critiqued your plan. Produce a REVISED plan that answers the "
+    "critique — or keep the plan if the critique is wrong. Reply with ONLY a JSON array of "
+    "{\"tier\": <tier>, \"instruction\": <text>}, same allowed tiers as before. No prose."
 )
 
 
@@ -248,28 +265,53 @@ def make_muster(call: Callable[..., str]) -> Callable[[RouterState], RouterState
     return muster_node
 
 
-# ── Node 2b: LOKI, the bound adversary. Critiques the plan to harden it — but his revision
-#    goes back through the Warden (parse_plan), so he cannot widen privacy or the cap. ──
+# ── Node 2b: LOKI, the bound adversary — ONE critique→revise round per visit. The graph
+#    loops back here (see _loki_continue) until the plan converges or LOKI_ROUNDS is hit.
+#    Both his critique and Odin's revision are bound by the Warden (parse_plan), so no
+#    round can widen privacy or the cap. He is, quite literally, in chains. ──
 def make_loki(call: Callable[..., str]) -> Callable[[RouterState], RouterState]:
     def loki_node(state: RouterState) -> RouterState:
         if not LOKI_ENABLED or state.forced or not state.plan:
-            return state                                 # bound: silent unless summoned
-        reply = call(
+            state.loki_changed = False                   # bound: silent unless summoned
+            return state
+        before = _plan_to_json(state.plan)
+        critique = call(                                  # Loki speaks
             SUPERVISOR_TIER,
             [{"role": "system", "content": _LOKI_SYSTEM},
-             {"role": "user", "content": _plan_to_json(state.plan)}],
+             {"role": "user", "content": before}],
             allow_cloud=state.allow_cloud,
         )
-        revised = parse_plan(reply, allow_cloud=state.allow_cloud)   # <- the Warden binds him
-        changed = _plan_to_json(revised) != _plan_to_json(state.plan)
-        if changed:
-            state.plan = revised
-        state.trace.append({"node": "loki", "changed": changed,
+        if critique.strip().upper().startswith("SOUND"):
+            state.loki_changed = False                    # he concedes the plan is sound
+        else:
+            revised_reply = call(                         # Odin answers the critique
+                SUPERVISOR_TIER,
+                [{"role": "system", "content": _REVISE_SYSTEM},
+                 {"role": "user", "content": f"Task: {state.task}\nPlan: {before}\n"
+                                            f"Loki's critique: {critique}"}],
+                allow_cloud=state.allow_cloud,
+            )
+            revised = parse_plan(revised_reply, allow_cloud=state.allow_cloud)  # the Warden binds
+            state.loki_changed = _plan_to_json(revised) != before
+            if state.loki_changed:
+                state.plan = revised
+        state.loki_round += 1
+        state.trace.append({"node": "loki", "round": state.loki_round,
+                            "changed": state.loki_changed,
                             "plan": [(s.tier, ROSTER.get(s.tier, ""), s.instruction[:50])
                                      for s in state.plan]})
         return state
 
     return loki_node
+
+
+def _loki_continue(state: RouterState) -> str:
+    """Loop back to Loki only while he is summoned, unbound by Heimdall (not forced), still
+    changing the plan, and under the round cap. Pure — the loop control is testable."""
+    if (LOKI_ENABLED and not state.forced and state.loki_changed
+            and state.loki_round < LOKI_ROUNDS):
+        return "loki"
+    return "agent"
 
 
 # ── Node 3: a member rides. Executes the step at the cursor through the one front door. ──
@@ -322,12 +364,26 @@ def _more_steps(state: RouterState) -> str:
     return "agent" if state.cursor < len(state.plan) else "integrate"
 
 
+def frigg_guard(call: Callable[..., str]) -> Callable[..., str]:
+    """Wrap the model call so Frigg scrubs PII/secrets from anything crossing to a
+    THIRD-PARTY cloud tier. Local tiers (and the self-hosted GPU) are passed through
+    untouched — no leak risk there, so no collateral edits. One chokepoint covers every
+    node (muster, loki, agent, integrate) uniformly."""
+    def guarded(model: str, messages: list[dict], *, allow_cloud: bool = True) -> str:
+        if FRIGG_ENABLED and model in CLOUD_TIERS:        # GPU_REASON is not in CLOUD_TIERS
+            messages, _found = frigg.redact_messages(messages)
+        return call(model, messages, allow_cloud=allow_cloud)
+
+    return guarded
+
+
 def build_graph(call: Optional[Callable[..., str]] = None, *, checkpoint_path: str = ""):
     """Assemble Odin's LangGraph StateGraph. Imported lazily so the deterministic logic
-    above (and --selftest) needs no pip install. `call` defaults to the one front door."""
+    above (and --selftest) needs no pip install. `call` defaults to the one front door,
+    wrapped by Frigg so every cloud crossing is scrubbed."""
     from langgraph.graph import END, StateGraph    # lazy: only when actually running
 
-    call = call or dispatcher.call_model
+    call = frigg_guard(call or dispatcher.call_model)
     g = StateGraph(RouterState)
     g.add_node("heimdall", gatekeeper)
     g.add_node("muster", make_muster(call))
@@ -336,8 +392,9 @@ def build_graph(call: Optional[Callable[..., str]] = None, *, checkpoint_path: s
     g.add_node("integrate", make_integrator(call))
     g.set_entry_point("heimdall")
     g.add_edge("heimdall", "muster")
-    g.add_edge("muster", "loki")                  # Loki passes through untouched unless summoned
-    g.add_edge("loki", "agent")
+    g.add_edge("muster", "loki")
+    # Loki loops on himself until the plan converges or the round cap (then -> agent).
+    g.add_conditional_edges("loki", _loki_continue, {"loki": "loki", "agent": "agent"})
     g.add_conditional_edges("agent", _more_steps, {"agent": "agent", "integrate": "integrate"})
     g.add_edge("integrate", END)
 
@@ -418,8 +475,39 @@ def _selftest() -> None:
     assert set(CROSSING_GUARDS) <= LOCAL_TIERS
     assert GPU_REASON in AVANT_GARDE and GPU_REASON in LOCAL_TIERS   # rides out, yet sworn
 
+    # Frigg guards the cloud crossing, and ONLY the cloud crossing: a message bound for a
+    # third-party tier is scrubbed; the same message to a local tier is left untouched.
+    _saved_frigg = FRIGG_ENABLED
+    captured: dict = {}
+    def _stub(model, messages, *, allow_cloud=True):
+        captured["msgs"] = messages
+        return "ok"
+    try:
+        globals()["FRIGG_ENABLED"] = True
+        g = frigg_guard(_stub)
+        g(CLOUD_CODE, [{"role": "user", "content": "ping me at a@b.com"}], allow_cloud=True)
+        assert "⟨email⟩" in captured["msgs"][0]["content"]      # scrubbed crossing the Bifröst
+        g(LOCAL_FAST, [{"role": "user", "content": "ping me at a@b.com"}])
+        assert "a@b.com" in captured["msgs"][0]["content"]      # local stays raw (inside the walls)
+    finally:
+        globals()["FRIGG_ENABLED"] = _saved_frigg
+
+    # Loki's loop control (pure): loop only while summoned, unforced, changing, under cap.
+    _le, _lr = LOKI_ENABLED, LOKI_ROUNDS
+    try:
+        globals()["LOKI_ENABLED"], globals()["LOKI_ROUNDS"] = True, 2
+        assert _loki_continue(RouterState("x", loki_changed=True, loki_round=0)) == "loki"
+        assert _loki_continue(RouterState("x", loki_changed=True, loki_round=2)) == "agent"  # cap
+        assert _loki_continue(RouterState("x", loki_changed=False, loki_round=0)) == "agent" # converged
+        assert _loki_continue(RouterState("x", loki_changed=True, loki_round=0, forced=True)) == "agent"
+        globals()["LOKI_ENABLED"] = False
+        assert _loki_continue(RouterState("x", loki_changed=True, loki_round=0)) == "agent"  # not summoned
+    finally:
+        globals()["LOKI_ENABLED"], globals()["LOKI_ROUNDS"] = _le, _lr
+
     print("selftest: OK — Heimdall holds the Bifröst, the Warden binds every plan (Odin's "
-          f"and Loki's), the Norn caps at {MAX_STEPS}, the roster is consistent")
+          f"and Loki's), the Norn caps at {MAX_STEPS}, Frigg scrubs only the cloud crossing, "
+          "Loki loops bounded, the roster is consistent")
 
 
 def _dry_run(task: str) -> None:
@@ -459,8 +547,9 @@ if __name__ == "__main__":
     # Default: self-test, then dry-run a few samples so `python3 supervisor.py` is safe.
     print(BANNER)
     _selftest()
-    print(f"\nOdin's brain: {SUPERVISOR_TIER}   Loki: {'summoned' if LOKI_ENABLED else 'bound'}"
-          f"   front door: {dispatcher.FRONT_DOOR}\n")
+    print(f"\nOdin's brain: {SUPERVISOR_TIER}   "
+          f"Loki: {'summoned (≤%d rounds)' % LOKI_ROUNDS if LOKI_ENABLED else 'bound'}   "
+          f"Frigg: {'guarding' if FRIGG_ENABLED else 'off'}   front door: {dispatcher.FRONT_DOOR}\n")
     for t in [
         "Research approaches to taming local AI heat, then write a config diff",
         "Summarize my bank tax statement",          # must stay local — Heimdall forces it
