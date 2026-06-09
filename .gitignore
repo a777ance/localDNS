@@ -19,3 +19,9 @@ Thumbs.db
 # Python bytecode
 __pycache__/
 *.pyc
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
