@@ -25,6 +25,9 @@ ufw allow in from "$LAN" to any port 5353 proto udp
 ufw allow in from "$LAN" to any port 3001 proto tcp
 ufw allow in from "$LAN" to any port 4040 proto tcp   # LLM router (LiteLLM); 4000 is NoMachine
 ufw allow in from "$LAN" to any port 3000 proto tcp   # LLM chat UI (Open WebUI); 8080 is Pi-hole
+ufw allow in from "$LAN" to any port 8088 proto tcp   # console launcher — the high seat (11-console)
+ufw allow in from "$LAN" to any port 7681 proto tcp   # ttyd web terminal -> thin client (t630 shell)
+ufw allow in from "$LAN" to any port 7682 proto tcp   # ttyd web terminal -> laptop (SSH jump via t630)
 # Docker bridge → Unbound on 5335. Now vestigial: both Pi-hole and Uptime Kuma run
 # network_mode: host and reach Unbound over the host loopback (127.0.0.1:5335, not
 # filtered by UFW), so no container crosses docker0 for DNS anymore. Kept as a
@@ -45,6 +48,13 @@ ufw allow in from "$WG" to any port 8080 proto tcp
 ufw allow in from "$WG" to any port 3001 proto tcp
 ufw allow in from "$WG" to any port 4040 proto tcp
 ufw allow in from "$WG" to any port 3000 proto tcp
+# Console + web terminals reachable over the tunnel too (a phone on WG can drive the box).
+# These are LAN+WG ONLY — never add an Anywhere rule or a router port-forward for them: a
+# web terminal is a login shell, and the WireGuard listener (51820/udp) is the only door
+# that should face the internet.
+ufw allow in from "$WG" to any port 8088 proto tcp
+ufw allow in from "$WG" to any port 7681 proto tcp
+ufw allow in from "$WG" to any port 7682 proto tcp
 ufw allow out to any port 53 proto udp
 ufw --force enable
 ufw status verbose

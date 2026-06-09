@@ -98,6 +98,9 @@ ISP (Spectrum ~200/100 Mbps asymmetric)
 | SSH | host OS | 22 | LAN + WG subnet |
 | LLM router (LiteLLM) | Docker host-net | 4040 | LAN + WG subnet |
 | Open WebUI (LLM chat UI) | Docker host-net | 3000 | LAN + WG subnet |
+| Console launcher ("high seat") | host OS (systemd) | 8088 | LAN + WG subnet |
+| ttyd web terminal — thin client | host OS (systemd) | 7681 | LAN + WG subnet |
+| ttyd web terminal — laptop (SSH jump) | host OS (systemd) | 7682 | LAN + WG subnet |
 
 **Pi-hole upstream DNS:** a single upstream — `127.0.0.1#5335` (Unbound on the host;
 reachable directly because Pi-hole runs `network_mode: host`). Pi-hole does no
@@ -170,6 +173,12 @@ number — use this table to map repo path → system path, not the step numbers
 | `10-ai-orchestration/config.yaml` | `~/llm-router/config.yaml` | `cd ~/llm-router && docker compose up -d` |
 | `10-ai-orchestration/.env.example` | `~/llm-router/.env` (copy, then fill in) | `cd ~/llm-router && docker compose up -d` |
 | `10-ai-orchestration/langgraph-router/` | `~/llm-router/langgraph-router/` | **Odin** supervisor (alias Lionheart): Heimdall guards the Bifröst → Odin musters the host (3 orders of 5 + Loki, bound). `pip install -r requirements.txt` (venv); runs as a script, not a service |
+| `11-console/index.html` | `/var/www/console/index.html` | served by `console.service` |
+| `11-console/console.service` | `/etc/systemd/system/console.service` | `sudo systemctl daemon-reload` (set `User=`) |
+| `11-console/ttyd-thinclient.service` | `/etc/systemd/system/ttyd-thinclient.service` | `sudo systemctl daemon-reload` (set `User=`) |
+| `11-console/ttyd-laptop.service` | `/etc/systemd/system/ttyd-laptop.service` | `sudo systemctl daemon-reload` (set `User=`) |
+| `11-console/ttyd.env.example` | `/etc/a777ance/ttyd.env` (copy, fill, `chmod 600`) | restart the two `ttyd-*` units |
+| `11-console/browser-odin.md` | reference only (Mullvad sidebar config) | — |
 | `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
@@ -221,7 +230,7 @@ Six drop-ins, loaded alphabetically (A→Z) by Unbound from `/etc/unbound/unboun
 | `server.conf` | Interface, port, access-control, security flags |
 | `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
 | `remote-control.conf` | Unix socket for `unbound-control` |
-| `local-records.conf` | LAN-only A records answered authoritatively (`ai.home.lan` → the t630, for the LLM router). `local-zone … transparent` overrides only the names defined, not the whole zone. |
+| `local-records.conf` | LAN-only A records answered authoritatively (`ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → the t630, so the console sidebar pins names not IP:ports). `local-zone … transparent` overrides only the names defined, not the whole zone. |
 
 `tuning.conf` is the only place to change cache sizes, TTLs, or threading.
 Do not split these into separate files.
@@ -250,6 +259,8 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 
 | Issue | Action |
 | ----- | ------ |
+| Console web terminals are a login shell over HTTP | `11-console` exposes `ttyd` on 7681 (thin client) and 7682 (laptop, via the t630 as SSH jump). The `ttyd` `--credential` is the only gate to a shell — treat it like a root password (in `/etc/a777ance/ttyd.env`, `chmod 600`, never in git). **LAN + WG only — never port-forward 8088/7681/7682; remote access is through WireGuard.** Harden with TLS (`ttyd -S`) and OS `login` over `bash` (notes in the unit files / `11-console/README.md`). |
+| Laptop SSH target is a placeholder | `11-console/ttyd.env.example` ships `LAPTOP_SSH=CHANGE_ME@10.8.0.CHANGE_ME`. Point it at a **stable** address (the laptop's WireGuard IP or a DHCP-reserved LAN IP), not a floating lease, or the laptop terminal won't connect. |
 | Heavy DeepSeek-R1 on local CPU overheats the client | Don't run `deepseek-r1:7b`+ on a CPU — its long chain-of-thought pins every core for minutes (cooks a laptop, throttles the t630). `10-ai-orchestration/config.yaml` now ships a reasoning ladder: `local-reason` (deepseek-r1:1.5b, t630 CPU, cool) for light work and `cloud-gpu-reason` (full R1 on a rented GPU via Tailscale, spun up on demand) for heavy work, falling over to `cloud-overflow` when the pod is off. See `10-ai-orchestration/README.md` "Offload heavy reasoning to a rented GPU." |
 | Live Pi-hole upstreams ≠ repo | Pi-hole v6 re-applies & locks `FTLCONF_dns_upstreams: 127.0.0.1#5335` on every start, overriding any `172.17.0.1#5335`/public resolvers left in the `pihole_data` volume. Confirm in the UI after deploying onto an old volume. |
 | Host-net Pi-hole vs systemd-resolved `:53` | Host-net Pi-hole binds `0.0.0.0:53`, colliding with the resolved stub on `127.0.0.53:53`. `03-host-dns/host-dns.conf` now sets `DNSStubListener=no` and README Steps 4-5 (Part A) re-points `/etc/resolv.conf` off the stub. On the live box, check current state before re-applying (see INSTALL-NOTES item 13). |
@@ -274,6 +285,8 @@ dig @127.0.0.1 -p 5335 netflix.com +short          # DoT forward-path resolves e
 sudo unbound-control lookup netflix.com            # forwarding request → 1.1.1.1@853 / 1.0.0.1@853
 sudo unbound-control lookup chase.com              # should show: iterative delegation
 docker ps                                          # pihole + uptime-kuma both Up
+systemctl is-active console ttyd-thinclient ttyd-laptop  # console + both web terminals active
+dig @127.0.0.1 -p 5335 console.home.lan +short     # 192.168.1.118 (high-seat name resolves)
 sudo wg show                                       # wg0 up, peers listed
 sudo ufw status verbose                            # 51820/udp Anywhere; all else LAN
 tc qdisc show dev enp1s0                           # cake bandwidth 85Mbit

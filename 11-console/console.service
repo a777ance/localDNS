@@ -1,0 +1,22 @@
+# Deploys to: /etc/systemd/system/console.service
+# Reload:     sudo systemctl daemon-reload && sudo systemctl enable --now console.service
+#
+# Serves the static high-seat launcher (index.html) on :8088, LAN + WG only (UFW gates it).
+# Dependency-free: Ubuntu ships python3, so no web server to install. Replace USER with the
+# t630's login user, and put index.html at /var/www/console/index.html first:
+#   sudo mkdir -p /var/www/console && sudo cp 11-console/index.html /var/www/console/
+[Unit]
+Description=A777ance console — Hliðskjálf, the high-seat launcher (static)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=USER
+WorkingDirectory=/var/www/console
+ExecStart=/usr/bin/python3 -m http.server 8088 --bind 0.0.0.0 --directory /var/www/console
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

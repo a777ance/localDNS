@@ -178,6 +178,7 @@ Guardrails:
 - [A. Setup (Quick-Start)](#a-setup-quick-start)
   - [Which steps do you need?](#which-steps-do-you-need)
   - [Before you begin](#before-you-begin)
+  - [Step 13: Console — the high seat](#step-13-console--the-high-seat)
   - [Step 12: LLM Router (LiteLLM)](#step-12-llm-router-litellm)
   - [Step 11: Point LAN Clients at t630](#step-11-point-lan-clients-at-t630)
   - [Step 10: Remote Desktop](#step-10-remote-desktop)
@@ -290,6 +291,48 @@ root. Without this, every `cp` command fails immediately.
 git clone https://github.com/a777ance/localdns ~/localdns
 cd ~/localdns
 ```
+
+---
+
+### Step 13: Console — the high seat
+
+**Optional add-on — sits on top of Step 12.** One launcher page that pins every
+realm by name — the AI front door, a login shell on each Linux box, and the watch
+posts — plus two `ttyd` web terminals. *Odin's high seat sees into every realm; the
+browser you pin it in becomes your Odin* (the human twin of Step 12's machine-Odin
+supervisor). All host-side systemd, all behind the one UFW choke point.
+
+> ⚠️ A web terminal is a **login shell over HTTP**. The ports are **LAN + WireGuard
+> only — never port-forward 8088/7681/7682**; remote access is through WireGuard, and
+> the `ttyd` credential is effectively a root password.
+
+**Files — [`11-console/`](11-console/):**
+- [`index.html`](11-console/index.html) — the static launcher (served on :8088)
+- [`console.service`](11-console/console.service) — systemd unit for the launcher
+- [`ttyd-thinclient.service`](11-console/ttyd-thinclient.service) — web shell on the t630 (:7681)
+- [`ttyd-laptop.service`](11-console/ttyd-laptop.service) — web shell on the laptop, SSH-jumped via the t630 (:7682)
+- [`ttyd.env.example`](11-console/ttyd.env.example) — ttyd credential + laptop SSH target (copy to `/etc/a777ance/ttyd.env`)
+- [`browser-odin.md`](11-console/browser-odin.md) — the Mullvad sidebar + session-persistence config (the client half)
+- [`01-unbound/local-records.conf`](01-unbound/local-records.conf) — `console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → the t630
+
+```bash
+# 1. Page + terminals (ttyd is in the Ubuntu 24.04 repo)
+sudo apt install -y ttyd
+sudo mkdir -p /var/www/console && sudo cp 11-console/index.html /var/www/console/
+sudo mkdir -p /etc/a777ance && sudo cp 11-console/ttyd.env.example /etc/a777ance/ttyd.env
+sudo nano /etc/a777ance/ttyd.env && sudo chmod 600 /etc/a777ance/ttyd.env   # set credential + laptop SSH
+# 2. Install the three units (replace USER), enable them
+sudo cp 11-console/{console,ttyd-thinclient,ttyd-laptop}.service /etc/systemd/system/
+sudo sed -i "s/^User=USER/User=$USER/" /etc/systemd/system/{console,ttyd-thinclient,ttyd-laptop}.service
+sudo systemctl daemon-reload && sudo systemctl enable --now console ttyd-thinclient ttyd-laptop
+# 3. Names + firewall (8088/7681/7682 already in the script)
+sudo cp 01-unbound/local-records.conf /etc/unbound/unbound.conf.d/ && sudo systemctl restart unbound
+sudo bash 04-ufw/setup.sh
+# 4. Browse to http://console.home.lan:8088 — then pin it (see browser-odin.md)
+```
+
+Full deploy, the security/hardening ladder, and the browser-as-Odin sidebar setup
+are in **[`11-console/README.md`](11-console/README.md)**.
 
 ---
 
@@ -1033,6 +1076,9 @@ peer and every listening service.
 | SSH | host OS | 22 | LAN + WG subnet |
 | LLM router (LiteLLM) | Docker host-net | 4040 | LAN + WG subnet |
 | Open WebUI (LLM chat UI) | Docker host-net | 3000 | LAN + WG subnet |
+| Console launcher ("high seat") | host OS (systemd) | 8088 | LAN + WG subnet |
+| ttyd web terminal — thin client | host OS (systemd) | 7681 | LAN + WG subnet |
+| ttyd web terminal — laptop (SSH jump) | host OS (systemd) | 7682 | LAN + WG subnet |
 
 ### Repository layout
 
@@ -1045,7 +1091,7 @@ Listed in setup-step order. CAKE now installs first (Step 1), so folder numbers 
 | 2 | [`01-unbound/server.conf`](01-unbound/server.conf) | Interfaces, ACLs, port, security flags |
 | 2 | [`01-unbound/tuning.conf`](01-unbound/tuning.conf) | Cache sizes, TTL policy, threading — single source of truth |
 | 2 | [`01-unbound/streaming-forward.conf`](01-unbound/streaming-forward.conf) | Domain split: streaming → Cloudflare DoT, all else → recursive |
-| 2 | [`01-unbound/local-records.conf`](01-unbound/local-records.conf) | LAN-only A records (`ai.home.lan` → t630) for the LLM router (Step 12) |
+| 2 | [`01-unbound/local-records.conf`](01-unbound/local-records.conf) | LAN-only A records (`ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → t630) for the LLM router (Step 12) + the console (Step 13) |
 | 2 | [`01-unbound/remote-control.conf`](01-unbound/remote-control.conf) | Unix socket for `unbound-control` |
 | 2 | [`01-unbound/root-auto-trust-anchor-file.conf`](01-unbound/root-auto-trust-anchor-file.conf) | DNSSEC trust anchor |
 | 2 | [`01-unbound/unbound-cache-dump`](01-unbound/unbound-cache-dump) | Dumps Unbound cache to disk |
@@ -1069,6 +1115,12 @@ Listed in setup-step order. CAKE now installs first (Step 1), so folder numbers 
 | 12 | [`10-ai-orchestration/docker-compose.yml`](10-ai-orchestration/docker-compose.yml) | LiteLLM router (4040) + Open WebUI chat UI (3000), both host-net |
 | 12 | [`10-ai-orchestration/config.yaml`](10-ai-orchestration/config.yaml) | Router backends + routing/failover (local Ollama → cloud overflow) |
 | 12 | [`10-ai-orchestration/.env.example`](10-ai-orchestration/.env.example) | Template for `~/llm-router/.env` — master key + Anthropic key (`CHANGE_ME`) |
+| 13 | [`11-console/index.html`](11-console/index.html) | The high-seat launcher page (static, served on 8088) |
+| 13 | [`11-console/console.service`](11-console/console.service) | systemd unit serving the launcher |
+| 13 | [`11-console/ttyd-thinclient.service`](11-console/ttyd-thinclient.service) | `ttyd` web terminal → the t630 shell (7681) |
+| 13 | [`11-console/ttyd-laptop.service`](11-console/ttyd-laptop.service) | `ttyd` web terminal → the laptop, SSH-jumped via the t630 (7682) |
+| 13 | [`11-console/ttyd.env.example`](11-console/ttyd.env.example) | Template for `/etc/a777ance/ttyd.env` — ttyd credential + laptop SSH target (`CHANGE_ME`) |
+| 13 | [`11-console/browser-odin.md`](11-console/browser-odin.md) | Mullvad sidebar pins + session-persistence config (the browser half) |
 | — | [`docs/`](docs/) | Screenshots and other documentation assets (e.g. the Pi-hole dashboard above) |
 | — | [`tools/check-docs.py`](tools/check-docs.py) | Cross-doc link checker — verifies every relative link in the Markdown files resolves |
 
@@ -1257,5 +1309,8 @@ a link to the file that resolves it — now lives in
   working on this repo
 - **[10-ai-orchestration/README.md](10-ai-orchestration/README.md)** — optional Step 12: a LiteLLM router that
   fronts local Ollama on the t630 with cloud overflow, named `ai.home.lan` via Unbound
+- **[11-console/README.md](11-console/README.md)** — optional Step 13: the console / "high seat" — a launcher
+  page + `ttyd` web terminals to both Linux boxes; **[browser-odin.md](11-console/browser-odin.md)** is the
+  Mullvad-sidebar half (the browser-as-Odin config)
 - **[tools/check-docs.py](tools/check-docs.py)** — link checker; run `python3 tools/check-docs.py`
   to verify every relative link across these docs still resolves
