@@ -3,15 +3,15 @@
 Self-hosted DNS, VPN, and network monitoring stack on an HP t630 thin client.
 Every device on the home LAN — and every phone tunneled back over the self-hosted
 WireGuard VPN — resolves DNS through Pi-hole (ad blocking) → Unbound (DNSSEC,
-Cloudflare DoT for streaming). The tunnel, not physical location, defines what counts
-as "inside" the network.
+Cloudflare DoT for streaming). 
 
 This repo is the config snapshot, rollback target, and complete reproduction
 guide. Clone it to the t630 and follow Setup below to go from fresh
 Ubuntu 24.04 to a fully running stack. Edits here do not take effect until
 manually deployed — **the live t630 is the source of truth.**
 
-For the surrounding network — router, ISP, and the rationale behind these design
+The tunnel, not physical location, defines what counts
+as "inside" the network. For the surrounding network — router, ISP, and the rationale behind these design
 choices — see **[network-context.md](network-context.md)**.
 
 ---
@@ -299,7 +299,7 @@ cd ~/localdns
 **Optional add-on — sits on top of Step 12.** One launcher page that pins every
 realm by name — the AI front door, a login shell on each Linux box, and the watch
 posts — plus two `ttyd` web terminals. *Odin's high seat sees into every realm; the
-browser you pin it in becomes your Odin* (the human twin of Step 12's machine-Odin
+browser you pin it in let's you read the runes and become so-called Odin* (the human twin of Step 12's machine
 supervisor). All host-side systemd, all behind the one UFW choke point.
 
 > ⚠️ A web terminal is a **login shell over HTTP**. The ports are **LAN + WireGuard
