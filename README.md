@@ -206,6 +206,7 @@ Guardrails:
   - [Configuration reference](#configuration-reference)
   - [Known issues](#known-issues)
   - [Further reading](#further-reading)
+- [Patch Notes](#patch-notes)
 
 ---
 
@@ -1314,3 +1315,14 @@ a link to the file that resolves it — now lives in
   Mullvad-sidebar half (the browser-as-Odin config)
 - **[tools/check-docs.py](tools/check-docs.py)** — link checker; run `python3 tools/check-docs.py`
   to verify every relative link across these docs still resolves
+
+---
+
+## Patch Notes
+
+Newest first. Each entry covers one calendar day of merged changes across the A777ance portfolio.
+
+### 2026-06-09
+
+**New Features**
+- **Console launcher — Step 13 (localDNS #10)** — Shipped the Hliðskjálf high-seat: a static, offline-capable launcher page at `:8088` that links every homelab service by `.home.lan` name (AI front door, web shells, Pi-hole, Uptime Kuma, and cloud AIs). Bundled with two `ttyd` systemd web-terminal units — one direct to the t630 shell (`:7681`), one SSH-jumped to the laptop (`:7682`). All three ports are LAN + WireGuard only and UFW-gated. Five new `.home.lan` DNS names (`console`, `term`, `laptop`, `kuma`, `pihole`) ship alongside in `local-records.conf`.
