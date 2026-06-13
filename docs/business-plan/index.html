@@ -1,0 +1,211 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A777ance — localDNS — One-Page Business Plan</title>
+<style>
+@media print { body{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#fff;padding:0;} .page{box-shadow:none;margin:0;} }
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--navy:#13314f;--navy-2:#1c4a73;--ink:#1f2733;--bronze:#a9803f;--bronze-soft:#c6a463;
+--paper:#fbfaf7;--rule:#e6e2d6;--rule-2:#eceef1;--muted:#8a93a0;--pos:#3f7a4d;--amber:#c08a2e;--watch:#2d6aa8;}
+body{font-family:'Gill Sans MT','Gill Sans',Calibri,'Trebuchet MS',sans-serif;background:#e9ecf0;padding:40px 20px;color:var(--ink);line-height:1.5;}
+.page{max-width:800px;margin:0 auto;background:var(--paper);box-shadow:0 6px 40px rgba(0,0,0,0.13);}
+.fig{font-feature-settings:"tnum";}
+
+/* header */
+.header{background:var(--navy);color:#fff;padding:30px 44px 26px;border-bottom:3px solid var(--bronze);}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;}
+.brandwrap{display:flex;align-items:center;gap:15px;}
+.monogram{width:44px;height:44px;border-radius:9px;background:linear-gradient(150deg,var(--navy-2),#0e2640);border:1px solid var(--bronze);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.monogram span{font-size:19px;font-weight:700;color:var(--bronze-soft);}
+.brand{font-size:21px;font-weight:700;letter-spacing:0.16em;}
+.brand-sub{font-size:9px;color:#8fb0cc;letter-spacing:0.2em;text-transform:uppercase;margin-top:6px;}
+.tag{display:inline-block;margin-top:9px;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#0e2640;background:var(--bronze-soft);border-radius:4px;padding:3px 8px;font-weight:700;}
+.doc-title{text-align:right;}
+.doc-title .label{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#8fb0cc;}
+.doc-title .period{font-size:15px;margin-top:5px;}
+.acct-bar{display:flex;flex-wrap:wrap;gap:34px;margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.13);}
+.acct-field .k{font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#7e9fbb;}
+.acct-field .v{font-size:12.5px;margin-top:4px;}
+
+/* kpi strip */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--rule);}
+.kpi{padding:20px 14px;text-align:center;border-right:1px solid var(--rule);}
+.kpi:last-child{border-right:none;}
+.kpi .v{font-size:25px;color:var(--navy);line-height:1;}
+.kpi .l{font-size:9px;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-top:8px;line-height:1.3;}
+
+/* body + sections */
+.body{padding:0 44px;}
+.section{padding:22px 0;border-bottom:1px solid var(--rule);}
+.section:last-child{border-bottom:none;}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:13px;}
+.section-title{font-size:12px;text-transform:uppercase;letter-spacing:0.16em;color:var(--navy);font-weight:700;}
+.section-note{font-size:10.5px;color:var(--muted);font-style:italic;text-align:right;}
+p{font-size:12.5px;color:#3a4553;line-height:1.62;}
+p+p{margin-top:9px;}
+b{color:var(--navy);}
+.lead-q{font-size:13px;color:var(--ink);}
+
+/* two-column point grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px 26px;}
+.pt .h{font-size:12px;font-weight:700;color:var(--navy);}
+.pt .d{font-size:11.5px;color:#5a6573;line-height:1.5;margin-top:2px;}
+.stackline{margin-top:11px;font-size:11px;color:var(--muted);border-top:1px dashed var(--rule);padding-top:10px;}
+.stackline b{color:var(--bronze);font-weight:600;}
+
+/* tables */
+table.t{width:100%;border-collapse:collapse;margin-top:4px;}
+table.t th{font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);font-weight:600;text-align:left;padding:0 8px 8px;border-bottom:1px solid var(--rule);}
+table.t th.r,table.t td.r{text-align:right;}
+table.t td{padding:8px;font-size:11.5px;border-bottom:1px solid var(--rule-2);color:var(--ink);vertical-align:top;}
+table.t tr:last-child td{border-bottom:none;}
+table.t tr.hl td{background:#f4f1e8;color:var(--navy);font-weight:600;}
+.yes{color:var(--pos);font-weight:600;}.no{color:var(--muted);}
+.illus{font-size:10.5px;color:var(--amber);font-style:italic;margin-top:9px;}
+
+/* timeline / traction log */
+.log{display:flex;flex-direction:column;}
+.lx{display:flex;gap:13px;padding:9px 0;border-bottom:1px solid var(--rule-2);}
+.lx:last-child{border-bottom:none;}
+.lx .when{font-size:11px;color:var(--bronze);width:78px;flex-shrink:0;padding-top:1px;}
+.lx .txt{font-size:12px;color:#3a4553;line-height:1.5;flex:1;}
+.ms{display:grid;grid-template-columns:repeat(4,1fr);gap:0;}
+.msc{padding:0 14px;border-left:2px solid var(--rule);}
+.msc:first-child{padding-left:0;border-left:none;}
+.msc .n{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--bronze);}
+.msc .d{font-size:11px;color:#3a4553;line-height:1.45;margin-top:5px;}
+
+/* callout + footer */
+.callout{background:#f2efe7;border-left:3px solid var(--bronze);padding:13px 16px;font-size:12px;line-height:1.6;color:#5a5446;}
+.footer{background:var(--navy);color:#9fb6cc;font-size:10px;line-height:1.6;padding:18px 44px;letter-spacing:0.02em;}
+.footer b{color:var(--bronze-soft);font-weight:600;}
+@media (max-width:640px){.grid,.kpis,.ms{grid-template-columns:1fr;} .msc{border-left:none;border-top:1px solid var(--rule);padding:11px 0 0;} .msc:first-child{padding-top:0;border-top:none;} .header-top{flex-direction:column;} .doc-title{text-align:left;}}
+</style></head><body><div class="page">
+
+  <!-- ── Masthead ───────────────────────────────────────────── -->
+  <div class="header"><div class="header-top">
+      <div class="brandwrap"><div class="monogram"><span>A7</span></div>
+        <div><div class="brand">A777ANCE</div><div class="brand-sub">Residential Network Services</div>
+          <div class="tag">Confidential · Illustrative figures</div></div></div>
+      <div class="doc-title"><div class="label">One-Page Business Plan</div>
+        <div class="period">localDNS — Managed Network Privacy</div></div></div>
+    <div class="acct-bar">
+      <div class="acct-field"><div class="k">Venture</div><div class="v">localDNS</div></div>
+      <div class="acct-field"><div class="k">Operating Model</div><div class="v">Managed home-network privacy</div></div>
+      <div class="acct-field"><div class="k">Stage</div><div class="v">1 live node · pre-revenue</div></div>
+      <div class="acct-field"><div class="k">Prepared</div><div class="v">June 13, 2026</div></div></div></div>
+
+  <!-- ── Proof strip ────────────────────────────────────────── -->
+  <div class="kpis">
+    <div class="kpi"><div class="v fig">~$60</div><div class="l">Hardware / home · one-time</div></div>
+    <div class="kpi"><div class="v fig">~10 W</div><div class="l">Power draw per node</div></div>
+    <div class="kpi"><div class="v fig">800→11 ms</div><div class="l">Loaded latency · bufferbloat removed</div></div>
+    <div class="kpi"><div class="v fig">$0</div><div class="l">Software · fully open-source</div></div>
+  </div>
+
+  <div class="body">
+
+    <!-- Executive summary -->
+    <div class="section"><div class="section-head"><div class="section-title">Executive Summary</div></div>
+      <p class="lead-q">DNS — the name lookup behind every site, app, and device — is the most complete log of a household's online life, and today most homes <i>rent</i> that log to whoever runs their resolver.</p>
+      <p><b>localDNS</b> turns it into something the household owns: a silent, ~10&nbsp;W appliance — built, installed, and managed for them — that blocks ads and trackers on every device, resolves sensitive lookups privately and <i>provably</i>, carries the home network securely to any phone, and clears the lag that makes a fast line feel slow. The work is invisible by design, so each month every household receives a <b>Statement</b> that makes it visible and proves it happened. The service is delivered through the <b>A777ance</b> — a network of operators who each manage a book of homes.</p></div>
+
+    <!-- Problem -->
+    <div class="section"><div class="section-head"><div class="section-title">The Problem</div></div>
+      <div class="grid">
+        <div class="pt"><div class="h">Your DNS log is rented, not owned</div><div class="d">Whoever runs the resolver — ISP, public DNS, or VPN provider — sees every name the home looks up.</div></div>
+        <div class="pt"><div class="h">"Privacy" tools often just move the harvest</div><div class="d">Consumer VPNs and Cloudflare WARP encrypt the last mile but hand your DNS to a <i>new</i> third party.</div></div>
+        <div class="pt"><div class="h">Home networks are noisy and slow</div><div class="d">Ads and trackers load on every device; bufferbloat turns a fast connection sluggish under load.</div></div>
+        <div class="pt"><div class="h">DIY is powerful but unowned</div><div class="d">Pi-hole + Unbound can do this — but few will build it, fewer will maintain it, and none of it is proven to the household.</div></div>
+      </div></div>
+
+    <!-- Solution -->
+    <div class="section"><div class="section-head"><div class="section-title">The Solution</div>
+        <div class="section-note">one node the household owns</div></div>
+      <p>A single low-power node runs an integrated, open-source stack — ad/tracker filtering, DNSSEC-validated recursive resolution, encrypted lookups for streaming traffic only, a self-hosted VPN, and bufferbloat control — installed, monitored, and maintained for them. <b>Privacy you can verify:</b> one command shows exactly which queries leave the box and which never do. <b>Fails gracefully:</b> if the node goes down, the router's secondary resolver keeps the home online — it loses ad-blocking, never connectivity, so the convenience never hardens into a single point of failure.</p>
+      <div class="stackline"><b>What's in the box:</b> Pi-hole · Unbound (DNSSEC + Cloudflare-DoT split) · WireGuard · CAKE · Uptime Kuma — on refurbished hardware, ~10&nbsp;W, no subscriptions in the stack.</div></div>
+
+    <!-- Why we win -->
+    <div class="section"><div class="section-head"><div class="section-title">Why We Win</div></div>
+      <div class="grid">
+        <div class="pt"><div class="h">Owned &amp; verifiable</div><div class="d">The log lives on hardware the household controls, and the privacy boundary is provable — not a promise. Hard to fake, hard to copy.</div></div>
+        <div class="pt"><div class="h">Managed, not DIY</div><div class="d">We build, monitor, patch, and answer for it. The household gets the outcome without the maintenance.</div></div>
+        <div class="pt"><div class="h">Proven every month</div><div class="d">The Statement is the retention engine — it renews the subscription by showing the work, not asserting it.</div></div>
+        <div class="pt"><div class="h">Graceful by design</div><div class="d">No new single point of failure; the router's secondary DNS is the safety net under every node.</div></div>
+      </div></div>
+
+    <!-- The Statement -->
+    <div class="section"><div class="section-head"><div class="section-title">The Statement — keeping the value visible</div>
+        <div class="section-note">pest control, not lawn care</div></div>
+      <p>The value of this service is the quiet — and quiet is easy to cancel. So the model is <b>pest control, not lawn care</b>: the monthly Statement is the sticker on the door that proves the work happened. Each household gets a brokerage-style page — queries resolved, threats blocked, uptime — and a <b>"Handled For You"</b> log of fixes made on their behalf, by name, usually before they noticed. Operators get an <b>Alliance Member Portfolio</b> across their whole book. Statements are <b>honest by construction:</b> the generator omits any figure it cannot measure rather than invent one.</p></div>
+
+    <!-- Business model -->
+    <div class="section"><div class="section-head"><div class="section-title">Business Model &amp; Unit Economics</div>
+        <div class="section-note">two lines per home · scaling unit = the operator book</div></div>
+      <p>Two revenue lines per household: a one-time <b>onboarding</b> (hardware + install) and a recurring monthly <b>subscription</b> for management, monitoring, and the Statement. Marginal cost is near-zero after onboarding — the software is free, the node's ~10&nbsp;W is the household's, and a richer AI-written Statement costs about a cent.</p>
+      <table class="t"><thead><tr><th>Line</th><th class="r">Illustrative</th></tr></thead>
+        <tbody>
+          <tr><td>One-time onboarding (hardware + install)</td><td class="r fig">$99 – $149 / home</td></tr>
+          <tr><td>Recurring subscription</td><td class="r fig">$19 – $29 / home / mo</td></tr>
+          <tr><td>Marginal monthly cost of service</td><td class="r fig">~$0 (OSS · power borne by client · ~$0.01 statement)</td></tr>
+          <tr class="hl"><td>Operator book (~20 homes), recurring</td><td class="r fig">~$400 – $580 / mo</td></tr>
+        </tbody></table>
+      <div class="illus">Illustrative — pricing is not yet validated. Per the honesty gate, these are planning assumptions, not results; the first paid cohort sets real ARPU.</div></div>
+
+    <!-- GTM -->
+    <div class="section"><div class="section-head"><div class="section-title">Go-to-Market — The Alliance</div></div>
+      <p>Distribution is the <b>Alliance</b>: skilled operators who each own and grow a book of homes, the way a pest-control route or an insurance book compounds. Land where the pain is sharpest — privacy-conscious households, work-from-home professionals, large connected families, and small offices. The <b>Statement is also the marketing</b>: its QR codes invite the household to a live status page and an opt-in directory that matches them to a profile-similar Alliance member — turning every kept document into a referral surface and a light community network effect.</p></div>
+
+    <!-- Market & competition -->
+    <div class="section"><div class="section-head"><div class="section-title">Market &amp; Competition</div>
+        <div class="section-note">demand proven by millions of DIY users; managed is underserved</div></div>
+      <table class="t"><thead><tr><th>Alternative</th><th>Where your DNS goes</th><th>Whole-home?</th><th>Owned &amp; verifiable?</th></tr></thead>
+        <tbody>
+          <tr><td>Consumer VPN</td><td>the VPN provider</td><td class="no">No</td><td class="no">No</td></tr>
+          <tr><td>Cloudflare WARP / public DNS</td><td>Cloudflare / the operator</td><td class="no">Partial</td><td class="no">No</td></tr>
+          <tr><td>Cloud DNS + VPN + monitoring subs</td><td>the vendors</td><td>Varies</td><td class="no">No</td></tr>
+          <tr><td>DIY Pi-hole / Unbound</td><td>yourself</td><td class="yes">Yes</td><td>Yes — if you maintain it</td></tr>
+          <tr class="hl"><td>localDNS (managed)</td><td>stays in your home</td><td class="yes">Yes</td><td class="yes">Yes — and proven monthly</td></tr>
+        </tbody></table></div>
+
+    <!-- Traction (reverse-chronological per house style) -->
+    <div class="section"><div class="section-head"><div class="section-title">Traction &amp; Status</div>
+        <div class="section-note">most recent first</div></div>
+      <div class="log">
+        <div class="lx"><div class="when">Jun 2026</div><div class="txt">Optional <b>Console</b> and <b>AI-orchestration</b> layers designed and self-tested; ready to deploy as add-ons.</div></div>
+        <div class="lx"><div class="when">Jun 2026</div><div class="txt">Statement generator working <b>end-to-end</b> (collect → compose → render); the gallery ships as an installable PWA demo.</div></div>
+        <div class="lx"><div class="when">2026</div><div class="txt">One <b>live household in production</b> — DNS split, DNSSEC, VPN, CAKE, and monitoring all verified on the t630.</div></div>
+        <div class="lx"><div class="when">Now</div><div class="txt"><b>3 of 4</b> statement data sources are real today (Pi-hole, Uptime Kuma, WireGuard); the per-category volume layer is built and pending deploy. The multi-home portfolio remains sample data until a second real home exists.</div></div>
+      </div></div>
+
+    <!-- Milestones (forward, numbered) -->
+    <div class="section"><div class="section-head"><div class="section-title">Milestones</div>
+        <div class="section-note">numbered by sequence — backend before app</div></div>
+      <div class="ms">
+        <div class="msc"><div class="n">1 · Now</div><div class="d">Make one home's numbers fully real (stand up the volume layer); validate pricing with the first paid homes.</div></div>
+        <div class="msc"><div class="n">2 · Next</div><div class="d">Service backend — auth, a per-account statement API, and live status pages the QR codes already promise.</div></div>
+        <div class="msc"><div class="n">3 · Then</div><div class="d">Multi-home reality — recruit the first operators; roll per-home data up into real portfolios.</div></div>
+        <div class="msc"><div class="n">4 · Later</div><div class="d">Native app via the existing PWA; grow the Alliance one book at a time.</div></div>
+      </div></div>
+
+    <!-- Risks -->
+    <div class="section"><div class="section-head"><div class="section-title">Risks &amp; The Honesty Gate</div></div>
+      <div class="grid">
+        <div class="pt"><div class="h">Single-node, not high-availability</div><div class="d">Mitigated by the router's secondary DNS — the home degrades to no-ad-blocking, never to offline.</div></div>
+        <div class="pt"><div class="h">Operator-skill dependency</div><div class="d">The build is documented as infrastructure-as-config and fully reproducible; the Alliance trains and equips operators.</div></div>
+        <div class="pt"><div class="h">Pricing unvalidated</div><div class="d">No projection is trusted until the first paid cohort sets real ARPU and retention.</div></div>
+        <div class="pt"><div class="h">Data-source gaps</div><div class="d">Until the volume layer is deployed, statements scope to what Pi-hole + Uptime&nbsp;Kuma + WireGuard already prove.</div></div>
+      </div>
+      <div class="callout" style="margin-top:14px;"><b>The honesty gate.</b> Nothing aspirational ships as real. A document that goes out to a household — on paper, in an inbox, or in an app — shows only figures we can stand behind. Samples are fine; samples labeled as real are not.</div></div>
+
+    <!-- The ask -->
+    <div class="section"><div class="section-head"><div class="section-title">What We Need Next</div></div>
+      <p>Bootstrapped and pre-revenue. The near-term goal is a <b>first cohort of ~10 paying households</b> to validate pricing and retention, the <b>service backend</b> to fulfill the Statement's promises, and <b>one or two operators</b> to prove the Alliance book travels. Capital needs are modest — refurbished hardware and time, not cloud spend.</p></div>
+
+  </div>
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <div class="footer"><b>A777ance · Residential Network Services — localDNS.</b>
+    Figures marked illustrative are planning assumptions, not results; per the honesty gate, only measured figures ship to a household.
+    The live t630 is the source of truth; this repo is the rollback target.</div>
+
+</div></body></html>
