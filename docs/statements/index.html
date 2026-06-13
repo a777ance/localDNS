@@ -45,6 +45,11 @@ body{font-family:'Gill Sans MT','Gill Sans',Calibri,'Trebuchet MS',sans-serif;ba
 .card-body .open{display:inline-block;margin-top:11px;font-size:12px;color:var(--bronze);font-weight:600;letter-spacing:0.03em;}
 .foot{margin-top:46px;padding-top:20px;border-top:1px solid var(--rule);font-size:11.5px;color:var(--muted);line-height:1.6;}
 .foot a{color:var(--bronze);text-decoration:none;}
+.thumb-doc{height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;background:linear-gradient(150deg,#1c4a73,#0e2640);border-bottom:3px solid var(--bronze);position:relative;}
+.thumb-doc .doc-mono{width:54px;height:54px;border-radius:11px;background:rgba(255,255,255,0.06);border:1px solid var(--bronze);display:flex;align-items:center;justify-content:center;}
+.thumb-doc .doc-mono span{font-size:24px;font-weight:700;color:var(--bronze-soft);}
+.thumb-doc .doc-cap{font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:#cdd9e6;}
+.thumb-doc .doc-badge{position:absolute;top:12px;right:12px;font-size:9.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#0e2640;background:var(--bronze-soft);border-radius:4px;padding:3px 8px;}
 @media (max-width:760px){.grid{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -102,6 +107,22 @@ body{font-family:'Gill Sans MT','Gill Sans',Calibri,'Trebuchet MS',sans-serif;ba
           <div class="card-body"><div class="t">Alliance Member Portfolio — Jose Marin</div>
             <div class="d">20 homes in one view: fleet KPIs, issues percolated to the top, the monthly work log, and the full roster.</div>
             <span class="open">Open portfolio &rarr;</span></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="sect">
+      <div class="sect-h"><h2>The business</h2><span>where this is going — a working draft</span></div>
+      <div class="grid one">
+        <a class="card" href="business-plan/index.html">
+          <div class="thumb thumb-doc">
+            <div class="doc-badge">Draft v0.1</div>
+            <div class="doc-mono"><span>A7</span></div>
+            <div class="doc-cap">One-Page Business Plan</div>
+          </div>
+          <div class="card-body"><div class="t">localDNS — One-Page Business Plan</div>
+            <div class="d">The plan behind the stack: model, illustrative unit economics, the Alliance go-to-market, and the honesty gate. First draft.</div>
+            <span class="open">Open plan &rarr;</span></div>
         </a>
       </div>
     </div>

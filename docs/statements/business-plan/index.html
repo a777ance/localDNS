@@ -1,12 +1,15 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A777ance — localDNS — One-Page Business Plan</title>
+<title>A777ance — localDNS — One-Page Business Plan (Draft)</title>
+<meta name="theme-color" content="#13314f">
+<link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <style>
 @media print { body{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#fff;padding:0;} .page{box-shadow:none;margin:0;} }
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--navy:#13314f;--navy-2:#1c4a73;--ink:#1f2733;--bronze:#a9803f;--bronze-soft:#c6a463;
 --paper:#fbfaf7;--rule:#e6e2d6;--rule-2:#eceef1;--muted:#8a93a0;--pos:#3f7a4d;--amber:#c08a2e;--watch:#2d6aa8;}
-body{font-family:'Gill Sans MT','Gill Sans',Calibri,'Trebuchet MS',sans-serif;background:#e9ecf0;padding:40px 20px;color:var(--ink);line-height:1.5;}
+body{font-family:'Gill Sans MT','Gill Sans','Ubuntu',Calibri,'Trebuchet MS',sans-serif;background:#e9ecf0;padding:40px 20px;color:var(--ink);line-height:1.5;}
 .page{max-width:800px;margin:0 auto;background:var(--paper);box-shadow:0 6px 40px rgba(0,0,0,0.13);}
 .fig{font-feature-settings:"tnum";}
 
@@ -25,6 +28,10 @@ body{font-family:'Gill Sans MT','Gill Sans',Calibri,'Trebuchet MS',sans-serif;ba
 .acct-bar{display:flex;flex-wrap:wrap;gap:34px;margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.13);}
 .acct-field .k{font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#7e9fbb;}
 .acct-field .v{font-size:12.5px;margin-top:4px;}
+
+/* draft banner */
+.draftbar{background:#f6f2e9;border-bottom:1px solid var(--rule);color:#7a6a3f;font-size:11px;letter-spacing:0.03em;text-align:center;padding:9px 16px;line-height:1.45;}
+.draftbar b{color:var(--bronze);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;}
 
 /* kpi strip */
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--rule);}
@@ -85,7 +92,7 @@ table.t tr.hl td{background:#f4f1e8;color:var(--navy);font-weight:600;}
   <div class="header"><div class="header-top">
       <div class="brandwrap"><div class="monogram"><span>A7</span></div>
         <div><div class="brand">A777ANCE</div><div class="brand-sub">Residential Network Services</div>
-          <div class="tag">Confidential · Illustrative figures</div></div></div>
+          <div class="tag">First Draft · v0.1</div></div></div>
       <div class="doc-title"><div class="label">One-Page Business Plan</div>
         <div class="period">localDNS — Managed Network Privacy</div></div></div>
     <div class="acct-bar">
@@ -93,6 +100,9 @@ table.t tr.hl td{background:#f4f1e8;color:var(--navy);font-weight:600;}
       <div class="acct-field"><div class="k">Operating Model</div><div class="v">Managed home-network privacy</div></div>
       <div class="acct-field"><div class="k">Stage</div><div class="v">1 live node · pre-revenue</div></div>
       <div class="acct-field"><div class="k">Prepared</div><div class="v">June 13, 2026</div></div></div></div>
+
+  <!-- ── Draft notice ───────────────────────────────────────── -->
+  <div class="draftbar"><b>First Draft · v0.1</b> — a working draft circulated for review. Figures are illustrative; this is not the final plan.</div>
 
   <!-- ── Proof strip ────────────────────────────────────────── -->
   <div class="kpis">
@@ -205,6 +215,7 @@ table.t tr.hl td{background:#f4f1e8;color:var(--navy);font-weight:600;}
 
   <!-- ── Footer ─────────────────────────────────────────────── -->
   <div class="footer"><b>A777ance · Residential Network Services — localDNS.</b>
+    First working draft (v0.1) — circulated for review, not the final plan.
     Figures marked illustrative are planning assumptions, not results; per the honesty gate, only measured figures ship to a household.
     The live t630 is the source of truth; this repo is the rollback target.</div>
 
