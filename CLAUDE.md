@@ -6,30 +6,19 @@ network-context.md has detailed rationale for non-obvious design decisions.
 
 ---
 
-## House style: ordering & typography
+## House style
 
-These conventions apply across **every** A777ance repo — current and future. (Adopted 2026-06-05.)
-
-- **Time-based content reads newest-first (reverse-chronological).** Logs, changelogs,
-  decision logs (ADR / FIN), known-issues and issue trackers, FAQs, metrics and review
-  logs, and "Handled For You" entries all lead with the most recent item. Apply this
-  within the time-based *section* even when the whole file isn't time-based.
-- **Alphabetical lists run Z → A** (descending).
-- **Walkthroughs: reverse the blocks, keep the steps.** In a step-by-step guide, present
-  the major sections/blocks in reverse order (last block first — it helps "block" the
-  work), but keep the numbered steps *within* each block in forward order so every
-  procedure stays followable. A walkthrough's table of contents mirrors the reversed
-  block order. **Never renumber** — step and stage numbers stay fixed, so the intended
-  execution order is always readable from the numbers.
-- **Font: Gill Sans MT everywhere.** Every surface — customer-facing or internal — uses
-  Gill Sans MT. Web/CSS stack:
-  `'Gill Sans MT', 'Gill Sans', Calibri, 'Trebuchet MS', sans-serif`.
+Shared across all A777ance repos (adopted 2026-06-05): newest-first (reverse-chronological) in
+time-based sections; alphabetical lists run **Z → A**; walkthroughs present blocks in reverse but
+keep the numbered steps forward and **never renumber**; font **Gill Sans MT**
+(`'Gill Sans MT', 'Gill Sans', Calibri, 'Trebuchet MS', sans-serif`). Full rationale lives in the
+internal DESIGN repo's `docs/house-style.md`.
 
 ---
 
 ## Contents
 
-- [House style: ordering & typography](#house-style-ordering--typography)
+- [House style](#house-style)
 - [0. What this repo is](#0-what-this-repo-is)
 - [A. Hardware](#a-hardware)
 - [B. Network topology](#b-network-topology)
