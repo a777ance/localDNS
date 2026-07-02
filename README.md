@@ -1314,3 +1314,11 @@ a link to the file that resolves it — now lives in
   Mullvad-sidebar half (the browser-as-Odin config)
 - **[tools/check-docs.py](tools/check-docs.py)** — link checker; run `python3 tools/check-docs.py`
   to verify every relative link across these docs still resolves
+
+---
+
+## Patch Notes
+
+### 2026-07-02
+
+_No changes — no pull requests merged on 2026-07-01._
