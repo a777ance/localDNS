@@ -67,12 +67,18 @@ model_list:
   #     api_base: http://192.168.1.120:11434   # CHANGE_ME — the other machine's Ollama
 
   # ── Cloud overflow — failover target only; bills per token ──
+  # This is a *safety net*, not the escalation path — so make it cheap. It is the
+  # terminal fallback for the small local tiers AND for the capability/heavy tiers, so
+  # use a MID tier (Sonnet), not Opus: materially cheaper per token than Opus 4.8 while
+  # still strong enough to back cloud-explore/code/vision. Escalate to Opus on purpose
+  # via a named tier — never by accident on a local timeout. (Was claude-opus-4-8.)
   - model_name: cloud-overflow
     litellm_params:
-      model: anthropic/claude-opus-4-8
+      model: anthropic/claude-sonnet-4-6        # matches the cloud-code tier below (known-good ID)
       api_key: os.environ/ANTHROPIC_API_KEY
-  # Cheaper / faster cloud swaps (exact current IDs): anthropic/claude-sonnet-4-6,
-  # anthropic/claude-haiku-4-5. Change the `model:` above to switch the overflow tier.
+  # Swap IDs: anthropic/claude-opus-4-8 (priciest — reserve for hardest reasoning),
+  # anthropic/claude-haiku-4-5 (cheapest). A newer Sonnet (e.g. claude-sonnet-5) may be
+  # available — check the live model list before pinning. Change `model:` above to switch.
 
   # ── Capability tiers (Phase 2 of ORCHESTRATION-BLUEPRINT; used by the LangGraph
   #    supervisor in langgraph-router/). Capability-named so a backend swaps without
@@ -98,18 +104,21 @@ router_settings:
   allowed_fails: 2                    # failures before a backend is cooled down
   cooldown_time: 60                   # seconds a dead backend stays out of rotation
   # "Turn a laptop off and it re-routes": when a backend stops answering, LiteLLM
-  # cools it down and falls through this map to the next. Local tiers spill to cloud.
-  # The reasoning ladder degrades gracefully: light → heavy GPU → cloud. When the
-  # rented GPU pod is stopped (its normal idle state) cloud-gpu-reason can't be
-  # reached, so those requests fall to cloud-overflow instead of erroring.
+  # cools it down and falls through this map to the next. Local tiers spill to cloud —
+  # EXCEPT local-reason, which is where the supervisor pins *sensitive* tasks, so it
+  # must fail CLOSED (local-only). A caller that wants heavy reasoning on NON-sensitive
+  # work requests cloud-gpu-reason directly; that tier (non-sensitive by construction)
+  # may spill to cloud-overflow when the rented GPU pod is off (its normal idle state).
   fallbacks:
     - local-fast: ["local-smart", "cloud-overflow"]
     - local-smart: ["cloud-overflow"]
-    - local-reason: ["cloud-gpu-reason", "cloud-overflow"]
+    - local-reason: ["local-smart", "local-fast"]   # TD-14: FAIL CLOSED — sensitive tasks pinned here must never spill to cloud
     - cloud-gpu-reason: ["cloud-overflow"]
-    # Capability tiers degrade to the overflow brain if their primary errors. Safe: only
-    # non-sensitive tasks ever reach a cloud-* tier (the supervisor's gate pins sensitive
-    # ones local before planning), so a cloud→cloud fallback can't leak a private lookup.
+    # Capability tiers degrade to the overflow brain if their primary errors. This is
+    # safe ONLY because the supervisor's privacy gate keeps sensitive work off every
+    # cloud-* tier — but that gate lives in the (not-yet-deployed) LangGraph layer, NOT
+    # in LiteLLM. Until it is deployed and enforced, the local-reason local-only chain
+    # above is the ONLY thing preventing a sensitive-task cloud leak at this layer.
     - cloud-explore: ["cloud-overflow"]
     - cloud-code: ["cloud-overflow"]
     - cloud-vision: ["cloud-overflow"]
