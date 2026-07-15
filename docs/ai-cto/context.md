@@ -59,3 +59,6 @@ See CLAUDE.md deploy table for the full map. Critical ones:
 - `01-unbound/tuning.conf` — single source of truth for cache/TTL/threading
 - `10-ai-orchestration/langgraph-router/` — the Odin supervisor (README has the full roster)
 - `10-ai-orchestration/ORCHESTRATION-BLUEPRINT.md` — the dumb-switch vs. supervisor design split
+- `docs/chronikonomicon/chronikon-hardware-architecture.md` — the product vision for the t630 as
+  "Chronikon" (stateless Flint / keyed Steel / Baseline Sentry / Rose Window UI); flags which
+  pieces are already real in this repo vs. still aspirational
