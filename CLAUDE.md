@@ -156,6 +156,8 @@ number — use this table to map repo path → system path, not the step numbers
 | `01-unbound/unbound-cache-dump.timer` | `/etc/systemd/system/unbound-cache-dump.timer` | `sudo systemctl daemon-reload` |
 | `01-unbound/unbound.service.d/override.conf` | `/etc/systemd/system/unbound.service.d/override.conf` | `sudo systemctl daemon-reload` |
 | `02-pihole/docker-compose.yml` | `~/pihole/docker-compose.yml` | `cd ~/pihole && docker compose up -d` |
+| `02-pihole/build-ai-adlists.sh` | `~/pihole/build-ai-adlists.sh` (+ cron `0 4 * * 1`) | `bash ~/pihole/build-ai-adlists.sh` |
+| `02-pihole/ai-blocklists.md` | reference only (AI adlist deploy notes) | — |
 | `03-host-dns/host-dns.conf` | `/etc/systemd/resolved.conf.d/host-dns.conf` | `sudo systemctl restart systemd-resolved` |
 | `04-ufw/setup.sh` | run directly | `sudo bash 04-ufw/setup.sh` |
 | `05-wireguard/wg0.conf` | `/etc/wireguard/wg0.conf` | `sudo systemctl restart wg-quick@wg0` |
