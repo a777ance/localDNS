@@ -3,6 +3,11 @@
 *.env
 secrets/
 
+# Sealed-vault working area: filled plaintext secrets live here transiently before
+# seal.sh encrypts them into 12-secrets/vault/. NEVER commit cleartext. The sealed
+# vault/*.env.sops files ARE committed (age-encrypted — safe).
+12-secrets/cleartext/
+
 # LLM router runtime data (Open WebUI state — created on the box, not in the repo)
 10-ai-orchestration/open-webui-data/
 

@@ -179,6 +179,10 @@ number — use this table to map repo path → system path, not the step numbers
 | `11-console/ttyd-laptop.service` | `/etc/systemd/system/ttyd-laptop.service` | `sudo systemctl daemon-reload` (set `User=`) |
 | `11-console/ttyd.env.example` | `/etc/a777ance/ttyd.env` (copy, fill, `chmod 600`) | restart the two `ttyd-*` units |
 | `11-console/browser-odin.md` | reference only (Mullvad sidebar config) | — |
+| `12-secrets/vault/*.env.sops` | decrypted by `unseal.sh` to each manifest target (e.g. `/etc/wireguard/wg0.conf`, `~/llm-router/.env`, `/etc/a777ance/ttyd.env`, `~/pihole/.env`) | `sudo -E 12-secrets/unseal.sh` (age identity present), then restart each consumer |
+| `12-secrets/.sops.yaml` | reference (governs `vault/`, carries the age recipient) | — |
+| `12-secrets/secrets.manifest` | reference (sealed → deploy-path map) | — |
+| `12-secrets/seal.sh` / `unseal.sh` / `rotate-secrets.sh` | run directly (seal/rotate on workstation, unseal on t630) | — |
 | `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
