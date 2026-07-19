@@ -74,30 +74,34 @@ them.**
 Modeled on a phospholipid bilayer. Both faces are water: the internet is the ocean, the
 LAN is the cytoplasm. The hydrophobic core touches neither.
 
+Lettering is the canonical A–G schema (§0.5). A (internet) and E (LAN) are the surrounding
+*contexts*, not boxes; the three physical machines are B, C, D.
+
 | Node | Membrane role | Faces | Network identity | Hardware |
 | ---- | ------------- | ----- | ---------------- | -------- |
-| **A** | outer head — ingress guard | the internet (ocean) | yes (WAN NIC) | identical thin client |
-| **B** | inner head — egress guard | the LAN (cytoplasm) | yes (LAN NIC) | identical thin client |
+| **B** | outer head — ingress guard | the internet (ocean) | yes (WAN NIC) | identical thin client |
 | **C** | hydrophobic core — the ghost / deliberator | nothing | **none — no NIC** | the one discrete-GPU box |
+| **D** | inner head — egress guard | the LAN (cytoplasm) | yes (LAN NIC) | identical thin client |
 
-A and B are the mirror-image heads: cheap, identical, disposable, re-imageable. C is the
+B and D are the mirror-image heads: cheap, identical, disposable, re-imageable. C is the
 odd one out — the only non-identical machine, because it carries the GPU.
 
 ## 2. Two planes, and only one is optical
 
-- **Data plane (fast, dumb):** LAN ↔ B ↔ A ↔ internet over normal copper, forwarded and
-  filtered by nftables on A and B at line rate. **C is not in this path** and never sees a
+- **Data plane (fast, dumb):** LAN ↔ D ↔ B ↔ internet over normal copper, forwarded and
+  filtered by nftables on B and D at line rate. **C is not in this path** and never sees a
   user packet.
-- **Control plane (slow, smart, optical):** `A↔C` and `B↔C` only, over one-way optical
-  diodes (screen→camera or single fiber). Carries typed schema in, typed plans out —
-  KB/s, parseable, rate-limited. This is the *only* thing that touches C.
+- **Control plane (slow, smart, portless):** `B↔C` and `D↔C` only, over one-way portless
+  diodes (USB-serial for v1; screen→camera or single fiber for the optical version). Carries
+  typed schema in, typed plans out — KB/s, parseable, rate-limited. This is the *only* thing
+  that touches C.
 
-A and B talk to each other over fast copper because they are already the exposed heads by
+B and D talk to each other over fast copper because they are already the exposed heads by
 design. The only node worth hiding is C.
 
 ## 3. Invariants (the load-bearing ones)
 
-1. **C ships with no NIC — optics only. A and B hold all the copper.** Isolation is
+1. **C ships with no NIC — portless (serial/optics) only. B and D hold all the copper.** Isolation is
    structural, not configured. You cannot fat-finger a firewall rule that exposes a
    machine that has no network interface. This is the invariant everything else hangs off;
    do not regress it. (It self-assembles: wipe C, re-image it, swap the box — it *cannot*
@@ -111,7 +115,7 @@ design. The only node worth hiding is C.
    permission is all exfil ever needs.*
 4. **Transcription ≠ translation.** C (the nucleus/deliberator) emits **plans only** —
    typed, allowlisted blueprints. It never acts. Plans are exported through the pore
-   (export QC = well-formed schema, not prose) and executed by a **ribosome on A/B: a
+   (export QC = well-formed schema, not prose) and executed by a **ribosome on B/D: a
    deterministic switch over typed actions, never a second LLM re-reading the plan.** A
    prompt-injected deliberator can still only emit a blueprint that a fixed-function
    executor refuses to misread. Planning and execution are split across a credentialed
