@@ -45,6 +45,18 @@ them.**
 
 - **The octave / recursion:** organelles nest inside E as their own A–F stack, one register
   down. A–F recurse; G does not.
+- **C is the tuning fork.** Two distinct references: **G is the tonic** (what the system
+  resolves to and serves), **C is the tuning fork** (the live calibration pitch every other
+  layer matches). C is tuned *from* G — its policy derives from the source of truth — and
+  then A/B/D/F tune to C's current judgment. G = purpose; C = coherence.
+- **Protecting C is protecting the reference — but know exactly what stays pure.** C's
+  hydrophobic isolation (no-NIC, read-only germline) keeps its *persistent* reference — the
+  weights/germline — permanently pure: the water can never *write* to the fork's material.
+  It does **not** purify C's *momentary* judgment — each task still ingests pore-sanitized
+  world-content and can be transiently detuned (the diffusion risk). The bound is F: a
+  detuned fork can push the pitch, but the deterministic executor only plays allowlisted
+  notes, so an out-of-score note never sounds. "Protect C at all cost" = the wall
+  (hydrophobicity) + the pore (Frigg / typed schema) + the executor (F), not the wall alone.
 - **G is the root of trust and source of truth** — the human, and by extension the git
   repo/germline every octave re-derives itself from. The one reference that does not move
   and cannot be re-imaged.
