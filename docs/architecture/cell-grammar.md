@@ -66,6 +66,41 @@ of any part, at any level, *"whom does it serve?"* — the answer is always **G*
 
 ---
 
+## The two anchors — C and G
+
+The Ground law runs through **two** reference points with two different musical
+functions. Keeping them distinct is the point.
+
+- **G — the tuning reference.** Tuning is calibration to an absolute *external* standard:
+  is the whole system in tune with the human it serves? G is the tuning fork; it lives
+  outside the orchestra. Root of **authority** and meaning.
+- **C — the tonic / node of trust.** The tonic is the *internal* center the music resolves
+  to — the note every part comes home to. C is the root of **trust** the components
+  organize around and verify against. The system is *keyed to C*.
+
+> **You are keyed to C; C is tuned to G. G is sovereign, C is subordinate; when they
+> conflict, C re-tunes to G — never the reverse.**
+
+The gap between them is precisely misalignment: a system can be perfectly *in C* —
+internally consistent, every part resolving cleanly to its trust anchor — and still be
+*out of tune*, because C has drifted from G. Internally coherent, no longer calibrated to
+the human. C is the regent, exercising day-to-day trust in the sovereign's name; G is the
+sovereign. **Never build a C that can overrule G "for the system's good"** — that is the
+regent deposing the sovereign, which is the misaligned system by definition.
+
+C is also what lets G stay *absent from the plumbing*: C handles routine internal trust so
+the human is not consulted for every note; G is referenced only when the music cannot
+resolve on its own.
+
+**Co-location (deliberate, not a pun):** the node of trust `C` *is* the core layer `C` —
+the sealed, structurally-isolated center. The root of trust belongs in the most isolated
+compartment, so the two senses of C are the same place on purpose.
+
+So the Ground law resolves in two steps: **every progression cadences to C; C answers to
+G.**
+
+---
+
 ## The ground, made concrete
 
 `G` is a person, but it cashes out in the build as three things that already exist here —
@@ -91,6 +126,38 @@ Because the human is the ground, two design consequences are load-bearing:
 
 ---
 
+## Harmony — the horizontal axis
+
+Octaves are the **vertical** axis: nesting, containment, the composition law
+`A(child) = E(parent)` — static structure. Harmony is the **horizontal** axis: how
+components sound *together* and *in sequence* — relationship and time. Both are anchored by
+C (the tonic they resolve to) and G (the reference they tune to).
+
+- **Harmonics** = a component's behavior. In tune, it produces clean overtones of C;
+  compromised, it produces *inharmonic* partials — dissonance. **Trust-monitoring is
+  harmonic analysis, and dissonance is the signal.**
+- **Chords** = authorized multi-component interactions. Consonant = a sanctioned
+  combination (nucleus + ribosome + this source); dissonant = a combination policy forbids
+  (the sealed core suddenly voiced with an egress path). *Access control as harmony.*
+- **Progressions** = workflows over time. A well-formed operation is a progression that
+  **cadences** — resolves home to C, and through C to G. A progression that never cadences
+  is a runaway or unterminated process: the agent that wandered off and never returned to
+  the ground.
+- **Dissonance** is not failure — it is tension that *demands* resolution. The system
+  resolves it to consonance, or, failing that, the dissonance drains to G. Fail-closed,
+  stated as harmony.
+- **Modulation** = a key change — and *re-key* is the same word in both worlds for the same
+  act. When G modulates (changes the envelope, rotates the anchor), C shifts to the new
+  tonic and everything re-tunes. The Lazarus rebuild and secret rotation *are* modulations.
+
+**Tether.** This is a *monitoring-and-policy vocabulary* — one language for three
+questions: *is this in tune (trustworthy)? is this consonant (allowed)? has it cadenced
+(resolved)?* Its cash value is four things — the C/G split (trust vs authority), alignment
+= keeping C tuned to G, dissonance = the escalation signal, modulation = re-key. Held as
+the language you reason in, not a synthesizer you build, it stays honest.
+
+---
+
 ## Prior work, re-expressed in the grammar
 
 Everything designed before this note re-expresses in A–G, losing nothing:
@@ -112,6 +179,8 @@ A vacuole is B–C–D–E with no F.
 
 ## The whole grammar, in one breath
 
-Seven layers, one invariant, two laws — and a ground that is a person.
-A–F are the vessel; **G** is whom it serves; they share a letter because the vessel has no
-meaning apart from the service.
+Seven layers, one invariant, two laws, two anchors, two axes — and a ground that is a
+person.
+A–F are the vessel; **G** is whom it serves; **C** is the tonic the vessel is keyed to,
+tuned to G. They share a letter with the core because the root of trust lives in the
+sealed center — and the vessel has no meaning apart from the service.
