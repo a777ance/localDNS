@@ -2,7 +2,7 @@
 
 Read alongside the portfolio hub: `DESIGN-Full-Workflow-Integration-end-to-end-/docs/ai-cto/portfolio.md`.
 
-**Last updated:** 2026-06-08
+**Last updated:** 2026-07-19
 
 ---
 
@@ -24,6 +24,7 @@ The live HP t630 configuration snapshot AND the Statement artifacts under `docs/
 | AI gateway (LiteLLM) + Open WebUI | Config in repo, not deployed | **Stage renamed `10-llm-router` → `10-ai-orchestration`.** LiteLLM (ai.home.lan:4040) fronts local Ollama + cloud tiers (now incl. cloud-explore/code/vision); Open WebUI (chat.home.lan:3000) browser UI; routes whole models, no sharding; t630 is CPU-only |
 | Console / high seat (`11-console/`) | Config in repo, not deployed | **New Step 13.** Static launcher (`console.home.lan:8088`) pinning every realm + two `ttyd` web terminals — thin client (`term.home.lan:7681`) and laptop via the t630 as SSH-jump (`laptop.home.lan:7682`). Host-side systemd; UFW-gated LAN+WG only (a web shell — never WAN). The browser-as-Odin sidebar/persistence config is `11-console/browser-odin.md`. Laptop SSH target ships as a `CHANGE_ME`. |
 | Odin orchestration layer (`10-ai-orchestration/langgraph-router/`) | Design + self-tested, not deployed | LangGraph supervisor **Odin** (alias Lionheart) above the front door: deterministic privacy gate (Heimdall), 3 orders of 5 + bound adversarial critic (Loki), Frigg (PII redaction), Hoard-Warden (spend cap), Huginn RAG (Mímir's well — local embeddings via the front door, needs `local-embed`/`nomic-embed-text`), Muninn (resume). `setup.sh` + `odin` CLI provided. Deterministic safety logic runs stdlib-only (`--selftest`); a live run needs `pip install -r requirements.txt` + the front door. The flat `dispatcher.py` remains the dumb-switch default. Lore in `docs/chronikonomicon/the-alliance-codex.md`. |
+| Membrane node architecture (`docs/ai-cto/membrane-node-*.md`) | **Design only, not built** | Future multi-node rebuild of the AI layer as a cell-membrane: A–G schema, no-NIC ghost core (C), transcription/translation split, local-GPU mitochondrion. ~$1,800 build (2 owned t630 heads + 1 discrete-GPU box). Doctrine captured; nothing wired. Blocked on 3 build questions before a wiring diagram. |
 
 ## Open items
 
@@ -59,3 +60,4 @@ See CLAUDE.md deploy table for the full map. Critical ones:
 - `01-unbound/tuning.conf` — single source of truth for cache/TTL/threading
 - `10-ai-orchestration/langgraph-router/` — the Odin supervisor (README has the full roster)
 - `10-ai-orchestration/ORCHESTRATION-BLUEPRINT.md` — the dumb-switch vs. supervisor design split
+- `docs/ai-cto/membrane-node-architecture.md` — future membrane AI rebuild (A–G schema, invariants, telos); BOM + cost in `membrane-node-bom.md` (design only, not built)
