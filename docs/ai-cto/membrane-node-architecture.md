@@ -1,9 +1,15 @@
 # Membrane Node Architecture — the Ghost and its Organelle
 
+> **This serves G.**
+> Every layer, node, and decision below exists to serve the embodied human-in-the-loop.
+> "Whom does the Grail serve?" is the first test any design choice must pass: does it serve
+> **G**, or does it serve the design? A grail that serves no one is the wasteland — a
+> cathedral of architecture that never becomes the box on the desk serves G exactly zero.
+
 **Status:** Design. Nothing built. This is the target shape for a future multi-node
 rebuild of the AI layer, not a description of the live t630.
 
-**Last updated:** 2026-07-18
+**Last updated:** 2026-07-19
 
 Read alongside `context.md` (component status) and `network-context.md` (live-system
 rationale). This note records *why* the AI node is shaped like a cell membrane, and the
@@ -16,6 +22,38 @@ invariants that keep it real rather than theater.
 The intelligence lives **in the membrane**, not behind a wall. Its security is an
 emergent property of the medium — a node with no network interface cannot be
 misconfigured into being reachable — not a control anyone has to maintain.
+
+---
+
+## 0.5 The A–G layer schema (the octave)
+
+A reusable role-contract, not a rigid template — every membrane-bound unit (the cell, and
+any organelle we later build: mitochondrion, vacuole, chloroplast) *implements* these roles
+with its own internal structure, at its own scale. Same pattern, different register — the
+octave. **A–F are the recursive machine stack; G is the non-recursive ground beneath all of
+them.**
+
+| | Role | Realized by |
+|-|------|-------------|
+| **A** | extracellular space (the internet) | context — not yours |
+| **B** | ingress membrane | internet-facing guard (thin client) |
+| **C** | deliberating core — *transcribes* plans | the ghost / local-GPU node |
+| **D** | egress membrane | LAN-facing guard (thin client) |
+| **E** | cytoplasm (your LAN) | context — the interior |
+| **F** | translation — *executes* plans | deterministic typed-action switch on the guards |
+| **G** | **the ground — whom it serves** | **the embodied human-in-the-loop** |
+
+- **The octave / recursion:** organelles nest inside E as their own A–F stack, one register
+  down. A–F recurse; G does not.
+- **G is the root of trust and source of truth** — the human, and by extension the git
+  repo/germline every octave re-derives itself from. The one reference that does not move
+  and cannot be re-imaged.
+- **G's gate must stay rare and meaningful.** Human-in-the-loop is load-bearing only if the
+  human actually decides — germline writes, frontier clearance, physical trust. Consulted on
+  everything, the human rubber-stamps, and a rubber-stamp is a soft ground. Keep G's
+  approvals few and high-signal.
+- Do not merge **C (transcription — writes plans)** with **F (translation — executes them)**.
+  That split is the agentic-containment win; collapsing the labels loses it.
 
 ---
 
