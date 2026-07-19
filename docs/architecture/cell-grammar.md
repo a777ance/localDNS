@@ -17,6 +17,9 @@ no-exotic-gear build (the router, redaction, a local card, an oracle key, a read
 store). Held as an interface contract it earns its keep; let it start dictating hardware
 and it drifts back into poetry.
 
+The concrete four-device instantiation of this grammar — 2 thin clients, a laptop, an
+iPhone — lives in [`deployment.md`](deployment.md).
+
 The scheme is self-similar: the same seven layers describe the cell as a whole **and**
 every membrane-bound organelle inside it (nucleus, mitochondrion, chloroplast, vacuole).
 Because the letters A–G are the musical notes, each organelle is an **octave** — the same
