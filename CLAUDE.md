@@ -273,7 +273,7 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 | WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Now reconciled into `05-wireguard/wg0.conf` (real public keys) but still UNIDENTIFIED with no recent handshake — identify each device or remove the stale peer. |
 | Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
 | Pi-hole v5 → v6 env vars | `pihole/pihole:latest` is v6; compose migrated from v5 vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`) to `FTLCONF_*`. The v5 names are silently ignored by v6. |
-| `FTLCONF_webserver_api_password` in pihole compose | Placeholder (`CHANGE_ME`) — do not commit real credentials |
+| `FTLCONF_webserver_api_password` in pihole compose | Now sourced from `~/pihole/.env` (sops+age vault, `12-secrets/`), fail-closed via `${...:?}` — no credential in git. Unseal the vault before `docker compose up`. |
 | LLM router port vs NoMachine | The router (LiteLLM, stage 10) listens on **4040**, not LiteLLM's default 4000 — NoMachine already holds 4000 on this box. UFW gates 4040 to LAN + WG. |
 | LLM router secrets (`~/llm-router/.env`) | `LITELLM_MASTER_KEY` + `ANTHROPIC_API_KEY` live in `.env` (git-ignored); repo ships `.env.example` with `CHANGE_ME`. Never commit the real keys. |
 | Open WebUI port + first-run admin | Chat UI on **3000** (8080 is the Pi-hole UI). First account created at `chat.home.lan:3000` becomes admin — create it from a trusted device. State in `~/llm-router/open-webui-data/`. |

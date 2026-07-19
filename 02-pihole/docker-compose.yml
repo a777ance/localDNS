@@ -40,8 +40,12 @@ services:
       # Web UI on 8080 (HTTP). No 's' modifier = plain HTTP, matching the UFW rule
       # and the http://host:8080/admin URL used throughout the docs.
       FTLCONF_webserver_port: "8080"
-      # Admin/API password. PLACEHOLDER — change before first `docker compose up`.
-      FTLCONF_webserver_api_password: "CHANGE_ME"
+      # Admin/API password — sourced from ~/pihole/.env, which the sops+age vault
+      # (12-secrets/) decrypts. Fail-closed: `:?` makes `docker compose` ERROR OUT
+      # if the var is unset or empty, so the box never starts Pi-hole with a blank
+      # or placeholder admin password. Unseal the vault first (12-secrets/unseal.sh)
+      # so ~/pihole/.env carries the real value — no credential lives in git.
+      FTLCONF_webserver_api_password: "${FTLCONF_webserver_api_password:?unseal the 12-secrets vault to populate ~/pihole/.env}"
       # Upstream DNS — single upstream: Unbound on the host loopback.
       # Pi-hole forwards EVERY query to Unbound, which then decides per-domain:
       # streaming/low-sensitivity domains are forwarded to Cloudflare over DoT for

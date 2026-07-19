@@ -262,9 +262,13 @@ running prose — easy to skim past when following step-by-step instructions.
 **Fix**
 
 [`README.md`](README.md) makes changing the password the explicit first sub-step
-of the Pi-hole start block, before the `docker compose up -d` command. (The
-placeholder itself remains an operational must-do on each fresh deploy — see
-[Operational & Open Issues](#operational--open-issues).)
+of the Pi-hole start block, before the `docker compose up -d` command.
+
+> **Update:** the placeholder is now removed entirely. Compose reads
+> `FTLCONF_webserver_api_password` from `~/pihole/.env` (sops+age vault,
+> [`12-secrets/`](12-secrets/)), fail-closed via `${...:?}`, so it can no longer be
+> shipped as a known credential — Pi-hole refuses to start until the vault is
+> unsealed. The per-deploy "remember to change the password" step is gone.
 
 ---
 
@@ -475,7 +479,7 @@ section by category.
 | ----- | ------ | -------------- | ---------------- |
 | **Rebuild = rotate** (Lazarus confidentiality) | ✓ **Resolved in repo** (ritual) | A stateless rebuild undoes what an attacker *plants* but not what they *took* — secrets survive the wipe by being redeployed unchanged. So a resurrection makes the box wear a **new skin**: after `unseal.sh`, before trusting the box, run `12-secrets/rotate-secrets.sh all` (or at minimum `apps`), commit `vault/`, re-`unseal.sh`, and restart the consumers. Reissue `ANTHROPIC_API_KEY` in the console (the one secret rotation can't self-serve). | [`12-secrets/rotate-secrets.sh`](12-secrets/rotate-secrets.sh) · [`12-secrets/README.md`](12-secrets/README.md) |
 | Custodian payload at rest (secrets on eMMC) | ✓ **Resolved in repo** | The four runtime secrets (WireGuard server key, LiteLLM/Anthropic keys, ttyd credential, Pi-hole admin) are sealed with sops+age into `12-secrets/vault/` and decrypted at deploy by `unseal.sh`; the age identity (the "wand") lives on a USB/token, never on eMMC or in git. Covers disk-image theft and accidental commits — **not** live-RCE reads (see the README's threat table). | [`12-secrets/`](12-secrets/) |
-| `FTLCONF_webserver_api_password` placeholder | **Open** | Placeholder (`CHANGE_ME`) — must be changed before the first `docker compose up`. Detailed as Break Point [#6](#6-ftlconf_webserver_api_password-change_me--easy-to-overlook). | [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) |
+| `FTLCONF_webserver_api_password` placeholder | ✓ **Resolved in repo** | No longer a committed placeholder — compose reads it from `~/pihole/.env` (sops+age vault, [`12-secrets/`](12-secrets/)), fail-closed via `${...:?}` so Pi-hole won't start without the unsealed secret. Was Break Point [#6](#6-ftlconf_webserver_api_password-change_me--easy-to-overlook). | [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) · [`12-secrets/`](12-secrets/) |
 | Windows laptop WireGuard key | **Open** | Private key was exposed during setup; rotate before trusting this peer. Cheap fix: `12-secrets/rotate-secrets.sh wg-peer <name>` mints a fresh keypair for just that device (no server-key churn). | [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf) · [`12-secrets/rotate-secrets.sh`](12-secrets/rotate-secrets.sh) |
 | WireGuard peers `10.8.0.4`–`10.8.0.6` | **Open** — reconciled, still unidentified | Now in the config with their real public keys, but none has a recent handshake — identify each device or remove the stale peer. If kept, re-key each with `12-secrets/rotate-secrets.sh wg-peer <name>` so an unknown holder of the old key is locked out. | [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf) · [`12-secrets/rotate-secrets.sh`](12-secrets/rotate-secrets.sh) |
 | WireGuard `::/0` IPv6 black hole | **Documented** (design constraint) | Server is IPv4-only in-tunnel; do **not** add `::/0` to peer AllowedIPs. IPv6 traffic black-holes silently (handshake succeeds, pages hang). Use `0.0.0.0/0` only. Leak-free dual-stack fix (ULA + NAT66) in [network-context.md](network-context.md). | [`05-wireguard/peer-template.conf`](05-wireguard/peer-template.conf) |
