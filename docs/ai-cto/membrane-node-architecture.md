@@ -127,6 +127,12 @@ design. The only node worth hiding is C.
    produces flows upstream into the store without a separate, human-gated path. Enforce the
    write-path's *absence* physically (read-only media / one-way export), same trick as
    C's no-NIC.
+6. **G is the human — never an AI.** An AI can *serve* G; no AI can *be* G. G is the ground:
+   the root of trust, the human-in-the-loop, whom the system serves. Everything else is
+   negotiable — local vs. rented compute, structural vs. logical isolation, card size — this
+   is not. An agentic system whose highest authority is another AI has no human in the loop,
+   which is the exact failure mode this whole architecture exists to prevent. There is no
+   "G AI."
 
 ## 4. The GPU decision — a local card is the mitochondrion
 
@@ -166,6 +172,26 @@ enclosure over PCIe-fiber, treated as **inside** the membrane — a mitochondrio
 external shell, never a network peer. This is a second fully-sealed box and a much heavier
 build for a marginal gain over a big local card. It earns its keep only if a named model
 requirement forces it. It does not, today.
+
+### The frontier oracle — a consultant, not an actor
+
+Distinct from VRAM (above): a rented frontier model C may *escalate to* for reasoning that
+is hard **and** redacted **and** non-sensitive. It completes the local+frontier ladder
+without breaking the ghost, on one rule — **the oracle advises; it never acts.**
+
+- **C stays in charge.** C (the trusted local tuning fork) asks; the oracle answers; **C
+  integrates the answer and emits the plan; F executes deterministically; G approves anything
+  consequential.** A manipulated oracle can give bad advice C is free to reject — it can
+  never touch the world, see sensitive data, or act.
+- **The pore rules hold.** Only Frigg-redacted, non-sensitive tasks cross; sensitive work
+  stays local, forever. C *requests*, B *dials* — C never has a NIC and is never a caller.
+  Confidentiality is not preserved for what the oracle sees (the landlord reads it), which is
+  why redaction gates eligibility.
+- **The circuit** (G bookends it as the ground, never a node inside):
+  **G** sets policy & clears → **C** handles most → escalates redacted-hard → **oracle**
+  (rented frontier, consultant) → back to **C** → **F** executes → **G** approves.
+- **Cost:** ~$1–5/mo bursty (per-second billing, cold starts) or ~$300+/mo kept warm. Off by
+  default.
 
 ## 5. Accepted residuals (named, not hidden)
 
