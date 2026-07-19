@@ -82,10 +82,13 @@ Rationale:
 
 - **The workload caps the model size, well below frontier.** C's real jobs — egress
   triage, deny-log reasoning, config authoring/audit, plan transcription — are narrow and
-  structured. A well-prompted 32–70B is already overkill. A single **48–96 GB** card (70B
-  at 4-bit fits in 48 GB; 96 GB gives headroom and even ~120B quantized) is not a
-  provisional compromise you will outgrow — it is the right size, forever, absent a
-  concrete model requirement this workload does not have.
+  structured. A well-prompted **32B model fits in 24 GB** and is genuinely sufficient for
+  them. So the baseline is a **single 24 GB card** (e.g. one used RTX 3090), with **48 GB
+  (2× 24 GB) as optional headroom** if you want to run 70B at 4-bit. That is the right size,
+  forever, absent a concrete model requirement this workload does not have. (Corrected down
+  from an earlier "48–96 GB" figure — see decision log 2026-07-19: costing it revealed the
+  cliff above 24 GB is steep and the workload never asks for it. 96 GB is datacenter-card
+  territory and has no place in this build.)
 - **A local card keeps the ghost intact for zero network cost.** Reaching an *external*
   GPU means a fast, opaque, bidirectional link — a network hole — and the ghost is gone the
   moment "connection" is uttered. The card is bought/rented in *ownership* but fully
@@ -143,9 +146,13 @@ This is the enclosure the current `10-ai-orchestration/langgraph-router/` roster
 
 ## Decision log (newest first)
 
+- **2026-07-19** — VRAM figure corrected down: **24 GB baseline (one used RTX 3090, runs
+  32B) / 48 GB optional headroom (2× 3090, runs 70B)**, replacing the earlier "48–96 GB".
+  Costing the build (see `membrane-node-bom.md`) showed the workload never needs beyond
+  24 GB, and the cost cliff above it is steep — consumer VRAM tops out at 24 GB, so 48 GB
+  means two cards. 96 GB is datacenter-only ($10k+) and is struck from the design.
 - **2026-07-18** — GPU placement decided: single local discrete card as the mitochondrion;
-  no external GPU. Workload caps model need at ≤70B-class; single 48–96 GB card is the
-  permanent answer. External PCIe-fiber enclosure documented as the only ghost-preserving
+  no external GPU. External PCIe-fiber enclosure documented as the only ghost-preserving
   path *if* a future model forces it — not needed today.
 - **2026-07-18** — No-NIC invariant locked: C has no network interface; isolation is
   hardware-intrinsic. `A↔C`/`B↔C` are inspectable optical diodes; the data plane is A↔B
