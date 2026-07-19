@@ -30,7 +30,7 @@ on the t630's eMMC and **never** in the repo.
 | Sealed | Deploys to | Consumed by |
 | ------ | ---------- | ----------- |
 | `vault/wg0-key.env.sops` | `/etc/wireguard/wg0.conf` (key injected) | WireGuard server identity |
-| `vault/pihole.env.sops` | `~/pihole/.env` | Pi-hole admin (needs a one-line compose edit — see the template) |
+| `vault/pihole.env.sops` | `~/pihole/.env` | Pi-hole admin — compose reads it fail-closed via `${FTLCONF_webserver_api_password:?}` |
 | `vault/ttyd.env.sops` | `/etc/a777ance/ttyd.env` | web-terminal shell credential |
 | `vault/llm-router.env.sops` | `~/llm-router/.env` | LiteLLM master key + Anthropic key |
 
