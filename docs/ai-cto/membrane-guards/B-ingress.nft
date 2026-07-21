@@ -1,0 +1,47 @@
+#!/usr/sbin/nft -f
+#
+# Node B — ingress head (internet-facing).  MEMBRANE DESIGN — NOT the live t630.
+# Role: NAT to the internet + default-deny inbound. B trusts what D forwards
+# (D enforces the egress allowlist), so B masquerades and drops unsolicited
+# inbound from the WAN.
+#
+# Set the interface names below, then:  sudo nft -f B-ingress.nft
+# Enable routing too:  sysctl -w net.ipv4.ip_forward=1  (persist in /etc/sysctl.d/)
+
+define WAN_IF  = "enp1s0"    # internet-facing NIC (onboard)
+define LINK_IF = "eth1"      # data-plane link to D (USB NIC) — adjust to real name
+
+flush ruleset
+
+table inet filter {
+    chain input {
+        type filter hook input priority filter; policy drop;
+        ct state invalid drop
+        ct state established,related accept
+        iifname "lo" accept
+        # management only from the internal link side, never from the WAN
+        iifname $LINK_IF tcp dport 22 accept
+        ip protocol icmp accept
+        ip6 nexthdr icmpv6 accept
+    }
+
+    chain forward {
+        type filter hook forward priority filter; policy drop;
+        ct state invalid drop
+        ct state established,related accept
+        # egress: pass what D already vetted, out to the internet
+        iifname $LINK_IF oifname $WAN_IF accept
+        # inbound WAN -> internal with no state: dropped by policy
+    }
+
+    chain output {
+        type filter hook output priority filter; policy accept;
+    }
+}
+
+table inet nat {
+    chain postrouting {
+        type nat hook postrouting priority srcnat; policy accept;
+        oifname $WAN_IF masquerade
+    }
+}

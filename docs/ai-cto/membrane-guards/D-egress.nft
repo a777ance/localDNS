@@ -1,0 +1,54 @@
+#!/usr/sbin/nft -f
+#
+# Node D — egress head (LAN-facing).  MEMBRANE DESIGN — NOT the live t630.
+# Role: DEFAULT-DENY egress. LAN devices may reach the internet ONLY to
+# allowlisted destination IPs (set @allow4). Everything else is logged + dropped
+# — that deny-log is the signal the C brain triages. LAN clients use D as their
+# DNS resolver (the choke lives in dns-choke.conf), which also means a device
+# trying external DNS (8.8.8.8) or DoH (:853) hits the egress deny and is forced
+# back through the choke. Good.
+#
+# Set interfaces, then:  sudo nft -f D-egress.nft
+# Enable routing:  sysctl -w net.ipv4.ip_forward=1
+# Populate @allow4 out of band (resolve the allowlisted domains, add IPs with a
+# timeout — CDN IPs rotate). Same idea as the repo's populate_sets.py. See README.
+
+define LAN_IF  = "enp1s0"    # LAN-facing NIC (onboard)
+define LINK_IF = "eth1"      # data-plane link to B (USB NIC) — adjust to real name
+
+flush ruleset
+
+table inet filter {
+    set allow4 {
+        type ipv4_addr
+        flags interval, timeout
+    }
+
+    chain input {
+        type filter hook input priority filter; policy drop;
+        ct state invalid drop
+        ct state established,related accept
+        iifname "lo" accept
+        # LAN clients may query D's resolver (the DNS choke) and manage over SSH
+        iifname $LAN_IF udp dport 53 accept
+        iifname $LAN_IF tcp dport 53 accept
+        iifname $LAN_IF tcp dport 22 accept
+        ip protocol icmp accept
+    }
+
+    chain forward {
+        type filter hook forward priority filter; policy drop;
+        ct state invalid drop
+        ct state established,related accept
+        # DEFAULT-DENY EGRESS: LAN -> internet only to allowlisted IPs
+        iifname $LAN_IF oifname $LINK_IF ip daddr @allow4 accept
+        # everything else LAN -> internet: log (the C brain's deny-log) + drop.
+        # Learning mode: swap `drop` for `accept` to log-but-allow for a week.
+        iifname $LAN_IF oifname $LINK_IF log prefix "egress-deny " drop
+    }
+
+    chain output {
+        type filter hook output priority filter; policy accept;
+        # D's own upstream recursion (from Unbound) exits via the link toward B
+    }
+}
