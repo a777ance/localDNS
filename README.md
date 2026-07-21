@@ -16,6 +16,52 @@ choices — see **[network-context.md](network-context.md)**.
 
 ---
 
+## What you get
+
+A single always-on Linux box (a cheap, low-power HP t630 thin client) that upgrades an
+entire home network at once: faster, ad-free, harder to attack, and reachable securely
+from anywhere. Buy roughly $100 of used hardware, follow this README on a blank Ubuntu
+install, and the whole stack rebuilds itself — DNS, ad-blocking, a personal VPN, traffic
+shaping, and a local AI layer — plus the ability for your phone (and every other device)
+to tunnel into your home network first and get all of the above, whether on cellular or
+any Wi-Fi.
+
+- **Every device browses faster and cleaner, with nothing installed on them.** Ads and
+  trackers are blocked network-wide at the DNS layer — phones, TVs, guests — so there's
+  no per-device app to manage and nothing to bypass.
+- **Your private lookups stay private, without slowing down streaming.** Sensitive
+  traffic (banking, health, email) is resolved directly against the internet's root
+  servers so no outside company ever sees it, while streaming domains take a fast
+  encrypted path. It's a deliberate, documented split — speed where it's safe, privacy
+  where it matters.
+- **The network feels instant even under heavy upload.** Traffic shaping drops loaded
+  latency from ~400–800 ms to ~11 ms (14 ms idle) — video calls and gaming stop
+  stuttering when something's uploading in the background.
+- **You carry the whole network in your pocket.** Tunnel back over WireGuard and your
+  phone gets the same ad-blocking and DNS protection on cellular — "inside the network"
+  is the tunnel, not the house.
+- **GPU-grade AI on demand, without paying for it at idle.** A model router runs tiny
+  models locally on the box for routine work and escalates only heavy reasoning to a
+  rented GPU that's off the rest of the time — you pay for power only in the moments you
+  use it.
+- **A leaked repo leaks nothing, and nothing is undocumented.** Secrets are encrypted at
+  rest, fail closed, and never touch git; an honest running "known issues" list tracks
+  open risk; uptime and per-category traffic monitoring give you real telemetry instead
+  of guesses.
+- **Every claim here is one command away from being disproven.** DNSSEC validation,
+  which path a domain takes, and the latency win each ship with a verify command —
+  proof, not marketing.
+
+**In one breath.** A dedicated, always-on node built on cheap, low-power hardware that
+hardens the whole network's attack surface, blocks ads and trackers across every device,
+and cuts loaded latency from hundreds of milliseconds to ~11 ms. Every part of it lives
+in one git repo — systemd units, Docker Compose, and resolver config for the services;
+Bash for install and encrypted secrets; Python for the LLM router and traffic stats — so
+there's no undocumented state: the machine is a rollback target, auditable and
+reproducible from bare Ubuntu.
+
+---
+
 ## Thesis
 
 This stack delivers measurable, verifiable outcomes from a single low-power node:
