@@ -18,13 +18,12 @@ choices — see **[network-context.md](network-context.md)**.
 
 ## What you get
 
-A single always-on Linux box (a cheap, low-power HP t630 thin client) that upgrades an
-entire home network at once: faster, ad-free, harder to attack, and reachable securely
-from anywhere. Buy roughly $100 of used hardware, follow this README on a blank Ubuntu
-install, and the whole stack rebuilds itself — DNS, ad-blocking, a personal VPN, traffic
-shaping, and a local AI layer — plus the ability for your phone (and every other device)
-to tunnel into your home network first and get all of the above, whether on cellular or
-any Wi-Fi.
+A single always-on Linux box (a cheap, low-power HP t630 thin client) upgrades an entire
+home network at once: faster, ad-free, harder to attack, and reachable securely from
+anywhere. For about $50 of used hardware and a blank Ubuntu install, the whole stack
+rebuilds itself from this repo — DNS, ad-blocking, a personal VPN, traffic shaping, and a
+local AI layer. Your phone and every other device tunnel into the home network first, so
+they get all of it on cellular or any Wi-Fi — not just at home.
 
 - **Every device browses faster and cleaner, with nothing installed on them.** Ads and
   trackers are blocked network-wide at the DNS layer — phones, TVs, guests — so there's
@@ -52,13 +51,12 @@ any Wi-Fi.
   which path a domain takes, and the latency win each ship with a verify command —
   proof, not marketing.
 
-**In one breath.** A dedicated, always-on node built on cheap, low-power hardware that
-hardens the whole network's attack surface, blocks ads and trackers across every device,
-and cuts loaded latency from hundreds of milliseconds to ~11 ms. Every part of it lives
-in one git repo — systemd units, Docker Compose, and resolver config for the services;
-Bash for install and encrypted secrets; Python for the LLM router and traffic stats — so
-there's no undocumented state: the machine is a rollback target, auditable and
-reproducible from bare Ubuntu.
+**In one breath.** A dedicated, always-on node on cheap, low-power hardware that hardens
+the network's attack surface, blocks ads across every device, and cuts loaded latency
+from hundreds of milliseconds to ~11 ms — with every part of it living in one git repo:
+systemd units, Docker Compose, and resolver config for the services; Bash for install and
+encrypted secrets; Python for the LLM router and traffic stats. No undocumented state —
+the machine is a rollback target, reproducible from bare Ubuntu.
 
 ---
 
@@ -266,19 +264,13 @@ defines what counts as "inside" the network. And the whole thing is
 infrastructure-as-config: every file in this repo maps to an exact path on the box,
 so the system is reproducible and reversible, not a pile of undocumented tweaks.
 
-**The sales pitch.** One small, silent, always-on box gives the entire household:
-
-- **Network-wide ad and tracker blocking** (Pi-hole) — every device, no per-client app
-- **DNSSEC-validated recursive resolution** (Unbound) — banking, email, and health
-  lookups are resolved by you, talking directly to the authoritative nameservers,
-  and are never handed to a third-party resolver
-- **Encrypted streaming lookups** (Cloudflare DoT) — speed for Netflix / YouTube /
-  Spotify without leaking those lookups to the ISP in cleartext
-- **Home VPN from anywhere** (WireGuard) — full ad-blocking and DNSSEC on cellular,
-  exactly as if you were sitting at home
-- **Bufferbloat eliminated** (CAKE) — loaded latency drops from ~400–800 ms to ~11 ms
-- **Full monitoring** (Uptime Kuma) — you find out something broke before the
-  household does
+**The sales pitch.** One small, silent, always-on box gives the entire household all of
+it — see **[What you get](#what-you-get)** for the plain-language rundown. Under the
+hood, each outcome maps to one component: network-wide ad and tracker blocking (Pi-hole),
+DNSSEC-validated recursive resolution (Unbound), encrypted streaming lookups (Cloudflare
+DoT), a home VPN from anywhere (WireGuard), bufferbloat eliminated from ~400–800 ms to
+~11 ms (CAKE), and full monitoring so you hear about a break before the household does
+(Uptime Kuma).
 
 **The cost.** A used HP t630 thin client runs about $30–70 on the secondhand market
 and draws roughly 10 W idle — a few dollars a year in electricity. Every component in
