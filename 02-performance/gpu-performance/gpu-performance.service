@@ -1,0 +1,15 @@
+# Deploys to: /etc/systemd/system/gpu-performance.service
+# Reload: sudo systemctl daemon-reload && sudo systemctl enable --now gpu-performance
+# Part of AMD Carrizo remediation — all 4 pieces required (GRUB + this + cpu-performance + udev rule).
+
+[Unit]
+Description=Force AMD GPU to high performance
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'echo high > /sys/class/drm/card*/device/power_dpm_force_performance_level'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
