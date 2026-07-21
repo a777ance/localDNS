@@ -1,9 +1,0 @@
-# Supervisor (LangGraph) deps. The deterministic safety logic + tools run on the Python
-# stdlib alone — `python3 supervisor.py --selftest` needs NONE of these. Install only to
-# actually run the graph: `pip install -r requirements.txt` (use a venv).
-#
-# Inference goes through the one front door via dispatcher.call_model() (urllib, stdlib),
-# so we do NOT pull in langchain-openai / an HTTP client here. Just the graph + its
-# optional SQLite checkpointer for resumable multi-step runs.
-langgraph>=0.2,<0.4
-langgraph-checkpoint-sqlite>=2.0,<3.0   # enables LLM_ROUTER_CHECKPOINT (resume by thread_id)

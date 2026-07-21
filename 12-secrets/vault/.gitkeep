@@ -1,2 +1,0 @@
-# Sealed secrets land here as *.env.sops (age-encrypted, safe to commit).
-# Empty until you run ./seal.sh — this .gitkeep just tracks the directory.
