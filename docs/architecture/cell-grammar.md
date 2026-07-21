@@ -30,7 +30,7 @@ pattern one level down, resolving to the same ground.
 | --- | ----- | ---------- | ----------------- |
 | **A** | External space | The untrusted medium outside the boundary | The internet / the world beyond the cell |
 | **B** | Ingress membrane | Entry guard — inbound content inspection & sanitization | Terminating proxy that vets what comes *in* (fixed-function, un-persuadable) |
-| **C** | Midlayer membrane | The hydrophobic core — the structural isolation gap itself | The seam nothing connects across (no-NIC / diode / air gap) |
+| **C** | Midlayer membrane — the **hyperspace** | The hydrophobic core — the structural isolation gap itself | The seam nothing connects across (no-NIC / diode / air gap) |
 | **D** | Egress membrane | Exit guard — outbound control | Redaction + exfil control: what is allowed to *leave* |
 | **E** | Cytoplasm | The trusted interior where work happens | The working space; the router dispatches traffic here between organelles |
 | **F** | Translation layer | Ribosomes — deterministic **execution** of a plan | Fixed-function executor: runs a typed plan faithfully; cannot be argued into anything else |
@@ -44,6 +44,28 @@ pattern one level down, resolving to the same ground.
 generic layer of every membrane. **F** only ever *translates/executes*. This separation is
 the containment property: a persuadable planner can only ever emit a plan; the
 un-persuadable executor carries it out. Collapse the two and the containment is lost.
+
+---
+
+## The bilayer and the hyperspace
+
+**B, C, D are one structure read three ways — a lipid bilayer.** The membrane is not a
+single wall but a bilayer with two leaflets: **B**, the ingress leaflet (what may come
+*in*), and **D**, the egress leaflet (what may go *out*). They are the same construction
+facing opposite directions — two guards, two rule-sets, one boundary.
+
+Between the leaflets lies **C**, the hydrophobic core — the **hyperspace**: the space
+*in* the membrane that connects to neither side, the seam nothing routes across (no-NIC /
+diode / air gap). Ingress hands off toward it; egress is read from the far leaflet; but
+nothing crosses it as ordinary traffic, because there is no ordinary path through it at
+all. Like its namesake, the hyperspace is real space you cannot traverse in the normal
+way — the isolation *is* the medium, not a wall placed inside a medium.
+
+This is why the two senses of **C** co-locate (see below): the node of trust belongs in
+the most isolated compartment, and the hyperspace *is* the most isolated compartment
+there is — walled from the world on the ingress face and from the exfil path on the
+egress face. What lives in the hyperspace is reachable by neither the outside nor the way
+out; that unreachability is exactly what qualifies it to hold the tonic.
 
 ---
 
@@ -164,7 +186,7 @@ Everything designed before this note re-expresses in A–G, losing nothing:
 
 | Prior concept | Grammar |
 | ------------- | ------- |
-| A/B network guards | the cell's **B** and **D** (the two leaflets) |
+| A/B network guards | the cell's **B** and **D** (the two leaflets of the bilayer), with **C** the hyperspace between them |
 | sealed private core (the "ghost") | **nucleus** — its own octave: germline + transcription |
 | local GPU | **mitochondrion** — compute octave (its **F** is the execution) |
 | frontier / oracle gateway | **chloroplast** — harvests external capacity into the cell |
