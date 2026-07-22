@@ -10,6 +10,8 @@ To eliminate stale, manual, and error-prone setup guides, the interactive compon
 *   **⚡ [Home DNS — Interactive Field Guide](https://a777ance.github.io/Home-Sovereign-Full-Field-Guide/)**: A fully reactive setup wizard (Steps 0–11). Toggle your WAN configs, enter your LAN IP, username, and interface name—**every terminal command on the page live-updates to match your home environment**, tracking your progress locally.
 *   **📊 [Guild Ledger Master Amounts Calculator](https://a777ance.github.io/PRICING-MODELS---ALL-THREE/)**: An interactive ledger that handles financial calculations, revenue splits, COGS, storefront hardware margins, and founder/operator hourly rates.
 *   **📋 [Full End-to-End Business Playbook](https://a777ance.github.io/DESIGN-Full-Workflow-Integration-end-to-end-/)**: Maps the stranger-to-lead-to-customer-to-operator lifecycle that drives the private monthly Network Activity Statement.
+*   **🧾 [Network Activity Statement Gallery](https://a777ance.github.io/localDNS/)**: This repo's own Pages site (published from `docs/statements/` by the `pages.yml` workflow) — an installable PWA gallery of the client-facing Network Activity Statements and the operator-side Alliance Member Portfolio.
+*   **📣 [Marketing Strategy](https://a777ance.github.io/Marketing-Strategy-1/)**: The go-to-market and outreach playbook — positioning, channels, and campaign planning for the stack.
 
 ---
 
