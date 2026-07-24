@@ -49,7 +49,7 @@ recovers. A few items remain open (see [Known issues](#known-issues)): the Windo
 laptop key should be rotated, and WireGuard peers `10.8.0.4`–`10.8.0.6` need to be
 identified or removed.
 
-**The takeaway.** A ~$50 used thin client drawing ~10 W replaces a stack of cloud
+**The takeaway.** A $30–70 used thin client drawing ~10 W replaces a stack of cloud
 DNS, VPN, and monitoring services — while keeping the query log those services would
 otherwise collect on hardware you physically control, and proving the privacy
 boundary holds with a single command.
@@ -124,7 +124,7 @@ RESOLUTION TARGETS — what the t630 reaches out to (out on the internet)
 
 ## Operational notes
 
-- Pi-hole blocklists update weekly via cron inside the container
+- Pi-hole blocklists (gravity) are refreshed manually with `docker exec pihole pihole -g` — the compose file sets up no automatic schedule; add your own host cron if you want it periodic
 - Unbound cache persists hourly and restores at boot automatically
 - Pi-hole data backup: `docker run --rm -v pihole_data:/data busybox tar czf - /data > pihole-backup.tar.gz`
 - Uptime Kuma data: back up `~/uptime-kuma/data/` directly
@@ -355,6 +355,7 @@ does **not** shard one model across machines — it routes between whole models.
 # 1. Local engine + models
 curl -fsSL https://ollama.com/install.sh | sh
 ollama pull qwen2.5:3b && ollama pull qwen2.5:7b
+# (optional, only if you run the langgraph-router RAG index: ollama pull nomic-embed-text)
 # 2. Configure + launch the router and the Open WebUI chat UI (one compose file)
 mkdir -p ~/llm-router && cp 10-ai-orchestration/{docker-compose.yml,config.yaml} ~/llm-router/
 cp 10-ai-orchestration/.env.example ~/llm-router/.env && nano ~/llm-router/.env   # set the keys
@@ -751,7 +752,7 @@ Rules applied:
 | Port | Protocol | Allowed from |
 |------|----------|--------------|
 | 53 | TCP/UDP | `192.168.0.0/16` + `10.8.0.0/24` |
-| 5335 | TCP/UDP | `192.168.0.0/16` + docker0 bridge |
+| 5335 | TCP/UDP | docker0 bridge only (Unbound is Pi-hole's private upstream, reached via loopback — not opened to the LAN) |
 | 22 | TCP | `192.168.0.0/16` + `10.8.0.0/24` |
 | 8080 | TCP | `192.168.0.0/16` + `10.8.0.0/24` |
 | 3001 | TCP | `192.168.0.0/16` + `10.8.0.0/24` |
@@ -918,7 +919,7 @@ sudo unbound-checkconf
 sudo systemctl enable --now unbound
 ```
 
-Five drop-ins deploy together. `unbound-checkconf` must pass before the next command.
+Six drop-ins deploy together. `unbound-checkconf` must pass before the next command.
 
 #### Verify
 
@@ -1042,7 +1043,7 @@ LAN device before Pi-hole is ready.
 | CPU | AMD Carrizo GX-420GI quad-core |
 | RAM | 16 GB |
 | Storage | 16 GB eMMC |
-| OS | Ubuntu 24.04.4 LTS, kernel 6.17 series |
+| OS | Ubuntu 24.04.4 LTS (the distro's current HWE kernel — `uname -r` for the exact version) |
 | NIC | `enp1s0` (wired only — Wi-Fi disabled) |
 
 ### WireGuard peers & service ports
@@ -1142,10 +1143,13 @@ are required to prevent it:
 
 ### Unbound config files
 
-Five drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/`:
+Six drop-ins loaded alphabetically from `/etc/unbound/unbound.conf.d/` (listed A→Z
+here for reference readability — an intentional exception to the repo's Z→A list
+convention):
 
 | File | Purpose |
 | ---- | ------- |
+| `local-records.conf` | LAN-only A records (`ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → the t630) |
 | `remote-control.conf` | Unix socket for `unbound-control` |
 | `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
 | `server.conf` | Interface, port, access-control, security flags |

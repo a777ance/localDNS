@@ -58,7 +58,7 @@ manually deployed.
 ## A. Hardware
 
 - **HP t630** — AMD Carrizo GX-420GI quad-core, 16 GB RAM, 16 GB eMMC
-- **OS:** Ubuntu 24.04.4 LTS, kernel 6.17 series
+- **OS:** Ubuntu 24.04.4 LTS (the distro's current HWE kernel — run `uname -r` on the box for the exact version)
 - **NIC:** `enp1s0` (wired only — Wi-Fi disabled)
 
 ---
@@ -265,7 +265,7 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 | ----- | ------ |
 | Console web terminals are a login shell over HTTP | `11-console` exposes `ttyd` on 7681 (thin client) and 7682 (laptop, via the t630 as SSH jump). The `ttyd` `--credential` is the only gate to a shell — treat it like a root password (in `/etc/a777ance/ttyd.env`, `chmod 600`, never in git). **LAN + WG only — never port-forward 8088/7681/7682; remote access is through WireGuard.** Harden with TLS (`ttyd -S`) and OS `login` over `bash` (notes in the unit files / `11-console/README.md`). |
 | Laptop SSH target is a placeholder | `11-console/ttyd.env.example` ships `LAPTOP_SSH=CHANGE_ME@10.8.0.CHANGE_ME`. Point it at a **stable** address (the laptop's WireGuard IP or a DHCP-reserved LAN IP), not a floating lease, or the laptop terminal won't connect. |
-| Heavy DeepSeek-R1 on local CPU overheats the client | Don't run `deepseek-r1:7b`+ on a CPU — its long chain-of-thought pins every core for minutes (cooks a laptop, throttles the t630). `10-ai-orchestration/config.yaml` now ships a reasoning ladder: `local-reason` (deepseek-r1:1.5b, t630 CPU, cool) for light work and `cloud-gpu-reason` (full R1 on a rented GPU via Tailscale, spun up on demand) for heavy work, falling over to `cloud-overflow` when the pod is off. See `10-ai-orchestration/README.md` "Offload heavy reasoning to a rented GPU." |
+| Local DeepSeek reasoning ladder paused (2026-07-24) | Local DeepSeek was dropped — the t630 CPU is too weak to run it usefully — and the rented-GPU tier is idle for now, so both `local-reason` (deepseek-r1:1.5b) and `cloud-gpu-reason` are **commented out** in `10-ai-orchestration/config.yaml`. Heavy reasoning falls to `cloud-overflow` (Claude) instead. Still true regardless: never run `deepseek-r1:7b`+ on a CPU (its long chain-of-thought pins every core for minutes). To restore the ladder, uncomment the two tiers + their fallbacks and `ollama pull deepseek-r1:1.5b` / stand up the rented GPU — see `10-ai-orchestration/README.md` "Offload heavy reasoning to a rented GPU." |
 | Live Pi-hole upstreams ≠ repo | Pi-hole v6 re-applies & locks `FTLCONF_dns_upstreams: 127.0.0.1#5335` on every start, overriding any `172.17.0.1#5335`/public resolvers left in the `pihole_data` volume. Confirm in the UI after deploying onto an old volume. |
 | Host-net Pi-hole vs systemd-resolved `:53` | Host-net Pi-hole binds `0.0.0.0:53`, colliding with the resolved stub on `127.0.0.53:53`. `03-host-dns/host-dns.conf` now sets `DNSStubListener=no` and README Steps 4-5 (Part A) re-points `/etc/resolv.conf` off the stub. On the live box, check current state before re-applying (see INSTALL-NOTES item 13). |
 | VPN peer DNS over the tunnel | **Resolved.** Pi-hole switched to `network_mode: host` — Docker DNAT no longer in the path, so `10.8.0.1:53` is answered directly for queries sourced from `wg0`. Port 8080 also added to the WG UFW rules so the Pi-hole UI is reachable from VPN peers. |

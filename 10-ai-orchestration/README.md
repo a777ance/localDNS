@@ -40,9 +40,9 @@ here touches DNS resolution, the VPN, or QoS; it reuses them.
               └────── whole models, one per backend ──────┘
                     NOT one model split across machines
 
-   plus a reasoning ladder (see "Offload heavy reasoning to a rented GPU"):
-     local-reason      deepseek-r1:1.5b on the t630 CPU   (light, runs cool)
-     cloud-gpu-reason  full DeepSeek-R1 on a rented GPU    (heavy, spin up on demand)
+   reasoning ladder (local-reason / cloud-gpu-reason): PAUSED for now — local DeepSeek
+     dropped (t630 CPU too weak), rented GPU idle. Heavy reasoning → cloud-overflow.
+     See "Offload heavy reasoning to a rented GPU" to bring it back.
 ```
 
 ---
@@ -178,7 +178,10 @@ number, 1 → 6.** The numbered steps *within* each block run in order.
 2. Pull a small and a mid model:
    ```bash
    ollama pull qwen2.5:3b
-   ollama pull qwen2.5:7b           # optional now: deepseek-r1:7b for reasoning
+   ollama pull qwen2.5:7b
+   # Do NOT pull deepseek-r1:7b to run locally — its chain-of-thought pins the CPU
+   # for minutes. The local reasoning tier is paused; heavy reasoning goes to cloud.
+   # (Optional, only if you run the langgraph-router RAG index: ollama pull nomic-embed-text)
    ```
 3. Confirm Ollama is listening on loopback (the router reaches it there):
    ```bash
@@ -191,6 +194,12 @@ number, 1 → 6.** The numbered steps *within* each block run in order.
 ---
 
 ## Offload heavy reasoning to a rented GPU (DeepSeek-R1)
+
+> **PAUSED (2026-07-24).** The reasoning ladder is currently off: local DeepSeek was
+> dropped (the t630 CPU is too weak to run it usefully) and the rented GPU is idle, so
+> `local-reason` and `cloud-gpu-reason` are commented out in `config.yaml` and heavy
+> reasoning falls to `cloud-overflow`. This section is kept as the recipe to bring the
+> ladder back — uncomment the two tiers + their fallbacks and follow the blocks below.
 
 A full DeepSeek-R1 model thinks out loud — it emits a long chain-of-thought before
 the answer — so on a CPU it pins every core for minutes per prompt. Run that on a
@@ -302,12 +311,12 @@ for the tasks a CPU 7B can't carry — and it's one `model:` line to point elsew
 
 *(newest first, per house style)*
 
-- **Heavy DeepSeek-R1 belongs on a rented GPU, not local CPU.** An R1 reasoner pins
-  every CPU core for minutes per prompt (the chain-of-thought) — that sustained load
-  is what overheats a laptop and throttles the t630. The reasoning ladder splits it:
-  `local-reason` (deepseek-r1:1.5b, t630 CPU, cool) for light work, `cloud-gpu-reason`
-  (full R1 on a rented GPU over a Tailscale tunnel) for heavy work, spun up on demand.
-  See "Offload heavy reasoning to a rented GPU." The laptop stays a thin browser client.
+- **Reasoning ladder PAUSED (2026-07-24).** Local DeepSeek was dropped (the t630 CPU is
+  too weak to run it usefully) and the rented GPU is idle, so `local-reason` and
+  `cloud-gpu-reason` are commented out in `config.yaml`; heavy reasoning falls to
+  `cloud-overflow` (Claude). Still true regardless: an R1 reasoner pins every CPU core
+  for minutes (its chain-of-thought), so never run `deepseek-r1:7b`+ on local CPU. To
+  restore the ladder, see "Offload heavy reasoning to a rented GPU."
 - **Open WebUI: first user is admin; UI is on 3000, not 8080.** Create the admin
   account from a trusted device before opening it to the household. 8080 is already the
   Pi-hole UI on this box, so the chat UI uses 3000. State lives in

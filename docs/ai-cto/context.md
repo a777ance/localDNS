@@ -2,7 +2,7 @@
 
 Read alongside the portfolio hub: `DESIGN-Full-Workflow-Integration-end-to-end-/docs/ai-cto/portfolio.md`.
 
-**Last updated:** 2026-06-08
+**Last updated:** 2026-07-24
 
 ---
 
@@ -21,7 +21,7 @@ The live HP t630 configuration snapshot AND the Statement artifacts under `docs/
 | CAKE QoS | Running | 85 Mbit on `enp1s0` |
 | Statement PWA | Merged, not deployed | Commit 6134824; not tested on real device |
 | nftables volume populator | Scaffolded, not deployed | Blocking per-category data in statements |
-| AI gateway (LiteLLM) + Open WebUI | Config in repo, not deployed | **Stage renamed `10-llm-router` → `10-ai-orchestration`.** LiteLLM (ai.home.lan:4040) fronts local Ollama + cloud tiers (now incl. cloud-explore/code/vision); Open WebUI (chat.home.lan:3000) browser UI; routes whole models, no sharding; t630 is CPU-only |
+| AI gateway (LiteLLM) + Open WebUI | Config in repo, not deployed | **Stage renamed `10-llm-router` → `10-ai-orchestration`.** LiteLLM (ai.home.lan:4040) fronts local Ollama + cloud tiers (now incl. cloud-explore/code/vision); Open WebUI (chat.home.lan:3000) browser UI; routes whole models, no sharding; t630 is CPU-only. **Reasoning ladder PAUSED (2026-07-24):** `local-reason` (local DeepSeek — t630 too weak) and `cloud-gpu-reason` (rented GPU idle) are commented out in `config.yaml`; heavy reasoning → `cloud-overflow`. `local-embed`/RAG kept provisional. |
 | Console / high seat (`11-console/`) | Config in repo, not deployed | **New Step 13.** Static launcher (`console.home.lan:8088`) pinning every realm + two `ttyd` web terminals — thin client (`term.home.lan:7681`) and laptop via the t630 as SSH-jump (`laptop.home.lan:7682`). Host-side systemd; UFW-gated LAN+WG only (a web shell — never WAN). The browser-as-Odin sidebar/persistence config is `11-console/browser-odin.md`. Laptop SSH target ships as a `CHANGE_ME`. |
 | Odin orchestration layer (`10-ai-orchestration/langgraph-router/`) | Design + self-tested, not deployed | LangGraph supervisor **Odin** (alias Lionheart) above the front door: deterministic privacy gate (Heimdall), 3 orders of 5 + bound adversarial critic (Loki), Frigg (PII redaction), Hoard-Warden (spend cap), Huginn RAG (Mímir's well — local embeddings via the front door, needs `local-embed`/`nomic-embed-text`), Muninn (resume). `setup.sh` + `odin` CLI provided. Deterministic safety logic runs stdlib-only (`--selftest`); a live run needs `pip install -r requirements.txt` + the front door. The flat `dispatcher.py` remains the dumb-switch default. Lore in `docs/chronikonomicon/the-alliance-codex.md`. |
 

@@ -213,8 +213,10 @@ after the restart, an entry may be pinned at the link level —
 **Repo:** [`06-cake/`](06-cake/)
 
 **What bufferbloat is:** when a big download or upload fills the modem/router's
-packet buffer, everything else has to wait behind it. A 16 ms idle ping becomes
-800–1200 ms under load. This is not packet loss — all packets arrive, just late.
+packet buffer, everything else has to wait behind it. On this network a 14 ms idle
+ping becomes ~800–1200 ms under load on the *whole-network* (router-side) download
+path; on the t630's own VPN-forwarded upload path the unmanaged spike was ~400–800 ms.
+This is not packet loss — all packets arrive, just late.
 
 **Why CAKE helps:** instead of letting the buffer fill (modem has no concept of
 fairness or timing), CAKE manages a smart queue in the OS. It rate-limits egress
@@ -241,6 +243,8 @@ download at 16 ms (idle baseline 14 ms) — essentially no bufferbloat. Previous
 unmanaged state was ~400–800 ms loaded. `nat` transparency lets CAKE distinguish
 individual VPN clients behind the WireGuard MASQUERADE, so the iPhone and laptop
 each get a fair queue slot rather than competing as a single undifferentiated flow.
+(The ~400–800 ms figure is this VPN-forwarded upload path; the ~800–1200 ms spike
+above is the separate whole-network router-side download case.)
 
 Because it only acts on what the t630 forwards, CAKE earns its keep only once the
 WireGuard VPN (Step 7) is carrying traffic — on a build with no VPN, it has nothing
@@ -479,10 +483,12 @@ Unbound — ad-blocking and DNSSEC validation work on cellular identically to LA
 | ListenPort | `51820` |
 | Phone peer AllowedIPs | `10.8.0.2/32` |
 
-PostUp/PreDown manage only the MASQUERADE (nat table). FORWARD rules are not
-in wg0.conf — UFW handles forwarding via `ufw default allow routed` in setup.sh.
-See "WireGuard: UFW forwarding" below for why raw iptables FORWARD rules here
-caused a silent failure.
+PostUp/PreDown manage the MASQUERADE (nat table) plus a TCPMSS MSS-clamp on the
+FORWARD chain (which rewrites TCP MSS to the tunnel MTU — it does not accept or
+drop traffic). No FORWARD *ACCEPT/policy* rules live in wg0.conf — UFW handles
+forwarding via `ufw default allow routed` in setup.sh. See "WireGuard: UFW
+forwarding" below for why raw iptables FORWARD *accept* rules here caused a silent
+failure.
 
 ### IP forwarding
 

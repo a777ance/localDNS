@@ -14,8 +14,9 @@ ufw default allow routed  # required for WireGuard to forward peer traffic out e
 # LAN services
 ufw allow in from "$LAN" to any port 53 proto tcp
 ufw allow in from "$LAN" to any port 53 proto udp
-ufw allow in from "$LAN" to any port 5335 proto tcp
-ufw allow in from "$LAN" to any port 5335 proto udp
+# Unbound (5335) is NOT opened to the LAN — it is Pi-hole's private upstream,
+# reached over the host loopback (127.0.0.1:5335, not filtered by UFW). Only the
+# docker0 allowance below remains, for a possible future bridge-mode container.
 ufw allow in from "$LAN" to any port 22 proto tcp
 ufw allow in from "$LAN" to any port 8080 proto tcp
 ufw allow in from "$LAN" to any port 3389 proto tcp

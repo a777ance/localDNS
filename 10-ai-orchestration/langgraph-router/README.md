@@ -48,7 +48,7 @@ the **Vanguard** is the deterministic guard around Odin himself (code paths, not
 ### the Crossing Guards — guard the allies (Midgard, the human)
 | Member | Tier / role | Status |
 | ------ | ----------- | ------ |
-| **the Völva** | `local-reason` — light reasoning at the keep | built tier |
+| **the Völva** | `local-reason` — light reasoning at the keep | tier PAUSED (commented out in `config.yaml` — local DeepSeek dropped) |
 | **the Skald** | `local-smart` — a capable local hand | built tier |
 | **the Húskarl** | `local-fast` — the quick household guard | built tier |
 | **Huginn** (Thought) | repo grounding (`tools.py`): keyword fetch **+ semantic RAG** over a local embedding index — **Mímir's well** (`rag.py`) | built |
@@ -60,7 +60,7 @@ the **Vanguard** is the deterministic guard around Odin himself (code paths, not
 | **Göndul** | `cloud-explore` — wide recon, research | built tier |
 | **Hildr** | `cloud-code` — forges code, diffs, diagrams | built tier |
 | **Sigrún** | `cloud-vision` — reads the field (images) | built tier |
-| **Brynhildr** | `cloud-gpu-reason` — heavy reasoning; rides far to the rented GPU but stays **sworn** (self-hosted over Tailscale, so allowed under a privacy lock) | built tier |
+| **Brynhildr** | `cloud-gpu-reason` — heavy reasoning; rides far to the rented GPU but stays **sworn** (self-hosted over Tailscale, so allowed under a privacy lock) | tier PAUSED (commented out in `config.yaml` — rented GPU idle) |
 | **Skuld** | `cloud-overflow` — the fallback that is there when needed | built tier |
 
 ### Loki — the bound adversary
@@ -168,8 +168,10 @@ Per the repo rule — *never print a capability the code doesn't have*:
 - **Real today:** Heimdall, the Warden, the Norn, Muninn (the log), **Frigg (redaction)**,
   **the Hoard-Warden (spend cap)**, **Loki's binding + bounded loop**, **Huginn's semantic RAG
   (Mímir's well — local embeddings via the front door)**, the graph wiring, SQLite resume, and
-  the 8 worker tiers (Crossing Guards + Avant-Garde). All testable offline via `--selftest`.
-  Every roster seat is now real code or a live tier — no roadmap stubs left.
+  the worker tiers (Crossing Guards + Avant-Garde). All testable offline via `--selftest`.
+  Every roster seat is real code or a live tier — with two tiers currently **PAUSED**
+  (`local-reason` and `cloud-gpu-reason`, commented out in `config.yaml`; see the roster
+  notes), leaving 6 active worker tiers.
 - **Real once you `pip install` + have a live front door:** the actual multi-step campaign,
   including Loki's critique→revise rounds (each round is two model calls) and RAG retrieval
   (needs the `local-embed` model pulled). The offline `--selftest` proves RAG's chunking /

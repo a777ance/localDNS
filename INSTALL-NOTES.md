@@ -481,7 +481,7 @@ section by category.
 | Custodian payload at rest (secrets on eMMC) | ✓ **Resolved in repo** | The four runtime secrets (WireGuard server key, LiteLLM/Anthropic keys, ttyd credential, Pi-hole admin) are sealed with sops+age into `12-secrets/vault/` and decrypted at deploy by `unseal.sh`; the age identity (the "wand") lives on a USB/token, never on eMMC or in git. Covers disk-image theft and accidental commits — **not** live-RCE reads (see the README's threat table). | [`12-secrets/`](12-secrets/) |
 | `FTLCONF_webserver_api_password` placeholder | ✓ **Resolved in repo** | No longer a committed placeholder — compose reads it from `~/pihole/.env` (sops+age vault, [`12-secrets/`](12-secrets/)), fail-closed via `${...:?}` so Pi-hole won't start without the unsealed secret. Was Break Point [#6](#6-ftlconf_webserver_api_password-change_me--easy-to-overlook). | [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) · [`12-secrets/`](12-secrets/) |
 | Windows laptop WireGuard key | **Open** | Private key was exposed during setup; rotate before trusting this peer. Cheap fix: `12-secrets/rotate-secrets.sh wg-peer <name>` mints a fresh keypair for just that device (no server-key churn). | [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf) · [`12-secrets/rotate-secrets.sh`](12-secrets/rotate-secrets.sh) |
-| WireGuard peers `10.8.0.4`–`10.8.0.6` | **Open** — reconciled, still unidentified | Now in the config with their real public keys, but none has a recent handshake — identify each device or remove the stale peer. If kept, re-key each with `12-secrets/rotate-secrets.sh wg-peer <name>` so an unknown holder of the old key is locked out. | [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf) · [`12-secrets/rotate-secrets.sh`](12-secrets/rotate-secrets.sh) |
+| WireGuard peers `10.8.0.4`–`10.8.0.6` | **Open** — reconciled on the box, still unidentified | Present on the live server with their real public keys, but none has a recent handshake (the committed `wg0.conf` template ships them as commented placeholders) — identify each device or remove the stale peer. If kept, re-key each with `12-secrets/rotate-secrets.sh wg-peer <name>` so an unknown holder of the old key is locked out. | [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf) · [`12-secrets/rotate-secrets.sh`](12-secrets/rotate-secrets.sh) |
 | WireGuard `::/0` IPv6 black hole | **Documented** (design constraint) | Server is IPv4-only in-tunnel; do **not** add `::/0` to peer AllowedIPs. IPv6 traffic black-holes silently (handshake succeeds, pages hang). Use `0.0.0.0/0` only. Leak-free dual-stack fix (ULA + NAT66) in [network-context.md](network-context.md). | [`05-wireguard/peer-template.conf`](05-wireguard/peer-template.conf) |
 | VPN peer DNS over the tunnel | ✓ **Resolved in repo** | Fixed by Pi-hole `network_mode: host`: the Docker bridge + published-ports DNAT path silently dropped replies to queries sourced from the host's own `wg0` interface; host networking removes the DNAT path so `10.8.0.1:53` answers directly. Port 8080 was also opened to the WG subnet so the Pi-hole UI is reachable over the tunnel. | [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) · [`04-ufw/setup.sh`](04-ufw/setup.sh) |
 | Live Pi-hole upstreams ≠ repo | ✓ **Mostly resolved** (v6) | Under Pi-hole v6, `FTLCONF_dns_upstreams` is re-applied and locked on every start, overriding any legacy resolvers (`8.8.8.8`, Quad9, etc.) left in the `pihole_data` volume. Still worth confirming the UI shows only `127.0.0.1#5335` after a deploy onto an old volume. | [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) |
@@ -510,10 +510,11 @@ fresh-install breaks and made issue 9 deterministic:
   the live box. The drop-in is additive — a redundant `DNSStubListener=no` is
   harmless.
 - **WireGuard peers reconciled:** `wg show` listed six peers (`10.8.0.2`–`.7`).
-  Real public keys now in [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf). `.2`
-  (iPhone) and `.3` (Windows laptop) active; `.4`/`.5`/`.6` have no handshake
-  and remain UNIDENTIFIED; `.7` is the Mac. Laptop key rotation still
-  outstanding.
+  Real public keys were reconciled on the live box; the committed
+  [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf) ships them as commented
+  placeholders (it is a template). `.2` (iPhone) and `.3` (Windows laptop) active
+  on the box; `.4`/`.5`/`.6` have no handshake and remain UNIDENTIFIED; `.7` is the
+  Mac. Laptop key rotation still outstanding.
 
 ---
 

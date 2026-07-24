@@ -25,35 +25,28 @@ model_list:
       model: ollama_chat/qwen2.5:7b
       api_base: http://127.0.0.1:11434
 
-  # ── Reasoning ladder: light distill local, heavy DeepSeek-R1 offloaded ──
-  # WHY this is split, not a single deepseek-r1:7b on local CPU: an R1 model emits a
-  # long chain-of-thought before every answer, so on a CPU it pins all cores for
-  # minutes per prompt. That sustained 100%-CPU load is what cooks a laptop (fans
-  # screaming) — and the t630's Carrizo would just thermal-throttle and crawl. So the
-  # heavy reasoner never runs on local CPU. Two tiers instead:
+  # ── Reasoning ladder — PAUSED (2026-07-24) ──
+  # Local DeepSeek was dropped: the t630 CPU is too weak to run it usefully, and the
+  # rented-GPU tier is not in use for now. Heavy reasoning falls to cloud-overflow
+  # (Claude) instead. To bring the ladder back, uncomment the two tiers below (and
+  # their fallbacks further down), `ollama pull deepseek-r1:1.5b` for local-reason,
+  # and stand up the rented GPU for cloud-gpu-reason (README "Offload heavy reasoning
+  # to a rented GPU").
+  # - model_name: local-reason        # light reasoning, t630 CPU (after `ollama pull deepseek-r1:1.5b`)
+  #   litellm_params:
+  #     model: ollama_chat/deepseek-r1:1.5b
+  #     api_base: http://127.0.0.1:11434
   #
-  #   local-reason       a SMALL distill for everyday "show your work" — runs cool on
-  #                      the t630 CPU. The t630 carries it, your laptop stays a thin
-  #                      browser client and never heats up.
-  #   cloud-gpu-reason   the FULL-size DeepSeek-R1 on a RENTED GPU (Vast.ai / RunPod),
-  #                      reached over a Tailscale tunnel — "GeForce Now for LLMs."
-  #                      Spin the pod up for a heavy session, stop it when done; while
-  #                      it's off, requests fall over to cloud-overflow (see fallbacks).
-  # See README "Offload heavy reasoning to a rented GPU" for the pod + tunnel setup.
-  - model_name: local-reason          # light reasoning, t630 CPU (after `ollama pull deepseek-r1:1.5b`)
-    litellm_params:
-      model: ollama_chat/deepseek-r1:1.5b
-      api_base: http://127.0.0.1:11434
-
-  - model_name: cloud-gpu-reason      # heavy reasoning — full DeepSeek-R1 on a rented GPU
-    litellm_params:
-      model: ollama_chat/deepseek-r1:32b          # size the pod for the tag you actually pull (32b/70b)
-      api_base: http://CHANGE_ME_GPU_HOST:11434   # the rented box's Tailscale IP (e.g. 100.x.y.z), NOT a public IP
+  # - model_name: cloud-gpu-reason    # heavy reasoning — full DeepSeek-R1 on a rented GPU
+  #   litellm_params:
+  #     model: ollama_chat/deepseek-r1:32b          # size the pod for the tag you actually pull (32b/70b)
+  #     api_base: http://CHANGE_ME_GPU_HOST:11434   # the rented box's Tailscale IP (e.g. 100.x.y.z), NOT a public IP
 
   # ── Embeddings for Huginn's RAG index (Mímir's well) — LOCAL, on the t630 ──
-  # After `ollama pull nomic-embed-text`. The supervisor's rag.py POSTs to /v1/embeddings
-  # with model_name `local-embed`, so the repo is embedded inside the walls — index build
-  # and query never cross the Bifröst.
+  # PROVISIONAL / optional: only used by the langgraph-router RAG index — leave it out
+  # unless you run that. Requires `ollama pull nomic-embed-text` first (README Step 12).
+  # The supervisor's rag.py POSTs to /v1/embeddings with model_name `local-embed`, so the
+  # repo is embedded inside the walls — index build and query never cross the Bifröst.
   - model_name: local-embed
     litellm_params:
       model: ollama/nomic-embed-text
@@ -99,14 +92,13 @@ router_settings:
   cooldown_time: 60                   # seconds a dead backend stays out of rotation
   # "Turn a laptop off and it re-routes": when a backend stops answering, LiteLLM
   # cools it down and falls through this map to the next. Local tiers spill to cloud.
-  # The reasoning ladder degrades gracefully: light → heavy GPU → cloud. When the
-  # rented GPU pod is stopped (its normal idle state) cloud-gpu-reason can't be
-  # reached, so those requests fall to cloud-overflow instead of erroring.
+  # (The reasoning-ladder fallbacks are paused with those tiers — see above.)
   fallbacks:
     - local-fast: ["local-smart", "cloud-overflow"]
     - local-smart: ["cloud-overflow"]
-    - local-reason: ["cloud-gpu-reason", "cloud-overflow"]
-    - cloud-gpu-reason: ["cloud-overflow"]
+    # Reasoning-ladder fallbacks — PAUSED with the tiers above; uncomment to restore.
+    # - local-reason: ["cloud-gpu-reason", "cloud-overflow"]
+    # - cloud-gpu-reason: ["cloud-overflow"]
     # Capability tiers degrade to the overflow brain if their primary errors. Safe: only
     # non-sensitive tasks ever reach a cloud-* tier (the supervisor's gate pins sensitive
     # ones local before planning), so a cloud→cloud fallback can't leak a private lookup.
