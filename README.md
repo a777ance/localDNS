@@ -37,9 +37,20 @@ localdns/
 │   └── monitors/                     # Cron-triggered packet loss and queue latency checks
 │
 ├── 04-user-services/                 # Self-hosted user applications
-│   ├── console/                      # Odin's High Seat launcher and ttyd web terminals
-│   ├── ai-orchestration/             # LiteLLM router and Open WebUI containers
-│   └── remote-desktop/               # NoMachine server tuning files
+│   ├── remote-desktop/               # NoMachine server tuning files
+│   ├── console/                      # (planned) High Seat launcher + ttyd web terminals — NOT yet in repo
+│   └── ai-orchestration/             # (planned) LiteLLM router + Open WebUI — NOT yet in repo
 │
-├── tools/                            # Repo maintenance & verification tools
+├── tools/                            # Repo maintenance & verification tools (check-docs.py, migrate.sh)
 └── CLAUDE.md                         # Structural guide and deploy references for AI assistants
+```
+
+> **Not yet snapshotted.** These are live on the t630 but not checked in, so the repo
+> is not yet a complete rollback target for them. Track them down and add them:
+>
+> - `04-user-services/console/` — High Seat launcher, `ttyd` unit files, `ttyd.env.example`
+> - `04-user-services/ai-orchestration/` — LiteLLM `docker-compose.yml`, `config.yaml`, `langgraph-router/`
+> - a **secrets vault** (sops + age) — sealed `*.env.sops`, `.sops.yaml`, `seal.sh`/`unseal.sh`
+> - `01-core-network/unbound/local-records.conf` — the LAN `*.home.lan` A-records drop-in
+>
+> See CLAUDE.md § C ("drift to reconcile") for the full mapping.
