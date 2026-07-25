@@ -1,8 +1,9 @@
 # CLAUDE.md
 
 Briefing for Claude Code. Read this first — it is the authoritative summary of
-the whole system. README.md is the complete setup guide and system reference.
-network-context.md has detailed rationale for non-obvious design decisions.
+the whole system. README.md is the top-level map and links out to the interactive
+field guide. docs/architecture/network-context.md has detailed rationale for
+non-obvious design decisions.
 
 ---
 
@@ -34,6 +35,7 @@ These conventions apply across **every** A777ance repo — current and future. (
 - [A. Hardware](#a-hardware)
 - [B. Network topology](#b-network-topology)
 - [C. Deploy paths](#c-deploy-paths)
+- [F. nftables volume layer — deploy checklist](#f-nftables-volume-layer--deploy-checklist)
 - [D. Unbound config](#d-unbound-config)
 - [E. AMD Carrizo GPU](#e-amd-carrizo-gpu)
 - [1. Known issues](#1-known-issues)
@@ -121,13 +123,13 @@ forward-path; that would hand Cloudflare your private lookups. (This path previo
 forwarded to a ~18-resolver plaintext UDP/53 pool, which leaked streaming lookups to
 the ISP in the clear. An interim plan to run a local `cloudflared proxy-dns` daemon
 was dropped — Cloudflare removed that feature in v2026.2.0 — in favor of Unbound's
-native DoT. See network-context.md "Unbound DNS split".)
+native DoT. See docs/architecture/network-context.md "Unbound DNS split".)
 
 **Host's own DNS:** the t630 resolves its *own* queries (apt, git, curl) via external
-resolvers (`03-host-dns/host-dns.conf`), NOT its own Pi-hole. Host-net Pi-hole takes
+resolvers (`01-core-network/host-dns/host-dns.conf`), NOT its own Pi-hole. Host-net Pi-hole takes
 `0.0.0.0:53` (so the resolved stub is disabled, `DNSStubListener=no`), and
 `/etc/resolv.conf` can't carry Unbound's `:5335` — so the host points straight at
-`9.9.9.9`/`1.1.1.1` instead. See network-context.md "Host resolver" for the root cause.
+`9.9.9.9`/`1.1.1.1` instead. See docs/architecture/network-context.md "Host resolver" for the root cause.
 
 **Uptime Kuma** runs with `network_mode: host` so it can reach Unbound at
 `127.0.0.1:5335` directly. No `ports:` mapping in the compose file. Pi-hole is
@@ -138,54 +140,66 @@ both containers sit directly on the host network stack.
 
 ## C. Deploy paths
 
-Folders are numbered by installation order. README adds two folder-less steps
-(Step 0 Router, Step 3 Docker CE), so a folder's number is not its README step
-number — use this table to map repo path → system path, not the step numbers.
+Files are grouped into **four service categories**, not installation order. The
+category number is a rough build sequence (core network → performance → monitoring →
+user services), but a file's real destination is defined by the table below — map
+repo path → system path here, don't infer it from the number. Setup steps (router,
+Docker CE, etc.) now live in the interactive field guide linked from README, not as
+numbered folders.
+
+Every row below corresponds to a file that **actually exists in this repo**. For
+components that are documented for the live box but not snapshotted here, see the
+"drift to reconcile" note under the table.
 
 | Repo path | System path | Reload |
 | --------- | ----------- | ------ |
-| `01-unbound/server.conf` | `/etc/unbound/unbound.conf.d/server.conf` | `sudo systemctl restart unbound` |
-| `01-unbound/tuning.conf` | `/etc/unbound/unbound.conf.d/tuning.conf` | `sudo systemctl restart unbound` |
-| `01-unbound/remote-control.conf` | `/etc/unbound/unbound.conf.d/remote-control.conf` | `sudo systemctl restart unbound` |
-| `01-unbound/root-auto-trust-anchor-file.conf` | `/etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf` | `sudo systemctl restart unbound` |
-| `01-unbound/streaming-forward.conf` | `/etc/unbound/unbound.conf.d/streaming-forward.conf` | `sudo systemctl restart unbound` |
-| `01-unbound/local-records.conf` | `/etc/unbound/unbound.conf.d/local-records.conf` | `sudo systemctl restart unbound` |
-| `01-unbound/unbound-cache-dump` | `/usr/local/bin/unbound-cache-dump` | — |
-| `01-unbound/unbound-cache-load` | `/usr/local/bin/unbound-cache-load` | — |
-| `01-unbound/unbound-cache-dump.service` | `/etc/systemd/system/unbound-cache-dump.service` | `sudo systemctl daemon-reload` |
-| `01-unbound/unbound-cache-dump.timer` | `/etc/systemd/system/unbound-cache-dump.timer` | `sudo systemctl daemon-reload` |
-| `01-unbound/unbound.service.d/override.conf` | `/etc/systemd/system/unbound.service.d/override.conf` | `sudo systemctl daemon-reload` |
-| `02-pihole/docker-compose.yml` | `~/pihole/docker-compose.yml` | `cd ~/pihole && docker compose up -d` |
-| `03-host-dns/host-dns.conf` | `/etc/systemd/resolved.conf.d/host-dns.conf` | `sudo systemctl restart systemd-resolved` |
-| `04-ufw/setup.sh` | run directly | `sudo bash 04-ufw/setup.sh` |
-| `05-wireguard/wg0.conf` | `/etc/wireguard/wg0.conf` | `sudo systemctl restart wg-quick@wg0` |
-| `05-wireguard/peer-template.conf` | reference only | — |
-| `06-cake/setup.sh` | `/usr/local/sbin/cake-setup.sh` | `sudo systemctl restart cake` |
-| `06-cake/cake.service` | `/etc/systemd/system/cake.service` | `sudo systemctl daemon-reload` |
-| `07-uptime-kuma/docker-compose.yml` | `~/uptime-kuma/docker-compose.yml` | `cd ~/uptime-kuma && docker compose up -d` |
-| `07-uptime-kuma/packet-loss-monitor.sh` | `~/packet-loss-monitor.sh` (+ cron) | `crontab -e` |
-| `07-uptime-kuma/cake-monitor.sh` | `~/cake-monitor.sh` (+ cron) | `crontab -e` |
-| `08-gpu-performance/gpu-performance.service` | `/etc/systemd/system/gpu-performance.service` | `sudo systemctl daemon-reload` |
-| `08-gpu-performance/cpu-performance.service` | `/etc/systemd/system/cpu-performance.service` | `sudo systemctl daemon-reload` |
-| `08-gpu-performance/99-amdgpu-performance.rules` | `/etc/udev/rules.d/99-amdgpu-performance.rules` | `sudo udevadm control --reload-rules` |
-| `09-remote-desktop/server.cfg` | `/usr/NX/etc/server.cfg` | `sudo /usr/NX/bin/nxserver --restart` |
-| `10-ai-orchestration/docker-compose.yml` | `~/llm-router/docker-compose.yml` | `cd ~/llm-router && docker compose up -d` |
-| `10-ai-orchestration/config.yaml` | `~/llm-router/config.yaml` | `cd ~/llm-router && docker compose up -d` |
-| `10-ai-orchestration/.env.example` | `~/llm-router/.env` (copy, then fill in) | `cd ~/llm-router && docker compose up -d` |
-| `10-ai-orchestration/langgraph-router/` | `~/llm-router/langgraph-router/` | **Odin** supervisor (alias Lionheart): Heimdall guards the Bifröst → Odin musters the host (3 orders of 5 + Loki, bound). `pip install -r requirements.txt` (venv); runs as a script, not a service |
-| `11-console/index.html` | `/var/www/console/index.html` | served by `console.service` |
-| `11-console/console.service` | `/etc/systemd/system/console.service` | `sudo systemctl daemon-reload` (set `User=`) |
-| `11-console/ttyd-thinclient.service` | `/etc/systemd/system/ttyd-thinclient.service` | `sudo systemctl daemon-reload` (set `User=`) |
-| `11-console/ttyd-laptop.service` | `/etc/systemd/system/ttyd-laptop.service` | `sudo systemctl daemon-reload` (set `User=`) |
-| `11-console/ttyd.env.example` | `/etc/a777ance/ttyd.env` (copy, fill, `chmod 600`) | restart the two `ttyd-*` units |
-| `11-console/browser-odin.md` | reference only (Mullvad sidebar config) | — |
-| `12-secrets/vault/*.env.sops` | decrypted by `unseal.sh` to each manifest target (e.g. `/etc/wireguard/wg0.conf`, `~/llm-router/.env`, `/etc/a777ance/ttyd.env`, `~/pihole/.env`) | `sudo -E 12-secrets/unseal.sh` (age identity present), then restart each consumer |
-| `12-secrets/.sops.yaml` | reference (governs `vault/`, carries the age recipient) | — |
-| `12-secrets/secrets.manifest` | reference (sealed → deploy-path map) | — |
-| `12-secrets/seal.sh` / `unseal.sh` / `rotate-secrets.sh` | run directly (seal/rotate on workstation, unseal on t630) | — |
+| `01-core-network/unbound/server.conf` | `/etc/unbound/unbound.conf.d/server.conf` | `sudo systemctl restart unbound` |
+| `01-core-network/unbound/tuning.conf` | `/etc/unbound/unbound.conf.d/tuning.conf` | `sudo systemctl restart unbound` |
+| `01-core-network/unbound/remote-control.conf` | `/etc/unbound/unbound.conf.d/remote-control.conf` | `sudo systemctl restart unbound` |
+| `01-core-network/unbound/root-auto-trust-anchor-file.conf` | `/etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf` | `sudo systemctl restart unbound` |
+| `01-core-network/unbound/streaming-forward.conf` | `/etc/unbound/unbound.conf.d/streaming-forward.conf` | `sudo systemctl restart unbound` |
+| `01-core-network/unbound/unbound-cache-dump` | `/usr/local/bin/unbound-cache-dump` | — |
+| `01-core-network/unbound/unbound-cache-load` | `/usr/local/bin/unbound-cache-load` | — |
+| `01-core-network/unbound/unbound-cache-dump.service` | `/etc/systemd/system/unbound-cache-dump.service` | `sudo systemctl daemon-reload` |
+| `01-core-network/unbound/unbound-cache-dump.timer` | `/etc/systemd/system/unbound-cache-dump.timer` | `sudo systemctl daemon-reload` |
+| `01-core-network/unbound/unbound.service.d/override.conf` | `/etc/systemd/system/unbound.service.d/override.conf` | `sudo systemctl daemon-reload` |
+| `01-core-network/pihole/docker-compose.yml` | `~/pihole/docker-compose.yml` | `cd ~/pihole && docker compose up -d` |
+| `01-core-network/host-dns/host-dns.conf` | `/etc/systemd/resolved.conf.d/host-dns.conf` | `sudo systemctl restart systemd-resolved` |
+| `01-core-network/ufw/setup.sh` | run directly | `sudo bash 01-core-network/ufw/setup.sh` |
+| `01-core-network/wireguard/wg0.conf` | `/etc/wireguard/wg0.conf` | `sudo systemctl restart wg-quick@wg0` |
+| `01-core-network/wireguard/peer-template.conf` | reference only | — |
+| `02-performance/cake/setup.sh` | `/usr/local/sbin/cake-setup.sh` | `sudo systemctl restart cake` |
+| `02-performance/cake/cake.service` | `/etc/systemd/system/cake.service` | `sudo systemctl daemon-reload` |
+| `02-performance/gpu-performance/gpu-performance.service` | `/etc/systemd/system/gpu-performance.service` | `sudo systemctl daemon-reload` |
+| `02-performance/gpu-performance/cpu-performance.service` | `/etc/systemd/system/cpu-performance.service` | `sudo systemctl daemon-reload` |
+| `02-performance/gpu-performance/99-amdgpu-performance.rules` | `/etc/udev/rules.d/99-amdgpu-performance.rules` | `sudo udevadm control --reload-rules` |
+| `03-monitoring/uptime-kuma/docker-compose.yml` | `~/uptime-kuma/docker-compose.yml` | `cd ~/uptime-kuma && docker compose up -d` |
+| `03-monitoring/monitors/packet-loss-monitor.sh` | `~/packet-loss-monitor.sh` (+ cron) | `crontab -e` |
+| `03-monitoring/monitors/cake-monitor.sh` | `~/cake-monitor.sh` (+ cron) | `crontab -e` |
+| `04-user-services/remote-desktop/server.cfg` | `/usr/NX/etc/server.cfg` | `sudo /usr/NX/bin/nxserver --restart` |
 | `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
+| `tools/check-docs.py` | run directly (validate Markdown links across root docs) | `python3 tools/check-docs.py` |
+| `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
+
+**Drift to reconcile — documented for the live box but NOT in this repo snapshot.**
+The README 2.0 architecture diagram lists these under `04-user-services/`, and the
+sections below still describe their live behavior, but no config is checked in. Either
+snapshot the config here (so the repo stays a valid rollback target) or trim the
+reference:
+
+| Missing from repo | What it should hold | Referenced in |
+| ----------------- | ------------------- | ------------- |
+| `04-user-services/console/` | High-seat launcher `index.html`, `console.service`, `ttyd-thinclient.service`, `ttyd-laptop.service`, `ttyd.env.example`, `browser-odin.md` | topology services table, Known issues |
+| `04-user-services/ai-orchestration/` | LiteLLM `docker-compose.yml`, `config.yaml`, `.env.example`, `langgraph-router/` (Odin supervisor) | topology services table, Known issues |
+| secrets vault (was `12-secrets/`) | sops+age `vault/*.env.sops`, `.sops.yaml`, `secrets.manifest`, `seal.sh`/`unseal.sh`/`rotate-secrets.sh` | Known issues (pihole/router/ttyd secrets) |
+| `01-core-network/unbound/local-records.conf` | LAN-only A records (`ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → t630) | Unbound config section |
+
+**Docs relocated under `docs/`** (not root): `INSTALL-NOTES.md`, `SKILLS.md`,
+`network-context.md`, `cell-grammar.md` → `docs/architecture/`; AI-CTO context →
+`docs/ai-cto/`; the Network Activity Statement gallery + `collect/` tools →
+`docs/statements/`.
 
 ---
 
@@ -224,8 +238,9 @@ verify with: `sudo nft -j list counters table inet a777acct`
 
 ## D. Unbound config
 
-Six drop-ins, loaded alphabetically (A→Z) by Unbound from `/etc/unbound/unbound.conf.d/`
-— listed Z→A here per house style:
+**Five** drop-ins live in `01-core-network/unbound/` in this repo, loaded
+alphabetically (A→Z) by Unbound from `/etc/unbound/unbound.conf.d/` — listed Z→A
+here per house style:
 
 | File | Purpose |
 | ---- | ------- |
@@ -234,7 +249,8 @@ Six drop-ins, loaded alphabetically (A→Z) by Unbound from `/etc/unbound/unboun
 | `server.conf` | Interface, port, access-control, security flags |
 | `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
 | `remote-control.conf` | Unix socket for `unbound-control` |
-| `local-records.conf` | LAN-only A records answered authoritatively (`ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → the t630, so the console sidebar pins names not IP:ports). `local-zone … transparent` overrides only the names defined, not the whole zone. |
+
+A sixth drop-in, `local-records.conf` (LAN-only A records: `ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → the t630, so the console sidebar pins names not IP:ports; `local-zone … transparent` overrides only the names defined, not the whole zone), is **documented but not present in this repo** — see the "drift to reconcile" note in section C. Add it under `01-core-network/unbound/` to make the LAN names reproducible from the repo.
 
 `tuning.conf` is the only place to change cache sizes, TTLs, or threading.
 Do not split these into separate files.
@@ -253,9 +269,9 @@ blocked).
 The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 
 1. GRUB: `amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1`
-2. `08-gpu-performance/gpu-performance.service`
-3. `08-gpu-performance/cpu-performance.service`
-4. `08-gpu-performance/99-amdgpu-performance.rules` — re-asserts `high` on every DRM event
+2. `02-performance/gpu-performance/gpu-performance.service`
+3. `02-performance/gpu-performance/cpu-performance.service`
+4. `02-performance/gpu-performance/99-amdgpu-performance.rules` — re-asserts `high` on every DRM event
 
 ---
 
@@ -263,17 +279,17 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 
 | Issue | Action |
 | ----- | ------ |
-| Console web terminals are a login shell over HTTP | `11-console` exposes `ttyd` on 7681 (thin client) and 7682 (laptop, via the t630 as SSH jump). The `ttyd` `--credential` is the only gate to a shell — treat it like a root password (in `/etc/a777ance/ttyd.env`, `chmod 600`, never in git). **LAN + WG only — never port-forward 8088/7681/7682; remote access is through WireGuard.** Harden with TLS (`ttyd -S`) and OS `login` over `bash` (notes in the unit files / `11-console/README.md`). |
-| Laptop SSH target is a placeholder | `11-console/ttyd.env.example` ships `LAPTOP_SSH=CHANGE_ME@10.8.0.CHANGE_ME`. Point it at a **stable** address (the laptop's WireGuard IP or a DHCP-reserved LAN IP), not a floating lease, or the laptop terminal won't connect. |
-| Heavy DeepSeek-R1 on local CPU overheats the client | Don't run `deepseek-r1:7b`+ on a CPU — its long chain-of-thought pins every core for minutes (cooks a laptop, throttles the t630). `10-ai-orchestration/config.yaml` now ships a reasoning ladder: `local-reason` (deepseek-r1:1.5b, t630 CPU, cool) for light work and `cloud-gpu-reason` (full R1 on a rented GPU via Tailscale, spun up on demand) for heavy work, falling over to `cloud-overflow` when the pod is off. See `10-ai-orchestration/README.md` "Offload heavy reasoning to a rented GPU." |
+| Console web terminals are a login shell over HTTP | `04-user-services/console` (not yet snapshotted — see section C drift note) exposes `ttyd` on 7681 (thin client) and 7682 (laptop, via the t630 as SSH jump). The `ttyd` `--credential` is the only gate to a shell — treat it like a root password (in `/etc/a777ance/ttyd.env`, `chmod 600`, never in git). **LAN + WG only — never port-forward 8088/7681/7682; remote access is through WireGuard.** Harden with TLS (`ttyd -S`) and OS `login` over `bash` (notes in the unit files / `04-user-services/console/README.md`). |
+| Laptop SSH target is a placeholder | `04-user-services/console/ttyd.env.example` ships `LAPTOP_SSH=CHANGE_ME@10.8.0.CHANGE_ME`. Point it at a **stable** address (the laptop's WireGuard IP or a DHCP-reserved LAN IP), not a floating lease, or the laptop terminal won't connect. |
+| Heavy DeepSeek-R1 on local CPU overheats the client | Don't run `deepseek-r1:7b`+ on a CPU — its long chain-of-thought pins every core for minutes (cooks a laptop, throttles the t630). `04-user-services/ai-orchestration/config.yaml` (not yet snapshotted — see section C drift note) now ships a reasoning ladder: `local-reason` (deepseek-r1:1.5b, t630 CPU, cool) for light work and `cloud-gpu-reason` (full R1 on a rented GPU via Tailscale, spun up on demand) for heavy work, falling over to `cloud-overflow` when the pod is off. See `04-user-services/ai-orchestration/README.md` "Offload heavy reasoning to a rented GPU." |
 | Live Pi-hole upstreams ≠ repo | Pi-hole v6 re-applies & locks `FTLCONF_dns_upstreams: 127.0.0.1#5335` on every start, overriding any `172.17.0.1#5335`/public resolvers left in the `pihole_data` volume. Confirm in the UI after deploying onto an old volume. |
-| Host-net Pi-hole vs systemd-resolved `:53` | Host-net Pi-hole binds `0.0.0.0:53`, colliding with the resolved stub on `127.0.0.53:53`. `03-host-dns/host-dns.conf` now sets `DNSStubListener=no` and README Steps 4-5 (Part A) re-points `/etc/resolv.conf` off the stub. On the live box, check current state before re-applying (see INSTALL-NOTES item 13). |
+| Host-net Pi-hole vs systemd-resolved `:53` | Host-net Pi-hole binds `0.0.0.0:53`, colliding with the resolved stub on `127.0.0.53:53`. `01-core-network/host-dns/host-dns.conf` now sets `DNSStubListener=no` and the field-guide DNS steps re-point `/etc/resolv.conf` off the stub. On the live box, check current state before re-applying (see docs/architecture/INSTALL-NOTES.md item 13). |
 | VPN peer DNS over the tunnel | **Resolved.** Pi-hole switched to `network_mode: host` — Docker DNAT no longer in the path, so `10.8.0.1:53` is answered directly for queries sourced from `wg0`. Port 8080 also added to the WG UFW rules so the Pi-hole UI is reachable from VPN peers. |
-| WireGuard `::/0` IPv6 black hole | Server is IPv4-only in-tunnel; peers routing `::/0` black-hole IPv6 (handshake OK, pages hang). Peer template now defaults to `0.0.0.0/0`. Leak-free dual-stack fix (ULA + NAT66) documented in network-context.md "WireGuard IPv6 black hole". |
-| WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Now reconciled into `05-wireguard/wg0.conf` (real public keys) but still UNIDENTIFIED with no recent handshake — identify each device or remove the stale peer. |
+| WireGuard `::/0` IPv6 black hole | Server is IPv4-only in-tunnel; peers routing `::/0` black-hole IPv6 (handshake OK, pages hang). Peer template now defaults to `0.0.0.0/0`. Leak-free dual-stack fix (ULA + NAT66) documented in docs/architecture/network-context.md "WireGuard IPv6 black hole". |
+| WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Now reconciled into `01-core-network/wireguard/wg0.conf` (real public keys) but still UNIDENTIFIED with no recent handshake — identify each device or remove the stale peer. |
 | Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
 | Pi-hole v5 → v6 env vars | `pihole/pihole:latest` is v6; compose migrated from v5 vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`) to `FTLCONF_*`. The v5 names are silently ignored by v6. |
-| `FTLCONF_webserver_api_password` in pihole compose | Now sourced from `~/pihole/.env` (sops+age vault, `12-secrets/`), fail-closed via `${...:?}` — no credential in git. Unseal the vault before `docker compose up`. |
+| `FTLCONF_webserver_api_password` in pihole compose | Now sourced from `~/pihole/.env` (sops+age vault — not yet snapshotted, see section C drift note), fail-closed via `${...:?}` — no credential in git. Unseal the vault before `docker compose up`. |
 | LLM router port vs NoMachine | The router (LiteLLM, stage 10) listens on **4040**, not LiteLLM's default 4000 — NoMachine already holds 4000 on this box. UFW gates 4040 to LAN + WG. |
 | LLM router secrets (`~/llm-router/.env`) | `LITELLM_MASTER_KEY` + `ANTHROPIC_API_KEY` live in `.env` (git-ignored); repo ships `.env.example` with `CHANGE_ME`. Never commit the real keys. |
 | Open WebUI port + first-run admin | Chat UI on **3000** (8080 is the Pi-hole UI). First account created at `chat.home.lan:3000` becomes admin — create it from a trusted device. State in `~/llm-router/open-webui-data/`. |
@@ -313,13 +329,15 @@ coherent, deployable commit straight on `main`.
 
 ## 4. Further reading
 
-- **README.md** — complete setup guide and system reference (SETUP.md absorbed here)
-- **INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
-- **SKILLS.md** — skills demonstrated by the stack, each mapped to proving artifacts
+- **README.md** — top-level map + links to the interactive field guide (setup wizard)
+- **docs/architecture/INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
+- **docs/architecture/SKILLS.md** — skills demonstrated by the stack, each mapped to proving artifacts
 - **PLUGINS.md** — which Claude Code Directory plugins apply to this config repo (short
   answer: none of the business ones — keep it lean)
-- **network-context.md** — design rationale: Docker networking, UFW/WireGuard
+- **docs/architecture/network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
+- **docs/architecture/cell-grammar.md** — supporting architecture notes
+- **tools/check-docs.py** — validates every Markdown link in the root docs (run before committing)
 
 ---
 
