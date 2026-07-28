@@ -2,7 +2,7 @@
 
 Read alongside the portfolio hub: `DESIGN-Full-Workflow-Integration-end-to-end-/docs/ai-cto/portfolio.md`.
 
-**Last updated:** 2026-06-08
+**Last updated:** 2026-07-28
 
 ---
 
@@ -52,6 +52,7 @@ See CLAUDE.md deploy table for the full map. Critical ones:
 
 ## Architecture pointers
 
+- `docs/statements/tools/generate_governance.py` → `docs/statements/ai-governance-blueprint.html` — career-facing blueprint (a rendered Pages page, not a markdown) mapping this homelab's hands-on AI work onto enterprise AI governance for a regulated insurance MGA (NIST AI RMF, Lloyd's DUA, NAIC, Colorado SB21-169, NY DFS; Claude-on-Bedrock playbook). Python is the single source of truth; the `pages.yml` workflow regenerates it. Served at `https://a777ance.github.io/localDNS/ai-governance-blueprint.html` once on `main`. Company/individual identifiers are masked as placeholders; the generator refuses to write if any real identifier appears.
 - `CLAUDE.md` — authoritative briefing; start there every session
 - `network-context.md` — design rationale for non-obvious decisions
 - `docs/statements/` — Statement output directory (client + operator HTML)
