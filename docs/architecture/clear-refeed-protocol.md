@@ -11,7 +11,8 @@ the running assistant keeps quoting the *old* briefing until the context is clea
 the re-seed restores the full standing briefing (the manifest below), not just the
 single file Claude Code auto-reinjects.
 
-One-liner: **sync → clear → `/refeed`.**
+One-liner: **sync → clear → `/refeed`** — or, with the hook installed, just
+**`/clear`** and the other two happen for you.
 
 ---
 
@@ -20,12 +21,43 @@ One-liner: **sync → clear → `/refeed`.**
 Blocks run last-first per house style (execution order is fixed by the stage
 numbers, not by reading order — Stage 1 runs first even though it's listed last).
 
+- [The one-command path (SessionStart hook)](#the-one-command-path-sessionstart-hook)
 - [Stage 3 — Refeed](#stage-3--refeed)
 - [Stage 2 — Clear](#stage-2--clear)
 - [Stage 1 — Sync](#stage-1--sync)
 - [The lossless manifest](#the-lossless-manifest)
 - [Guarantees & limits](#guarantees--limits)
 - [Revision log](#revision-log)
+
+---
+
+## The one-command path (SessionStart hook)
+
+The three stages below are the manual ritual. To collapse them into a **single
+command**, the repo ships a `SessionStart` hook (`.claude/hooks/refeed.sh`, wired in
+`.claude/settings.json`) that fires automatically whenever a session starts fresh or
+is cleared. When it fires it runs Stage 1 (sync: `git fetch` + a guarded
+fast-forward pull) and Stage 3 (refeed: injects the manifest directive), so:
+
+> **`/clear` is the end-to-end command.** You type `/clear`; the hook does the sync
+> and the refeed around it. One keystroke = sync → clear → refeed.
+
+Why it's a hook and not a `/`-command: a slash command's body runs *inside the
+conversation it would clear*, so a single command can't clear itself and then keep
+running. The `SessionStart` hook is the only place the sync+refeed can execute
+*around* the clear rather than inside it.
+
+Scope and safety:
+
+- Runs only on `source=startup` and `source=clear`. On `resume`/`compact` it exits
+  immediately — no pull, no re-inject — so in-progress work is never disturbed.
+- The pull is **fast-forward only and skipped on a dirty tree**. If it can't safely
+  fast-forward, it injects a `sync: BEHIND …` note instead of forcing anything.
+- It never re-injects CLAUDE.md (Claude Code reloads that from disk on every
+  clear); it only pulls in the *other three* manifest files.
+
+`/refeed` (the slash command) still exists for the **no-clear** case — refreshing the
+briefing mid-session without wiping the conversation.
 
 ---
 
@@ -109,5 +141,8 @@ slower without changing which decisions the assistant can make from the standing
 
 ## Revision log
 
+- **2026-07-29** — Added the one-command path: a `SessionStart` hook
+  (`.claude/hooks/refeed.sh` + `.claude/settings.json`) that auto-runs sync + refeed
+  on `startup`/`clear`, making bare `/clear` the end-to-end command.
 - **2026-07-29** — Protocol created. Three-stage sync → clear → `/refeed` ritual, the
   four-file lossless manifest, and the `.claude/commands/refeed.md` slash command.

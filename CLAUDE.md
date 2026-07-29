@@ -354,7 +354,7 @@ coherent, deployable commit straight on `main`.
 ## 4. Further reading
 
 - **README.md** — top-level map + links to the interactive field guide (setup wizard)
-- **docs/architecture/clear-refeed-protocol.md** — the sync → clear → `/refeed` ritual: how to wipe a stale session and re-seed the latest CLAUDE.md losslessly (slash command in `.claude/commands/refeed.md`)
+- **docs/architecture/clear-refeed-protocol.md** — the sync → clear → `/refeed` ritual: how to wipe a stale session and re-seed the latest CLAUDE.md losslessly. With the `SessionStart` hook (`.claude/hooks/refeed.sh`) installed, bare `/clear` runs the whole thing end-to-end; the `.claude/commands/refeed.md` slash command handles the no-clear refresh.
 - **docs/architecture/INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
 - **docs/architecture/SKILLS.md** — skills demonstrated by the stack, each mapped to proving artifacts
 - **PLUGINS.md** — which Claude Code Directory plugins apply to this config repo (short
