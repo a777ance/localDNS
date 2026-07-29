@@ -21,6 +21,7 @@ One-liner: **sync → clear → `/refeed`** — or, with the hook installed, jus
 Blocks run last-first per house style (execution order is fixed by the stage
 numbers, not by reading order — Stage 1 runs first even though it's listed last).
 
+- [Front door: choose before you wipe (`/refresh`)](#front-door-choose-before-you-wipe-refresh)
 - [The one-command path (SessionStart hook)](#the-one-command-path-sessionstart-hook)
 - [Stage 3 — Refeed](#stage-3--refeed)
 - [Stage 2 — Clear](#stage-2--clear)
@@ -30,6 +31,25 @@ numbers, not by reading order — Stage 1 runs first even though it's listed las
 - [Revision log](#revision-log)
 
 ---
+
+## Front door: choose before you wipe (`/refresh`)
+
+`/clear` is unconditional — it wipes first and asks nothing. If you want a **yes/no
+gate before losing history**, that gate can't live on `/clear` (the built-in offers
+no pre-wipe interception, and the `SessionStart` hook only runs *after* the clear has
+already happened). It has to live in a **front-door command you type instead of
+`/clear`**: `.claude/commands/refresh.md`.
+
+`/refresh` asks once, then branches:
+
+- **Refeed in place** (default) — keeps the whole conversation and reloads the latest
+  briefing on top of it. This is the auto-funnel: answer "don't clear" and it runs the
+  refeed for you, no wipe, no second command.
+- **Clear + refeed** — a custom command can't invoke the built-in `/clear`, so this
+  branch hands off: it tells you to type `/clear`, and the hook takes it from there.
+
+Use `/refresh` when you might want to keep history; type `/clear` directly when you
+already know you want the clean-slate end-to-end path.
 
 ## The one-command path (SessionStart hook)
 
@@ -141,6 +161,9 @@ slower without changing which decisions the assistant can make from the standing
 
 ## Revision log
 
+- **2026-07-29** — Added the `/refresh` front door: a pre-wipe Q&A gate
+  (`.claude/commands/refresh.md`) that asks keep-history vs. clear, auto-running the
+  in-place refeed on "keep" and handing off to `/clear` on "clear."
 - **2026-07-29** — Added the one-command path: a `SessionStart` hook
   (`.claude/hooks/refeed.sh` + `.claude/settings.json`) that auto-runs sync + refeed
   on `startup`/`clear`, making bare `/clear` the end-to-end command.
