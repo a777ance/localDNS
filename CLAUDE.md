@@ -28,9 +28,33 @@ These conventions apply across **every** A777ance repo — current and future. (
 
 ---
 
+## Portfolio conventions (all A777ance repos)
+
+Shared rules distilled from the sibling A777ance repos. They govern this repo too —
+especially the customer-facing **Statements** it owns under `docs/statements/`.
+
+- **This is the *public* product repo — it holds the stack and the Statements.** The
+  business model, pricing, guild economics, and real customer data live in **separate,
+  private** repos. **Invariant:** never copy private/business/customer data here — real
+  names and figures never appear in public git.
+- **Honesty of the kept document.** A Statement ships for money only with numbers the box
+  actually measured. Omit the "How You Compare" neighbor benchmark and the by-category GB
+  breakdown (measuring layer scaffolded — see section F — not yet stood up) rather than
+  print unsupported figures. People keep these documents — never fake a number on one.
+- **Plain-English voice on customer-facing surfaces.** The Statements read the way a good
+  tradesperson talks to a homeowner, not how an IT person talks to a server ("your
+  living-room TV," not "the endpoint") — a grandparent should understand it. Internal docs
+  may use jargon; the Statements may not.
+- **No secrets in git.** Keys, passwords, and tokens live in the sops+age vault or `.env`
+  (git-ignored); the repo ships `.env.example` / `CHANGE_ME` placeholders. Never commit the
+  real thing.
+
+---
+
 ## Contents
 
 - [House style: ordering & typography](#house-style-ordering--typography)
+- [Portfolio conventions](#portfolio-conventions-all-a777ance-repos)
 - [0. What this repo is](#0-what-this-repo-is)
 - [A. Hardware](#a-hardware)
 - [B. Network topology](#b-network-topology)
