@@ -1,5 +1,5 @@
 ---
-description: Empanel a concurrent jury on a question and return a plurality verdict (CLAUDE.md §G). For measurable/repeatable tasks, defer to jury-claude/ for statistically-governed stopping.
+description: Your CARDIO (bodybuilding schema) — quick, keyless conditioning. Empanels a concurrent in-harness jury on a question and returns a plurality verdict (CLAUDE.md §G). For the heavy loaded lift on measurable/repeatable tasks, use /strength (jury-claude) for statistically-governed stopping.
 argument-hint: <a question with an extractable, discrete answer — end it with the answer type you want>
 allowed-tools: Task, Bash(python3:*)
 ---

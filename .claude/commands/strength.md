@@ -1,5 +1,5 @@
 ---
-description: Empanel the statistical Claude Jury on a question and return a Dirichlet-stopped plurality verdict (CLAUDE.md §G). Uses the real Claude API (needs ANTHROPIC_API_KEY, so it spends). For a keyless in-harness vote, use /deliberate instead.
+description: Your STRENGTH lift (bodybuilding schema) — empanel the statistical Claude Jury on a question for a Dirichlet-stopped plurality verdict (CLAUDE.md §G). The heavy, loaded set: real Claude API (needs ANTHROPIC_API_KEY, so it spends). For keyless conditioning, use /cardio instead.
 argument-hint: <a question with an extractable, discrete answer — say the answer type>
 allowed-tools: Bash(python3:*)
 ---
@@ -13,7 +13,7 @@ costs tokens.**
 
 1. **Check for a key first.** If neither `ANTHROPIC_API_KEY` is set nor
    `04-user-services/ai-orchestration/jury-claude/.env` exists, stop and tell me:
-   there's no key, so this would fail — offer `/deliberate` instead (the keyless
+   there's no key, so this would fail — offer `/cardio` instead (the keyless
    in-harness jury), and don't run anything.
 
    ```bash
@@ -37,4 +37,4 @@ costs tokens.**
 
 Notes: bump `--effort high`/`--max-n` for harder questions (more cost). If the
 jurors mostly agree *and* are mostly wrong, that's systematic model bias the vote
-can't fix — flag it if you suspect it (and see `/study` for what that looks like).
+can't fix — flag it if you suspect it (and see `/diet` for what that looks like).

@@ -1,5 +1,5 @@
 ---
-description: Run the Jury's offline synthetic study and read the result — which regimes a self-consistency vote can and can't be trusted in. No API key, no spend, runs in seconds.
+description: Your DIET (bodybuilding schema) — plan what works before you train. Runs the Jury's offline synthetic study and reads the result: which regimes a self-consistency vote can and can't be trusted in. No API key, no spend, runs in seconds.
 argument-hint: (optional) extra flags, e.g. --study-questions 200 --seed 7 --max-n 12
 allowed-tools: Bash(python3:*)
 ---
@@ -27,4 +27,4 @@ does and does not pay off. This spends nothing and needs no API key.
    `calibrate` to detect them, rather than assuming the draws are independent.
 
 Do not present this as a measurement of real Claude behavior — it characterizes a
-*hypothesized* `p`/`rho`. Measuring the real numbers needs `/calibrate` with a key.
+*hypothesized* `p`/`rho`. Measuring the real numbers needs `/form` with a key.

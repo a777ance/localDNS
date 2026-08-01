@@ -361,8 +361,8 @@ temperature to set — variance comes from native sampling stochasticity plus **
 thinking** (the load-bearing "derive in the open" §G prefers), and `calibrate` becomes
 the *only* variance control ("measure `p`, don't guess" applied to a platform where the
 sampler, not a slider, sets `p`). The doctrine also runs **in-harness**: the `juror`
-subagent (`.claude/agents/juror.md`) plus the `/deliberate` command
-(`.claude/commands/deliberate.md`) empanel a concurrent jury of Claude Code subagents
+subagent (`.claude/agents/juror.md`) plus the `/cardio` command
+(`.claude/commands/cardio.md`) empanel a concurrent jury of Claude Code subagents
 and take a plurality — for one-off judgment calls where you'd otherwise consume a single
 warm draw.
 
