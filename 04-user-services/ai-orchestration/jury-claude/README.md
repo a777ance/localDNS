@@ -21,6 +21,7 @@ Stage 1 first).
 - [Stage 3 — Deliberate: answer one prompt](#stage-3--deliberate-answer-one-prompt)
 - [Stage 2 — Calibrate: measure your real `p`](#stage-2--calibrate-measure-your-real-p)
 - [Stage 1 — Configure](#stage-1--configure)
+- [One command — characterize the jury (`study`)](#one-command--characterize-the-jury-study)
 - [The temperature deviation](#the-temperature-deviation)
 - [Doctrine mapping (§G → Claude)](#doctrine-mapping-g--claude)
 - [Files](#files)
@@ -95,6 +96,48 @@ independent reasoning paths), not a temperature you don't have.
    ```
 
 ---
+
+## One command — characterize the jury (`study`)
+
+`calibrate` measures one config. **`study`** runs the whole characterization in a
+single, keyless, foreground command — three panels of `calibrate` cells that walk
+the jury across every regime, including the two that a naive i.i.d. mock hides and
+that a temperature-less Claude jury can actually fall into:
+
+```bash
+python3 jury_claude.py study        # ~seconds, stdlib only, no key, no spend
+```
+
+```
+  A. ACCURACY  (independent draws, dispersed errors — the happy path)
+  p=0.90          p̂=0.8938  voted=1.0     Δ=+0.11  avg-jury=7.58   vote pays off
+  p=0.45          p̂=0.4542  voted=0.9     Δ=+0.45  avg-jury=11.65  vote pays off
+  B. CORRELATION  (p=0.70, dispersed — raise rho; watch the jury collapse)
+  rho=0.0         p̂=0.6917  voted=1.0     Δ=+0.31  avg-jury=10.05  vote pays off
+  rho=0.9         p̂=0.6896  voted=0.6833  Δ=-0.01  avg-jury=7.0    vote adds ~nothing
+  C. SYSTEMATIC BIAS  (errors converge on one answer — vote entrenches it)
+  p=0.45          p̂=0.4528  voted=0.4167  Δ=-0.04  avg-jury=11.7   vote HURTS (entrenches)
+```
+
+The reads come from two `MockSampler` levers (also usable standalone on any
+`deliberate`/`calibrate` run, here and in `../jury/`):
+
+| Lever | Models | Why it matters here |
+| ----- | ------ | ------------------- |
+| `--mock-rho 0..1` | inter-juror **correlation** — a fraction of jurors copy one shared draw | the temperature-less risk made visible: **per-draw accuracy stays ~`p`, but the vote stops helping** as `rho` rises (the jury collapses to one) |
+| `--mock-systematic` | errors **converge on one wrong answer** instead of scattering | below `p=0.5` the vote *entrenches* the wrong answer — the failure the dispersed default can't show |
+
+`study` is the **wrapper** you asked for, and it is exactly what a detached run
+fires — same command, no extra implementation:
+
+```bash
+# fire-and-forget, capture the report
+nohup python3 jury_claude.py study > jury-study-$(date +%F).txt 2>&1 &
+```
+
+Because the whole study is offline and deterministic (fixed `--seed`), the
+foreground and detached forms are interchangeable — schedule it (cron / a
+Routine) and it delivers the same table unattended.
 
 ## The temperature deviation
 

@@ -181,18 +181,54 @@ class FireworksSampler:
 
 class MockSampler:
     """Synthetic jurors for offline testing: emits the gold answer w.p. `p`,
-    otherwise a distractor drawn from a pool. Lets the voter and calibration be
-    exercised (and this file's math validated) with no key and no spend."""
+    otherwise a distractor. Lets the voter and calibration be exercised (and this
+    file's math validated) with no key and no spend.
 
-    def __init__(self, p=0.7, gold="0.05", distractors=None, marker="ANSWER:", seed=None):
+    Two levers model the regimes where a vote should NOT be trusted — the ones a
+    naive i.i.d. mock hides (and the exact ones that matter for a temperature-less
+    Claude jury, where draw independence can't be dialed, only measured):
+
+      rho (0..1)   Inter-juror correlation. With probability `rho` a juror copies
+                   a per-question *consensus* draw instead of drawing on its own.
+                   The marginal per-draw accuracy stays ~`p` regardless of rho —
+                   only the independence changes — so as rho rises you watch the
+                   vote stop helping (voted accuracy falls back toward `p`): the
+                   "jury collapses to one" failure, made visible.
+      systematic   When a juror is wrong, all errors converge on ONE wrong answer
+                   instead of scattering across the pool. Below p=0.5 that wrong
+                   answer becomes modal and the vote *entrenches* it — the
+                   systematic-bias failure the dispersed default can't show."""
+
+    def __init__(self, p=0.7, gold="0.05", distractors=None, marker="ANSWER:",
+                 seed=None, rho=0.0, systematic=False):
         self.p, self.gold, self.marker = p, str(gold), marker
         self.distractors = distractors or ["0.10", "1.00", "0.15", "0.01", "0.50"]
+        self.systematic = systematic
+        self.rho = max(0.0, min(1.0, rho))
+        self.seed = seed
         self.rng = random.Random(seed)
+        self._consensus = {}  # per-prompt shared draw, stable across batches
+
+    def _draw_answer(self, rng):
+        if rng.random() < self.p:
+            return self.gold
+        # systematic bias: every error collapses onto ONE wrong answer.
+        return self.distractors[0] if self.systematic else rng.choice(self.distractors)
+
+    def _consensus_for(self, prompt):
+        """A single shared draw per prompt, stable across batches and independent
+        of PYTHONHASHSEED (random.Random seeds deterministically from a str)."""
+        if prompt not in self._consensus:
+            self._consensus[prompt] = self._draw_answer(random.Random(f"{self.seed}|{prompt}"))
+        return self._consensus[prompt]
 
     def sample(self, prompt, n):
         out = []
         for _ in range(n):
-            ans = self.gold if self.rng.random() < self.p else self.rng.choice(self.distractors)
+            if self.rng.random() < self.rho:
+                ans = self._consensus_for(prompt)   # correlated: copy the panel consensus
+            else:
+                ans = self._draw_answer(self.rng)   # independent draw
             out.append(f"(reasoning elided)\n{self.marker} {ans}")
         return out
 
@@ -320,7 +356,8 @@ def load_dotenv(path=".env"):
 def build_sampler(args):
     if args.mock_p is not None:
         return MockSampler(p=args.mock_p, gold=args.mock_true,
-                           marker=args.answer_marker or "ANSWER:", seed=args.seed)
+                           marker=args.answer_marker or "ANSWER:", seed=args.seed,
+                           rho=args.mock_rho, systematic=args.mock_systematic)
     load_dotenv(args.env_file)
     return FireworksSampler(
         model=args.model, api_key=os.environ.get("FIREWORKS_API_KEY"),
@@ -344,6 +381,10 @@ def _add_sampling_args(p):
     p.add_argument("--mock-p", type=float, default=None,
                    help="Offline: synthetic per-sample accuracy (no API, no spend).")
     p.add_argument("--mock-true", default="0.05", help="Mock gold answer.")
+    p.add_argument("--mock-rho", type=float, default=0.0,
+                   help="Offline: inter-juror correlation 0..1 (higher = draws collapse to one).")
+    p.add_argument("--mock-systematic", action="store_true",
+                   help="Offline: errors converge on ONE wrong answer (models systematic bias).")
 
 
 def _add_jury_args(p):
