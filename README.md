@@ -41,6 +41,7 @@ localdns/
 │   ├── console/                      # High Seat launcher + ttyd web terminals (units + page; verify vs live box)
 │   └── ai-orchestration/             # jury/ + jury-claude/ voters + LiteLLM front door; langgraph-router (Odin) still NOT in repo
 │
+├── vault/                            # sops+age secrets tooling (seal/unseal/rotate; sealed *.env.sops)
 ├── tools/                            # Repo maintenance & verification tools (check-docs.py, migrate.sh)
 └── CLAUDE.md                         # Structural guide and deploy references for AI assistants
 ```
@@ -49,6 +50,6 @@ localdns/
 > is not yet a complete rollback target for them. Track them down and add them:
 >
 > - `04-user-services/ai-orchestration/langgraph-router/` — the Odin supervisor (the LiteLLM front door and the `jury/` / `jury-claude/` voters are already in the repo)
-> - a **secrets vault** (sops + age) — sealed `*.env.sops`, `.sops.yaml`, `seal.sh`/`unseal.sh`
+> - the sealed `vault/*.env.sops` files — the sops+age tooling (`vault/`) is in the repo; the sealed secrets themselves are created from the real values on the box
 >
 > See CLAUDE.md § C ("drift to reconcile") for the full mapping.

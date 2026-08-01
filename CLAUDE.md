@@ -213,6 +213,9 @@ components that are documented for the live box but not snapshotted here, see th
 | `04-user-services/ai-orchestration/docker-compose.yml` | `~/llm-router/docker-compose.yml` | `cd ~/llm-router && docker compose up -d` |
 | `04-user-services/ai-orchestration/config.yaml` | `~/llm-router/config.yaml` | `cd ~/llm-router && docker compose up -d` |
 | `04-user-services/ai-orchestration/.env.example` | copy to `~/llm-router/.env` (git-ignored), set `LITELLM_MASTER_KEY` (+ `ANTHROPIC_API_KEY` for overflow) | — |
+| `vault/seal.sh` | run in `vault/` — encrypts `cleartext/*.env` → committable `*.env.sops` | `cd vault && ./seal.sh` |
+| `vault/unseal.sh` | run on the t630 — writes each sealed secret to its `secrets.manifest` deploy path (chmod 600) | `cd vault && ./unseal.sh` |
+| `vault/rotate-secrets.sh` | edit a sealed secret in place, or `--rekey` all to new age recipients | `cd vault && ./rotate-secrets.sh …` |
 | `04-user-services/ai-orchestration/jury/jury.py` | run on the t630 (or any host with the key) — adaptive self-consistency voter for Kimi K3 (see section G) | `python3 jury.py deliberate …` / `… calibrate …` |
 | `04-user-services/ai-orchestration/jury/.env.example` | copy to `…/jury/.env` (git-ignored), add `FIREWORKS_API_KEY` | — |
 | `04-user-services/ai-orchestration/jury-claude/jury_claude.py` | Claude-backend Jury — imports the `jury/` voter, adds a `ClaudeSampler` (Anthropic SDK). Run on any host with a key (see section G) | `python3 jury_claude.py deliberate …` / `… calibrate …` |
@@ -232,7 +235,7 @@ reference:
 | Missing from repo | What it should hold | Referenced in |
 | ----------------- | ------------------- | ------------- |
 | `04-user-services/ai-orchestration/langgraph-router/` | The Odin supervisor (LangGraph graph, `odin` CLI, `dispatcher.py`, juror/critic roster) — **still missing**; snapshot from the live box, don't fabricate from lore. The LiteLLM front door (`docker-compose.yml`, `config.yaml`, `.env.example`, `README.md`) and the `jury/` + `jury-claude/` voters (section G) are now snapshotted here. | topology services table, Known issues |
-| secrets vault (was `12-secrets/`) | sops+age `vault/*.env.sops`, `.sops.yaml`, `secrets.manifest`, `seal.sh`/`unseal.sh`/`rotate-secrets.sh` | Known issues (pihole/router/ttyd secrets) |
+| **sealed** `vault/*.env.sops` | The sops+age **tooling** (`.sops.yaml`, `secrets.manifest`, `seal.sh`/`unseal.sh`/`rotate-secrets.sh`, README) is now snapshotted under `vault/`. **Still missing:** the actual sealed `*.env.sops` — create them from the real values on the t630 (`./seal.sh` after setting a real age recipient). | Known issues (pihole/router/ttyd secrets) |
 
 **Docs relocated under `docs/`** (not root): `INSTALL-NOTES.md`, `SKILLS.md`,
 `network-context.md`, `cell-grammar.md` → `docs/architecture/`; AI-CTO context →
