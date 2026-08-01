@@ -11,7 +11,7 @@ does and does not pay off. This spends nothing and needs no API key.
 1. Run it (pass through any extra flags in $ARGUMENTS):
 
    ```bash
-   python3 04-user-services/ai-orchestration/jury-claude/jury_claude.py study $ARGUMENTS
+   python3 04-user-services/ai-orchestration/jury-claude/jury_claude.py diet $ARGUMENTS
    ```
 
 2. Read the table back to me — briefly, not verbatim. For each of the three panels

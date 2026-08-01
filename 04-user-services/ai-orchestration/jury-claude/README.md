@@ -10,6 +10,12 @@ which empanels a juror over the official Anthropic Messages API.
 > stating in one honest place rather than hiding behind a flag. See
 > [The temperature deviation](#the-temperature-deviation).
 
+> **Subcommand aliases.** Each subcommand also answers to its gym-schema name, so
+> the CLI lines up with the slash commands and nothing has two names to remember:
+> `deliberate`↔`strength`, `calibrate`↔`form`, `study`↔`diet`. The two forms are
+> exactly equivalent; the canonical verbs stay the primary, self-documenting names.
+> (The Kimi `../jury/` mirrors the `strength`/`form` aliases.)
+
 ---
 
 ## Contents

@@ -402,7 +402,9 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="The Jury — adaptive sequential self-consistency.")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    d = sub.add_parser("deliberate", help="Answer one prompt with an adaptive jury.")
+    # Gym-schema aliases mirror the Claude backend's, so the same names work here.
+    d = sub.add_parser("deliberate", aliases=["strength"],
+                       help="Answer one prompt with an adaptive jury (alias: strength).")
     src = d.add_mutually_exclusive_group(required=True)
     src.add_argument("--prompt")
     src.add_argument("--prompt-file")
@@ -410,7 +412,8 @@ def main(argv=None):
     _add_jury_args(d)
     d.add_argument("--json", action="store_true", help="Emit the full verdict as JSON.")
 
-    c = sub.add_parser("calibrate", help="Measure p-hat and the vote's real payoff.")
+    c = sub.add_parser("calibrate", aliases=["form"],
+                       help="Measure p-hat and the vote's real payoff (alias: form).")
     c.add_argument("--dataset", help="JSONL of {\"prompt\":..., \"answer\":...}.")
     c.add_argument("--samples-per-q", type=int, default=20)
     c.add_argument("--target", type=float, default=0.90,
@@ -421,10 +424,11 @@ def main(argv=None):
     _add_jury_args(c)
 
     args = ap.parse_args(argv)
+    cmd = {"strength": "deliberate", "form": "calibrate"}.get(args.cmd, args.cmd)
     extractor = make_extractor(args.answer_marker)
     sampler = build_sampler(args)
 
-    if args.cmd == "deliberate":
+    if cmd == "deliberate":
         prompt = args.prompt if args.prompt else open(args.prompt_file).read()
         verdict = deliberate(sampler, prompt, extractor, min_n=args.min_n,
                              max_n=args.max_n, batch=args.batch,
@@ -440,7 +444,7 @@ def main(argv=None):
                 print(f"    {row['votes']:>3}  {row['answer']}")
         return
 
-    if args.cmd == "calibrate":
+    if cmd == "calibrate":
         if args.dataset:
             dataset = [json.loads(l) for l in open(args.dataset) if l.strip()]
         elif args.mock_questions and args.mock_p is not None:
