@@ -20,7 +20,7 @@ accuracy, and the jury size the adaptive rule spends.
    instead so I can still see the machinery:
 
    ```bash
-   python3 04-user-services/ai-orchestration/jury-claude/jury_claude.py calibrate \
+   python3 04-user-services/ai-orchestration/jury-claude/jury_claude.py form \
      --mock-p 0.7 --mock-questions 120 --answer-marker ANSWER: --samples-per-q 12
    ```
    (mention that a keyless run measures a *hypothesized* p, not real Claude — and
@@ -29,7 +29,7 @@ accuracy, and the jury size the adaptive rule spends.
 3. **Run live** if a key is present:
 
    ```bash
-   python3 04-user-services/ai-orchestration/jury-claude/jury_claude.py calibrate \
+   python3 04-user-services/ai-orchestration/jury-claude/jury_claude.py form \
      --dataset <DATASET> --answer-marker ANSWER: --samples-per-q 12 --effort medium
    ```
 

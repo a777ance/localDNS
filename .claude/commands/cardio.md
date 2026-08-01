@@ -19,7 +19,7 @@ plurality vote outvote the idiosyncratic draws.
   `04-user-services/ai-orchestration/jury-claude/` instead, and **`calibrate`
   first** so the jury size is measured, not guessed:
   ```bash
-  python3 04-user-services/ai-orchestration/jury-claude/jury_claude.py calibrate \
+  python3 04-user-services/ai-orchestration/jury-claude/jury_claude.py form \
     --dataset <your.jsonl> --answer-marker ANSWER: --samples-per-q 12
   ```
   Its Dirichlet stopping rule and honest verdict beat the fixed fan-out below.

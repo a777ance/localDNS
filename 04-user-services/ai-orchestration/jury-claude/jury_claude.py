@@ -280,7 +280,12 @@ def main(argv=None):
         description="The Jury (Claude backend) — adaptive sequential self-consistency.")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    d = sub.add_parser("deliberate", help="Answer one prompt with an adaptive jury.")
+    # Gym-schema aliases so the CLI subcommand matches the slash command that
+    # calls it (/strength → strength, /form → form, /diet → diet). The canonical
+    # verbs stay the primary names — self-documenting, and nothing that already
+    # says deliberate/calibrate/study breaks.
+    d = sub.add_parser("deliberate", aliases=["strength"],
+                       help="Answer one prompt with an adaptive jury (alias: strength).")
     src = d.add_mutually_exclusive_group(required=True)
     src.add_argument("--prompt")
     src.add_argument("--prompt-file")
@@ -288,7 +293,8 @@ def main(argv=None):
     _add_jury_args(d)
     d.add_argument("--json", action="store_true", help="Emit the full verdict as JSON.")
 
-    c = sub.add_parser("calibrate", help="Measure p-hat and the vote's real payoff.")
+    c = sub.add_parser("calibrate", aliases=["form"],
+                       help="Measure p-hat and the vote's real payoff (alias: form).")
     c.add_argument("--dataset", help="JSONL of {\"prompt\":..., \"answer\":...}.")
     c.add_argument("--samples-per-q", type=int, default=12)
     c.add_argument("--target", type=float, default=0.90,
@@ -298,8 +304,8 @@ def main(argv=None):
     _add_sampling_args(c)
     _add_jury_args(c)
 
-    s = sub.add_parser("study",
-                       help="Turnkey offline sweep across every regime (no key, no spend).")
+    s = sub.add_parser("study", aliases=["diet"],
+                       help="Turnkey offline sweep across every regime — no key, no spend (alias: diet).")
     s.add_argument("--study-questions", type=int, default=120,
                    help="Synthetic questions per calibrate cell.")
     s.add_argument("--samples-per-q", type=int, default=12)
@@ -310,13 +316,16 @@ def main(argv=None):
     _add_jury_args(s)
 
     args = ap.parse_args(argv)
-    if args.cmd == "study":
+    # argparse records the alias the user typed; map it back to the canonical verb.
+    cmd = {"strength": "deliberate", "form": "calibrate", "diet": "study"}.get(
+        args.cmd, args.cmd)
+    if cmd == "study":
         _study(args)
         return
     extractor = make_extractor(args.answer_marker)
     sampler = build_sampler(args)
 
-    if args.cmd == "deliberate":
+    if cmd == "deliberate":
         prompt = args.prompt if args.prompt else open(args.prompt_file).read()
         verdict = deliberate(sampler, prompt, extractor, min_n=args.min_n,
                              max_n=args.max_n, batch=args.batch,
@@ -332,7 +341,7 @@ def main(argv=None):
                 print(f"    {row['votes']:>3}  {row['answer']}")
         return
 
-    if args.cmd == "calibrate":
+    if cmd == "calibrate":
         if args.dataset:
             dataset = [json.loads(l) for l in open(args.dataset) if l.strip()]
         elif args.mock_questions and args.mock_p is not None:

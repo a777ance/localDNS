@@ -25,7 +25,7 @@ costs tokens.**
    doesn't already pin the final-answer form):
 
    ```bash
-   python3 04-user-services/ai-orchestration/jury-claude/jury_claude.py deliberate \
+   python3 04-user-services/ai-orchestration/jury-claude/jury_claude.py strength \
      --prompt "$ARGUMENTS  End with 'ANSWER: <x>'." \
      --answer-marker ANSWER: --effort medium --min-n 3 --max-n 12 --batch 3
    ```
