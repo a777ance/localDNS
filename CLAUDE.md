@@ -62,6 +62,7 @@ especially the customer-facing **Statements** it owns under `docs/statements/`.
 - [F. nftables volume layer — deploy checklist](#f-nftables-volume-layer--deploy-checklist)
 - [D. Unbound config](#d-unbound-config)
 - [E. AMD Carrizo GPU](#e-amd-carrizo-gpu)
+- [G. LLM sampling doctrine — the Jury](#g-llm-sampling-doctrine--the-jury)
 - [1. Known issues](#1-known-issues)
 - [2. Verification](#2-verification)
 - [3. Working philosophy](#3-working-philosophy)
@@ -201,6 +202,8 @@ components that are documented for the live box but not snapshotted here, see th
 | `03-monitoring/monitors/packet-loss-monitor.sh` | `~/packet-loss-monitor.sh` (+ cron) | `crontab -e` |
 | `03-monitoring/monitors/cake-monitor.sh` | `~/cake-monitor.sh` (+ cron) | `crontab -e` |
 | `04-user-services/remote-desktop/server.cfg` | `/usr/NX/etc/server.cfg` | `sudo /usr/NX/bin/nxserver --restart` |
+| `04-user-services/ai-orchestration/jury/jury.py` | run on the t630 (or any host with the key) — adaptive self-consistency voter for Kimi K3 (see section G) | `python3 jury.py deliberate …` / `… calibrate …` |
+| `04-user-services/ai-orchestration/jury/.env.example` | copy to `…/jury/.env` (git-ignored), add `FIREWORKS_API_KEY` | — |
 | `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
@@ -216,7 +219,7 @@ reference:
 | Missing from repo | What it should hold | Referenced in |
 | ----------------- | ------------------- | ------------- |
 | `04-user-services/console/` | High-seat launcher `index.html`, `console.service`, `ttyd-thinclient.service`, `ttyd-laptop.service`, `ttyd.env.example`, `browser-odin.md` | topology services table, Known issues |
-| `04-user-services/ai-orchestration/` | LiteLLM `docker-compose.yml`, `config.yaml`, `.env.example`, `langgraph-router/` (Odin supervisor) | topology services table, Known issues |
+| `04-user-services/ai-orchestration/` | LiteLLM `docker-compose.yml`, `config.yaml`, `.env.example`, `langgraph-router/` (Odin supervisor) — still missing. **`jury/` (adaptive self-consistency voter) now snapshotted here** — see section G. | topology services table, Known issues |
 | secrets vault (was `12-secrets/`) | sops+age `vault/*.env.sops`, `.sops.yaml`, `secrets.manifest`, `seal.sh`/`unseal.sh`/`rotate-secrets.sh` | Known issues (pihole/router/ttyd secrets) |
 | `01-core-network/unbound/local-records.conf` | LAN-only A records (`ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → t630) | Unbound config section |
 
@@ -296,6 +299,57 @@ The iGPU downclocks to ~200 MHz headless. Four pieces, all required:
 2. `02-performance/gpu-performance/gpu-performance.service`
 3. `02-performance/gpu-performance/cpu-performance.service`
 4. `02-performance/gpu-performance/99-amdgpu-performance.rules` — re-asserts `high` on every DRM event
+
+---
+
+## G. LLM sampling doctrine — the Jury
+
+How this stack drives its *own* models (Kimi K3 on Fireworks, reached through the
+LiteLLM router). Adopted 2026-08-01. The unit of inference is **one tuned draw**;
+reliability comes from **how many draws and how they're aggregated**, not from
+making any single draw heavier.
+
+**The pipeline — lazy anchor → governed-warm body → concurrent vote:**
+
+- **Lazy anchor (first token).** Reasoning effort stays `low`. The first token is a
+  cheap, honest reflex, not an effortful pre-committed conclusion — it must not
+  anchor the trajectory into a rationalization. A detached "thinking" block can be
+  unfaithful (it justifies an answer the model already picked); reasoning that is
+  *load-bearing in the answer body* cannot be skipped. Prefer the latter — ask the
+  model to derive in the open, not to hand back a thinking dump.
+- **Governed-warm body (in-flight).** Run warm enough to self-correct mid-stream,
+  but **always pair temperature with a tail-clip** so it can never sample garbage.
+  Default juror config: `temperature 1.1`, `top_p 0.9`, `top_k 40`,
+  `max_tokens 8192`, presence/frequency penalties **`0`** (penalties corrupt code
+  and stack a second randomizer on the temperature — keep them off),
+  `Reasoning History: interleaved`.
+- **Concurrent vote (aggregate).** Never consume a single warm draw for anything
+  that matters — it's an honest guess, not a verdict. Sample several and let
+  agreement outvote the idiosyncratic rationalizations. Diverse-but-coherent draws
+  are the fuel; a plurality vote is the governor.
+
+**Invariants:**
+
+- **Match every degree of temperature with a degree of governance** — a tail-clip
+  (`top_p`/`min_p`) so it can't sample garbage, and a selector (the vote) so the
+  diversity is filtered into quality. Ungoverned high temperature is the *least*
+  intelligent setting on the panel, not the most.
+- **Temperature is a variance dial, not an intelligence dial.** Its only job is to
+  manufacture the decorrelated draws a vote needs. Too cold ⇒ near-identical draws
+  ⇒ the jury collapses to one. Peak useful heat for voting is ~`0.8–1.1` *governed*;
+  past the knee (~1.2) you buy incoherence, not insight.
+- **Measure `p`, don't guess it.** Per-sample accuracy sets the jury size. Voting
+  helps only when the correct answer is already *modal*; below that threshold it
+  amplifies a wrong answer. Run `jury.py calibrate` to measure the real number on
+  the task before trusting a vote.
+
+**The tool.** `04-user-services/ai-orchestration/jury/` implements this end to end —
+an adaptive sequential voter that empanels jurors in concurrent batches and stops on
+a Dirichlet posterior (easy prompts settle at `--min-n`, split ones run to
+`--max-n`), plus a `calibrate` mode that measures `p̂` and separates dispersed-error
+tasks (voting works, even below `p=0.5`) from systematic bias (voting entrenches the
+wrong answer). Standard library only, offline `--mock` mode for keyless testing. See
+its README.
 
 ---
 
