@@ -8,38 +8,55 @@
 # not return replies, so VPN-peer DNS silently failed. Host networking removes the
 # DNAT path entirely and fixes it.
 #
-# IMPORTANT: After first deploy, confirm upstream DNS in Pi-hole UI:
-#   Settings → DNS → custom upstream must be the single entry 127.0.0.1#5335
-#   (Unbound on the host; reachable directly because Pi-hole shares the host
-#   network stack). Do NOT add public resolvers here — the streaming/personal
-#   split is owned entirely by Unbound (see 01-core-network/unbound/streaming-forward.conf).
-#   Adding public resolvers would race them for ALL queries and leak personal
-#   lookups. The PIHOLE_DNS_ env var below only seeds this on a fresh volume; if
-#   the volume already exists, update it manually in the UI.
+# PI-HOLE v6. The image (pihole/pihole:latest) is v6, configured with FTLCONF_*
+# environment variables. The old v5 names (WEBPASSWORD, WEB_PORT, PIHOLE_DNS_) are
+# SILENTLY IGNORED by v6 — do not reintroduce them. v6 re-applies and LOCKS these
+# FTLCONF_* values on every start, so they override whatever is stored in the
+# pihole_data volume (not merely seed a fresh one).
+#
+# VERIFY AGAINST THE LIVE BOX: the three FTLCONF_* keys below are quoted verbatim
+# from CLAUDE.md (upstream, listeningMode, api_password). The webserver_port key
+# and the exact v6 volume layout are reconstructed — confirm on the t630 before
+# trusting this as a rollback target.
+#
+# IMPORTANT: After first deploy, confirm in the Pi-hole UI (Settings → DNS):
+#   * upstream shows the single entry 127.0.0.1#5335 (Unbound on the host,
+#     reachable directly because Pi-hole shares the host network stack), and
+#   * no public resolvers are checked.
+#   Do NOT add public resolvers here — the streaming/personal split is owned
+#   entirely by Unbound (see 01-core-network/unbound/streaming-forward.conf).
 
 services:
   pihole:
     container_name: pihole
     image: pihole/pihole:latest
     restart: unless-stopped
-    # Host networking: Pi-hole owns :53 and :8080 on every interface (incl. wg0),
-    # so both DNS and the web UI work for VPN peers. The ports: block is removed
-    # (host mode ignores it). WEB_PORT keeps the UI on 8080 — without it host mode
-    # binds the web server to :80, which UFW does not open.
+    # Host networking: Pi-hole owns :53 and the web UI on every interface (incl.
+    # wg0), so both DNS and the UI work for VPN peers. No ports: block — host mode
+    # ignores it.
     network_mode: host
+    # Loads ~/pihole/.env (git-ignored; unsealed from the sops+age vault). The web
+    # password fails CLOSED via ${...:?} below if the vault has not been unsealed.
+    env_file:
+      - .env
     environment:
       TZ: "America/New_York"
-      WEB_PORT: "8080"
-      # Upstream DNS — single upstream: Unbound on the host loopback.
-      # Pi-hole forwards EVERY query to Unbound, which then decides per-domain:
-      # streaming/low-sensitivity domains are forwarded to Cloudflare over DoT for
-      # speed (see 01-core-network/unbound/streaming-forward.conf); everything else resolves
-      # recursively and privately. A single upstream guarantees no public resolver
-      # ever sees a personal query.
-      PIHOLE_DNS_: "127.0.0.1#5335"
-      WEBPASSWORD: "CHANGE_ME"
-      DNSMASQ_USER: "pihole"
-      FTL_CMD: "no-daemon"
+      # Single upstream: Unbound on the host loopback. Pi-hole forwards EVERY query
+      # to Unbound, which decides per-domain (streaming → Cloudflare DoT for speed;
+      # everything else recursive + private). A single upstream guarantees no public
+      # resolver ever sees a personal query.
+      FTLCONF_dns_upstreams: "127.0.0.1#5335"
+      # Permit all origins. Safe because UFW restricts :53 to 192.168.0.0/16 and
+      # 10.8.0.0/24; needed so WireGuard peers (10.8.0.x, not on the LAN subnet) are
+      # answered. See docs/architecture/network-context.md "Permit all origins".
+      FTLCONF_dns_listeningMode: "all"
+      # Web UI port. v5's WEB_PORT is ignored under v6; this is the v6 equivalent so
+      # the UI stays on 8080 (UFW opens 8080, not 80). Confirm the exact syntax on
+      # the box — v6 accepts a port list like "80,443s".
+      FTLCONF_webserver_port: "8080"
+      # Admin/API password — sourced from ~/pihole/.env, NEVER in git. Fail closed:
+      # `docker compose up` errors if PIHOLE_WEBPASSWORD is unset (vault sealed).
+      FTLCONF_webserver_api_password: "${PIHOLE_WEBPASSWORD:?set PIHOLE_WEBPASSWORD in ~/pihole/.env (unseal the sops+age vault first)}"
     volumes:
       - pihole_data:/etc/pihole
       - dnsmasq_data:/etc/dnsmasq.d
