@@ -403,6 +403,15 @@ clean Ubuntu 24.04.
 open PRs or park work on feature branches for these repos; land each change as a
 coherent, deployable commit straight on `main`.
 
+**Conform to the LLM sampling doctrine** ([section G](#g-llm-sampling-doctrine--the-jury)).
+Any work that configures, prompts, or aggregates this stack's own models — router
+configs, orchestration, evals, agents — follows the doctrine by default: lazy anchor
+→ governed-warm body → concurrent vote, with the invariants (match temperature with
+governance; temperature is a variance dial, not an intelligence dial; measure `p`,
+don't guess). Don't consume a single warm draw where a verdict matters — route it
+through the Jury (`04-user-services/ai-orchestration/jury/`). Deviate only with a
+stated reason.
+
 ---
 
 ## 4. Further reading
