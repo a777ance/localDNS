@@ -51,6 +51,5 @@ localdns/
 > - `04-user-services/console/` — High Seat launcher, `ttyd` unit files, `ttyd.env.example`
 > - `04-user-services/ai-orchestration/` — LiteLLM `docker-compose.yml`, `config.yaml`, `langgraph-router/`
 > - a **secrets vault** (sops + age) — sealed `*.env.sops`, `.sops.yaml`, `seal.sh`/`unseal.sh`
-> - `01-core-network/unbound/local-records.conf` — the LAN `*.home.lan` A-records drop-in
 >
 > See CLAUDE.md § C ("drift to reconcile") for the full mapping.

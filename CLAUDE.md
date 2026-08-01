@@ -183,6 +183,7 @@ components that are documented for the live box but not snapshotted here, see th
 | `01-core-network/unbound/remote-control.conf` | `/etc/unbound/unbound.conf.d/remote-control.conf` | `sudo systemctl restart unbound` |
 | `01-core-network/unbound/root-auto-trust-anchor-file.conf` | `/etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf` | `sudo systemctl restart unbound` |
 | `01-core-network/unbound/streaming-forward.conf` | `/etc/unbound/unbound.conf.d/streaming-forward.conf` | `sudo systemctl restart unbound` |
+| `01-core-network/unbound/local-records.conf` | `/etc/unbound/unbound.conf.d/local-records.conf` | `sudo systemctl restart unbound` |
 | `01-core-network/unbound/unbound-cache-dump` | `/usr/local/bin/unbound-cache-dump` | — |
 | `01-core-network/unbound/unbound-cache-load` | `/usr/local/bin/unbound-cache-load` | — |
 | `01-core-network/unbound/unbound-cache-dump.service` | `/etc/systemd/system/unbound-cache-dump.service` | `sudo systemctl daemon-reload` |
@@ -223,7 +224,6 @@ reference:
 | `04-user-services/console/` | High-seat launcher `index.html`, `console.service`, `ttyd-thinclient.service`, `ttyd-laptop.service`, `ttyd.env.example`, `browser-odin.md` | topology services table, Known issues |
 | `04-user-services/ai-orchestration/` | LiteLLM `docker-compose.yml`, `config.yaml`, `.env.example`, `langgraph-router/` (Odin supervisor) — still missing. **`jury/` (Kimi K3 voter) and `jury-claude/` (Claude-backend voter) now snapshotted here** — see section G. | topology services table, Known issues |
 | secrets vault (was `12-secrets/`) | sops+age `vault/*.env.sops`, `.sops.yaml`, `secrets.manifest`, `seal.sh`/`unseal.sh`/`rotate-secrets.sh` | Known issues (pihole/router/ttyd secrets) |
-| `01-core-network/unbound/local-records.conf` | LAN-only A records (`ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → t630) | Unbound config section |
 
 **Docs relocated under `docs/`** (not root): `INSTALL-NOTES.md`, `SKILLS.md`,
 `network-context.md`, `cell-grammar.md` → `docs/architecture/`; AI-CTO context →
@@ -267,7 +267,7 @@ verify with: `sudo nft -j list counters table inet a777acct`
 
 ## D. Unbound config
 
-**Five** drop-ins live in `01-core-network/unbound/` in this repo, loaded
+**Six** drop-ins live in `01-core-network/unbound/` in this repo, loaded
 alphabetically (A→Z) by Unbound from `/etc/unbound/unbound.conf.d/` — listed Z→A
 here per house style:
 
@@ -278,8 +278,13 @@ here per house style:
 | `server.conf` | Interface, port, access-control, security flags |
 | `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
 | `remote-control.conf` | Unix socket for `unbound-control` |
+| `local-records.conf` | LAN-only A records (`ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → the t630) so the console sidebar pins names not IP:ports; `local-zone … transparent` overrides only the names defined, not the whole zone. |
 
-A sixth drop-in, `local-records.conf` (LAN-only A records: `ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → the t630, so the console sidebar pins names not IP:ports; `local-zone … transparent` overrides only the names defined, not the whole zone), is **documented but not present in this repo** — see the "drift to reconcile" note in section C. Add it under `01-core-network/unbound/` to make the LAN names reproducible from the repo.
+The `local-records.conf` names resolve only on the LAN/VPN (they point at the
+t630's private `192.168.1.118`) and must never be published to a public resolver.
+**Verify against the live box:** the names, IP, and `transparent` mechanism are
+reconstructed from this documentation — confirm each `local-data` line matches the
+t630 before trusting this drop-in as an authoritative rollback target.
 
 `tuning.conf` is the only place to change cache sizes, TTLs, or threading.
 Do not split these into separate files.
