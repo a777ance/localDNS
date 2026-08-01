@@ -41,9 +41,11 @@ test -n "$ANTHROPIC_API_KEY" || test -f 04-user-services/ai-orchestration/jury-c
   / `--max-n` when the question is clearly hard.
 - **`cardio`** (no key) — the keyless in-harness jury: empanel **5** concurrent
   `juror` subagents (Task tool, `subagent_type: "juror"`) on the prompt in a
-  **single message**, collect their `ANSWER:` lines, normalize, and take the
-  plurality. On a 3–2 / no-majority split, empanel **4 more** (to 9) once, then
-  stop.
+  **single message**, **each with a different answer-preserving framing** (plain /
+  skeptic / restate / cross-check / avoid-the-trap — same list as `/cardio`) so the
+  draws decorrelate by construction. Collect their `ANSWER:` lines, normalize, and
+  take the plurality. On a 3–2 / no-majority split, empanel **4 more** (to 9,
+  varying framings) once, then stop.
 
 ### 3. Cool-down — report honestly
 

@@ -72,6 +72,56 @@ DEFAULT_MODEL = "claude-opus-5"
 # Server-side refusal fallback (scalar 'default' mode) rides its own beta header.
 _FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
+# Answer-preserving framings — synthetic diversity for a temperature-less sampler
+# (CLAUDE.md §G "Portability"). Each juror gets a different *approach* to the SAME
+# question, injected via the system prompt; the question text is never touched, so
+# the draws decorrelate without changing what is asked. Kept quality-matched: every
+# framing is a legitimately strong strategy, none is handicapped, none hints at an
+# answer. Index 0 is the plain draw, so `--no-variants` and juror 0 agree. This is
+# the manufacture-diversity step the doctrine calls for on platforms that removed
+# the temperature knob (cf. self-consistency w/ prompt variation, e.g. DiVeRSe).
+FRAMINGS = [
+    None,  # 0 — direct: no imposed approach
+    "Approach this as a careful skeptic. Work through it one step at a time, and "
+    "before accepting each step ask how it could be wrong. Do not skip the middle.",
+    "Begin by restating the question in your own words and listing exactly what is "
+    "given and what is asked. Derive the result from those facts only.",
+    "Solve it, then double-check by reaching the same result a second way — estimate "
+    "first, or work backwards from a candidate answer — and reconcile any discrepancy "
+    "before you commit.",
+    "First name the most tempting wrong approach to a question like this and why it "
+    "tempts people, then deliberately avoid it and solve carefully.",
+    "Ignore any obvious shortcut. Derive the answer from first principles in your own "
+    "words, building each conclusion from the previous one.",
+]
+
+
+def _compose_system(base_system, framing):
+    """Combine a user-supplied system prompt with a per-juror framing directive."""
+    parts = [p for p in (base_system, framing) if p]
+    return "\n\n".join(parts) if parts else None
+
+
+def _is_meta(answer):
+    """True for a non-answer outcome bucket (refusal / abstention), not a real vote."""
+    a = str(answer).lower()
+    return a.startswith("<refused:") or a.startswith("<abstain:")
+
+
+def _meta_label(answer):
+    a = str(answer).lower()
+    if a.startswith("<refused:"):
+        return f"refused ({a[len('<refused:'):-1] or 'unspecified'})"
+    if a.startswith("<abstain:"):
+        return f"abstained ({a[len('<abstain:'):-1] or 'unspecified'})"
+    return "non-answer"
+
+
+def _substantive_plurality(tally):
+    """Leading real answer, ignoring refusal/abstention buckets (or None)."""
+    subs = [r for r in tally if not _is_meta(r["answer"])]
+    return max(subs, key=lambda r: r["votes"]) if subs else None
+
 
 # --------------------------------------------------------------------------- #
 # The sampler — one empanelled Claude juror, called n-at-a-time                #
@@ -81,16 +131,20 @@ class ClaudeSampler:
 
     No temperature/top_p/top_k: current Claude models reject them (400). The
     decorrelation a vote needs comes from native sampling stochasticity plus
-    adaptive thinking (`--thinking adaptive`, the default). Depth/cost is the
-    `effort` dial. A refusal is recorded as its own honest tally bucket
-    ('<refused:CATEGORY>') rather than silently dropped — unless
-    `--fallbacks-default` is set, in which case the API re-serves the draw on
+    adaptive thinking (`--thinking adaptive`, the default) AND — the load-bearing
+    part on a temperature-less platform — synthetic diversity: `variants` rotates
+    an answer-preserving framing across jurors (see FRAMINGS) so identical requests
+    no longer collapse into one reasoning path. Depth/cost is the `effort` dial. A
+    refusal is recorded as its own honest tally bucket ('<refused:CATEGORY>'), an
+    empty completion as '<abstain:empty>' — neither is silently dropped — unless
+    `--fallbacks-default` is set, in which case the API re-serves a refused draw on
     Anthropic's recommended fallback model inside the same call.
     """
 
     def __init__(self, model=DEFAULT_MODEL, api_key=None, effort="medium",
                  max_tokens=4096, thinking="adaptive", system=None,
-                 fallbacks_default=False, max_workers=5, max_retries=4):
+                 fallbacks_default=False, max_workers=5, max_retries=4,
+                 variants=True):
         try:
             import anthropic  # lazy — --mock never needs the dependency
         except ImportError:  # pragma: no cover
@@ -113,6 +167,12 @@ class ClaudeSampler:
         self.system = system
         self.fallbacks_default = fallbacks_default
         self.max_workers = max_workers
+        # Synthetic diversity: rotate answer-preserving framings across jurors so a
+        # temperature-less sampler still yields decorrelated draws to vote over.
+        # `_seq` carries the rotation across sequential batches so juror framings
+        # keep cycling (not restarting at 0 each batch).
+        self.variants = variants
+        self._seq = 0
 
         # Disabling thinking above 'high' effort is a 400 on Claude Opus 5, and
         # thinking-off has known tool-call/tag-leak failure modes — clamp + warn.
@@ -125,7 +185,7 @@ class ClaudeSampler:
             )
             self.effort = "high"
 
-    def _request_kwargs(self, prompt):
+    def _request_kwargs(self, prompt, framing=None):
         kwargs = {
             "model": self.model,
             "max_tokens": self.max_tokens,
@@ -136,12 +196,14 @@ class ClaudeSampler:
             kwargs["thinking"] = {"type": "adaptive"}
         else:
             kwargs["thinking"] = {"type": "disabled"}
-        if self.system:
-            kwargs["system"] = self.system
+        # The framing rides in the system prompt; the user question stays byte-identical.
+        system = _compose_system(self.system, framing)
+        if system:
+            kwargs["system"] = system
         return kwargs
 
-    def _one(self, prompt):
-        kwargs = self._request_kwargs(prompt)
+    def _one(self, prompt, framing=None):
+        kwargs = self._request_kwargs(prompt, framing)
         if self.fallbacks_default:
             resp = self._client.beta.messages.create(
                 betas=[_FALLBACK_BETA], fallbacks="default", **kwargs
@@ -154,13 +216,26 @@ class ClaudeSampler:
             category = getattr(getattr(resp, "stop_details", None), "category", None)
             return f"<refused:{category}>"
 
-        # Only the visible text is votable; thinking blocks are separate (and
-        # empty-text by default on these models anyway).
-        return "".join(b.text for b in resp.content if getattr(b, "type", None) == "text")
+        # Only the visible text is votable; thinking blocks are separate.
+        text = "".join(b.text for b in resp.content if getattr(b, "type", None) == "text")
+        # An empty completion (e.g. max_tokens consumed by thinking) is an
+        # abstention, not a vote for the empty string — bucket it honestly so it
+        # can't quietly become the plurality.
+        if not text.strip():
+            return "<abstain:empty>"
+        return text
+
+    def _framing_for(self, i):
+        return FRAMINGS[i % len(FRAMINGS)] if self.variants else None
 
     def sample(self, prompt, n):
+        # Assign framings by global juror index (stable across batches) before
+        # fanning out, so the concurrent threads never race on the counter.
+        base = self._seq
+        self._seq += n
+        jobs = [(prompt, self._framing_for(base + j)) for j in range(n)]
         with ThreadPoolExecutor(max_workers=min(n, self.max_workers)) as ex:
-            return list(ex.map(lambda _: self._one(prompt), range(n)))
+            return list(ex.map(lambda job: self._one(*job), jobs))
 
 
 # --------------------------------------------------------------------------- #
@@ -176,7 +251,7 @@ def build_sampler(args):
         model=args.model, api_key=os.environ.get("ANTHROPIC_API_KEY"),
         effort=args.effort, max_tokens=args.max_tokens, thinking=args.thinking,
         system=args.system, fallbacks_default=args.fallbacks_default,
-        max_workers=args.max_workers,
+        max_workers=args.max_workers, variants=args.variants,
     )
 
 
@@ -243,6 +318,11 @@ def _add_sampling_args(p):
                    help="output_config.effort — the depth/cost dial (no temperature exists).")
     p.add_argument("--thinking", default="adaptive", choices=["adaptive", "off"],
                    help="Adaptive thinking is the doctrine's governed-warm body; keep it on.")
+    p.add_argument("--variants", action=argparse.BooleanOptionalAction, default=True,
+                   help="Synthetic diversity: rotate answer-preserving framings across "
+                        "jurors so the temperature-less sampler decorrelates by "
+                        "construction. --no-variants gives the plain baseline (and lets "
+                        "`calibrate` measure the gain variants buy).")
     p.add_argument("--max-tokens", type=int, default=4096,
                    help="Caps thinking + answer together; give headroom when thinking is on.")
     p.add_argument("--max-workers", type=int, default=5,
@@ -333,12 +413,23 @@ def main(argv=None):
         if args.json:
             print(json.dumps(verdict, indent=2))
         else:
-            print(f"\n  VERDICT: {verdict['answer']}")
+            ans = verdict["answer"]
+            if _is_meta(ans):
+                # The panel's plurality is a non-answer (mostly refused/abstained) —
+                # report that honestly, don't dress it as a verdict.
+                print(f"\n  NO VERDICT — the panel {_meta_label(ans)}")
+                sub = _substantive_plurality(verdict["tally"])
+                if sub:
+                    print(f"  (leading substantive answer: {sub['answer']} — "
+                          f"{sub['votes']} vote(s), but it did not carry the panel)")
+            else:
+                print(f"\n  VERDICT: {ans}")
             print(f"  confidence {verdict['confidence']}  ·  {verdict['lead']} jurors  "
                   f"·  stopped: {verdict['stopped']}")
             print("  tally:")
             for row in verdict["tally"]:
-                print(f"    {row['votes']:>3}  {row['answer']}")
+                tag = f"   ← {_meta_label(row['answer'])}" if _is_meta(row["answer"]) else ""
+                print(f"    {row['votes']:>3}  {row['answer']}{tag}")
         return
 
     if cmd == "calibrate":

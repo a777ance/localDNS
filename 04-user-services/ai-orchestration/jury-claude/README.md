@@ -29,6 +29,7 @@ Stage 1 first).
 - [Stage 1 — Configure](#stage-1--configure)
 - [One command — characterize the jury (`study`)](#one-command--characterize-the-jury-study)
 - [The temperature deviation](#the-temperature-deviation)
+- [Synthetic diversity (`--variants`)](#synthetic-diversity---variants)
 - [Doctrine mapping (§G → Claude)](#doctrine-mapping-g--claude)
 - [Files](#files)
 
@@ -55,11 +56,18 @@ python3 jury_claude.py deliberate \
       5  0.05
 ```
 
-`--json` emits the full verdict (tally + every juror's raw text). A juror that is
-**refused** by the safety classifiers shows up as its own honest tally bucket,
-`<refused:CATEGORY>`, rather than being silently dropped — or pass
-`--fallbacks-default` to have the API re-serve that draw on Anthropic's
-recommended fallback model inside the same call.
+Jurors get **synthetic diversity by default** (`--variants`): each is handed a
+different answer-preserving framing so the temperature-less sampler decorrelates by
+construction — see [Synthetic diversity](#synthetic-diversity---variants). Pass
+`--no-variants` for the plain baseline.
+
+`--json` emits the full verdict (tally + every juror's raw text). Two outcomes are
+recorded as their own honest tally buckets rather than being silently dropped — and
+the report calls them out as non-answers instead of dressing them as a verdict:
+a juror **refused** by the safety classifiers → `<refused:CATEGORY>` (or pass
+`--fallbacks-default` to re-serve that draw on Anthropic's recommended fallback
+model inside the same call), and an **empty** completion (e.g. `max_tokens` spent
+entirely on thinking) → `<abstain:empty>`.
 
 ## Stage 2 — Calibrate: measure your real `p`
 
@@ -161,23 +169,71 @@ what §3 permits):
 - **No temperature to raise, no tail to clip.** The "match every degree of
   temperature with a degree of governance" invariant is satisfied vacuously — the
   platform removed the ungoverned knob for us.
-- **Variance comes from the sampler, amplified by adaptive thinking.** Repeated
-  identical requests are not deterministic, and adaptive thinking sends each
-  juror down a different reasoning path. That is where the decorrelation a vote
-  needs comes from.
-- **You measure the variance instead of dialing it.** `calibrate` is now the
-  primary control surface, not an afterthought: it tells you whether the draws
-  are independent enough for the vote to pay off on *your* task.
+- **Variance is *manufactured*, not dialed.** Two sources replace the missing
+  temperature. Passive: native sampling stochasticity + adaptive thinking (repeated
+  identical requests aren't deterministic, and adaptive thinking sends each juror
+  down a different reasoning path). Active — and load-bearing: **synthetic
+  diversity** (`--variants`, on by default) rotates an answer-preserving framing
+  across jurors so they decorrelate *by construction* instead of hoping native
+  noise is enough. See [Synthetic diversity](#synthetic-diversity---variants).
+- **You measure the variance instead of dialing it.** `calibrate` is the primary
+  control surface, not an afterthought: it tells you whether the draws are
+  independent enough for the vote to pay off on *your* task — and, run with
+  `--variants` vs `--no-variants`, exactly how much decorrelation the framings buy.
 
 The verdict layer is untouched — a plurality vote over decorrelated draws is
 model-agnostic, which is the whole reason it is imported, not re-implemented.
+
+## Synthetic diversity (`--variants`)
+
+The portability note in CLAUDE.md §G is explicit: *when a provider fixes or removes
+the decoding knobs, source juror diversity **synthetically** — prompt/framing/persona
+variation, or cross-model ensembling — and lean on the selector.* This is that step.
+
+With `--variants` (default **on**), `ClaudeSampler` hands each juror a different
+**answer-preserving framing** — injected via the *system* prompt, so the user
+question is never touched — from a small quality-matched set (`FRAMINGS`):
+
+| # | Framing | Approach it forces |
+| - | ------- | ------------------ |
+| 0 | *(plain)* | no imposed approach — the direct draw |
+| 1 | skeptic | one step at a time; interrogate each step before accepting it |
+| 2 | restate | restate the question, list given vs. asked, derive from those facts |
+| 3 | cross-check | solve, then reach the answer a second way and reconcile |
+| 4 | avoid-the-trap | name the tempting wrong approach first, then avoid it |
+| 5 | first-principles | ignore shortcuts; build each conclusion from the last |
+
+Jurors cycle through the list by global index (stable across batches). Because the
+framings change the *approach* and never the question, they decorrelate the
+reasoning path — which is the one thing that makes N votes worth ~N. This turns the
+tool from **detecting** correlation collapse (Panel B of `study`) to **preventing**
+it. The discipline: keep any framing you add answer-preserving and quality-matched,
+or you inject the systematic error a vote *entrenches* instead of the dispersed
+error it cancels.
+
+Two guardrails ride alongside: an empty completion becomes `<abstain:empty>` (an
+honest abstention, not an empty-string vote) and a refusal `<refused:CATEGORY>`;
+the report flags either as a **non-answer** rather than presenting it as the verdict.
+
+**Measure the payoff, don't assume it:**
+
+```bash
+# baseline vs. synthetic diversity on the same labelled set
+python3 jury_claude.py calibrate --dataset ../jury/datasets/example.jsonl \
+  --answer-marker ANSWER: --no-variants   # native decorrelation only
+python3 jury_claude.py calibrate --dataset ../jury/datasets/example.jsonl \
+  --answer-marker ANSWER:                 # + framing rotation (default)
+```
+
+A higher `accuracy_adaptive_vote` in the second run is the decorrelation the
+framings bought — "measure `p`, don't guess it," applied to the variance source.
 
 ## Doctrine mapping (§G → Claude)
 
 | §G stage | Kimi K3 (`../jury/`) | Claude (`jury_claude.py`) |
 | -------- | -------------------- | ------------------------- |
 | **Lazy anchor** | `reasoning effort: low` — cheap honest first token | Inherent: the first token is a reflex; there is no temperature to pre-commit a trajectory |
-| **Governed-warm body** | `temp 1.1 / top_p 0.9 / top_k 40`, penalties 0 | **Adaptive thinking** — load-bearing reasoning derived in the open (§G's *preferred* form over a detached thinking dump); depth via `--effort` |
+| **Governed-warm body** | `temp 1.1 / top_p 0.9 / top_k 40`, penalties 0 | **Adaptive thinking** (depth via `--effort`) **+ synthetic framing rotation** (`--variants`) — the manufactured decorrelation that replaces the removed temperature knob |
 | **Concurrent vote** | Dirichlet-posterior adaptive stop | *Identical* — imported from `../jury/jury.py` |
 | **Governance invariant** | tail-clip + selector | platform removed the knob; selector (the vote) remains |
 | **Measure `p`, don't guess** | `calibrate` confirms the config | `calibrate` is the *only* variance control — measure or don't vote |

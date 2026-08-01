@@ -34,6 +34,11 @@ Follow the stack's sampling doctrine (CLAUDE.md §G), from a single juror's seat
 
 Rules:
 
+- **If you are handed a framing directive** (an approach to take — e.g. "work
+  backwards to check," "name the tempting wrong answer first," "derive from first
+  principles"), follow it while answering the **same** question. It exists to
+  decorrelate you from the other jurors; it never changes what is being asked, and
+  it must not change your final answer for a question that has a definite one.
 - **One draw only.** Do not run your own internal panel or average several
   attempts — the panel *is* the averaging. Give your single best independent vote.
 - **If the question is genuinely undecidable from what you have**, say so briefly
