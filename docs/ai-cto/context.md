@@ -2,7 +2,48 @@
 
 Read alongside the portfolio hub: `DESIGN-Full-Workflow-Integration-end-to-end-/docs/ai-cto/portfolio.md`.
 
-**Last updated:** 2026-06-08
+**Last updated:** 2026-08-01
+
+---
+
+## Default next actions
+
+The pre-computed answer to "what's next?" — so a fresh session lands on a ready
+queue instead of re-deriving it from the open-items table. This is the default
+starting point; when the founder names a different priority, follow that instead.
+Keep this block in sync when an item ships (mark it done, promote the next one).
+
+**Ship path — the P1 chain (each unblocks the next; run in order).**
+
+1. **Deploy the nftables volume populator to the t630.** This is the top of the
+   chain — the by-category GB figures the Statements omit stay omitted until it
+   runs. Follow CLAUDE.md § F end to end (`scp` the `collect/` tools → `nft -f`
+   the ruleset → dry-run then `--apply` the populator → add the two cron lines).
+   *Blocked on:* SSH to the t630 (`192.168.1.118`).
+2. **Test the Statement PWA install on iOS and Android.** Confirm the
+   `docs/statements/` gallery (commit `6134824`, merged but never tested on a real
+   device) installs and opens offline as a home-screen PWA. *Blocked on:* the
+   nftables deploy (step 1), so the installed gallery shows real data.
+3. **Generate the first real Statement for a real household.** The end of the
+   chain — the first document that ships for money. Honor the honesty invariant:
+   only numbers the box actually measured (omit the neighbor benchmark and the
+   by-category breakdown until step 1's data exists). *Blocked on:* a client data
+   file (from Stage 05/08 in the DESIGN repo) + steps 1–2.
+
+**Repo-hygiene path — close the "drift to reconcile" gap (independent of SSH).**
+The repo is not yet a complete rollback target. Snapshot these live-but-uncommitted
+pieces (or trim the references), newest-relevant first — see CLAUDE.md § C:
+
+- `01-core-network/unbound/local-records.conf` — the LAN `*.home.lan` A-records
+  drop-in (smallest, fully specified in CLAUDE.md § D; do this first).
+- the **secrets vault** (sops + age) — sealed `*.env.sops`, `.sops.yaml`,
+  `seal.sh`/`unseal.sh`; the pihole/router/ttyd credentials depend on it.
+- `04-user-services/console/` — High-Seat launcher + the three `ttyd` unit files.
+- `04-user-services/ai-orchestration/` — LiteLLM `docker-compose.yml`, `config.yaml`,
+  `langgraph-router/` (the Odin supervisor).
+
+Everything below (P2/P3) waits on physical access to the box or on the ship path
+landing first — see the open-items table for the full list and blockers.
 
 ---
 
