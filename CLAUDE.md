@@ -204,6 +204,8 @@ components that are documented for the live box but not snapshotted here, see th
 | `04-user-services/remote-desktop/server.cfg` | `/usr/NX/etc/server.cfg` | `sudo /usr/NX/bin/nxserver --restart` |
 | `04-user-services/ai-orchestration/jury/jury.py` | run on the t630 (or any host with the key) — adaptive self-consistency voter for Kimi K3 (see section G) | `python3 jury.py deliberate …` / `… calibrate …` |
 | `04-user-services/ai-orchestration/jury/.env.example` | copy to `…/jury/.env` (git-ignored), add `FIREWORKS_API_KEY` | — |
+| `04-user-services/ai-orchestration/jury-claude/jury_claude.py` | Claude-backend Jury — imports the `jury/` voter, adds a `ClaudeSampler` (Anthropic SDK). Run on any host with a key (see section G) | `python3 jury_claude.py deliberate …` / `… calibrate …` |
+| `04-user-services/ai-orchestration/jury-claude/.env.example` | copy to `…/jury-claude/.env` (git-ignored), add `ANTHROPIC_API_KEY` | — |
 | `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
@@ -219,7 +221,7 @@ reference:
 | Missing from repo | What it should hold | Referenced in |
 | ----------------- | ------------------- | ------------- |
 | `04-user-services/console/` | High-seat launcher `index.html`, `console.service`, `ttyd-thinclient.service`, `ttyd-laptop.service`, `ttyd.env.example`, `browser-odin.md` | topology services table, Known issues |
-| `04-user-services/ai-orchestration/` | LiteLLM `docker-compose.yml`, `config.yaml`, `.env.example`, `langgraph-router/` (Odin supervisor) — still missing. **`jury/` (adaptive self-consistency voter) now snapshotted here** — see section G. | topology services table, Known issues |
+| `04-user-services/ai-orchestration/` | LiteLLM `docker-compose.yml`, `config.yaml`, `.env.example`, `langgraph-router/` (Odin supervisor) — still missing. **`jury/` (Kimi K3 voter) and `jury-claude/` (Claude-backend voter) now snapshotted here** — see section G. | topology services table, Known issues |
 | secrets vault (was `12-secrets/`) | sops+age `vault/*.env.sops`, `.sops.yaml`, `secrets.manifest`, `seal.sh`/`unseal.sh`/`rotate-secrets.sh` | Known issues (pihole/router/ttyd secrets) |
 | `01-core-network/unbound/local-records.conf` | LAN-only A records (`ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → t630) | Unbound config section |
 
@@ -350,6 +352,19 @@ a Dirichlet posterior (easy prompts settle at `--min-n`, split ones run to
 tasks (voting works, even below `p=0.5`) from systematic bias (voting entrenches the
 wrong answer). Standard library only, offline `--mock` mode for keyless testing. See
 its README.
+
+A **Claude-backend variant** lives in `04-user-services/ai-orchestration/jury-claude/`:
+it imports the same voter and swaps in a `ClaudeSampler` over the Anthropic SDK. One
+honest deviation from this doctrine, stated in its README: current Claude models
+**remove `temperature`/`top_p`/`top_k`** (400 on send), so there is no governed-warm
+temperature to set — variance comes from native sampling stochasticity plus **adaptive
+thinking** (the load-bearing "derive in the open" §G prefers), and `calibrate` becomes
+the *only* variance control ("measure `p`, don't guess" applied to a platform where the
+sampler, not a slider, sets `p`). The doctrine also runs **in-harness**: the `juror`
+subagent (`.claude/agents/juror.md`) plus the `/deliberate` command
+(`.claude/commands/deliberate.md`) empanel a concurrent jury of Claude Code subagents
+and take a plurality — for one-off judgment calls where you'd otherwise consume a single
+warm draw.
 
 ---
 
