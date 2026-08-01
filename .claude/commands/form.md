@@ -1,5 +1,5 @@
 ---
-description: Measure the Jury's real per-sample accuracy p̂ and whether voting actually pays off on a labelled set (CLAUDE.md §G — "measure p, don't guess it"). Uses the real Claude API (needs ANTHROPIC_API_KEY) unless run in --mock mode.
+description: Your FORM check (bodybuilding schema) — is the movement actually productive? Measures the Jury's real per-sample accuracy p̂ and whether voting beats a single draw on a labelled set (CLAUDE.md §G — "measure p, don't guess it"). Real Claude API (needs ANTHROPIC_API_KEY) unless run in --mock mode.
 argument-hint: (optional) path to a labelled JSONL of {"prompt":…, "answer":…}; defaults to the bundled example set
 allowed-tools: Bash(python3:*)
 ---
@@ -24,7 +24,7 @@ accuracy, and the jury size the adaptive rule spends.
      --mock-p 0.7 --mock-questions 120 --answer-marker ANSWER: --samples-per-q 12
    ```
    (mention that a keyless run measures a *hypothesized* p, not real Claude — and
-   that `--mock-rho` / `--mock-systematic` or `/study` explore the failure modes.)
+   that `--mock-rho` / `--mock-systematic` or `/diet` explore the failure modes.)
 
 3. **Run live** if a key is present:
 
