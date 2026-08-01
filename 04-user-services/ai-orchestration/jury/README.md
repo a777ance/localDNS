@@ -163,3 +163,9 @@ Exact-match voting needs a canonical answer. Two ways to get one:
 | `jury.py` | Sampler, extractor, Dirichlet voter, adaptive loop, calibrator, CLI |
 | `datasets/example.jsonl` | Five marked-answer reasoning prompts for `calibrate` |
 | `.env.example` | `FIREWORKS_API_KEY=CHANGE_ME` template → copy to `.env` |
+
+## References
+
+- CLAUDE.md [§G — LLM sampling doctrine](../../../CLAUDE.md#g-llm-sampling-doctrine--the-jury) — the doctrine this tool implements.
+- [Self-Consistency Improves Chain-of-Thought Reasoning in Language Models](https://arxiv.org/abs/2203.11171) — Wang et al., 2022. The method this tool operationalizes: sample diverse reasoning paths, return the plurality answer.
+- [The Claude-backend Jury](../jury-claude/) — same voter, swapped sampler, for a temperature-less platform.

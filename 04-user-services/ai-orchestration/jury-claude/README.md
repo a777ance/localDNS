@@ -32,6 +32,7 @@ Stage 1 first).
 - [Synthetic diversity (`--variants`)](#synthetic-diversity---variants)
 - [Doctrine mapping (§G → Claude)](#doctrine-mapping-g--claude)
 - [Files](#files)
+- [References](#references)
 
 ---
 
@@ -162,7 +163,8 @@ diversity.
 
 **Current Claude models (`claude-opus-5`, `claude-opus-4-8`, `claude-fable-5`,
 `claude-sonnet-5`) remove `temperature`, `top_p`, and `top_k` entirely — sending
-any of them returns a 400.** So the §G mechanism cannot be expressed here, and
+any of them returns a 400** ([Messages API reference](https://docs.claude.com/en/api/messages):
+these params are unsupported on Claude 4.7+ and 400 on send). So the §G mechanism cannot be expressed here, and
 this tool deviates from the doctrine's default *with a stated reason* (exactly
 what §3 permits):
 
@@ -188,7 +190,11 @@ model-agnostic, which is the whole reason it is imported, not re-implemented.
 
 The portability note in CLAUDE.md §G is explicit: *when a provider fixes or removes
 the decoding knobs, source juror diversity **synthetically** — prompt/framing/persona
-variation, or cross-model ensembling — and lean on the selector.* This is that step.
+variation, or cross-model ensembling — and lean on the selector.* This is that step,
+and it is the well-trodden route: [self-consistency](https://arxiv.org/abs/2203.11171)
+(Wang et al., 2022) samples diverse reasoning paths and votes the plurality, and
+[DiVeRSe](https://arxiv.org/abs/2206.02336) (Li et al., 2022) explicitly manufactures
+*prompt* variations to push the model down different paths before aggregating.
 
 With `--variants` (default **on**), `ClaudeSampler` hands each juror a different
 **answer-preserving framing** — injected via the *system* prompt, so the user
@@ -228,6 +234,11 @@ python3 jury_claude.py calibrate --dataset ../jury/datasets/example.jsonl \
 A higher `accuracy_adaptive_vote` in the second run is the decorrelation the
 framings bought — "measure `p`, don't guess it," applied to the variance source.
 
+> **Next lift (hypothetical, not built).** Framing rotation decorrelates one model
+> against *itself*. The strongest diversity source is **cross-model ensembling** —
+> seating a Kimi juror (`../jury/`) on the same panel so draws differ by *model*,
+> not just framing. Left as future work.
+
 ## Doctrine mapping (§G → Claude)
 
 | §G stage | Kimi K3 (`../jury/`) | Claude (`jury_claude.py`) |
@@ -246,3 +257,11 @@ framings bought — "measure `p`, don't guess it," applied to the variance sourc
 | `.env.example` | `ANTHROPIC_API_KEY=CHANGE_ME` template → copy to `.env` |
 
 Reuses `../jury/datasets/example.jsonl` for `calibrate` — no separate dataset.
+
+## References
+
+- CLAUDE.md [§G — LLM sampling doctrine](../../../CLAUDE.md#g-llm-sampling-doctrine--the-jury) — the doctrine this tool implements, including the portability note.
+- [Self-Consistency Improves Chain-of-Thought Reasoning in Language Models](https://arxiv.org/abs/2203.11171) — Wang et al., 2022. Sample diverse reasoning paths, return the most consistent (plurality) answer.
+- [On the Advance of Making Language Models Better Reasoners (DiVeRSe)](https://arxiv.org/abs/2206.02336) — Li et al., 2022. Manufacture prompt variations to diversify reasoning paths, then verify and weight the votes.
+- [Claude Messages API reference](https://docs.claude.com/en/api/messages) — `temperature`/`top_p`/`top_k` unsupported on Claude 4.7+; non-default values return a 400.
+- [Gemini API changelog](https://ai.google.dev/gemini-api/docs/changelog) — the same sampling-knob deprecation at another vendor; the industry trend §G's portability note anticipates.
