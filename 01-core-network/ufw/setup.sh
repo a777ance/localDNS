@@ -23,6 +23,11 @@ ufw allow in from "$LAN" to any port 4000 proto tcp
 ufw allow in from "$LAN" to any port 4000 proto udp
 ufw allow in from "$LAN" to any port 5353 proto udp
 ufw allow in from "$LAN" to any port 3001 proto tcp
+# Console high seat + ttyd web terminals (04-user-services/console). These are
+# credential-gated web SHELLS — LAN + WG only, NEVER Anywhere / port-forwarded.
+ufw allow in from "$LAN" to any port 8088 proto tcp   # high-seat launcher
+ufw allow in from "$LAN" to any port 7681 proto tcp   # ttyd — thin client
+ufw allow in from "$LAN" to any port 7682 proto tcp   # ttyd — laptop (SSH jump)
 # Docker bridge → Unbound on 5335. Now vestigial: both Pi-hole and Uptime Kuma run
 # network_mode: host and reach Unbound over the host loopback (127.0.0.1:5335, not
 # filtered by UFW), so no container crosses docker0 for DNS anymore. Kept as a
@@ -41,6 +46,11 @@ ufw allow in from "$WG" to any port 53 proto udp
 ufw allow in from "$WG" to any port 22 proto tcp
 ufw allow in from "$WG" to any port 8080 proto tcp
 ufw allow in from "$WG" to any port 3001 proto tcp
+# Console + terminals reachable from VPN peers (remote access is via WireGuard,
+# not a WAN port-forward — that is the whole point of gating these to WG only).
+ufw allow in from "$WG" to any port 8088 proto tcp
+ufw allow in from "$WG" to any port 7681 proto tcp
+ufw allow in from "$WG" to any port 7682 proto tcp
 ufw allow out to any port 53 proto udp
 ufw --force enable
 ufw status verbose

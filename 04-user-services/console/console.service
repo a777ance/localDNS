@@ -1,0 +1,28 @@
+# Deploys to: /etc/systemd/system/console.service
+# Reload: sudo systemctl daemon-reload && sudo systemctl restart console
+#
+# The high-seat launcher: serves the static index.html on :8088.
+# LAN + WG only — UFW gates the port; this unit does not bind-restrict by itself.
+# Set User= to the real login on the t630 before enabling.
+
+[Unit]
+Description=Console high-seat launcher (static, :8088)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=CHANGE_ME
+WorkingDirectory=/opt/console
+# Stdlib http.server — no dependency to install. Binds all interfaces; UFW is the boundary.
+ExecStart=/usr/bin/python3 -m http.server 8088 --directory /opt/console
+Restart=on-failure
+RestartSec=2
+# Hardening: the launcher is static, so lock it down.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The High Seat</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --card: #171c24;
+    --card-hover: #1f2632;
+    --edge: #2a323f;
+    --ink: #e6e9ee;
+    --muted: #8b95a4;
+    --accent: #c9a227; /* high-seat gold */
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(120% 90% at 50% -10%, #1a2130 0%, var(--bg) 60%);
+    color: var(--ink);
+    font-family: 'Gill Sans MT', 'Gill Sans', Calibri, 'Trebuchet MS', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 1.25rem 4rem;
+  }
+  header { text-align: center; margin-bottom: 2.5rem; }
+  h1 { margin: 0; font-size: 2rem; letter-spacing: .06em; }
+  .sub { color: var(--muted); margin-top: .4rem; font-size: .95rem; }
+  .grid {
+    width: 100%;
+    max-width: 760px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  a.card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+    transition: background .15s ease, transform .15s ease, border-color .15s ease;
+  }
+  a.card:hover {
+    background: var(--card-hover);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .name { font-size: 1.15rem; font-weight: 600; }
+  .addr { color: var(--accent); font-size: .85rem; margin-top: .15rem; }
+  .desc { color: var(--muted); font-size: .85rem; margin-top: .5rem; line-height: 1.35; }
+  footer { color: var(--muted); font-size: .78rem; margin-top: 2.5rem; text-align: center; max-width: 620px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>The High Seat</h1>
+    <div class="sub">Every realm on the t630, one door each.</div>
+  </header>
+
+  <!-- Cards listed Z->A per house style. Names resolve via local-records.conf. -->
+  <main class="grid">
+    <a class="card" href="http://term.home.lan:7681">
+      <div class="name">Terminal — thin client</div>
+      <div class="addr">term.home.lan:7681</div>
+      <div class="desc">Web shell on the t630 itself. Credential-gated; LAN + WG only.</div>
+    </a>
+    <a class="card" href="http://pihole.home.lan:8080/admin">
+      <div class="name">Pi-hole</div>
+      <div class="addr">pihole.home.lan:8080</div>
+      <div class="desc">Ad-blocking + DNS query log, per-device stats.</div>
+    </a>
+    <a class="card" href="http://laptop.home.lan:7682">
+      <div class="name">Terminal — laptop</div>
+      <div class="addr">laptop.home.lan:7682</div>
+      <div class="desc">Web shell to the laptop, jumped through the t630 over SSH.</div>
+    </a>
+    <a class="card" href="http://kuma.home.lan:3001">
+      <div class="name">Uptime Kuma</div>
+      <div class="addr">kuma.home.lan:3001</div>
+      <div class="desc">Service + link monitoring; DNS, packet loss, CAKE.</div>
+    </a>
+    <a class="card" href="http://chat.home.lan:3000">
+      <div class="name">Chat — Open WebUI</div>
+      <div class="addr">chat.home.lan:3000</div>
+      <div class="desc">Browser front-end for the LLM router. Talks only to the front door.</div>
+    </a>
+    <a class="card" href="http://ai.home.lan:4040">
+      <div class="name">AI router — LiteLLM</div>
+      <div class="addr">ai.home.lan:4040</div>
+      <div class="desc">One OpenAI-compatible endpoint; routes to whole-model backends.</div>
+    </a>
+  </main>
+
+  <footer>
+    Reachable on the LAN and over WireGuard only. If you can open this from the
+    public internet, something is misconfigured — nothing here should be
+    port-forwarded.
+  </footer>
+</body>
+</html>
