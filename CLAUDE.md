@@ -345,6 +345,17 @@ making any single draw heavier.
   amplifies a wrong answer. Run `jury.py calibrate` to measure the real number on
   the task before trusting a vote.
 
+**Portability — the vote is the governor that survives vendor changes.** The
+per-token knobs live in the *vendor's* layer, and vendors are removing them: some
+frontier model families (e.g. the latest Gemini models, mid-2026) now ignore
+`temperature`/`top_p`/`top_k`, steering variance through system instructions and
+thinking-level settings instead. When a provider fixes or removes the decoding
+knobs, source juror diversity **synthetically** — prompt/framing/persona variation,
+or cross-model ensembling — and lean on the selector. Keep synthetic variants
+**answer-preserving and quality-matched**, or they inject the systematic error a
+vote entrenches. Temperature is a diversity source you may lose; the vote is one you
+own — it sits in a layer no vendor can deprecate.
+
 **The tool.** `04-user-services/ai-orchestration/jury/` implements this end to end —
 an adaptive sequential voter that empanels jurors in concurrent batches and stops on
 a Dirichlet posterior (easy prompts settle at `--min-n`, split ones run to
