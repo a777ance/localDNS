@@ -169,7 +169,8 @@ class ClaudeSampler:
 def build_sampler(args):
     if args.mock_p is not None:
         return MockSampler(p=args.mock_p, gold=args.mock_true,
-                           marker=args.answer_marker or "ANSWER:", seed=args.seed)
+                           marker=args.answer_marker or "ANSWER:", seed=args.seed,
+                           rho=args.mock_rho, systematic=args.mock_systematic)
     load_dotenv(args.env_file)
     return ClaudeSampler(
         model=args.model, api_key=os.environ.get("ANTHROPIC_API_KEY"),
@@ -177,6 +178,61 @@ def build_sampler(args):
         system=args.system, fallbacks_default=args.fallbacks_default,
         max_workers=args.max_workers,
     )
+
+
+# --------------------------------------------------------------------------- #
+# study — one turnkey command: sweep the mock across every regime, offline     #
+# --------------------------------------------------------------------------- #
+def _study(args):
+    """Run the whole synthetic characterization in one shot (no key, no spend).
+
+    Three panels, each a stack of `calibrate` runs, cover the regimes that decide
+    whether a vote is trustworthy — including the two the naive mock hides:
+      A. Accuracy      — vary p, independent + dispersed errors (the happy path).
+      B. Correlation   — fix p, raise rho until the jury collapses to one opinion.
+      C. Systematic    — push p below 0.5 with errors converging on one answer.
+    """
+    marker = args.answer_marker or "ANSWER:"
+    extractor = make_extractor(marker)
+    dataset = [{"prompt": f"q{i}", "answer": args.mock_true}
+               for i in range(args.study_questions)]
+
+    def cell(p, rho, systematic):
+        s = MockSampler(p=p, gold=args.mock_true, marker=marker, seed=args.seed,
+                        rho=rho, systematic=systematic)
+        r = calibrate(s, dataset, extractor, samples_per_q=args.samples_per_q,
+                      target=args.target, min_n=args.min_n, max_n=args.max_n,
+                      batch=args.batch, confidence=args.confidence,
+                      prior=args.prior, draws=args.draws)
+        return r["p_hat_single_sample"], r["accuracy_adaptive_vote"], r["adaptive_jury_size_avg"]
+
+    def row(label, p, rho, systematic):
+        ph, vt, jn = cell(p, rho, systematic)
+        lift = vt - ph
+        read = "vote pays off" if lift > 0.05 else \
+               "vote adds ~nothing" if lift > -0.02 else "vote HURTS (entrenches)"
+        print(f"  {label:<14}  p̂={ph:<6}  voted={vt:<6}  Δ={lift:+.2f}  "
+              f"avg-jury={jn:<5}  {read}")
+
+    print(f"\n  The Jury — synthetic characterization  "
+          f"({args.study_questions} questions · ≤{args.max_n} jurors · seed {args.seed})")
+    print("  Marginal accuracy p̂ should barely move within a panel; watch the vote (Δ).\n")
+
+    print("  A. ACCURACY  (independent draws, dispersed errors — the happy path)")
+    for p in (0.90, 0.75, 0.60, 0.45):
+        row(f"p={p:.2f}", p, 0.0, False)
+
+    print("\n  B. CORRELATION  (p=0.70, dispersed — raise rho; watch the jury collapse)")
+    for rho in (0.0, 0.3, 0.6, 0.9):
+        row(f"rho={rho:.1f}", 0.70, rho, False)
+
+    print("\n  C. SYSTEMATIC BIAS  (errors converge on one answer — vote entrenches it)")
+    for p in (0.55, 0.45, 0.35):
+        row(f"p={p:.2f}", p, 0.0, True)
+
+    print("\n  Takeaway: a vote is only trustworthy in regimes where Δ stays clearly")
+    print("  positive. Panels B and C are the ones a temperature-less Claude jury can")
+    print("  fall into — which is why the live tool leans on `calibrate` to detect them.\n")
 
 
 def _add_sampling_args(p):
@@ -201,6 +257,10 @@ def _add_sampling_args(p):
     p.add_argument("--mock-p", type=float, default=None,
                    help="Offline: synthetic per-sample accuracy (no API, no spend).")
     p.add_argument("--mock-true", default="0.05", help="Mock gold answer.")
+    p.add_argument("--mock-rho", type=float, default=0.0,
+                   help="Offline: inter-juror correlation 0..1 (higher = draws collapse to one).")
+    p.add_argument("--mock-systematic", action="store_true",
+                   help="Offline: errors converge on ONE wrong answer (models systematic bias).")
 
 
 def _add_jury_args(p):
@@ -238,7 +298,21 @@ def main(argv=None):
     _add_sampling_args(c)
     _add_jury_args(c)
 
+    s = sub.add_parser("study",
+                       help="Turnkey offline sweep across every regime (no key, no spend).")
+    s.add_argument("--study-questions", type=int, default=120,
+                   help="Synthetic questions per calibrate cell.")
+    s.add_argument("--samples-per-q", type=int, default=12)
+    s.add_argument("--target", type=float, default=0.90)
+    s.add_argument("--answer-marker", default="ANSWER:")
+    s.add_argument("--mock-true", default="0.05")
+    s.add_argument("--seed", type=int, default=7)
+    _add_jury_args(s)
+
     args = ap.parse_args(argv)
+    if args.cmd == "study":
+        _study(args)
+        return
     extractor = make_extractor(args.answer_marker)
     sampler = build_sampler(args)
 
