@@ -8,42 +8,25 @@ Read alongside the portfolio hub: `DESIGN-Full-Workflow-Integration-end-to-end-/
 
 ## Default next actions
 
-The pre-computed answer to "what's next?" — so a fresh session lands on a ready
-queue instead of re-deriving it from the open-items table. This is the default
-starting point; when the founder names a different priority, follow that instead.
-Keep this block in sync when an item ships (mark it done, promote the next one).
+Pre-computed session-start queue — don't re-derive it. Do the top unblocked item.
+Rationale lives in CLAUDE.md § F / § C and the open-items table below; don't restate
+it here. Override only when the founder names a different priority. When an item
+ships, tick it and promote the next.
 
-**Ship path — the P1 chain (each unblocks the next; run in order).**
+**Do this (SSH to t630 `192.168.1.118` available):**
 
-1. **Deploy the nftables volume populator to the t630.** This is the top of the
-   chain — the by-category GB figures the Statements omit stay omitted until it
-   runs. Follow CLAUDE.md § F end to end (`scp` the `collect/` tools → `nft -f`
-   the ruleset → dry-run then `--apply` the populator → add the two cron lines).
-   *Blocked on:* SSH to the t630 (`192.168.1.118`).
-2. **Test the Statement PWA install on iOS and Android.** Confirm the
-   `docs/statements/` gallery (commit `6134824`, merged but never tested on a real
-   device) installs and opens offline as a home-screen PWA. *Blocked on:* the
-   nftables deploy (step 1), so the installed gallery shows real data.
-3. **Generate the first real Statement for a real household.** The end of the
-   chain — the first document that ships for money. Honor the honesty invariant:
-   only numbers the box actually measured (omit the neighbor benchmark and the
-   by-category breakdown until step 1's data exists). *Blocked on:* a client data
-   file (from Stage 05/08 in the DESIGN repo) + steps 1–2.
+1. Deploy the nftables volume populator → run CLAUDE.md § F end to end.
+2. Test the Statement PWA install (commit `6134824`) on iOS + Android.
+3. Generate the first real Statement — measured numbers only (honesty invariant).
 
-**Repo-hygiene path — close the "drift to reconcile" gap (independent of SSH).**
-The repo is not yet a complete rollback target. Snapshot these live-but-uncommitted
-pieces (or trim the references), newest-relevant first — see CLAUDE.md § C:
+**Else (no SSH — close the repo-drift gap, see CLAUDE.md § C):**
 
-- `01-core-network/unbound/local-records.conf` — the LAN `*.home.lan` A-records
-  drop-in (smallest, fully specified in CLAUDE.md § D; do this first).
-- the **secrets vault** (sops + age) — sealed `*.env.sops`, `.sops.yaml`,
-  `seal.sh`/`unseal.sh`; the pihole/router/ttyd credentials depend on it.
-- `04-user-services/console/` — High-Seat launcher + the three `ttyd` unit files.
-- `04-user-services/ai-orchestration/` — LiteLLM `docker-compose.yml`, `config.yaml`,
-  `langgraph-router/` (the Odin supervisor).
+1. Snapshot `01-core-network/unbound/local-records.conf` (spec in CLAUDE.md § D).
+2. Snapshot the secrets vault (sops+age): `*.env.sops`, `.sops.yaml`, `seal.sh`/`unseal.sh`.
+3. Snapshot `04-user-services/console/` (launcher + 3 `ttyd` units).
+4. Snapshot `04-user-services/ai-orchestration/` (LiteLLM compose/config + `langgraph-router/`).
 
-Everything below (P2/P3) waits on physical access to the box or on the ship path
-landing first — see the open-items table for the full list and blockers.
+P2/P3 items (physical access, later deploy cycles) — see the open-items table.
 
 ---
 
