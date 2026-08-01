@@ -53,7 +53,7 @@ fi
 # --- 2. REFEED (manifest, minus CLAUDE.md which Claude Code reloads itself) --
 rev="$(git log -1 --format='%h %ci' -- CLAUDE.md 2>/dev/null || echo unknown)"
 read -r -d '' ctx <<EOF || true
-REFEED (auto, source=$src). $sync_note. On-disk CLAUDE.md @ $rev is already loaded by Claude Code. To make this session LOSSLESS, read now — in one batch, before other work — the rest of the standing manifest: README.md, docs/ai-cto/context.md, docs/architecture/network-context.md. Together with CLAUDE.md these four are the complete briefing. Do not summarize them back unless asked; just load them and continue. Full protocol: docs/architecture/clear-refeed-protocol.md.
+REFEED (auto, source=$src). $sync_note. On-disk CLAUDE.md @ $rev is already loaded by Claude Code. To make this session LOSSLESS, read now — in one batch, before other work — the rest of the standing manifest: README.md, docs/ai-cto/context.md, docs/architecture/network-context.md. Together with CLAUDE.md these four are the complete briefing. Do not summarize them back unless asked; just load them and continue. Full protocol: docs/architecture/clear-refeed-protocol.md. LAZY ANCHOR (§G, low reasoning): the default first move is the top unblocked item in docs/ai-cto/context.md § "Default next actions" — do it, don't re-derive the queue. This is a cheap reflex, not a commitment: if the founder names a priority, that wins.
 EOF
 
 # Emit as SessionStart additionalContext (JSON-escape the string).
