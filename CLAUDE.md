@@ -190,6 +190,7 @@ components that are documented for the live box but not snapshotted here, see th
 | `01-core-network/unbound/unbound-cache-dump.timer` | `/etc/systemd/system/unbound-cache-dump.timer` | `sudo systemctl daemon-reload` |
 | `01-core-network/unbound/unbound.service.d/override.conf` | `/etc/systemd/system/unbound.service.d/override.conf` | `sudo systemctl daemon-reload` |
 | `01-core-network/pihole/docker-compose.yml` | `~/pihole/docker-compose.yml` | `cd ~/pihole && docker compose up -d` |
+| `01-core-network/pihole/.env.example` | copy to `~/pihole/.env` (git-ignored), set `PIHOLE_WEBPASSWORD` | — |
 | `01-core-network/host-dns/host-dns.conf` | `/etc/systemd/resolved.conf.d/host-dns.conf` | `sudo systemctl restart systemd-resolved` |
 | `01-core-network/ufw/setup.sh` | run directly | `sudo bash 01-core-network/ufw/setup.sh` |
 | `01-core-network/wireguard/wg0.conf` | `/etc/wireguard/wg0.conf` | `sudo systemctl restart wg-quick@wg0` |
@@ -209,6 +210,9 @@ components that are documented for the live box but not snapshotted here, see th
 | `04-user-services/console/ttyd-laptop.service` | `/etc/systemd/system/ttyd-laptop.service` | `sudo systemctl daemon-reload` |
 | `04-user-services/console/ttyd.env.example` | `/etc/a777ance/ttyd.env` (git-ignored; `chmod 600`) | — |
 | `04-user-services/console/browser-odin.md` | reference only | — |
+| `04-user-services/ai-orchestration/docker-compose.yml` | `~/llm-router/docker-compose.yml` | `cd ~/llm-router && docker compose up -d` |
+| `04-user-services/ai-orchestration/config.yaml` | `~/llm-router/config.yaml` | `cd ~/llm-router && docker compose up -d` |
+| `04-user-services/ai-orchestration/.env.example` | copy to `~/llm-router/.env` (git-ignored), set `LITELLM_MASTER_KEY` (+ `ANTHROPIC_API_KEY` for overflow) | — |
 | `04-user-services/ai-orchestration/jury/jury.py` | run on the t630 (or any host with the key) — adaptive self-consistency voter for Kimi K3 (see section G) | `python3 jury.py deliberate …` / `… calibrate …` |
 | `04-user-services/ai-orchestration/jury/.env.example` | copy to `…/jury/.env` (git-ignored), add `FIREWORKS_API_KEY` | — |
 | `04-user-services/ai-orchestration/jury-claude/jury_claude.py` | Claude-backend Jury — imports the `jury/` voter, adds a `ClaudeSampler` (Anthropic SDK). Run on any host with a key (see section G) | `python3 jury_claude.py deliberate …` / `… calibrate …` |
@@ -227,7 +231,7 @@ reference:
 
 | Missing from repo | What it should hold | Referenced in |
 | ----------------- | ------------------- | ------------- |
-| `04-user-services/ai-orchestration/` | LiteLLM `docker-compose.yml`, `config.yaml`, `.env.example`, `langgraph-router/` (Odin supervisor) — still missing. **`jury/` (Kimi K3 voter) and `jury-claude/` (Claude-backend voter) now snapshotted here** — see section G. | topology services table, Known issues |
+| `04-user-services/ai-orchestration/langgraph-router/` | The Odin supervisor (LangGraph graph, `odin` CLI, `dispatcher.py`, juror/critic roster) — **still missing**; snapshot from the live box, don't fabricate from lore. The LiteLLM front door (`docker-compose.yml`, `config.yaml`, `.env.example`, `README.md`) and the `jury/` + `jury-claude/` voters (section G) are now snapshotted here. | topology services table, Known issues |
 | secrets vault (was `12-secrets/`) | sops+age `vault/*.env.sops`, `.sops.yaml`, `secrets.manifest`, `seal.sh`/`unseal.sh`/`rotate-secrets.sh` | Known issues (pihole/router/ttyd secrets) |
 
 **Docs relocated under `docs/`** (not root): `INSTALL-NOTES.md`, `SKILLS.md`,

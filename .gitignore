@@ -9,7 +9,7 @@ secrets/
 12-secrets/cleartext/
 
 # LLM router runtime data (Open WebUI state — created on the box, not in the repo)
-10-ai-orchestration/open-webui-data/
+04-user-services/ai-orchestration/open-webui-data/
 
 # Editor scratch
 *~

@@ -39,7 +39,7 @@ localdns/
 ├── 04-user-services/                 # Self-hosted user applications
 │   ├── remote-desktop/               # NoMachine server tuning files
 │   ├── console/                      # High Seat launcher + ttyd web terminals (units + page; verify vs live box)
-│   └── ai-orchestration/             # jury/ + jury-claude/ voters; LiteLLM router + Open WebUI still NOT in repo
+│   └── ai-orchestration/             # jury/ + jury-claude/ voters + LiteLLM front door; langgraph-router (Odin) still NOT in repo
 │
 ├── tools/                            # Repo maintenance & verification tools (check-docs.py, migrate.sh)
 └── CLAUDE.md                         # Structural guide and deploy references for AI assistants
@@ -48,7 +48,7 @@ localdns/
 > **Not yet snapshotted.** These are live on the t630 but not checked in, so the repo
 > is not yet a complete rollback target for them. Track them down and add them:
 >
-> - `04-user-services/ai-orchestration/` — LiteLLM `docker-compose.yml`, `config.yaml`, `langgraph-router/` (the `jury/` and `jury-claude/` voters are already in the repo)
+> - `04-user-services/ai-orchestration/langgraph-router/` — the Odin supervisor (the LiteLLM front door and the `jury/` / `jury-claude/` voters are already in the repo)
 > - a **secrets vault** (sops + age) — sealed `*.env.sops`, `.sops.yaml`, `seal.sh`/`unseal.sh`
 >
 > See CLAUDE.md § C ("drift to reconcile") for the full mapping.
