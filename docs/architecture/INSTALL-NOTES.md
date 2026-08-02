@@ -84,15 +84,15 @@ there" instruction with a before/after example.
 
 ### 12. Monitoring script placeholder tokens cause silent `curl` failures
 
-`MEDIUM` | `uptime-kuma` `monitoring` | **Location:** [`07-uptime-kuma/packet-loss-monitor.sh`](07-uptime-kuma/packet-loss-monitor.sh), [`07-uptime-kuma/cake-monitor.sh`](07-uptime-kuma/cake-monitor.sh)
+`MEDIUM` | `uptime-kuma` `monitoring` | **Location:** [`03-monitoring/monitors/packet-loss-monitor.sh`](03-monitoring/monitors/packet-loss-monitor.sh), [`03-monitoring/monitors/cake-monitor.sh`](03-monitoring/monitors/cake-monitor.sh)
 
 > ⚠ **OPERATIONAL CAUTION — Replace tokens and test manually before scheduling**
 
 **Problem**
 
 Both scripts ship with placeholder push tokens:
-- `<PUSH_TOKEN_ROUTER>`, `<PUSH_TOKEN_INTERNET>` in [`packet-loss-monitor.sh`](07-uptime-kuma/packet-loss-monitor.sh)
-- `<PUSH_TOKEN_CAKE>` in [`cake-monitor.sh`](07-uptime-kuma/cake-monitor.sh)
+- `<PUSH_TOKEN_ROUTER>`, `<PUSH_TOKEN_INTERNET>` in [`packet-loss-monitor.sh`](03-monitoring/monitors/packet-loss-monitor.sh)
+- `<PUSH_TOKEN_CAKE>` in [`cake-monitor.sh`](03-monitoring/monitors/cake-monitor.sh)
 
 `curl` requests to URLs containing literal `<>` fail. All output is redirected to
 `/dev/null`, so there is no visible error. The cron jobs fire every minute
@@ -136,7 +136,7 @@ substitute the actual username before adding to crontab.
 
 ### 10. `wg0.conf` fails to parse — WireGuard will not start
 
-`BLOCKER` | `wireguard` `config` | **Location:** [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf)
+`BLOCKER` | `wireguard` `config` | **Location:** [`01-core-network/wireguard/wg0.conf`](01-core-network/wireguard/wg0.conf)
 
 > ✓ **RESOLVED — 2026-06-02**
 
@@ -173,7 +173,7 @@ failing with no obvious reason.
 
 **Fix**
 
-In [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf), the Mac `[Peer]` header is
+In [`01-core-network/wireguard/wg0.conf`](01-core-network/wireguard/wg0.conf), the Mac `[Peer]` header is
 now commented out alongside its body, and the laptop `PublicKey` line is
 commented out with an explicit warning. [`README.md`](README.md) now has an
 explicit "fix the peer blocks before deploying" instruction.
@@ -248,7 +248,7 @@ entirely.
 
 ### 6. `FTLCONF_webserver_api_password: "CHANGE_ME"` — easy to overlook
 
-`HIGH` | `security` `pihole` | **Location:** [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml)
+`HIGH` | `security` `pihole` | **Location:** [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml)
 
 > ✓ **RESOLVED — 2026-06-02**
 
@@ -266,7 +266,7 @@ of the Pi-hole start block, before the `docker compose up -d` command.
 
 > **Update:** the placeholder is now removed entirely. Compose reads
 > `FTLCONF_webserver_api_password` from `~/pihole/.env` (sops+age vault,
-> [`12-secrets/`](12-secrets/)), fail-closed via `${...:?}`, so it can no longer be
+> [`vault/`](vault/)), fail-closed via `${...:?}`, so it can no longer be
 > shipped as a known credential — Pi-hole refuses to start until the vault is
 > unsealed. The per-deploy "remember to change the password" step is gone.
 
@@ -274,7 +274,7 @@ of the Pi-hole start block, before the `docker compose up -d` command.
 
 ### 7. Pi-hole v5→v6 environment scheme — compose used variables v6 ignores
 
-`BLOCKER` | `pihole` `docker` | **Location:** [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml)
+`BLOCKER` | `pihole` `docker` | **Location:** [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml)
 
 > ✓ **RESOLVED — 2026-06-02**
 
@@ -300,7 +300,7 @@ with the old v5-var compose — FTL fell back to the v6 default web port, bindin
 
 **Fix**
 
-[`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) migrated to
+[`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml) migrated to
 `FTLCONF_*` keys. The `dnsmasq_data:/etc/dnsmasq.d` mount was dropped (v6 stores
 dnsmasq config under `/etc/pihole`), and `cap_add: SYS_NICE` added per the v6
 example. Each `FTLCONF_` var is re-applied and locked on every start, which also
@@ -311,7 +311,7 @@ volume is now overridden on start.
 
 ### 8. UFW INPUT rules did not restrict Pi-hole's published port 53
 
-`MEDIUM` | `ufw` `docker` `security` | **Location:** [`04-ufw/setup.sh`](04-ufw/setup.sh), [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml)
+`MEDIUM` | `ufw` `docker` `security` | **Location:** [`01-core-network/ufw/setup.sh`](01-core-network/ufw/setup.sh), [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml)
 
 > ✓ **RESOLVED — 2026-06-02**
 
@@ -326,9 +326,9 @@ entirely on the router's NAT.
 **Fix**
 
 Pi-hole now runs `network_mode: host` in
-[`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml). Its `:53` and
+[`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml). Its `:53` and
 `:8080` bind directly on the host and are subject to UFW's INPUT chain
-([`04-ufw/setup.sh`](04-ufw/setup.sh)) like any host service — the
+([`01-core-network/ufw/setup.sh`](01-core-network/ufw/setup.sh)) like any host service — the
 `from 192.168.0.0/16` and `from 10.8.0.0/24` rules genuinely restrict them.
 Host networking closes the DNAT-bypass gap as a side effect of the
 VPN-peer-DNS fix.
@@ -337,7 +337,7 @@ VPN-peer-DNS fix.
 
 ### 9. Host-networked Pi-hole vs systemd-resolved stub on port 53
 
-`MEDIUM` | `pihole` `systemd` `networking` | **Location:** [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml), [`03-host-dns/host-dns.conf`](03-host-dns/host-dns.conf)
+`MEDIUM` | `pihole` `systemd` `networking` | **Location:** [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml), [`01-core-network/host-dns/host-dns.conf`](01-core-network/host-dns/host-dns.conf)
 
 > ✓ **RESOLVED — 2026-06-02**
 
@@ -354,7 +354,7 @@ mechanism. Before re-applying on the box, check current state
 
 **Fix**
 
-[`03-host-dns/host-dns.conf`](03-host-dns/host-dns.conf) now sets
+[`01-core-network/host-dns/host-dns.conf`](01-core-network/host-dns/host-dns.conf) now sets
 `DNSStubListener=no` alongside `DNS=9.9.9.9 1.1.1.1`. Because disabling the stub
 removes the `127.0.0.53` listener that `/etc/resolv.conf` normally points at,
 [`README.md`](README.md) Step 4 also re-points `/etc/resolv.conf` to
@@ -370,7 +370,7 @@ Pi-hole starts — `:53` is free when FTL launches.
 
 ### 3. `server.conf` indentation inconsistency
 
-`MINOR` | `config` | **Location:** [`01-unbound/server.conf`](01-unbound/server.conf), line 6
+`MINOR` | `config` | **Location:** [`01-core-network/unbound/server.conf`](01-core-network/unbound/server.conf), line 6
 
 > ✓ **RESOLVED — 2026-06-02**
 
@@ -387,13 +387,13 @@ Corrected to 4 spaces.
 
 ### 4. Cache dump correctness depends on Ubuntu's base unbound unit having no `ExecStop`
 
-`MINOR` | `systemd` | **Location:** [`01-unbound/unbound.service.d/override.conf`](01-unbound/unbound.service.d/override.conf)
+`MINOR` | `systemd` | **Location:** [`01-core-network/unbound/unbound.service.d/override.conf`](01-core-network/unbound/unbound.service.d/override.conf)
 
 > ⚠ **ONGOING CAUTION — Monitor on Ubuntu package upgrades**
 
 **Problem**
 
-[`override.conf`](01-unbound/unbound.service.d/override.conf) adds
+[`override.conf`](01-core-network/unbound/unbound.service.d/override.conf) adds
 `ExecStop=/usr/local/bin/unbound-cache-dump`. Systemd runs `ExecStop` commands
 before sending SIGTERM to the main process, so `unbound-control dump_cache` can
 still talk to a running Unbound. This is correct — *provided* the base
@@ -449,8 +449,8 @@ value) as the first sub-step of Step 0.
 
 **Problem**
 
-Every `cp` command in the setup guide uses relative paths (`01-unbound/*.conf`,
-`06-cake/setup.sh`, etc.). Without first cloning the repo to the t630 and
+Every `cp` command in the setup guide uses relative paths (`01-core-network/unbound/*.conf`,
+`02-performance/cake/setup.sh`, etc.). Without first cloning the repo to the t630 and
 `cd`-ing into it, every single one of those commands fails with
 "No such file or directory" — before a single service is configured.
 
@@ -477,16 +477,16 @@ section by category.
 
 | Issue | Status | Action / Notes | Resolved in repo |
 | ----- | ------ | -------------- | ---------------- |
-| **Rebuild = rotate** (Lazarus confidentiality) | ✓ **Resolved in repo** (ritual) | A stateless rebuild undoes what an attacker *plants* but not what they *took* — secrets survive the wipe by being redeployed unchanged. So a resurrection makes the box wear a **new skin**: after `unseal.sh`, before trusting the box, run `12-secrets/rotate-secrets.sh all` (or at minimum `apps`), commit `vault/`, re-`unseal.sh`, and restart the consumers. Reissue `ANTHROPIC_API_KEY` in the console (the one secret rotation can't self-serve). | [`12-secrets/rotate-secrets.sh`](12-secrets/rotate-secrets.sh) · [`12-secrets/README.md`](12-secrets/README.md) |
-| Custodian payload at rest (secrets on eMMC) | ✓ **Resolved in repo** | The four runtime secrets (WireGuard server key, LiteLLM/Anthropic keys, ttyd credential, Pi-hole admin) are sealed with sops+age into `12-secrets/vault/` and decrypted at deploy by `unseal.sh`; the age identity (the "wand") lives on a USB/token, never on eMMC or in git. Covers disk-image theft and accidental commits — **not** live-RCE reads (see the README's threat table). | [`12-secrets/`](12-secrets/) |
-| `FTLCONF_webserver_api_password` placeholder | ✓ **Resolved in repo** | No longer a committed placeholder — compose reads it from `~/pihole/.env` (sops+age vault, [`12-secrets/`](12-secrets/)), fail-closed via `${...:?}` so Pi-hole won't start without the unsealed secret. Was Break Point [#6](#6-ftlconf_webserver_api_password-change_me--easy-to-overlook). | [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) · [`12-secrets/`](12-secrets/) |
-| Windows laptop WireGuard key | **Open** | Private key was exposed during setup; rotate before trusting this peer. Cheap fix: `12-secrets/rotate-secrets.sh wg-peer <name>` mints a fresh keypair for just that device (no server-key churn). | [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf) · [`12-secrets/rotate-secrets.sh`](12-secrets/rotate-secrets.sh) |
-| WireGuard peers `10.8.0.4`–`10.8.0.6` | **Open** — reconciled, still unidentified | Now in the config with their real public keys, but none has a recent handshake — identify each device or remove the stale peer. If kept, re-key each with `12-secrets/rotate-secrets.sh wg-peer <name>` so an unknown holder of the old key is locked out. | [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf) · [`12-secrets/rotate-secrets.sh`](12-secrets/rotate-secrets.sh) |
-| WireGuard `::/0` IPv6 black hole | **Documented** (design constraint) | Server is IPv4-only in-tunnel; do **not** add `::/0` to peer AllowedIPs. IPv6 traffic black-holes silently (handshake succeeds, pages hang). Use `0.0.0.0/0` only. Leak-free dual-stack fix (ULA + NAT66) in [network-context.md](network-context.md). | [`05-wireguard/peer-template.conf`](05-wireguard/peer-template.conf) |
-| VPN peer DNS over the tunnel | ✓ **Resolved in repo** | Fixed by Pi-hole `network_mode: host`: the Docker bridge + published-ports DNAT path silently dropped replies to queries sourced from the host's own `wg0` interface; host networking removes the DNAT path so `10.8.0.1:53` answers directly. Port 8080 was also opened to the WG subnet so the Pi-hole UI is reachable over the tunnel. | [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) · [`04-ufw/setup.sh`](04-ufw/setup.sh) |
-| Live Pi-hole upstreams ≠ repo | ✓ **Mostly resolved** (v6) | Under Pi-hole v6, `FTLCONF_dns_upstreams` is re-applied and locked on every start, overriding any legacy resolvers (`8.8.8.8`, Quad9, etc.) left in the `pihole_data` volume. Still worth confirming the UI shows only `127.0.0.1#5335` after a deploy onto an old volume. | [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) |
-| Host-net Pi-hole vs systemd-resolved on `:53` | ✓ **Resolved in repo** | `network_mode: host` makes Pi-hole bind `0.0.0.0:53`, colliding with the stub listener (`127.0.0.53:53`). `DNSStubListener=no` frees `:53` and the host-DNS step re-points `/etc/resolv.conf` off the stub. Full detail: Break Point [#9](#9-host-networked-pi-hole-vs-systemd-resolved-stub-on-port-53). | [`03-host-dns/host-dns.conf`](03-host-dns/host-dns.conf) · [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) |
-| Pi-hole v5 → v6 env vars | ✓ **Resolved in repo** | `pihole/pihole:latest` is v6, which ignores the v5 env vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`, …). Compose migrated to `FTLCONF_*` keys. Full detail: Break Point [#7](#7-pi-hole-v5v6-environment-scheme--compose-used-variables-v6-ignores). | [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) |
+| **Rebuild = rotate** (Lazarus confidentiality) | ✓ **Resolved in repo** (ritual) | A stateless rebuild undoes what an attacker *plants* but not what they *took* — secrets survive the wipe by being redeployed unchanged. So a resurrection makes the box wear a **new skin**: after `unseal.sh`, before trusting the box, run `vault/rotate-secrets.sh all` (or at minimum `apps`), commit `vault/`, re-`unseal.sh`, and restart the consumers. Reissue `ANTHROPIC_API_KEY` in the console (the one secret rotation can't self-serve). | [`vault/rotate-secrets.sh`](vault/rotate-secrets.sh) · [`vault/README.md`](vault/README.md) |
+| Custodian payload at rest (secrets on eMMC) | ✓ **Resolved in repo** | The four runtime secrets (WireGuard server key, LiteLLM/Anthropic keys, ttyd credential, Pi-hole admin) are sealed with sops+age into `vault/` and decrypted at deploy by `unseal.sh`; the age identity (the "wand") lives on a USB/token, never on eMMC or in git. Covers disk-image theft and accidental commits — **not** live-RCE reads (see the README's threat table). | [`vault/`](vault/) |
+| `FTLCONF_webserver_api_password` placeholder | ✓ **Resolved in repo** | No longer a committed placeholder — compose reads it from `~/pihole/.env` (sops+age vault, [`vault/`](vault/)), fail-closed via `${...:?}` so Pi-hole won't start without the unsealed secret. Was Break Point [#6](#6-ftlconf_webserver_api_password-change_me--easy-to-overlook). | [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml) · [`vault/`](vault/) |
+| Windows laptop WireGuard key | **Open** | Private key was exposed during setup; rotate before trusting this peer. Cheap fix: `vault/rotate-secrets.sh wg-peer <name>` mints a fresh keypair for just that device (no server-key churn). | [`01-core-network/wireguard/wg0.conf`](01-core-network/wireguard/wg0.conf) · [`vault/rotate-secrets.sh`](vault/rotate-secrets.sh) |
+| WireGuard peers `10.8.0.4`–`10.8.0.6` | **Open** — reconciled, still unidentified | Now in the config with their real public keys, but none has a recent handshake — identify each device or remove the stale peer. If kept, re-key each with `vault/rotate-secrets.sh wg-peer <name>` so an unknown holder of the old key is locked out. | [`01-core-network/wireguard/wg0.conf`](01-core-network/wireguard/wg0.conf) · [`vault/rotate-secrets.sh`](vault/rotate-secrets.sh) |
+| WireGuard `::/0` IPv6 black hole | **Documented** (design constraint) | Server is IPv4-only in-tunnel; do **not** add `::/0` to peer AllowedIPs. IPv6 traffic black-holes silently (handshake succeeds, pages hang). Use `0.0.0.0/0` only. Leak-free dual-stack fix (ULA + NAT66) in [network-context.md](network-context.md). | [`01-core-network/wireguard/peer-template.conf`](01-core-network/wireguard/peer-template.conf) |
+| VPN peer DNS over the tunnel | ✓ **Resolved in repo** | Fixed by Pi-hole `network_mode: host`: the Docker bridge + published-ports DNAT path silently dropped replies to queries sourced from the host's own `wg0` interface; host networking removes the DNAT path so `10.8.0.1:53` answers directly. Port 8080 was also opened to the WG subnet so the Pi-hole UI is reachable over the tunnel. | [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml) · [`01-core-network/ufw/setup.sh`](01-core-network/ufw/setup.sh) |
+| Live Pi-hole upstreams ≠ repo | ✓ **Mostly resolved** (v6) | Under Pi-hole v6, `FTLCONF_dns_upstreams` is re-applied and locked on every start, overriding any legacy resolvers (`8.8.8.8`, Quad9, etc.) left in the `pihole_data` volume. Still worth confirming the UI shows only `127.0.0.1#5335` after a deploy onto an old volume. | [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml) |
+| Host-net Pi-hole vs systemd-resolved on `:53` | ✓ **Resolved in repo** | `network_mode: host` makes Pi-hole bind `0.0.0.0:53`, colliding with the stub listener (`127.0.0.53:53`). `DNSStubListener=no` frees `:53` and the host-DNS step re-points `/etc/resolv.conf` off the stub. Full detail: Break Point [#9](#9-host-networked-pi-hole-vs-systemd-resolved-stub-on-port-53). | [`01-core-network/host-dns/host-dns.conf`](01-core-network/host-dns/host-dns.conf) · [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml) |
+| Pi-hole v5 → v6 env vars | ✓ **Resolved in repo** | `pihole/pihole:latest` is v6, which ignores the v5 env vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`, …). Compose migrated to `FTLCONF_*` keys. Full detail: Break Point [#7](#7-pi-hole-v5v6-environment-scheme--compose-used-variables-v6-ignores). | [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml) |
 
 ---
 
@@ -498,7 +498,7 @@ A second walkthrough against current upstream package versions found two more
 fresh-install breaks and made issue 9 deterministic:
 
 - **Issue 7 (originally #14)** discovered and fixed: Pi-hole v6 ignores v5 env
-  vars. [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) migrated
+  vars. [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml) migrated
   to `FTLCONF_*`. Confirmed live: the box was running Pi-hole v6 (Core v6.4.1 /
   FTL v6.6) with the old v5-var compose — FTL had fallen back to `:80`/`:443`,
   and since UFW only opens `:8080`, the admin UI was firewalled off on the LAN.
@@ -506,11 +506,11 @@ fresh-install breaks and made issue 9 deterministic:
   (`curl …:8080/admin/` → `302`).
 - **Issue 9 (originally #13)** made deterministic: `DNSStubListener=no` confirmed
   correct in both the repo drop-in
-  ([`03-host-dns/host-dns.conf`](03-host-dns/host-dns.conf)) and (independently)
+  ([`01-core-network/host-dns/host-dns.conf`](01-core-network/host-dns/host-dns.conf)) and (independently)
   the live box. The drop-in is additive — a redundant `DNSStubListener=no` is
   harmless.
 - **WireGuard peers reconciled:** `wg show` listed six peers (`10.8.0.2`–`.7`).
-  Real public keys now in [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf). `.2`
+  Real public keys now in [`01-core-network/wireguard/wg0.conf`](01-core-network/wireguard/wg0.conf). `.2`
   (iPhone) and `.3` (Windows laptop) active; `.4`/`.5`/`.6` have no handshake
   and remain UNIDENTIFIED; `.7` is the Mac. Laptop key rotation still
   outstanding.
@@ -539,15 +539,15 @@ separately under [Operational & Open Issues](#operational--open-issues).
 |---|--------|----------|-------------|----------|--------|--------|
 | 1 | #1 | **BLOCKER** | Pre-install | [`README.md`](README.md) | No `git clone` — all `cp` commands fail immediately | ✓ RESOLVED 2026-06-02 |
 | 2 | #11 | Minor | Step 0 | [`README.md`](README.md) | No guidance on finding the MAC address | ✓ RESOLVED 2026-06-02 |
-| 3 | #8 | Minor | Step 2 | [`01-unbound/server.conf`](01-unbound/server.conf) | Indentation inconsistency on `interface:` line | ✓ RESOLVED 2026-06-02 |
-| 4 | #12 | Minor | Step 2 | [`unbound.service.d/override.conf`](01-unbound/unbound.service.d/override.conf) | Cache dump assumes base unit has no `ExecStop` | ⚠ ONGOING CAUTION |
+| 3 | #8 | Minor | Step 2 | [`01-core-network/unbound/server.conf`](01-core-network/unbound/server.conf) | Indentation inconsistency on `interface:` line | ✓ RESOLVED 2026-06-02 |
+| 4 | #12 | Minor | Step 2 | [`unbound.service.d/override.conf`](01-core-network/unbound/unbound.service.d/override.conf) | Cache dump assumes base unit has no `ExecStop` | ⚠ ONGOING CAUTION |
 | 5 | #3 | High | Steps 4+5 | [`README.md`](README.md) | Host DNS breaks silently; warning was in the wrong place | ✓ RESOLVED 2026-06-02 |
-| 6 | #4 | High | Steps 4+5 | [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) | Known-weak default password easy to miss | ✓ RESOLVED 2026-06-02 |
-| 7 | #14 | **BLOCKER** | Steps 4+5 | [`02-pihole/docker-compose.yml`](02-pihole/docker-compose.yml) | Pi-hole v6 ignores v5 env vars — UI on wrong port, upstream unset | ✓ RESOLVED 2026-06-02 |
-| 8 | #7 | Medium | Steps 4+5 | [`04-ufw/setup.sh`](04-ufw/setup.sh), [`02-pihole/`](02-pihole/docker-compose.yml) | UFW port-53 bypass — closed by host networking | ✓ RESOLVED 2026-06-02 |
-| 9 | #13 | Medium | Steps 4+5 | [`02-pihole/`](02-pihole/docker-compose.yml), [`03-host-dns/`](03-host-dns/host-dns.conf) | Host-net Pi-hole vs systemd-resolved stub — `DNSStubListener=no` now asserted | ✓ RESOLVED 2026-06-02 |
-| 10 | #2 | **BLOCKER** | Step 7 | [`05-wireguard/wg0.conf`](05-wireguard/wg0.conf) | Malformed peer blocks — `wg-quick@wg0` fails to parse | ✓ RESOLVED 2026-06-02 |
+| 6 | #4 | High | Steps 4+5 | [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml) | Known-weak default password easy to miss | ✓ RESOLVED 2026-06-02 |
+| 7 | #14 | **BLOCKER** | Steps 4+5 | [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml) | Pi-hole v6 ignores v5 env vars — UI on wrong port, upstream unset | ✓ RESOLVED 2026-06-02 |
+| 8 | #7 | Medium | Steps 4+5 | [`01-core-network/ufw/setup.sh`](01-core-network/ufw/setup.sh), [`01-core-network/pihole/`](01-core-network/pihole/docker-compose.yml) | UFW port-53 bypass — closed by host networking | ✓ RESOLVED 2026-06-02 |
+| 9 | #13 | Medium | Steps 4+5 | [`01-core-network/pihole/`](01-core-network/pihole/docker-compose.yml), [`01-core-network/host-dns/`](01-core-network/host-dns/host-dns.conf) | Host-net Pi-hole vs systemd-resolved stub — `DNSStubListener=no` now asserted | ✓ RESOLVED 2026-06-02 |
+| 10 | #2 | **BLOCKER** | Step 7 | [`01-core-network/wireguard/wg0.conf`](01-core-network/wireguard/wg0.conf) | Malformed peer blocks — `wg-quick@wg0` fails to parse | ✓ RESOLVED 2026-06-02 |
 | 11 | #9 | Minor | Step 7 | [`README.md`](README.md) | `sysctl.conf` append not idempotent | ✓ RESOLVED 2026-06-02 |
-| 12 | #5 | Medium | Step 8 | [`07-uptime-kuma/*.sh`](07-uptime-kuma/packet-loss-monitor.sh) | Silent `curl` failures when push tokens not replaced | ⚠ OPERATIONAL CAUTION |
+| 12 | #5 | Medium | Step 8 | [`03-monitoring/monitors/*.sh`](03-monitoring/monitors/packet-loss-monitor.sh) | Silent `curl` failures when push tokens not replaced | ⚠ OPERATIONAL CAUTION |
 | 13 | #6 | Medium | Step 8 | [`README.md`](README.md) | `USERNAME` crontab placeholder creates broken cron job | ⚠ OPERATIONAL CAUTION |
 | 14 | #10 | Minor | Step 9 | [`README.md`](README.md) | GRUB edit guidance incomplete — risk of clobbering existing flags | ✓ RESOLVED 2026-06-02 |
