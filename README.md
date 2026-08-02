@@ -38,9 +38,10 @@ localdns/
 │
 ├── 04-user-services/                 # Self-hosted user applications
 │   ├── remote-desktop/               # NoMachine server tuning files
-│   ├── console/                      # (planned) High Seat launcher + ttyd web terminals — NOT yet in repo
-│   └── ai-orchestration/             # (planned) LiteLLM router + Open WebUI — NOT yet in repo
+│   ├── console/                      # High Seat launcher + ttyd web terminals (units + page; verify vs live box)
+│   └── ai-orchestration/             # jury/ + jury-claude/ voters + LiteLLM front door; langgraph-router (Odin) still NOT in repo
 │
+├── vault/                            # sops+age secrets tooling (seal/unseal/rotate; sealed *.env.sops)
 ├── tools/                            # Repo maintenance & verification tools (check-docs.py, migrate.sh)
 └── CLAUDE.md                         # Structural guide and deploy references for AI assistants
 ```
@@ -48,9 +49,7 @@ localdns/
 > **Not yet snapshotted.** These are live on the t630 but not checked in, so the repo
 > is not yet a complete rollback target for them. Track them down and add them:
 >
-> - `04-user-services/console/` — High Seat launcher, `ttyd` unit files, `ttyd.env.example`
-> - `04-user-services/ai-orchestration/` — LiteLLM `docker-compose.yml`, `config.yaml`, `langgraph-router/`
-> - a **secrets vault** (sops + age) — sealed `*.env.sops`, `.sops.yaml`, `seal.sh`/`unseal.sh`
-> - `01-core-network/unbound/local-records.conf` — the LAN `*.home.lan` A-records drop-in
+> - `04-user-services/ai-orchestration/langgraph-router/` — the Odin supervisor (the LiteLLM front door and the `jury/` / `jury-claude/` voters are already in the repo)
+> - the sealed `vault/*.env.sops` files — the sops+age tooling (`vault/`) is in the repo; the sealed secrets themselves are created from the real values on the box
 >
 > See CLAUDE.md § C ("drift to reconcile") for the full mapping.

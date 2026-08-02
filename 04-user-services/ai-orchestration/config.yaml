@@ -1,0 +1,73 @@
+# Deploys to: ~/llm-router/config.yaml
+# Reload: cd ~/llm-router && docker compose up -d  (LiteLLM re-reads on restart)
+#
+# RECONSTRUCTED from the documented tiers (CLAUDE.md Known-issues "reasoning
+# ladder", docs/ai-cto/context.md "cloud-explore/code/vision", network-context.md
+# "route, not shard"). The tier NAMES and routing intent are from the docs; the
+# concrete model IDs and the Tailscale GPU address are placeholders — pin them to
+# what the box actually runs before trusting this as a rollback target.
+#
+# ROUTE, NOT SHARD: each model_name is a WHOLE model on one endpoint. LiteLLM does
+# health-checked failover between whole endpoints (load-balance + retry + cooldown
+# + fallback); it never splits a model across machines. See network-context.md.
+#
+# The t630 is CPU-only for local models (Carrizo iGPU: ROCm unsupported). Start
+# interactive on a 3B; treat 7B+ as submit-and-wait. Heavy reasoning (full R1)
+# offloads to a rented GPU pod over Tailscale, spun up on demand, falling back to
+# the cloud tier when the pod is off. NEVER run deepseek-r1:7b+ on the t630 CPU.
+
+model_list:
+  # --- Local tier (t630 CPU, Ollama at 127.0.0.1:11434) ---
+  - model_name: local-fast
+    litellm_params:
+      model: ollama/llama3.2:3b
+      api_base: http://127.0.0.1:11434
+  - model_name: local-reason           # deepseek-r1:1.5b — light reasoning, stays cool
+    litellm_params:
+      model: ollama/deepseek-r1:1.5b
+      api_base: http://127.0.0.1:11434
+  - model_name: local-embed            # Huginn RAG embeddings (Mímir's well)
+    litellm_params:
+      model: ollama/nomic-embed-text
+      api_base: http://127.0.0.1:11434
+
+  # --- Rented GPU tier (on-demand pod over Tailscale) ---
+  - model_name: cloud-gpu-reason       # full R1 on a rented GPU; heavy chain-of-thought
+    litellm_params:
+      model: ollama/deepseek-r1:70b
+      api_base: http://TAILSCALE_GPU_HOST:11434   # CHANGE_ME — the pod's Tailscale addr
+
+  # --- Cloud tier (Anthropic; overflow / failover). Pin to current model IDs. ---
+  - model_name: cloud-overflow
+    litellm_params:
+      model: anthropic/claude-sonnet-4-5          # CHANGE_ME — pin a current model id
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: cloud-explore
+    litellm_params:
+      model: anthropic/claude-sonnet-4-5          # CHANGE_ME
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: cloud-code
+    litellm_params:
+      model: anthropic/claude-sonnet-4-5          # CHANGE_ME
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: cloud-vision
+    litellm_params:
+      model: anthropic/claude-sonnet-4-5          # CHANGE_ME — a vision-capable id
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+# The reasoning ladder: light work stays local; heavy work climbs to the GPU pod,
+# then spills to the cloud tier when the pod is off / unreachable.
+router_settings:
+  fallbacks:
+    - local-reason: ["cloud-gpu-reason", "cloud-overflow"]
+    - cloud-gpu-reason: ["cloud-overflow"]
+    - local-fast: ["cloud-overflow"]
+  num_retries: 2
+  timeout: 600            # local CPU generation is slow; don't kill long draws
+
+litellm_settings:
+  drop_params: true       # tolerate provider-specific params across mixed backends
+
+general_settings:
+  # Master key gates the front door; sourced from ~/llm-router/.env, never in git.
+  master_key: os.environ/LITELLM_MASTER_KEY

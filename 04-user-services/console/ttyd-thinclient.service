@@ -1,0 +1,27 @@
+# Deploys to: /etc/systemd/system/ttyd-thinclient.service
+# Reload: sudo systemctl daemon-reload && sudo systemctl restart ttyd-thinclient
+#
+# Web terminal to a login shell ON THE t630, on :7681.
+# WARNING: this is a remote shell over HTTP. The --credential is the only gate —
+# keep it in /etc/a777ance/ttyd.env (chmod 600), never in git. LAN + WG only;
+# never port-forward 7681. Harden with TLS (add `-S` + cert paths) when ready.
+# Runs `login` (OS auth prompt) rather than dropping straight into bash, so a
+# leaked ttyd credential still hits the OS auth wall. Set User= before enabling.
+
+[Unit]
+Description=ttyd web terminal — thin client login shell (:7681)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=CHANGE_ME
+EnvironmentFile=/etc/a777ance/ttyd.env
+# -W = writable; -c = user:pass gate; `login` prompts for an OS account.
+ExecStart=/usr/bin/ttyd -p 7681 -W -c ${TTYD_CREDENTIAL} login
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

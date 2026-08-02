@@ -183,12 +183,14 @@ components that are documented for the live box but not snapshotted here, see th
 | `01-core-network/unbound/remote-control.conf` | `/etc/unbound/unbound.conf.d/remote-control.conf` | `sudo systemctl restart unbound` |
 | `01-core-network/unbound/root-auto-trust-anchor-file.conf` | `/etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf` | `sudo systemctl restart unbound` |
 | `01-core-network/unbound/streaming-forward.conf` | `/etc/unbound/unbound.conf.d/streaming-forward.conf` | `sudo systemctl restart unbound` |
+| `01-core-network/unbound/local-records.conf` | `/etc/unbound/unbound.conf.d/local-records.conf` | `sudo systemctl restart unbound` |
 | `01-core-network/unbound/unbound-cache-dump` | `/usr/local/bin/unbound-cache-dump` | — |
 | `01-core-network/unbound/unbound-cache-load` | `/usr/local/bin/unbound-cache-load` | — |
 | `01-core-network/unbound/unbound-cache-dump.service` | `/etc/systemd/system/unbound-cache-dump.service` | `sudo systemctl daemon-reload` |
 | `01-core-network/unbound/unbound-cache-dump.timer` | `/etc/systemd/system/unbound-cache-dump.timer` | `sudo systemctl daemon-reload` |
 | `01-core-network/unbound/unbound.service.d/override.conf` | `/etc/systemd/system/unbound.service.d/override.conf` | `sudo systemctl daemon-reload` |
 | `01-core-network/pihole/docker-compose.yml` | `~/pihole/docker-compose.yml` | `cd ~/pihole && docker compose up -d` |
+| `01-core-network/pihole/.env.example` | copy to `~/pihole/.env` (git-ignored), set `PIHOLE_WEBPASSWORD` | — |
 | `01-core-network/host-dns/host-dns.conf` | `/etc/systemd/resolved.conf.d/host-dns.conf` | `sudo systemctl restart systemd-resolved` |
 | `01-core-network/ufw/setup.sh` | run directly | `sudo bash 01-core-network/ufw/setup.sh` |
 | `01-core-network/wireguard/wg0.conf` | `/etc/wireguard/wg0.conf` | `sudo systemctl restart wg-quick@wg0` |
@@ -202,6 +204,18 @@ components that are documented for the live box but not snapshotted here, see th
 | `03-monitoring/monitors/packet-loss-monitor.sh` | `~/packet-loss-monitor.sh` (+ cron) | `crontab -e` |
 | `03-monitoring/monitors/cake-monitor.sh` | `~/cake-monitor.sh` (+ cron) | `crontab -e` |
 | `04-user-services/remote-desktop/server.cfg` | `/usr/NX/etc/server.cfg` | `sudo /usr/NX/bin/nxserver --restart` |
+| `04-user-services/console/index.html` | `/opt/console/index.html` | `sudo systemctl restart console` |
+| `04-user-services/console/console.service` | `/etc/systemd/system/console.service` | `sudo systemctl daemon-reload` |
+| `04-user-services/console/ttyd-thinclient.service` | `/etc/systemd/system/ttyd-thinclient.service` | `sudo systemctl daemon-reload` |
+| `04-user-services/console/ttyd-laptop.service` | `/etc/systemd/system/ttyd-laptop.service` | `sudo systemctl daemon-reload` |
+| `04-user-services/console/ttyd.env.example` | `/etc/a777ance/ttyd.env` (git-ignored; `chmod 600`) | — |
+| `04-user-services/console/browser-odin.md` | reference only | — |
+| `04-user-services/ai-orchestration/docker-compose.yml` | `~/llm-router/docker-compose.yml` | `cd ~/llm-router && docker compose up -d` |
+| `04-user-services/ai-orchestration/config.yaml` | `~/llm-router/config.yaml` | `cd ~/llm-router && docker compose up -d` |
+| `04-user-services/ai-orchestration/.env.example` | copy to `~/llm-router/.env` (git-ignored), set `LITELLM_MASTER_KEY` (+ `ANTHROPIC_API_KEY` for overflow) | — |
+| `vault/seal.sh` | run in `vault/` — encrypts `cleartext/*.env` → committable `*.env.sops` | `cd vault && ./seal.sh` |
+| `vault/unseal.sh` | run on the t630 — writes each sealed secret to its `secrets.manifest` deploy path (chmod 600) | `cd vault && ./unseal.sh` |
+| `vault/rotate-secrets.sh` | edit a sealed secret in place, or `--rekey` all to new age recipients | `cd vault && ./rotate-secrets.sh …` |
 | `04-user-services/ai-orchestration/jury/jury.py` | run on the t630 (or any host with the key) — adaptive self-consistency voter for Kimi K3 (see section G) | `python3 jury.py deliberate …` / `… calibrate …` |
 | `04-user-services/ai-orchestration/jury/.env.example` | copy to `…/jury/.env` (git-ignored), add `FIREWORKS_API_KEY` | — |
 | `04-user-services/ai-orchestration/jury-claude/jury_claude.py` | Claude-backend Jury — imports the `jury/` voter, adds a `ClaudeSampler` (Anthropic SDK). Run on any host with a key (see section G) | `python3 jury_claude.py deliberate …` / `… calibrate …` |
@@ -220,10 +234,8 @@ reference:
 
 | Missing from repo | What it should hold | Referenced in |
 | ----------------- | ------------------- | ------------- |
-| `04-user-services/console/` | High-seat launcher `index.html`, `console.service`, `ttyd-thinclient.service`, `ttyd-laptop.service`, `ttyd.env.example`, `browser-odin.md` | topology services table, Known issues |
-| `04-user-services/ai-orchestration/` | LiteLLM `docker-compose.yml`, `config.yaml`, `.env.example`, `langgraph-router/` (Odin supervisor) — still missing. **`jury/` (Kimi K3 voter) and `jury-claude/` (Claude-backend voter) now snapshotted here** — see section G. | topology services table, Known issues |
-| secrets vault (was `12-secrets/`) | sops+age `vault/*.env.sops`, `.sops.yaml`, `secrets.manifest`, `seal.sh`/`unseal.sh`/`rotate-secrets.sh` | Known issues (pihole/router/ttyd secrets) |
-| `01-core-network/unbound/local-records.conf` | LAN-only A records (`ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → t630) | Unbound config section |
+| `04-user-services/ai-orchestration/langgraph-router/` | The Odin supervisor (LangGraph graph, `odin` CLI, `dispatcher.py`, juror/critic roster) — **still missing**; snapshot from the live box, don't fabricate from lore. The LiteLLM front door (`docker-compose.yml`, `config.yaml`, `.env.example`, `README.md`) and the `jury/` + `jury-claude/` voters (section G) are now snapshotted here. | topology services table, Known issues |
+| **sealed** `vault/*.env.sops` | The sops+age **tooling** (`.sops.yaml`, `secrets.manifest`, `seal.sh`/`unseal.sh`/`rotate-secrets.sh`, README) is now snapshotted under `vault/`. **Still missing:** the actual sealed `*.env.sops` — create them from the real values on the t630 (`./seal.sh` after setting a real age recipient). | Known issues (pihole/router/ttyd secrets) |
 
 **Docs relocated under `docs/`** (not root): `INSTALL-NOTES.md`, `SKILLS.md`,
 `network-context.md`, `cell-grammar.md` → `docs/architecture/`; AI-CTO context →
@@ -267,7 +279,7 @@ verify with: `sudo nft -j list counters table inet a777acct`
 
 ## D. Unbound config
 
-**Five** drop-ins live in `01-core-network/unbound/` in this repo, loaded
+**Six** drop-ins live in `01-core-network/unbound/` in this repo, loaded
 alphabetically (A→Z) by Unbound from `/etc/unbound/unbound.conf.d/` — listed Z→A
 here per house style:
 
@@ -278,8 +290,13 @@ here per house style:
 | `server.conf` | Interface, port, access-control, security flags |
 | `root-auto-trust-anchor-file.conf` | DNSSEC root trust anchor |
 | `remote-control.conf` | Unix socket for `unbound-control` |
+| `local-records.conf` | LAN-only A records (`ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → the t630) so the console sidebar pins names not IP:ports; `local-zone … transparent` overrides only the names defined, not the whole zone. |
 
-A sixth drop-in, `local-records.conf` (LAN-only A records: `ai`/`chat`/`console`/`term`/`laptop`/`kuma`/`pihole`.home.lan → the t630, so the console sidebar pins names not IP:ports; `local-zone … transparent` overrides only the names defined, not the whole zone), is **documented but not present in this repo** — see the "drift to reconcile" note in section C. Add it under `01-core-network/unbound/` to make the LAN names reproducible from the repo.
+The `local-records.conf` names resolve only on the LAN/VPN (they point at the
+t630's private `192.168.1.118`) and must never be published to a public resolver.
+**Verify against the live box:** the names, IP, and `transparent` mechanism are
+reconstructed from this documentation — confirm each `local-data` line matches the
+t630 before trusting this drop-in as an authoritative rollback target.
 
 `tuning.conf` is the only place to change cache sizes, TTLs, or threading.
 Do not split these into separate files.

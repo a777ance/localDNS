@@ -1,0 +1,29 @@
+# Deploys to: /etc/systemd/system/ttyd-laptop.service
+# Reload: sudo systemctl daemon-reload && sudo systemctl restart ttyd-laptop
+#
+# Web terminal to the LAPTOP, on :7682, using the t630 as an SSH jump host.
+# Same warnings as the thin-client unit: remote shell, --credential is the only
+# gate (keep it in /etc/a777ance/ttyd.env, chmod 600, never in git), LAN + WG
+# only, never port-forward 7682, add TLS (`-S`) when ready.
+#
+# LAPTOP_SSH must be a STABLE address (laptop WireGuard IP or DHCP-reserved LAN
+# IP) — a floating lease breaks this terminal. Set User= before enabling.
+
+[Unit]
+Description=ttyd web terminal — laptop via SSH jump (:7682)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=CHANGE_ME
+EnvironmentFile=/etc/a777ance/ttyd.env
+# StrictHostKeyChecking=accept-new pins the key on first connect; after that a
+# changed key fails closed instead of silently trusting a new host.
+ExecStart=/usr/bin/ttyd -p 7682 -W -c ${TTYD_CREDENTIAL} ssh -o StrictHostKeyChecking=accept-new ${LAPTOP_SSH}
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

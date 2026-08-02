@@ -31,7 +31,7 @@ README step.
 - [Step 6. UFW Firewall](#step-6-ufw-firewall)
 - [Step 7. WireGuard VPN](#step-7-wireguard-vpn)
   - [Topology](#topology)
-  - [Server config: 05-wireguard/wg0.conf](#server-config-05-wireguardwg0conf)
+  - [Server config: 01-core-network/wireguard/wg0.conf](#server-config-05-wireguardwg0conf)
   - [IP forwarding](#ip-forwarding)
   - [Phone client (WireGuard iOS)](#phone-client-wireguard-ios)
   - [Why port 51820 is open to Anywhere](#why-port-51820-is-open-to-anywhere)
@@ -68,7 +68,7 @@ README step.
 
 ## Step 0. Router topology
 
-**Repo:** [`03-host-dns/`](03-host-dns/) (host resolver) — router settings live on the Netgear, not in this repo
+**Repo:** [`01-core-network/host-dns/`](01-core-network/host-dns/) (host resolver) — router settings live on the Netgear, not in this repo
 
 The Netgear R7000 is the sole router (routing, NAT, DHCP, WAN). The t630 is the
 DNS and VPN server, hanging off the LAN.
@@ -175,7 +175,7 @@ the box cannot resolve anything for itself — `git`, `apt`, and `curl` all fail
 every other device on the network.
 
 **Fix — point the host at external resolvers, independent of the Docker stack**
-(`03-host-dns/host-dns.conf`). Because disabling the stub removes the `127.0.0.53`
+(`01-core-network/host-dns/host-dns.conf`). Because disabling the stub removes the `127.0.0.53`
 listener that `/etc/resolv.conf` normally targets, the symlink must be re-pointed to
 the file that lists the real upstreams:
 
@@ -210,7 +210,7 @@ after the restart, an entry may be pinned at the link level —
 
 ## Step 1. CAKE / bufferbloat
 
-**Repo:** [`06-cake/`](06-cake/)
+**Repo:** [`02-performance/cake/`](02-performance/cake/)
 
 **What bufferbloat is:** when a big download or upload fills the modem/router's
 packet buffer, everything else has to wait behind it. A 16 ms idle ping becomes
@@ -272,12 +272,12 @@ bufferbloat remains for direct LAN devices.
 
 ## Step 2. Unbound DNS split (streaming-forward.conf)
 
-**Repo:** [`01-unbound/`](01-unbound/)
+**Repo:** [`01-core-network/unbound/`](01-core-network/unbound/)
 
 Unbound is the single decision point for where each query goes:
 
 - **Streaming / low-sensitivity domains** — Netflix, YouTube, Spotify, Steam, and
-  the rest of `01-unbound/streaming-forward.conf` — are forwarded to **Cloudflare over
+  the rest of `01-core-network/unbound/streaming-forward.conf` — are forwarded to **Cloudflare over
   DNS-over-TLS** (`1.1.1.1@853` / `1.0.0.1@853`, name-checked against
   `cloudflare-dns.com`). This is the deliberate privacy-for-speed trade on
   high-volume traffic whose destination is not sensitive.
@@ -337,7 +337,7 @@ dig @127.0.0.1 -p 5335 netflix.com +short # → resolves (DoT path works end-to-
 ```
 
 **Possible future extension (not yet done):** the host's own resolver
-(`03-host-dns/host-dns.conf`) still queries `9.9.9.9 1.1.1.1` in plaintext.
+(`01-core-network/host-dns/host-dns.conf`) still queries `9.9.9.9 1.1.1.1` in plaintext.
 systemd-resolved supports DoT (`DNSOverTLS=yes`), so the host could encrypt its own
 lookups too — a separate, optional change.
 
@@ -368,17 +368,17 @@ directly. No custom Docker network is defined.
 
 ## Step 4 + 5. Pi-hole DNS settings (Settings → DNS)
 
-**Repo:** [`02-pihole/`](02-pihole/) — plus [`03-host-dns/`](03-host-dns/) for the port-53 handoff
+**Repo:** [`01-core-network/pihole/`](01-core-network/pihole/) — plus [`01-core-network/host-dns/`](01-core-network/host-dns/) for the port-53 handoff
 
 Pi-hole is deployed across README Steps 4 + 5 (free `:53` and decouple host DNS,
 *then* start the container). These are the settings that matter — all seeded and
-locked by `FTLCONF_*` env vars in `02-pihole/docker-compose.yml` under Pi-hole v6.
+locked by `FTLCONF_*` env vars in `01-core-network/pihole/docker-compose.yml` under Pi-hole v6.
 
 ### Why 127.0.0.1#5335 — and why it used to be 172.17.0.1#5335
 
 Pi-hole runs with `network_mode: host`, so it shares the host's network stack
 directly. Inside that stack `127.0.0.1` *is* the host loopback, and Unbound listens
-on `:5335` across every interface (`interface: 0.0.0.0` in `01-unbound/server.conf`),
+on `:5335` across every interface (`interface: 0.0.0.0` in `01-core-network/unbound/server.conf`),
 the loopback included — so Pi-hole reaches it as `127.0.0.1#5335`, exactly as a
 native host process would.
 
@@ -390,7 +390,7 @@ removes the namespace boundary, so the bridge-gateway address is no longer corre
 `127.0.0.1#5335` is. Any lingering `172.17.0.1#5335` in an old `pihole_data` volume
 should be corrected to `127.0.0.1#5335`.
 
-The `FTLCONF_dns_upstreams` value in `02-pihole/docker-compose.yml` is
+The `FTLCONF_dns_upstreams` value in `01-core-network/pihole/docker-compose.yml` is
 `127.0.0.1#5335` — a single upstream pointing at Unbound. Under Pi-hole v6 this is
 re-applied and locked on every container start, so it overrides whatever is stored in
 the `pihole_data` volume rather than only seeding a fresh one.
@@ -422,9 +422,9 @@ lookups; keeping a single upstream is what preserves the private path.
 
 ## Step 6. UFW Firewall
 
-**Repo:** [`04-ufw/`](04-ufw/)
+**Repo:** [`01-core-network/ufw/`](01-core-network/ufw/)
 
-UFW is the host firewall (`04-ufw/setup.sh`). The policy is default-deny incoming,
+UFW is the host firewall (`01-core-network/ufw/setup.sh`). The policy is default-deny incoming,
 with every service scoped to the LAN (`192.168.0.0/16`) and the WireGuard subnet
 (`10.8.0.0/24`) — except WireGuard's own `51820/udp`, the single port open to
 `Anywhere` because the phone handshakes from a public cellular IP (see "Why port
@@ -432,7 +432,7 @@ with every service scoped to the LAN (`192.168.0.0/16`) and the WireGuard subnet
 
 Two interactions are worth calling out, both covered in depth elsewhere:
 
-- **Forwarding for the VPN.** `04-ufw/setup.sh` sets `ufw default allow routed`
+- **Forwarding for the VPN.** `01-core-network/ufw/setup.sh` sets `ufw default allow routed`
   (`DEFAULT_FORWARD_POLICY=ACCEPT`) so the FORWARD chain passes WireGuard peer traffic
   out `enp1s0`. Raw `iptables -A FORWARD` rules in `wg0.conf` do *not* work here —
   they land after UFW's DROP. See "WireGuard: UFW forwarding" under Step 7.
@@ -449,7 +449,7 @@ from UFW's `filter` rules, so the two do not interact.
 
 ## Step 7. WireGuard VPN
 
-**Repo:** [`05-wireguard/`](05-wireguard/)
+**Repo:** [`01-core-network/wireguard/`](01-core-network/wireguard/)
 
 The t630 runs a WireGuard server that tunnels the phone back to the home network
 from anywhere on cellular or untrusted Wi-Fi.
@@ -471,7 +471,7 @@ reachable because Pi-hole (host-networked) binds `0.0.0.0:53` directly on every
 host interface — including wg0. All phone DNS therefore flows through Pi-hole +
 Unbound — ad-blocking and DNSSEC validation work on cellular identically to LAN.
 
-### Server config: 05-wireguard/wg0.conf
+### Server config: 01-core-network/wireguard/wg0.conf
 
 | Parameter | Value |
 | --------- | ----- |
@@ -509,7 +509,7 @@ and avoids the operational complexity of per-SSID rules.
 
 ### Why port 51820 is open to Anywhere
 
-Every other service in `04-ufw/setup.sh` is restricted to `192.168.0.0/16`.
+Every other service in `01-core-network/ufw/setup.sh` is restricted to `192.168.0.0/16`.
 WireGuard is the single exception: the phone connects from cellular, which is
 a public IP outside the LAN. The port must be reachable from the internet for
 the handshake to complete.
@@ -635,10 +635,10 @@ Two fixes (both now applied):
 
 1. **Use the WireGuard interface IP** — `ssh user@10.8.0.1` always works
    because the connection arrives on wg0 and the WG subnet is now allowed
-   for SSH in `04-ufw/setup.sh`.
+   for SSH in `01-core-network/ufw/setup.sh`.
 
 2. **UFW now allows SSH from the WG subnet** — `ufw allow in from 10.8.0.0/24
-   to any port 22` is in `04-ufw/setup.sh`, so `ssh user@192.168.1.118` also
+   to any port 22` is in `01-core-network/ufw/setup.sh`, so `ssh user@192.168.1.118` also
    works from a connected VPN peer.
 
 #### UFW: services reachable from VPN peers
@@ -697,7 +697,7 @@ Two changes — both required:
    not raw iptables added by WireGuard.
 
 2. **Change `ufw default deny routed` to `ufw default allow routed`** in
-   `04-ufw/setup.sh`. This sets `DEFAULT_FORWARD_POLICY=ACCEPT`, which allows all
+   `01-core-network/ufw/setup.sh`. This sets `DEFAULT_FORWARD_POLICY=ACCEPT`, which allows all
    forwarding through the t630. Combined with the existing LAN firewall
    restrictions on incoming ports, this is safe: the t630 is not a public
    router, and the only forwarded traffic will be from WireGuard peers that
@@ -793,7 +793,7 @@ regardless of this setting.
 
 ## Step 8. Uptime Kuma — monitoring
 
-**Repo:** [`07-uptime-kuma/`](07-uptime-kuma/)
+**Repo:** [`03-monitoring/uptime-kuma/`](03-monitoring/uptime-kuma/)
 
 Uptime Kuma runs in Docker on port 3001 and monitors Unbound via a DNS monitor
 querying `127.0.0.1:5335`.
@@ -840,7 +840,7 @@ field takes an IP address only — no port. Port goes in the separate Port field
 Entering `127.0.0.1:5335` in the resolver field creates an invalid double-port
 and causes intermittent failures.
 
-**Packet loss monitors:** driven by `07-uptime-kuma/packet-loss-monitor.sh`, which
+**Packet loss monitors:** driven by `03-monitoring/monitors/packet-loss-monitor.sh`, which
 runs via cron every 60 seconds. The loss % is placed in the `ping` field so
 Uptime Kuma graphs it as a time series. Threshold: 15% by default (the value in
 the script), lowered to 5% once the router hardware is stable.
@@ -849,7 +849,7 @@ the script), lowered to 5% once the router hardware is stable.
 
 ## Step 9. GPU performance
 
-**Repo:** [`08-gpu-performance/`](08-gpu-performance/)
+**Repo:** [`02-performance/gpu-performance/`](02-performance/gpu-performance/)
 
 No network dimension — purely a local display/performance fix for the headless AMD
 Carrizo iGPU downclock, with no bearing on DNS, VPN, or firewalling. Rationale and the
@@ -860,10 +860,10 @@ you run a graphical remote desktop on the box.
 
 ## Step 10. Remote Desktop
 
-**Repo:** [`09-remote-desktop/`](09-remote-desktop/)
+**Repo:** [`04-user-services/remote-desktop/`](04-user-services/remote-desktop/)
 
 The only network-relevant fact: the remote-desktop services are **LAN-only**.
-`04-ufw/setup.sh` opens NoMachine (`4000`) and xrdp (`3389`) to `192.168.0.0/16`
+`01-core-network/ufw/setup.sh` opens NoMachine (`4000`) and xrdp (`3389`) to `192.168.0.0/16`
 only — not to `Anywhere`, and not to the WireGuard subnet. Remote *administration*
 from outside the LAN therefore goes over SSH (port 22, which *is* allowed from
 `10.8.0.0/24`), not over the graphical desktop. Everything else about this step —
@@ -890,7 +890,7 @@ from DHCP automatically (on cellular, they reach it through the Step 7 VPN inste
 
 ## Step 12. LLM router (route, not shard)
 
-**Repo:** [`10-ai-orchestration/`](10-ai-orchestration/) — config; `01-unbound/local-records.conf` for the name
+**Repo:** [`04-user-services/ai-orchestration/`](04-user-services/ai-orchestration/) — config; `01-core-network/unbound/local-records.conf` for the name
 
 Optional add-on. A LiteLLM proxy on the t630 gives the household one
 OpenAI-compatible endpoint (`ai.home.lan:4040`) that routes to whole-model backends:
@@ -927,7 +927,7 @@ fallback; reusing a `model_name` across deployments balances across copies, and 
   router reaches a co-located Ollama at `127.0.0.1:11434` directly and binds its port
   on the host for UFW to gate. Port **4040**, because NoMachine owns 4000.
 - **The name lives in Unbound, the compute does not.** `ai.home.lan` is a `local-data`
-  record (`01-unbound/local-records.conf`) so clients get one stable front door; the
+  record (`01-core-network/unbound/local-records.conf`) so clients get one stable front door; the
   resolver's job here is to be addressable, not to compute. CAKE (Step 1) shapes the
   transport if a request spills to the cloud, so overflow egress can't wreck loaded
   latency for the rest of the house. None of these turn the LAN into a cluster — they
@@ -938,6 +938,6 @@ fallback; reusing a `model_name` across deployments balances across copies, and 
 The t630 is CPU-only for this (Carrizo iGPU: old GCN, ROCm unsupported, Vulkan offload
 marginal and sharing the same RAM), so throughput is memory-bandwidth bound. No
 tokens/sec figure is recorded here on purpose — the honest number is the one measured
-on the box (`10-ai-orchestration/README.md` shows the `time` probe). Start interactive on a
+on the box (`04-user-services/ai-orchestration/README.md` shows the `time` probe). Start interactive on a
 3B; treat 7B as submit-and-wait. The durable win at any size is data control: with the
 cloud key unset, every request stays on your network and overflow calls fail closed.

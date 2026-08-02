@@ -1,0 +1,48 @@
+# Deploys to: ~/llm-router/docker-compose.yml
+# Reload: cd ~/llm-router && docker compose up -d
+#
+# RECONSTRUCTED from CLAUDE.md (topology + Known issues) and
+# docs/architecture/network-context.md "Step 12. LLM router". Verify against the
+# live t630 before trusting as a rollback target.
+#
+# Two containers, both network_mode: host (same rationale as Pi-hole / Uptime
+# Kuma — reach a co-located Ollama at 127.0.0.1:11434 directly, and bind their
+# ports on the host so UFW gates them):
+#   * LiteLLM  — one OpenAI-compatible front door on :4040 (NOT 4000; NoMachine
+#                owns 4000). Routes to whole-model backends; see config.yaml.
+#   * Open WebUI — browser chat UI on :3000 (NOT 8080; that is the Pi-hole UI).
+#                Talks ONLY to the router, so routing + failover apply to UI too.
+#
+# Secrets live in ~/llm-router/.env (git-ignored); repo ships .env.example with
+# CHANGE_ME. With the cloud key unset, every request stays local and overflow
+# calls fail closed.
+
+services:
+  litellm:
+    container_name: litellm
+    image: ghcr.io/berriai/litellm:main-latest
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - .env
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    command: ["--config", "/app/config.yaml", "--port", "4040"]
+
+  open-webui:
+    container_name: open-webui
+    image: ghcr.io/open-webui/open-webui:main
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      # Host-net: Open WebUI defaults to :8080 (taken by Pi-hole) — pin it to 3000.
+      PORT: "3000"
+      # The UI talks ONLY to the local router, never straight to a provider.
+      OPENAI_API_BASE_URL: "http://127.0.0.1:4040/v1"
+      OPENAI_API_KEY: "${LITELLM_MASTER_KEY:?set LITELLM_MASTER_KEY in ~/llm-router/.env}"
+    volumes:
+      # First account created at chat.home.lan:3000 becomes admin — create it from
+      # a trusted device. State persists here (git-ignored).
+      - ./open-webui-data:/app/backend/data
+    depends_on:
+      - litellm

@@ -1,0 +1,16 @@
+# sops creation rules for this vault.
+#
+# Every file matching *.env.sops in this directory is encrypted to the age
+# recipient(s) below. Only the age PRIVATE key (kept OFF the repo — see README)
+# can decrypt them, so the sealed *.env.sops files are safe to commit.
+#
+# REPLACE the CHANGE_ME recipient with your real age PUBLIC key (starts `age1…`),
+# generated with `age-keygen -o ~/.config/sops/age/keys.txt` (the public key is
+# printed to stderr). Add more `- age: …` recipients to let more keys decrypt
+# (e.g. a backup key). Never put the private key here.
+
+creation_rules:
+  - path_regex: \.env\.sops$
+    key_groups:
+      - age:
+          - age1CHANGE_ME_replace_with_your_age_public_key
