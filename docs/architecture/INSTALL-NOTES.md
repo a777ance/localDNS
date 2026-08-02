@@ -488,6 +488,12 @@ section by category.
 | Host-net Pi-hole vs systemd-resolved on `:53` | ✓ **Resolved in repo** | `network_mode: host` makes Pi-hole bind `0.0.0.0:53`, colliding with the stub listener (`127.0.0.53:53`). `DNSStubListener=no` frees `:53` and the host-DNS step re-points `/etc/resolv.conf` off the stub. Full detail: Break Point [#9](#9-host-networked-pi-hole-vs-systemd-resolved-stub-on-port-53). | [`01-core-network/host-dns/host-dns.conf`](01-core-network/host-dns/host-dns.conf) · [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml) |
 | Pi-hole v5 → v6 env vars | ✓ **Resolved in repo** | `pihole/pihole:latest` is v6, which ignores the v5 env vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`, …). Compose migrated to `FTLCONF_*` keys. Full detail: Break Point [#7](#7-pi-hole-v5v6-environment-scheme--compose-used-variables-v6-ignores). | [`01-core-network/pihole/docker-compose.yml`](01-core-network/pihole/docker-compose.yml) |
 
+> **Not yet implemented:** the `vault/rotate-secrets.sh wg-peer` / `all` / `apps`
+> commands and the sealed WireGuard *server* key referenced in the rows above are
+> documented here but not built into the current `vault/` scaffold (it does per-file
+> rotate + `--rekey` only). See [vault/README.md](../../vault/README.md)
+> "Not yet implemented" before relying on them.
+
 ---
 
 ## Audit Log

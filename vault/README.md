@@ -47,3 +47,21 @@ key + Anthropic key, the ttyd credential + laptop SSH target, and the Jury API
 keys — each mapped to the `.env` its service already reads. If any of these ever
 appears in plaintext in git history, treat it as compromised and rotate at the
 provider, not just here.
+
+## Not yet implemented (docs describe more than this scaffold does)
+
+`docs/architecture/INSTALL-NOTES.md` describes a richer vault than this scaffold
+currently delivers. These are **documented but NOT built here** — don't rely on
+them until they land:
+
+- **`rotate-secrets.sh wg-peer <name>`** — mint/rotate a single WireGuard peer's
+  keypair (and edit `wg0.conf`) without churning the server key. This script only
+  does per-file edit (`rotate-secrets.sh <name>`) and `--rekey`.
+- **`rotate-secrets.sh all` / `apps`** — rotate by secret *group*. Not implemented;
+  rotate one file at a time for now.
+- **Sealed WireGuard *server* key** — INSTALL-NOTES counts it among the "four
+  runtime secrets," but it is not in `secrets.manifest` yet. Add it there (and a
+  `wireguard.env.sops`) before claiming the server key is vaulted.
+
+Building any of these touches live WireGuard key material / `wg0.conf`, so do it
+against the real box, not from this doc.
