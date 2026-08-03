@@ -26,7 +26,7 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 
 | Key | Glyph | Phase | Archetype | Meaning |
 | :-- | :-- | :-- | :-- | :-- |
-| `~` | `~` | Staging | Requirement / Bridge | Plain-language **requirement**, and the **continuity operator** — it *coalesces, carries forward, and interleaves* prior session context / state (a callback/bridge to what came before). The **only archetype with no slash command**. Visual: a bridge. |
+| `~` | `~` | Staging | Requirement / Continuity | Plain-language **requirement** and the **continuity operator** — it *coalesces, carries forward, interleaves* prior context/state **and signals "stay in the Bifrost schema."** Bifrost loads at session start, so `~` just means *continue in-schema* — no need to retype the webbing. The **only archetype with no slash command**. Visual: a bridge. |
 | `` ` `` | `` ` `` | Staging | Descriptor | Inline qualifier, renders **shaded**; **subordinate to `~`** — it hangs under the requirement and describes it (e.g. `` `yellow, large, browning, bunch` ``). |
 | `1` | `!` | Preload | Payloads (Cars) | The cars/payloads themselves. *(The `!` reads visually as a car.)* |
 | `2` | `@` | Preload | Signage | The signage / labelling on the road. |
@@ -57,6 +57,12 @@ Each backbone glyph is an **archetype** — a role — filled in up to three par
 
 Example slot: `@ /label top right corner` = the *signage* archetype, done via `/label`,
 placed "top right corner."
+
+**Intensity — the thumb on the scale (`+`, `-`, repetition).** At any point, `+` means
+**more** and `-` means **less** — dial the weight of the nearest archetype up or down.
+**Repetition is the exact equivalent:** each `+` adds one level, so `$+++` ≡ `$$$$` (heavy
+**sanity**), `%+++` ≡ `%%%%` (heavy **compliance**), `^+++` ≡ `^^^^` (4 lanes). You never
+retype the webbing to add weight — stack the glyph or add `+` / `-`.
 
 ---
 
@@ -123,6 +129,18 @@ $$K = \sum_{i < j} \mathbb{I}(v_i > v_j)$$
 6. `$ the adjacent buttons on the dashboard` — **Known-Good**: match the adjacent buttons (house style).
 7. `%` — **Weigh Station** (bare): compliance check.
 
+**Example 2 — intensity + continuity** (both lines mean the same thing):
+
+```text
+~ ! 401k ruleset  $$$$ needs to adhere to ERISA rules  %%%% unit testing for AI hallucination
+~ ! 401k ruleset  $+++ needs to adhere to ERISA rules  %+++ unit testing for AI hallucination
+```
+
+- `~` — **continuity**: stay in-schema (Bifrost already loaded at session start); no webbing retyped.
+- `! 401k ruleset` — the **Payload**.
+- `$$$$` ≡ `$+++` — **sanity** dialled up: validate hard against ERISA (the known-good).
+- `%%%%` ≡ `%+++` — **compliance** dialled up: heavy hallucination unit-testing before it passes.
+
 ---
 
 ## 7. Changelog & superseded passes
@@ -131,7 +149,11 @@ Newest first. Recorded so reviewers can trace intent; **git history of this file
 exact line-by-line diff.** This is a live design — earlier passes were deliberately
 superseded, not mistakes.
 
-- **Bifrost naming, gateway split, soft helpers (current).** Named the schema **Bifrost**
+- **Intensity dials + schema continuity (current).** `+` = more, `-` = less (thumb on the
+  scale, at any point); **repetition is the exact equivalent** — `$+++` ≡ `$$$$` (sanity),
+  `%+++` ≡ `%%%%` (compliance), `^+++` ≡ `^^^^` (4 lanes). `~` also means **stay in-schema**
+  — Bifrost loads at session start, so `~` continues without retyping the webbing.
+- **Bifrost naming, gateway split, soft helpers.** Named the schema **Bifrost**
   (alias *Rainbow Bridge*; overlaps `MARKETING/notebooklm-bridge/`, to reconcile later).
   Distinguished "highway" broad (all physical keys) vs narrow (keys 5–0, the drivable road;
   `%` the gateway on). Added the **soft-helper tier** `< > ? { } [ ] " ' : ;` — glow-in-the-
