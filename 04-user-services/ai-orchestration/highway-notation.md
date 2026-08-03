@@ -70,6 +70,11 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 > **The glyph fits: `~` natively means "approximately"** (math/science, rounding). The anchor
 > is *approximate by design* — a rough first pass, not a precise commitment — exactly the
 > reflex/expansive posture above.
+>
+> **Reasoning is conserved, never eliminated.** `~` is user input that *short-circuits
+> front-loaded* reasoning — not reasoning itself. The only choice is **timing**: front-load it
+> (definitions/associations up top) or run it **just-in-time**, mid-flight. Same reasoning,
+> relocated.
 
 ---
 
