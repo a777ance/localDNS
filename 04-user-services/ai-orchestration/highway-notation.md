@@ -109,6 +109,11 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 > ongoing context, the traffic, the flow. So a **lack of `~` is a lack of environmental
 > awareness** — merging **blind**, not matching the surrounding speeds, a fresh start unaware
 > of the flow. That is the cost side of the deliberate start-tradeoff.
+>
+> **`~` = intent to merge — either direction.** Matching the flow can mean **speeding up or
+> slowing down**: too slow for the traffic, accelerate (more reflex); too fast, ease off (more
+> reasoning). `~` signals the intent and adapts *either way* to merge safely — it is not fixed
+> at "faster."
 
 ---
 
