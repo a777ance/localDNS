@@ -80,6 +80,10 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 > Opus stays at full capability and effort in the body. `~` sets **just the first token** to
 > very low effort (the cheap reflex); the in-flight reasoning is full-strength. Lazy *anchor*,
 > not lazy *model* — precisely the §G "lazy anchor → governed-warm body" split.
+>
+> **Budget discipline.** Conserving the anchor keeps the reasoning budget **coiled — ready to
+> pounce** where it is load-bearing in flight, rather than spent upfront on a block that may
+> only rationalize. Same budget, deployed where it counts.
 
 ---
 
