@@ -58,11 +58,16 @@ Each backbone glyph is an **archetype** — a role — filled in up to three par
 Example slot: `@ /label top right corner` = the *signage* archetype, done via `/label`,
 placed "top right corner."
 
-**Intensity — the thumb on the scale (`+`, `-`, repetition).** At any point, `+` means
-**more** and `-` means **less** — dial the weight of the nearest archetype up or down.
-**Repetition is the exact equivalent:** each `+` adds one level, so `$+++` ≡ `$$$$` (heavy
-**sanity**), `%+++` ≡ `%%%%` (heavy **compliance**), `^+++` ≡ `^^^^` (4 lanes). You never
-retype the webbing to add weight — stack the glyph or add `+` / `-`.
+**Intensity — the thumb on the scale (`+`, `-`, repetition).**
+
+- **`+` (and repetition) = MORE / tighter / stricter** — enforce the archetype harder. Each
+  `+` adds one level, so `$+++` ≡ `$$$$` (heavy **sanity**), `%+++` ≡ `%%%%` (heavy
+  **compliance**), `^+++` ≡ `^^^^` (4 lanes). Never retype the webbing to add weight — stack
+  the glyph or add `+`.
+- **`-` = INVERT into a stress test** — relax or flip the guardrail to inject a *purposeful
+  chance of failure* (adversarial fault injection), **like raising temperature** (§G's
+  variance dial). `$-` = "there's a chance it violates ERISA — probe that"; `%-` = "a chance
+  it fails the hallucination tests." More `-` = more stress.
 
 ---
 
@@ -141,6 +146,16 @@ $$K = \sum_{i < j} \mathbb{I}(v_i > v_j)$$
 - `$$$$` ≡ `$+++` — **sanity** dialled up: validate hard against ERISA (the known-good).
 - `%%%%` ≡ `%+++` — **compliance** dialled up: heavy hallucination unit-testing before it passes.
 
+**Example 3 — stress test** (`-` inverts the guardrails; stack more `-` to crank it):
+
+```text
+~ ! 401k ruleset  $- needs to adhere to ERISA rules  %-- unit testing for AI hallucination
+```
+
+Same payload, but `$-` and `%--` deliberately inject a *chance of failure* — probe what
+happens if it violates ERISA (`$-`) or, harder (`%--`), fails the hallucination tests.
+Purposeful error, the way raising temperature manufactures variance (§G).
+
 ---
 
 ## 7. Changelog & superseded passes
@@ -149,10 +164,11 @@ Newest first. Recorded so reviewers can trace intent; **git history of this file
 exact line-by-line diff.** This is a live design — earlier passes were deliberately
 superseded, not mistakes.
 
-- **Intensity dials + schema continuity (current).** `+` = more, `-` = less (thumb on the
-  scale, at any point); **repetition is the exact equivalent** — `$+++` ≡ `$$$$` (sanity),
-  `%+++` ≡ `%%%%` (compliance), `^+++` ≡ `^^^^` (4 lanes). `~` also means **stay in-schema**
-  — Bifrost loads at session start, so `~` continues without retyping the webbing.
+- **Intensity dials + schema continuity (current).** `+` (and repetition) = more/tighter —
+  `$+++` ≡ `$$$$` (sanity), `%+++` ≡ `%%%%` (compliance), `^+++` ≡ `^^^^` (lanes). **`-`
+  inverts into a stress test** — inject a purposeful chance of failure (adversarial, like
+  §G's temperature); more `-` cranks the stress. `~` also means **stay in-schema** (Bifrost
+  loads at session start).
 - **Bifrost naming, gateway split, soft helpers.** Named the schema **Bifrost**
   (alias *Rainbow Bridge*; overlaps `MARKETING/notebooklm-bridge/`, to reconcile later).
   Distinguished "highway" broad (all physical keys) vs narrow (keys 5–0, the drivable road;
