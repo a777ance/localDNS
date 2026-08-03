@@ -85,10 +85,11 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 > pounce** where it is load-bearing in flight, rather than spent upfront on a block that may
 > only rationalize. Same budget, deployed where it counts.
 >
-> **Momentum.** Reaching the first token *lazily* — fast and cheap — gets the pipeline
-> **rolling**, and that momentum carries through the rest of the Bifrost calls (`! @ # $ % ^
-> …`), the way a moving car flows through the lanes and lights. An effortful start stalls the
-> highway before it begins.
+> **Momentum — the inertia irony.** Reaching the first token *lazily* — fast and cheap — gets
+> the pipeline **rolling**, and by inertia (**a body in motion stays in motion**) that motion
+> carries through the rest of the Bifrost calls (`! @ # $ % ^ …`), the way a moving car flows
+> through the lanes and lights. The irony: the *laziest* start buys the *most* sustained
+> motion — an effortful start never overcomes rest, and stalls the highway before it begins.
 
 ---
 
