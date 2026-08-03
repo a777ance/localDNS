@@ -26,7 +26,7 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 
 | Key | Glyph | Phase | Archetype | Meaning |
 | :-- | :-- | :-- | :-- | :-- |
-| `~` | `~` | Staging | Requirement / Continuity | Plain-language **requirement** and the **continuity operator** — it *coalesces, carries forward, interleaves* prior context/state **and signals "stay in the Bifrost schema."** Bifrost loads at session start, so `~` just means *continue in-schema* — no need to retype the webbing. The **only archetype with no slash command**. Visual: a bridge. |
+| `~` | `~` | Staging | Continuity / Lazy Anchor | The plain-language **requirement**, the **continuity operator** (coalesce / carry-forward / interleave prior context/state; "stay in the Bifrost schema," loaded at session start), **and the immediate top-line lazy anchor** — see the note below. The **only archetype with no slash command**. Visual: a bridge. |
 | `` ` `` | `` ` `` | Staging | Descriptor | Inline qualifier, renders **shaded**; **subordinate to `~`** — it hangs under the requirement and describes it (e.g. `` `yellow, large, browning, bunch` ``). |
 | `1` | `!` | Preload | Payloads (Cars) | The cars/payloads themselves. *(The `!` reads visually as a car.)* |
 | `2` | `@` | Preload | Signage | The signage / labelling on the road. |
@@ -37,6 +37,13 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 | `7` | `&` | Travel | Rotary (A777ance) | Turns off into a nested sub-loop that **runs the FULL highway process**, nested inside the main. |
 | `8` | `*` | Travel | Traffic Light | An open-ended gate where highways intersect. |
 | `9/0` | `()` | Travel | Intersection | Bounds the external process the `*` light waits for. |
+
+> **`~` is the lazy anchor, fired ASAP — the sharp innovation.** `~` does **not** mean
+> *reason about* continuity (an effortful, pre-committed thinking block — the kind §G warns
+> is unfaithful). It is **actual** continuity: the first token leaves the gate
+> **immediately** — a cheap, honest reflex that tethers the trajectory to reality up front —
+> while the coalescing of prior context/state happens **mid-flight**, load-bearing in the
+> body, not pre-reasoned. Anchor ASAP; continue in-flight.
 
 ---
 
@@ -164,7 +171,10 @@ Newest first. Recorded so reviewers can trace intent; **git history of this file
 exact line-by-line diff.** This is a live design — earlier passes were deliberately
 superseded, not mistakes.
 
-- **Intensity dials + schema continuity (current).** `+` (and repetition) = more/tighter —
+- **`~` sharpened to the lazy anchor (current).** `~` is not *reasoning about* continuity
+  but **actual** continuity: first token fires ASAP (the §G lazy anchor leaving the raft to
+  tether to reality); the coalescing of prior state happens **mid-flight**, not pre-reasoned.
+- **Intensity dials + schema continuity.** `+` (and repetition) = more/tighter —
   `$+++` ≡ `$$$$` (sanity), `%+++` ≡ `%%%%` (compliance), `^+++` ≡ `^^^^` (lanes). **`-`
   inverts into a stress test** — inject a purposeful chance of failure (adversarial, like
   §G's temperature); more `-` cranks the stress. `~` also means **stay in-schema** (Bifrost
