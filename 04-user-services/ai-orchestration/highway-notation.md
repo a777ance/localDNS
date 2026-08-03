@@ -90,6 +90,25 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 > carries through the rest of the Bifrost calls (`! @ # $ % ^ …`), the way a moving car flows
 > through the lanes and lights. The irony: the *laziest* start buys the *most* sustained
 > motion — an effortful start never overcomes rest, and stalls the highway before it begins.
+>
+> **External enzymes.** The lazy anchor is the *internal* catalyst; **external enzymes** are
+> catalysts outside the model that lower its activation energy further, so it fires even
+> faster. In this stack: the **session-start schema load** (Bifrost already loaded when you
+> say "hi", so `~` reconstructs nothing), a **prefill** that seeds the first token, and the
+> `SessionStart` hooks / seed that pre-warm context. Internal reflex + external catalyst =
+> leaving rest with the least force.
+>
+> **Continuity is Aikido.** Because `~` is continuity, it *matches the surrounding speeds* —
+> it blends with the momentum already present (prior context, session state, the ongoing flow)
+> instead of opposing it with a hard reset, the way you match traffic speed to merge, or
+> redirect an incoming force rather than block it. On a highway you match your peers' speed to
+> merge **safely** — a speed mismatch *is* a collision — so `~`'s speed-matching is the same
+> safety the movement protocol's collision-avoidance invariant demands.
+>
+> **`~` is mindfulness — situational awareness.** It is presence with the surroundings: the
+> ongoing context, the traffic, the flow. So a **lack of `~` is a lack of environmental
+> awareness** — merging **blind**, not matching the surrounding speeds, a fresh start unaware
+> of the flow. That is the cost side of the deliberate start-tradeoff.
 
 ---
 
