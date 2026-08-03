@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>localDNS — Superhuman Docs</title>
+<meta name="description" content="Keyboard-first handbook for the localDNS 2.0 self-hosted DNS + VPN + monitoring stack on an HP t630.">
+<style>
+  :root {
+    /* repo palette (matches 04-user-services/console) */
+    --bg:        #0e1116;
+    --bg-2:      #0b0e13;
+    --card:      #171c24;
+    --card-2:    #1b212b;
+    --edge:      #2a323f;
+    --edge-soft: #212834;
+    --ink:       #e6e9ee;
+    --ink-dim:   #c3c9d4;
+    --muted:     #8b95a4;
+    --faint:     #5c6675;
+    --gold:      #c9a227;  /* repo accent — commands, addresses */
+    /* Superhuman signature — electric indigo→violet */
+    --sh-1:      #6c8cff;
+    --sh-2:      #a07bff;
+    --sh-glow:   rgba(108,140,255,.35);
+    --ok:        #57c98a;
+    --warn:      #e0b341;
+    --danger:    #e06d6d;
+    --radius:    12px;
+    --sidebar-w: 268px;
+    --font: 'Gill Sans MT', 'Gill Sans', Calibri, 'Trebuchet MS', sans-serif;
+    --mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', ui-monospace, 'Cascadia Code', Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(115% 80% at 82% -8%, rgba(160,123,255,.10) 0%, transparent 55%),
+      radial-gradient(120% 90% at 12% -6%, rgba(108,140,255,.10) 0%, transparent 52%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 16.5px;
+    line-height: 1.6;
+    letter-spacing: .01em;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--sh-1); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* reading progress */
+  #progress {
+    position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+    background: linear-gradient(90deg, var(--sh-1), var(--sh-2));
+    z-index: 60; box-shadow: 0 0 12px var(--sh-glow);
+    transition: width .1s linear;
+  }
+
+  /* ------- layout ------- */
+  .shell { display: grid; grid-template-columns: var(--sidebar-w) minmax(0,1fr); min-height: 100vh; }
+
+  /* ------- sidebar ------- */
+  aside {
+    position: sticky; top: 0; align-self: start; height: 100vh;
+    border-right: 1px solid var(--edge-soft);
+    background: linear-gradient(180deg, var(--bg-2), var(--bg));
+    padding: 1.4rem 1rem 2rem; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: var(--edge) transparent;
+  }
+  .brand { display: flex; align-items: center; gap: .6rem; padding: 0 .4rem .2rem; }
+  .brand .mark {
+    width: 30px; height: 30px; border-radius: 8px; flex: none;
+    background: linear-gradient(135deg, var(--sh-1), var(--sh-2));
+    box-shadow: 0 4px 18px var(--sh-glow);
+    display: grid; place-items: center; font-weight: 700; color: #0b0e13; font-size: 1rem;
+  }
+  .brand .title { font-size: 1.06rem; font-weight: 700; letter-spacing: .02em; line-height: 1.1; }
+  .brand .title small { display: block; color: var(--muted); font-weight: 400; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; margin-top: .12rem; }
+
+  .kbtn {
+    margin: 1rem .3rem 1.2rem; width: calc(100% - .6rem);
+    display: flex; align-items: center; gap: .55rem;
+    background: var(--card); border: 1px solid var(--edge); color: var(--muted);
+    border-radius: 10px; padding: .5rem .7rem; cursor: pointer; font-family: var(--font);
+    font-size: .86rem; transition: border-color .15s, background .15s, color .15s;
+  }
+  .kbtn:hover { border-color: var(--sh-1); color: var(--ink-dim); background: var(--card-2); }
+  .kbtn .mag { color: var(--faint); }
+  .kbtn kbd { margin-left: auto; }
+
+  nav { margin-top: .3rem; }
+  nav .group { font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: var(--faint); margin: 1.1rem .55rem .35rem; }
+  nav a.link {
+    display: flex; align-items: center; gap: .6rem;
+    color: var(--muted); padding: .38rem .55rem; border-radius: 8px;
+    font-size: .92rem; border-left: 2px solid transparent; margin: 1px 0;
+    transition: color .12s, background .12s, border-color .12s;
+  }
+  nav a.link:hover { color: var(--ink); background: var(--card); text-decoration: none; }
+  nav a.link .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--edge); flex: none; transition: background .12s, box-shadow .12s; }
+  nav a.link.active { color: var(--ink); background: linear-gradient(90deg, rgba(108,140,255,.13), transparent); border-left-color: var(--sh-1); }
+  nav a.link.active .dot { background: var(--sh-1); box-shadow: 0 0 8px var(--sh-glow); }
+
+  /* ------- main ------- */
+  main { padding: 0 clamp(1.1rem, 4vw, 3.4rem) 6rem; }
+  .topbar {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: 1rem;
+    padding: .9rem 0 .8rem; margin-bottom: .5rem;
+    background: linear-gradient(180deg, var(--bg) 72%, transparent);
+    backdrop-filter: blur(4px);
+  }
+  .topbar .crumb { color: var(--muted); font-size: .84rem; letter-spacing: .04em; }
+  .topbar .crumb b { color: var(--ink-dim); font-weight: 600; }
+  .topbar .spacer { flex: 1; }
+  .topbar .hint { color: var(--faint); font-size: .78rem; display: flex; align-items: center; gap: .4rem; }
+  .menu-btn { display: none; }
+
+  .hero { padding: 1.6rem 0 1.2rem; border-bottom: 1px solid var(--edge-soft); margin-bottom: 2rem; }
+  .hero .eyebrow { color: var(--sh-1); font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 600; }
+  .hero h1 { font-size: clamp(1.9rem, 4vw, 2.7rem); margin: .5rem 0 .5rem; letter-spacing: .01em; line-height: 1.08; }
+  .hero p { color: var(--ink-dim); max-width: 62ch; margin: .3rem 0 0; font-size: 1.06rem; }
+  .hero .meta { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.2rem; }
+  .pill { font-size: .78rem; color: var(--muted); background: var(--card); border: 1px solid var(--edge); border-radius: 999px; padding: .28rem .7rem; }
+  .pill b { color: var(--ink-dim); font-weight: 600; }
+
+  section { scroll-margin-top: 84px; padding: 1.4rem 0 2rem; border-bottom: 1px solid var(--edge-soft); max-width: 82ch; }
+  section:last-of-type { border-bottom: 0; }
+  section > h2 { font-size: 1.55rem; margin: .2rem 0 .3rem; letter-spacing: .01em; display: flex; align-items: baseline; gap: .6rem; }
+  section > h2 .sn { color: var(--faint); font-size: .95rem; font-weight: 400; }
+  section > .lede { color: var(--muted); margin: 0 0 1.3rem; font-size: 1.02rem; }
+  h3 { font-size: 1.12rem; margin: 1.8rem 0 .5rem; color: var(--ink); letter-spacing: .01em; }
+  p { margin: .7rem 0; color: var(--ink-dim); }
+  strong { color: var(--ink); font-weight: 600; }
+  ul, ol { color: var(--ink-dim); padding-left: 1.25rem; }
+  li { margin: .3rem 0; }
+  li::marker { color: var(--faint); }
+
+  code:not(pre code) {
+    font-family: var(--mono); font-size: .84em; color: var(--gold);
+    background: rgba(201,162,39,.09); border: 1px solid rgba(201,162,39,.16);
+    padding: .06em .38em; border-radius: 6px; white-space: nowrap;
+  }
+
+  /* code blocks */
+  .code { position: relative; margin: 1rem 0; }
+  .code pre {
+    margin: 0; overflow-x: auto; background: var(--bg-2); border: 1px solid var(--edge);
+    border-radius: var(--radius); padding: 1rem 1.05rem; scrollbar-width: thin;
+  }
+  .code pre code { font-family: var(--mono); font-size: .82rem; line-height: 1.7; color: var(--ink-dim); }
+  .code .copy {
+    position: absolute; top: .55rem; right: .55rem; opacity: 0;
+    background: var(--card-2); border: 1px solid var(--edge); color: var(--muted);
+    border-radius: 7px; padding: .25rem .55rem; font-size: .74rem; cursor: pointer;
+    font-family: var(--font); transition: opacity .15s, color .15s, border-color .15s;
+  }
+  .code:hover .copy { opacity: 1; }
+  .code .copy:hover { color: var(--ink); border-color: var(--sh-1); }
+  .code .copy.done { color: var(--ok); border-color: var(--ok); }
+  .cmt { color: var(--faint); }
+  .tok { color: var(--sh-1); }
+  .str { color: var(--ok); }
+
+  /* callouts */
+  .note { border-radius: var(--radius); border: 1px solid var(--edge); background: var(--card); padding: .9rem 1.05rem; margin: 1.1rem 0; position: relative; }
+  .note .tag { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; display: inline-flex; align-items: center; gap: .4rem; }
+  .note p { margin: .35rem 0 0; font-size: .95rem; }
+  .note.inv { border-color: rgba(224,109,109,.3); background: rgba(224,109,109,.06); }
+  .note.inv .tag { color: var(--danger); }
+  .note.tip { border-color: rgba(87,201,138,.3); background: rgba(87,201,138,.06); }
+  .note.tip .tag { color: var(--ok); }
+  .note.key { border-color: rgba(108,140,255,.3); background: rgba(108,140,255,.06); }
+  .note.key .tag { color: var(--sh-1); }
+
+  /* tables */
+  .tw { overflow-x: auto; margin: 1.1rem 0; border: 1px solid var(--edge); border-radius: var(--radius); }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; min-width: 460px; }
+  th, td { text-align: left; padding: .6rem .8rem; border-bottom: 1px solid var(--edge-soft); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; background: var(--bg-2); }
+  tr:last-child td { border-bottom: 0; }
+  td code { white-space: nowrap; }
+  .st { display: inline-block; font-size: .74rem; padding: .1rem .5rem; border-radius: 999px; font-weight: 600; }
+  .st.up { color: var(--ok); background: rgba(87,201,138,.12); }
+  .st.stage { color: var(--warn); background: rgba(224,179,65,.12); }
+
+  /* topology diagram */
+  .diagram { background: var(--bg-2); border: 1px solid var(--edge); border-radius: var(--radius); padding: 1.1rem 1.2rem; overflow-x: auto; margin: 1.1rem 0; }
+  .diagram pre { margin: 0; font-family: var(--mono); font-size: .8rem; line-height: 1.55; color: var(--ink-dim); }
+
+  kbd {
+    font-family: var(--font); font-size: .72rem; color: var(--ink-dim);
+    background: var(--card-2); border: 1px solid var(--edge); border-bottom-width: 2px;
+    border-radius: 6px; padding: .1rem .42rem; min-width: 1.3em; text-align: center; display: inline-block;
+  }
+
+  footer.pagefoot { max-width: 82ch; color: var(--faint); font-size: .82rem; padding-top: 2rem; }
+  footer.pagefoot a { color: var(--muted); }
+
+  /* ------- command palette ------- */
+  .overlay {
+    position: fixed; inset: 0; z-index: 80; display: none;
+    background: rgba(6,8,12,.62); backdrop-filter: blur(3px);
+    align-items: flex-start; justify-content: center; padding: 12vh 1rem 1rem;
+  }
+  .overlay.open { display: flex; }
+  .palette {
+    width: 100%; max-width: 600px; background: var(--card);
+    border: 1px solid var(--edge); border-radius: 14px; overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(108,140,255,.14);
+    animation: pop .12s ease;
+  }
+  @keyframes pop { from { transform: translateY(-8px) scale(.985); opacity: .4; } to { transform: none; opacity: 1; } }
+  .palette .searchrow { display: flex; align-items: center; gap: .6rem; padding: .85rem 1rem; border-bottom: 1px solid var(--edge-soft); }
+  .palette .searchrow .mag { color: var(--sh-1); font-size: 1rem; }
+  .palette input {
+    flex: 1; background: transparent; border: 0; outline: 0; color: var(--ink);
+    font-family: var(--font); font-size: 1.05rem;
+  }
+  .palette input::placeholder { color: var(--faint); }
+  .palette .esc { color: var(--faint); font-size: .72rem; }
+  .results { max-height: 52vh; overflow-y: auto; padding: .4rem; scrollbar-width: thin; }
+  .results .empty { color: var(--muted); text-align: center; padding: 2rem 1rem; font-size: .92rem; }
+  .rgroup { font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; color: var(--faint); padding: .6rem .7rem .2rem; }
+  .ritem {
+    display: flex; align-items: center; gap: .7rem; padding: .55rem .7rem;
+    border-radius: 9px; cursor: pointer; color: var(--ink-dim);
+  }
+  .ritem .ic { width: 22px; height: 22px; flex: none; border-radius: 6px; display: grid; place-items: center; font-size: .78rem; background: var(--card-2); border: 1px solid var(--edge); color: var(--muted); }
+  .ritem .rt { flex: 1; min-width: 0; }
+  .ritem .rt .name { font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ritem .rt .name mark { background: transparent; color: var(--sh-1); font-weight: 700; }
+  .ritem .rt .sub { font-size: .76rem; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ritem .go { color: var(--faint); font-size: .72rem; opacity: 0; }
+  .ritem.sel { background: linear-gradient(90deg, rgba(108,140,255,.16), rgba(160,123,255,.06)); color: var(--ink); }
+  .ritem.sel .ic { border-color: var(--sh-1); color: var(--sh-1); }
+  .ritem.sel .go { opacity: 1; }
+  .palette .foot { display: flex; gap: 1rem; padding: .5rem .9rem; border-top: 1px solid var(--edge-soft); color: var(--faint); font-size: .74rem; }
+  .palette .foot span { display: inline-flex; align-items: center; gap: .35rem; }
+
+  /* ------- shortcuts modal ------- */
+  .sc-card { width: 100%; max-width: 440px; background: var(--card); border: 1px solid var(--edge); border-radius: 14px; padding: 1.2rem 1.3rem 1.4rem; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+  .sc-card h3 { margin: 0 0 1rem; font-size: 1.1rem; }
+  .sc-row { display: flex; align-items: center; justify-content: space-between; padding: .45rem 0; border-bottom: 1px solid var(--edge-soft); font-size: .92rem; color: var(--ink-dim); }
+  .sc-row:last-child { border-bottom: 0; }
+  .sc-row .keys { display: flex; gap: .3rem; }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--edge); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--faint); }
+
+  /* ------- responsive ------- */
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    aside {
+      position: fixed; top: 0; left: 0; z-index: 70; width: 84vw; max-width: 320px;
+      transform: translateX(-102%); transition: transform .22s ease;
+      box-shadow: 0 0 60px rgba(0,0,0,.5);
+    }
+    body.nav-open aside { transform: none; }
+    .scrim { position: fixed; inset: 0; z-index: 65; background: rgba(0,0,0,.5); display: none; }
+    body.nav-open .scrim { display: block; }
+    .menu-btn { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; background: var(--card); border: 1px solid var(--edge); color: var(--ink-dim); cursor: pointer; }
+    .topbar .hint { display: none; }
+  }
+  @media (min-width: 901px) { .scrim { display: none; } }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="scrim" data-close-nav></div>
+
+<div class="shell">
+  <!-- ================= SIDEBAR ================= -->
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="mark">◈</div>
+      <div class="title">localDNS<small>Superhuman Docs</small></div>
+    </div>
+
+    <button class="kbtn" id="openPalette" aria-label="Open command palette">
+      <span class="mag">⌕</span> Search the stack…
+      <kbd>⌘K</kbd>
+    </button>
+
+    <nav id="nav"><!-- links injected by JS from section index --></nav>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+    <div class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Open navigation">☰</button>
+      <div class="crumb">localDNS 2.0 · <b id="crumbSection">Overview</b></div>
+      <div class="spacer"></div>
+      <div class="hint">Press <kbd>⌘K</kbd> to search · <kbd>?</kbd> for keys</div>
+    </div>
+
+    <div class="hero">
+      <div class="eyebrow">Self-hosted DNS · VPN · Monitoring</div>
+      <h1>The localDNS handbook</h1>
+      <p>A keyboard-first field manual for the private networking stack running on an
+         HP&nbsp;t630 thin client. Every subsystem in one place — searchable, fast, and
+         faithful to the live box at <code>192.168.1.118</code>.</p>
+      <div class="meta">
+        <span class="pill"><b>Host</b> · HP t630 · Ubuntu 24.04</span>
+        <span class="pill"><b>DNS</b> · Pi-hole → Unbound (DoT split)</span>
+        <span class="pill"><b>VPN</b> · WireGuard wg0</span>
+        <span class="pill"><b>Source of truth</b> · the live t630</span>
+      </div>
+    </div>
+
+    <!-- ---------- OVERVIEW ---------- -->
+    <section id="overview" data-title="Overview" data-group="Start">
+      <h2><span class="sn">§0</span> What this repo is</h2>
+      <p class="lede">A config snapshot and rollback target — not the running system itself.</p>
+      <p>This repository is the <strong>consolidated 2.0 snapshot</strong> of a home
+         network server: recursive DNS, ad-blocking, a WireGuard VPN, link-quality
+         tuning, uptime monitoring, and an optional LLM router. Every file here maps to
+         a specific path on the live machine (see <a href="#deploy">Deploy paths</a>).
+         Edits in the repo do not take effect until they are manually deployed.</p>
+      <div class="note key">
+        <span class="tag">◆ Invariant</span>
+        <p>The live t630 is the source of truth. When repo and box disagree, the box
+           wins — SSH to <code>192.168.1.118</code> and reconcile. This repo exists so a
+           clean Ubuntu 24.04 install can be rebuilt into a working system.</p>
+      </div>
+      <p>The stack is organized into four service categories rather than install order:
+         <strong>core-network</strong> (DNS, firewall, VPN), <strong>performance</strong>
+         (CAKE, GPU/CPU governors), <strong>monitoring</strong> (Uptime Kuma, cron
+         probes), and <strong>user-services</strong> (remote desktop, console, AI
+         orchestration).</p>
+    </section>
+
+    <!-- ---------- HARDWARE ---------- -->
+    <section id="hardware" data-title="Hardware" data-group="Start">
+      <h2><span class="sn">§A</span> Hardware</h2>
+      <p class="lede">One low-power thin client carries the whole stack.</p>
+      <div class="tw"><table>
+        <tr><th>Part</th><th>Spec</th></tr>
+        <tr><td>Machine</td><td>HP t630 thin client</td></tr>
+        <tr><td>CPU</td><td>AMD Carrizo GX-420GI — quad-core</td></tr>
+        <tr><td>Memory</td><td>16&nbsp;GB RAM</td></tr>
+        <tr><td>Storage</td><td>16&nbsp;GB eMMC</td></tr>
+        <tr><td>OS</td><td>Ubuntu 24.04.4 LTS · kernel 6.17 series</td></tr>
+        <tr><td>NIC</td><td><code>enp1s0</code> — wired only (Wi-Fi disabled)</td></tr>
+      </table></div>
+      <p>The Carrizo iGPU downclocks to ~200&nbsp;MHz headless; four pieces (GRUB flags,
+         two systemd governors, a udev rule) pin it back — see
+         <a href="#performance">Performance</a>. The box is CPU-only for any local LLM
+         work.</p>
+    </section>
+
+    <!-- ---------- TOPOLOGY ---------- -->
+    <section id="topology" data-title="Network topology" data-group="Start">
+      <h2><span class="sn">§B</span> Network topology</h2>
+      <p class="lede">The Netgear routes; the t630 resolves and tunnels.</p>
+      <div class="diagram"><pre>ISP (Spectrum ~200/100 Mbps asymmetric)
+  │
+  └── Netgear R7000   192.168.1.1     main router (routing, NAT, DHCP, WAN)
+        │
+        └── t630      192.168.1.118   DNS + VPN server (DHCP reservation)
+              │
+              └── wg0  10.8.0.1/24     WireGuard tunnel interface</pre></div>
+      <p>The t630 is <strong>not inline</strong> for general LAN traffic — a laptop on
+         Wi-Fi goes straight <code>device → R7000 → ISP</code>. The t630 only handles DNS
+         for everyone and forwards traffic for VPN peers.</p>
+
+      <h3>Services on the box</h3>
+      <div class="tw"><table>
+        <tr><th>Service</th><th>Runtime</th><th>Port(s)</th><th>Reachable from</th></tr>
+        <tr><td>Pi-hole</td><td>Docker · host-net</td><td>53, 8080</td><td>LAN + WG</td></tr>
+        <tr><td>Unbound</td><td>host OS</td><td>5335</td><td>Pi-hole only (<code>127.0.0.1</code>)</td></tr>
+        <tr><td>Uptime Kuma</td><td>Docker · host-net</td><td>3001</td><td>LAN + WG</td></tr>
+        <tr><td>WireGuard</td><td>host OS</td><td>51820/UDP</td><td>Internet</td></tr>
+        <tr><td>LiteLLM router</td><td>Docker · host-net</td><td>4040</td><td>LAN + WG</td></tr>
+        <tr><td>Open WebUI</td><td>Docker · host-net</td><td>3000</td><td>LAN + WG</td></tr>
+        <tr><td>Console / ttyd terminals</td><td>host OS · systemd</td><td>8088, 7681, 7682</td><td>LAN + WG</td></tr>
+        <tr><td>NoMachine / xrdp</td><td>host OS</td><td>4000, 3389</td><td>LAN only</td></tr>
+        <tr><td>SSH</td><td>host OS</td><td>22</td><td>LAN + WG</td></tr>
+      </table></div>
+
+      <h3>WireGuard peers</h3>
+      <div class="tw"><table>
+        <tr><th>Peer</th><th>Tunnel IP</th><th>Notes</th></tr>
+        <tr><td>t630 wg0</td><td><code>10.8.0.1</code></td><td>Server gateway; the DNS address peers use</td></tr>
+        <tr><td>iPhone</td><td><code>10.8.0.2</code></td><td>—</td></tr>
+        <tr><td>Windows laptop</td><td><code>10.8.0.3</code></td><td>Key rotation needed — see Known issues</td></tr>
+        <tr><td>(unidentified)</td><td><code>10.8.0.4–.6</code></td><td>No recent handshake — identify or remove</td></tr>
+        <tr><td>Mac</td><td><code>10.8.0.7</code></td><td>—</td></tr>
+      </table></div>
+    </section>
+
+    <!-- ---------- DNS SPLIT ---------- -->
+    <section id="dns" data-title="DNS split — Unbound" data-group="Core network">
+      <h2><span class="sn">§D</span> DNS split — Unbound</h2>
+      <p class="lede">One resolver, two paths: encrypted for streaming, private for everything else.</p>
+      <p><code>streaming-forward.conf</code> is the single decision point. High-volume,
+         low-sensitivity domains (Netflix, YouTube, Spotify, Steam…) are forwarded to
+         <strong>Cloudflare over DNS-over-TLS</strong>
+         (<code>1.1.1.1@853#cloudflare-dns.com</code> / <code>1.0.0.1</code>,
+         <code>forward-tls-upstream: yes</code>) so the ISP sees an encrypted channel
+         instead of cleartext lookups. Everything else — banking, email, health, the
+         default — resolves <strong>recursively with DNSSEC</strong>; Cloudflare never
+         sees these queries.</p>
+      <div class="note inv">
+        <span class="tag">⚠ Invariant</span>
+        <p>Never add sensitive domains to the forward path — that would hand Cloudflare
+           your private lookups. The recursive path never forwards anywhere; that is what
+           keeps it private.</p>
+      </div>
+      <p><code>forward-first: yes</code> fails closed to recursion: if Cloudflare's :853
+         endpoints are unreachable (an ISP blocking DoT), the streaming domains fall back
+         to recursive resolution instead of returning SERVFAIL.</p>
+
+      <h3>The six drop-ins</h3>
+      <p>Loaded alphabetically (A→Z) by Unbound from
+         <code>/etc/unbound/unbound.conf.d/</code>; listed Z→A per house style.</p>
+      <div class="tw"><table>
+        <tr><th>File</th><th>Purpose</th></tr>
+        <tr><td><code>tuning.conf</code></td><td>All performance / cache / threading values — the single source of truth. Do not split.</td></tr>
+        <tr><td><code>streaming-forward.conf</code></td><td>Forward-zones → Cloudflare DoT; sets <code>tls-cert-bundle</code> for upstream cert validation.</td></tr>
+        <tr><td><code>server.conf</code></td><td>Interface, port, access-control, security flags.</td></tr>
+        <tr><td><code>root-auto-trust-anchor-file.conf</code></td><td>DNSSEC root trust anchor.</td></tr>
+        <tr><td><code>remote-control.conf</code></td><td>Unix socket for <code>unbound-control</code>.</td></tr>
+        <tr><td><code>local-records.conf</code></td><td>LAN-only A records (<code>ai/chat/console/kuma/pihole.home.lan</code> → the t630). Never publish to a public resolver.</td></tr>
+      </table></div>
+
+      <h3>Verify the split</h3>
+      <div class="code">
+        <button class="copy">Copy</button>
+        <pre><code><span class="cmt"># streaming → forwarded to Cloudflare over DoT</span>
+sudo unbound-control lookup netflix.com   <span class="cmt"># → forwarding request 1.1.1.1@853</span>
+<span class="cmt"># sensitive → iterative delegation, never forwarded</span>
+sudo unbound-control lookup chase.com     <span class="cmt"># → iterative delegation</span>
+<span class="cmt"># end-to-end DoT path resolves</span>
+dig @127.0.0.1 -p 5335 netflix.com +short</code></pre>
+      </div>
+    </section>
+
+    <!-- ---------- PI-HOLE ---------- -->
+    <section id="pihole" data-title="Pi-hole" data-group="Core network">
+      <h2><span class="sn">§B·4</span> Pi-hole</h2>
+      <p class="lede">Ad-blocking front door with a single upstream — Unbound.</p>
+      <p>Pi-hole runs <code>network_mode: host</code> and forwards <strong>every</strong>
+         query to a single upstream, <code>127.0.0.1#5335</code> (Unbound on the host).
+         It does no resolver selection of its own — the streaming/personal split lives
+         entirely in Unbound. Under Pi-hole v6 this upstream is re-applied and locked on
+         every start via <code>FTLCONF_dns_upstreams</code>, overriding whatever a stale
+         <code>pihole_data</code> volume holds.</p>
+      <div class="note inv">
+        <span class="tag">⚠ Invariant</span>
+        <p>Do not add public resolvers in Pi-hole. That would race them for all queries
+           and leak personal lookups. A single upstream is what preserves the private
+           path.</p>
+      </div>
+      <p><strong>Why host networking?</strong> Ubuntu 24.04 uses nftables with a
+         default-DROP INPUT chain, so Docker bridge addresses aren't reliably reachable
+         for a host-loopback service like Unbound, and bridge published-ports insert DNAT
+         that runs <em>before</em> UFW. Host networking removes the namespace boundary:
+         Pi-hole reaches Unbound at <code>127.0.0.1:5335</code>, its ports are gated by
+         UFW, and it answers VPN peers on <code>wg0</code> directly.</p>
+      <p><strong>"Permit all origins" is checked</strong> — safe here because UFW
+         restricts port 53 to <code>192.168.0.0/16</code> and <code>10.8.0.0/24</code>.
+         Without it, Pi-hole would refuse queries from <code>10.8.0.x</code> VPN peers,
+         which are not on the LAN subnet.</p>
+    </section>
+
+    <!-- ---------- WIREGUARD ---------- -->
+    <section id="wireguard" data-title="WireGuard VPN" data-group="Core network">
+      <h2><span class="sn">§B·7</span> WireGuard VPN</h2>
+      <p class="lede">Tunnel home from anywhere — DNS, ad-blocking and DNSSEC come with you.</p>
+      <p>The t630 runs a WireGuard server on <code>51820/UDP</code>. Peer DNS points at
+         <code>10.8.0.1</code> (the wg0 interface), reachable because host-networked
+         Pi-hole binds <code>0.0.0.0:53</code> on every interface including wg0. Phone DNS
+         on cellular therefore flows through Pi-hole + Unbound identically to LAN.</p>
+
+      <h3>Forwarding — UFW owns it, not raw iptables</h3>
+      <p>The classic failure: a peer connects, <code>ping 10.8.0.1</code> works but
+         <code>ping 1.1.1.1</code> fails. Raw <code>-A FORWARD</code> rules in
+         <code>wg0.conf</code> PostUp land <em>after</em> UFW's DROP and are never
+         reached. The fix is two changes:</p>
+      <ol>
+        <li>Remove FORWARD rules from <code>wg0.conf</code> PostUp — UFW owns the filter FORWARD chain.</li>
+        <li>Set <code>ufw default allow routed</code> in <code>01-core-network/ufw/setup.sh</code>.</li>
+      </ol>
+      <p>MASQUERADE stays in PostUp — UFW does not manage the nat table, so that is its
+         correct home.</p>
+
+      <div class="note inv">
+        <span class="tag">⚠ IPv6 black hole</span>
+        <p>Peers set to <code>AllowedIPs = 0.0.0.0/0, ::/0</code> handshake fine but pages
+           hang: the server is IPv4-only in-tunnel, so IPv6 (which phones prefer) is
+           dropped. Default peers to <code>0.0.0.0/0</code> only. The leak-free fix is a
+           ULA prefix + NAT66 — see <code>network-context.md</code>.</p>
+      </div>
+
+      <h3>Peer config mistakes that break everything</h3>
+      <div class="tw"><table>
+        <tr><th>Mistake</th><th>Correct value</th></tr>
+        <tr><td><code>DNS = 172.17.0.1:5335</code> (port + bridge IP)</td><td><code>DNS = 10.8.0.1</code> (IP only, no port)</td></tr>
+        <tr><td><code>Address = 10.8.0.7/24</code></td><td><code>Address = 10.8.0.7/32</code></td></tr>
+        <tr><td><code>AllowedIPs = 10.8.0.0/24</code> (split-tunnel)</td><td><code>AllowedIPs = 0.0.0.0/0</code> (full tunnel)</td></tr>
+        <tr><td>No keepalive</td><td><code>PersistentKeepalive = 25</code></td></tr>
+      </table></div>
+      <div class="note tip">
+        <span class="tag">✓ Tip</span>
+        <p>Each device needs its own key pair. Derive a peer's public key from its private
+           key <em>on the server</em> (<code>echo KEY | wg pubkey</code>) — never paste
+           base64 keys through chat; <code>I</code> and <code>l</code> are identical in
+           most fonts.</p>
+      </div>
+    </section>
+
+    <!-- ---------- FIREWALL ---------- -->
+    <section id="firewall" data-title="Firewall — UFW" data-group="Core network">
+      <h2><span class="sn">§B·6</span> Firewall — UFW</h2>
+      <p class="lede">Default-deny, with every service scoped to LAN + VPN.</p>
+      <p>UFW (<code>01-core-network/ufw/setup.sh</code>) is default-deny incoming. Every
+         service is scoped to the LAN (<code>192.168.0.0/16</code>) and the WireGuard
+         subnet (<code>10.8.0.0/24</code>) — except WireGuard's own
+         <code>51820/udp</code>, the single port open to <strong>Anywhere</strong>,
+         because the phone handshakes from a public cellular IP.</p>
+      <p>Two interactions matter:</p>
+      <ul>
+        <li><strong>Forwarding for the VPN</strong> — <code>ufw default allow routed</code>
+            passes peer traffic out <code>enp1s0</code>. Raw <code>-A FORWARD</code> rules
+            do not work (see WireGuard above).</li>
+        <li><strong>Host networking makes UFW effective for containers</strong> — because
+            Pi-hole and Uptime Kuma are host-networked, their ports genuinely pass through
+            UFW's INPUT chain, unlike bridge + published-ports where Docker DNAT bypassed
+            it.</li>
+      </ul>
+      <div class="note inv">
+        <span class="tag">⚠ Never</span>
+        <p>Never port-forward the console web terminals (8088 / 7681 / 7682) or the admin
+           UIs. They are a login shell over HTTP — remote access is through WireGuard,
+           never the WAN.</p>
+      </div>
+    </section>
+
+    <!-- ---------- PERFORMANCE ---------- -->
+    <section id="performance" data-title="Performance — CAKE & GPU" data-group="Performance">
+      <h2><span class="sn">§1·9</span> Performance — CAKE &amp; GPU</h2>
+      <p class="lede">Smart queuing for the traffic the box actually forwards, plus a headless-GPU fix.</p>
+
+      <h3>CAKE / bufferbloat</h3>
+      <p>CAKE rate-limits egress just below the ISP line speed so the OS queue — not the
+         modem buffer — is the bottleneck, then applies fair queuing and DSCP priority so
+         DNS and interactive traffic skip ahead of bulk transfers.
+         <code>cake-setup.sh</code> marks every DNS response (source port 53) DSCP EF into
+         CAKE's highest tin.</p>
+      <p>Because the t630 is not inline for general LAN traffic, CAKE only shapes what the
+         box forwards — <strong>WireGuard VPN client traffic</strong>. Measured under
+         load: upload holds at 11&nbsp;ms, download 16&nbsp;ms (idle 14&nbsp;ms) — vs.
+         ~400–800&nbsp;ms unmanaged. Whole-network bufferbloat needs third-party firmware
+         on the R7000 (FreshTomato / OpenWrt).</p>
+
+      <h3>AMD Carrizo GPU downclock</h3>
+      <p>The iGPU drops to ~200&nbsp;MHz headless. Four pieces, all required:</p>
+      <ol>
+        <li>GRUB: <code>amdgpu.dpm=1 amdgpu.runpm=0 processor.max_cstate=1</code></li>
+        <li><code>gpu-performance.service</code></li>
+        <li><code>cpu-performance.service</code></li>
+        <li><code>99-amdgpu-performance.rules</code> — re-asserts <code>high</code> on every DRM event</li>
+      </ol>
+    </section>
+
+    <!-- ---------- MONITORING ---------- -->
+    <section id="monitoring" data-title="Monitoring — Uptime Kuma" data-group="Monitoring">
+      <h2><span class="sn">§8</span> Monitoring — Uptime Kuma</h2>
+      <p class="lede">Layered probes that isolate a failure to one component.</p>
+      <p>Uptime Kuma runs host-networked on port 3001 so it can query Unbound at
+         <code>127.0.0.1:5335</code> directly (no <code>ports:</code> mapping needed).</p>
+      <div class="tw"><table>
+        <tr><th>Monitor</th><th>Type</th><th>Why</th></tr>
+        <tr><td>Unbound — Basic</td><td>DNS · :5335</td><td>Unbound is answering queries</td></tr>
+        <tr><td>Unbound — DNSSEC</td><td>DNS · :5335</td><td>DNSSEC validation is active</td></tr>
+        <tr><td>Pi-hole — Full Chain</td><td>DNS · :53</td><td>Tests Pi-hole → Unbound → recursion</td></tr>
+        <tr><td>Pi-hole — Web UI</td><td>TCP · :8080</td><td>Admin panel reachable</td></tr>
+        <tr><td>Home Router</td><td>HTTP</td><td>Gateway is up</td></tr>
+        <tr><td>Packet Loss — Router / Internet</td><td>Push</td><td>LAN vs ISP loss %</td></tr>
+        <tr><td>CAKE SQM</td><td>Push</td><td>qdisc active; live bandwidth</td></tr>
+      </table></div>
+      <div class="note tip">
+        <span class="tag">✓ Diagnostic logic</span>
+        <p>If Pi-hole Full Chain goes red but Unbound Basic stays green, the break is in
+           the Pi-hole → Unbound link, not Unbound. If both are red, Unbound is the
+           problem.</p>
+      </div>
+      <div class="note">
+        <span class="tag">◈ Gotcha</span>
+        <p>The DNS monitor's Resolver Server field takes an IP only — no port. Port goes
+           in the separate Port field. <code>127.0.0.1:5335</code> in the resolver field
+           creates an invalid double-port and fails intermittently.</p>
+      </div>
+    </section>
+
+    <!-- ---------- AI ORCHESTRATION ---------- -->
+    <section id="ai" data-title="AI orchestration" data-group="User services">
+      <h2><span class="sn">§12·G</span> AI orchestration</h2>
+      <p class="lede">Route whole models, don't shard them — and never trust a single warm draw.</p>
+
+      <h3>Route, not shard</h3>
+      <p>A LiteLLM proxy gives the household one OpenAI-compatible endpoint
+         (<code>ai.home.lan:4040</code> — 4040 because NoMachine owns 4000) that routes to
+         <strong>whole-model backends</strong>: local Ollama by default, a cloud tier as
+         overflow. Open WebUI (<code>chat.home.lan:3000</code>) is the browser front-end
+         and talks only to the router.</p>
+      <p>Sharding a model's layers across machines loses to physics: inference is
+         sequential and latency-bound, and a gigabit hop is thousands of times slower than
+         the interconnect inside one box. So the felt experience — "use the best resource,
+         adapt when a machine goes away" — is delivered as health-checked
+         <strong>failover between whole endpoints</strong>, which LiteLLM does natively.</p>
+
+      <h3>The Jury — LLM sampling doctrine</h3>
+      <p>How the stack drives its own models. The unit of inference is one tuned draw;
+         reliability comes from how many draws and how they're aggregated:</p>
+      <ul>
+        <li><strong>Lazy anchor</strong> — the first token is a cheap reflex
+            (<code>reasoning_effort: low</code>), not a pre-committed conclusion.</li>
+        <li><strong>Governed-warm body</strong> — warm enough to self-correct, always
+            paired with a tail-clip (<code>top_p</code>/<code>top_k</code>) so it can't
+            sample garbage. Default: <code>temperature 1.1, top_p 0.9, top_k 40</code>,
+            penalties <code>0</code>.</li>
+        <li><strong>Concurrent vote</strong> — never consume a single warm draw for
+            anything that matters. Sample several; let a plurality outvote the
+            idiosyncratic ones.</li>
+      </ul>
+      <div class="note key">
+        <span class="tag">◆ Invariants</span>
+        <p>Match every degree of temperature with a degree of governance. Temperature is a
+           variance dial, not an intelligence dial. And <strong>measure <code>p</code>,
+           don't guess it</strong> — voting only helps when the correct answer is already
+           modal; below that it entrenches a wrong answer. Run <code>jury.py calibrate</code>
+           on the task first.</p>
+      </div>
+      <p>The tool lives at <code>04-user-services/ai-orchestration/jury/</code>
+         (adaptive sequential voter, stdlib-only, offline <code>--mock</code> mode), with
+         a Claude-backend variant in <code>jury-claude/</code>.</p>
+    </section>
+
+    <!-- ---------- BRING IT UP ---------- -->
+    <section id="bringup" data-title="Bring it up" data-group="Operate">
+      <h2><span class="sn">§C</span> Bring it up</h2>
+      <p class="lede">Setup is interactive; deploys are staged.</p>
+      <p>The step-by-step build (Steps 0–11) lives in the reactive
+         <a href="https://a777ance.github.io/Home-Sovereign-Full-Field-Guide/" target="_blank" rel="noopener">Interactive Field Guide</a>
+         — toggle your WAN config, enter your LAN IP / username / interface, and every
+         terminal command on the page live-updates to your environment. It is not
+         duplicated here on purpose: a single reactive wizard beats a stale copied guide.</p>
+      <p>Config that has been reconstructed or bug-fixed in the repo but not yet applied to
+         the live box is staged, in dependency order with copy-paste commands and per-stage
+         verification, in <code>docs/DEPLOY-QUEUE.md</code> — a runbook ready to execute the
+         moment SSH to <code>192.168.1.118</code> is available.</p>
+      <div class="note">
+        <span class="tag">◈ Working rule</span>
+        <p>Every commit to <code>main</code> must leave the repo able to reproduce a
+           working system on clean Ubuntu 24.04. A file's real destination is the deploy
+           table — don't infer it from the folder number.</p>
+      </div>
+    </section>
+
+    <!-- ---------- VERIFICATION ---------- -->
+    <section id="verify" data-title="Verification" data-group="Operate">
+      <h2><span class="sn">§2</span> Verification</h2>
+      <p class="lede">The health checklist — run these after any deploy.</p>
+      <div class="code">
+        <button class="copy">Copy</button>
+        <pre><code>systemctl status unbound
+dig @127.0.0.1 -p 5335 example.com +dnssec        <span class="cmt"># 'ad' flag = DNSSEC working</span>
+dig @127.0.0.1 -p 5335 netflix.com +short          <span class="cmt"># DoT forward-path resolves</span>
+sudo unbound-control lookup netflix.com            <span class="cmt"># forwarding → 1.1.1.1@853</span>
+sudo unbound-control lookup chase.com              <span class="cmt"># iterative delegation</span>
+docker ps                                          <span class="cmt"># pihole + uptime-kuma both Up</span>
+sudo wg show                                       <span class="cmt"># wg0 up, peers listed</span>
+sudo ufw status verbose                            <span class="cmt"># 51820/udp Anywhere; all else LAN</span>
+tc qdisc show dev enp1s0                            <span class="cmt"># cake bandwidth 85Mbit</span>
+cat /sys/class/drm/card*/device/power_dpm_force_performance_level  <span class="cmt"># high</span></code></pre>
+      </div>
+    </section>
+
+    <!-- ---------- DEPLOY PATHS ---------- -->
+    <section id="deploy" data-title="Deploy paths" data-group="Operate">
+      <h2><span class="sn">§C</span> Deploy paths</h2>
+      <p class="lede">Repo path → system path. The table is authoritative; the folder number is not.</p>
+      <div class="tw"><table>
+        <tr><th>Repo path</th><th>System path</th><th>Reload</th></tr>
+        <tr><td><code>01-core-network/unbound/*.conf</code></td><td><code>/etc/unbound/unbound.conf.d/</code></td><td><code>systemctl restart unbound</code></td></tr>
+        <tr><td><code>01-core-network/pihole/docker-compose.yml</code></td><td><code>~/pihole/</code></td><td><code>docker compose up -d</code></td></tr>
+        <tr><td><code>01-core-network/host-dns/host-dns.conf</code></td><td><code>/etc/systemd/resolved.conf.d/</code></td><td><code>systemctl restart systemd-resolved</code></td></tr>
+        <tr><td><code>01-core-network/ufw/setup.sh</code></td><td>run directly</td><td><code>sudo bash …/setup.sh</code></td></tr>
+        <tr><td><code>01-core-network/wireguard/wg0.conf</code></td><td><code>/etc/wireguard/wg0.conf</code></td><td><code>systemctl restart wg-quick@wg0</code></td></tr>
+        <tr><td><code>02-performance/cake/*</code></td><td><code>/usr/local/sbin/</code> + systemd</td><td><code>systemctl restart cake</code></td></tr>
+        <tr><td><code>03-monitoring/uptime-kuma/docker-compose.yml</code></td><td><code>~/uptime-kuma/</code></td><td><code>docker compose up -d</code></td></tr>
+        <tr><td><code>04-user-services/ai-orchestration/</code></td><td><code>~/llm-router/</code></td><td><code>docker compose up -d</code></td></tr>
+        <tr><td><code>04-user-services/console/</code></td><td><code>/opt/console/</code> + systemd</td><td><code>systemctl restart console</code></td></tr>
+      </table></div>
+      <div class="note">
+        <span class="tag">◈ Component status</span>
+        <p>Core network + monitoring: <span class="st up">Running</span>.
+           nftables volume populator, Statement PWA, AI gateway, console:
+           <span class="st stage">Staged, not deployed</span> — blocked on SSH to the box.
+           Full detail in <code>docs/ai-cto/context.md</code>.</p>
+      </div>
+    </section>
+
+    <!-- ---------- KNOWN ISSUES ---------- -->
+    <section id="issues" data-title="Known issues" data-group="Operate">
+      <h2><span class="sn">§1</span> Known issues</h2>
+      <p class="lede">Open items, newest first (house style).</p>
+      <div class="tw"><table>
+        <tr><th>Issue</th><th>Action</th></tr>
+        <tr><td>Console terminals are a login shell over HTTP</td><td>The <code>ttyd --credential</code> is the only gate to a shell — treat it like a root password. LAN + WG only; never port-forward. Harden with TLS + OS <code>login</code>.</td></tr>
+        <tr><td>Laptop SSH target is a placeholder</td><td><code>ttyd.env.example</code> ships <code>LAPTOP_SSH=CHANGE_ME</code>. Point at a stable address (WG IP or DHCP reservation), not a floating lease.</td></tr>
+        <tr><td>Heavy DeepSeek-R1 on local CPU overheats the box</td><td>Don't run <code>deepseek-r1:7b+</code> on CPU. Use the reasoning ladder: <code>local-reason</code> (1.5b, cool) for light work, a rented GPU for heavy.</td></tr>
+        <tr><td>Live Pi-hole upstreams ≠ repo</td><td>Pi-hole v6 re-locks <code>127.0.0.1#5335</code> on start. Confirm in the UI after deploying onto an old volume.</td></tr>
+        <tr><td>Host-net Pi-hole vs systemd-resolved :53</td><td><code>host-dns.conf</code> sets <code>DNSStubListener=no</code>; re-point <code>/etc/resolv.conf</code> off the stub. Check live state first.</td></tr>
+        <tr><td>WireGuard <code>::/0</code> IPv6 black hole</td><td>Peers default to <code>0.0.0.0/0</code>. Leak-free dual-stack fix (ULA + NAT66) in <code>network-context.md</code>.</td></tr>
+        <tr><td>WG peers 10.8.0.4–.6 unidentified</td><td>Real keys on the live box, no recent handshake. Identify each device or remove the stale peer.</td></tr>
+        <tr><td>Windows laptop WireGuard key</td><td>Exposed during setup — rotate before trusting this peer.</td></tr>
+      </table></div>
+    </section>
+
+    <footer class="pagefoot">
+      Reachable on the LAN and over WireGuard only — nothing here should be
+      port-forwarded. Faithful to the live t630 at <code>192.168.1.118</code>; when in
+      doubt, the box wins. Further reading: <code>CLAUDE.md</code>,
+      <code>README.md</code>, <code>docs/architecture/network-context.md</code>.
+    </footer>
+  </main>
+</div>
+
+<!-- ================= COMMAND PALETTE ================= -->
+<div class="overlay" id="paletteOverlay" role="dialog" aria-modal="true" aria-label="Command palette">
+  <div class="palette">
+    <div class="searchrow">
+      <span class="mag">⌕</span>
+      <input id="paletteInput" type="text" placeholder="Jump to a section, service, or command…" autocomplete="off" spellcheck="false">
+      <span class="esc"><kbd>esc</kbd></span>
+    </div>
+    <div class="results" id="paletteResults"></div>
+    <div class="foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+      <span><kbd>↵</kbd> open</span>
+      <span><kbd>esc</kbd> close</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SHORTCUTS ================= -->
+<div class="overlay" id="scOverlay" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+  <div class="sc-card">
+    <h3>Keyboard shortcuts</h3>
+    <div class="sc-row"><span>Open command palette</span><span class="keys"><kbd>⌘</kbd><kbd>K</kbd> · <kbd>/</kbd></span></div>
+    <div class="sc-row"><span>Next section</span><span class="keys"><kbd>J</kbd></span></div>
+    <div class="sc-row"><span>Previous section</span><span class="keys"><kbd>K</kbd></span></div>
+    <div class="sc-row"><span>Back to top</span><span class="keys"><kbd>G</kbd><kbd>G</kbd></span></div>
+    <div class="sc-row"><span>Show this help</span><span class="keys"><kbd>?</kbd></span></div>
+    <div class="sc-row"><span>Close any overlay</span><span class="keys"><kbd>esc</kbd></span></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var sections = Array.prototype.slice.call(document.querySelectorAll("main section"));
+  var nav = document.getElementById("nav");
+  var crumb = document.getElementById("crumbSection");
+
+  // ---------- build sidebar from sections, grouped ----------
+  var lastGroup = null;
+  var linkById = {};
+  sections.forEach(function (s) {
+    var group = s.getAttribute("data-group") || "";
+    if (group !== lastGroup) {
+      var g = document.createElement("div");
+      g.className = "group"; g.textContent = group;
+      nav.appendChild(g); lastGroup = group;
+    }
+    var a = document.createElement("a");
+    a.className = "link"; a.href = "#" + s.id;
+    a.innerHTML = '<span class="dot"></span>' + s.getAttribute("data-title");
+    nav.appendChild(a);
+    linkById[s.id] = a;
+  });
+
+  // ---------- scroll spy + progress + crumb ----------
+  var progress = document.getElementById("progress");
+  function onScroll() {
+    var st = window.scrollY || document.documentElement.scrollTop;
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    progress.style.width = (h > 0 ? (st / h) * 100 : 0) + "%";
+  }
+  var spy = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        var id = e.target.id;
+        Object.keys(linkById).forEach(function (k) { linkById[k].classList.toggle("active", k === id); });
+        crumb.textContent = e.target.getAttribute("data-title");
+      }
+    });
+  }, { rootMargin: "-45% 0px -50% 0px", threshold: 0 });
+  sections.forEach(function (s) { spy.observe(s); });
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  // ---------- copy buttons ----------
+  document.querySelectorAll(".code .copy").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var code = btn.parentElement.querySelector("code");
+      var text = code.innerText;
+      navigator.clipboard.writeText(text).then(function () {
+        btn.textContent = "Copied"; btn.classList.add("done");
+        setTimeout(function () { btn.textContent = "Copy"; btn.classList.remove("done"); }, 1400);
+      });
+    });
+  });
+
+  // ---------- command palette index ----------
+  var index = [];
+  sections.forEach(function (s) {
+    index.push({ name: s.getAttribute("data-title"), sub: (s.getAttribute("data-group") || "") + " · section", hash: "#" + s.id, kind: "Section", icon: "§" });
+    s.querySelectorAll("h3").forEach(function (h) {
+      index.push({ name: h.textContent.trim(), sub: s.getAttribute("data-title"), hash: "#" + s.id, kind: "Topic", icon: "•" });
+    });
+  });
+  // quick actions / key terms
+  [
+    ["Verify the DNS split", "unbound-control lookup", "#dns", "⌘"],
+    ["Health checklist", "post-deploy verification", "#verify", "⌘"],
+    ["Deploy paths table", "repo → system map", "#deploy", "⌘"],
+    ["Known issues", "open items, newest first", "#issues", "⚠"],
+    ["The Jury doctrine", "measure p, don't guess it", "#ai", "◆"],
+    ["IPv6 black hole fix", "WireGuard AllowedIPs", "#wireguard", "⚠"]
+  ].forEach(function (a) {
+    index.push({ name: a[0], sub: a[1], hash: a[2], kind: "Action", icon: a[3] });
+  });
+
+  var overlay = document.getElementById("paletteOverlay");
+  var input = document.getElementById("paletteInput");
+  var results = document.getElementById("paletteResults");
+  var scOverlay = document.getElementById("scOverlay");
+  var sel = 0, filtered = [];
+
+  function fuzzy(q, text) {
+    q = q.toLowerCase(); text = text.toLowerCase();
+    if (!q) return { ok: true, score: 0 };
+    var qi = 0, score = 0, streak = 0, first = -1;
+    for (var i = 0; i < text.length && qi < q.length; i++) {
+      if (text[i] === q[qi]) {
+        if (first < 0) first = i;
+        streak++; score += streak; qi++;
+      } else { streak = 0; }
+    }
+    if (qi < q.length) return { ok: false };
+    return { ok: true, score: score - first * 0.5 };
+  }
+
+  function render(q) {
+    var scored = [];
+    index.forEach(function (it) {
+      var m = fuzzy(q, it.name + " " + it.sub);
+      if (m.ok) scored.push({ it: it, score: m.score });
+    });
+    scored.sort(function (a, b) { return b.score - a.score; });
+    filtered = scored.map(function (s) { return s.it; }).slice(0, 40);
+    sel = 0;
+    if (!filtered.length) { results.innerHTML = '<div class="empty">No matches for "' + escapeHtml(q) + '"</div>'; return; }
+    var html = "", lastKind = null;
+    filtered.forEach(function (it, i) {
+      if (it.kind !== lastKind) { html += '<div class="rgroup">' + it.kind + 's</div>'; lastKind = it.kind; }
+      html += '<div class="ritem' + (i === 0 ? " sel" : "") + '" data-i="' + i + '">' +
+              '<span class="ic">' + it.icon + '</span>' +
+              '<span class="rt"><div class="name">' + highlight(it.name, q) + '</div>' +
+              '<div class="sub">' + escapeHtml(it.sub) + '</div></span>' +
+              '<span class="go">↵</span></div>';
+    });
+    results.innerHTML = html;
+    Array.prototype.forEach.call(results.querySelectorAll(".ritem"), function (el) {
+      el.addEventListener("mousemove", function () { setSel(parseInt(el.getAttribute("data-i"), 10)); });
+      el.addEventListener("click", function () { go(filtered[parseInt(el.getAttribute("data-i"), 10)]); });
+    });
+  }
+  function escapeHtml(s) { return s.replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function highlight(name, q) {
+    if (!q) return escapeHtml(name);
+    var lower = name.toLowerCase(), ql = q.toLowerCase(), out = "", qi = 0;
+    for (var i = 0; i < name.length; i++) {
+      if (qi < ql.length && lower[i] === ql[qi]) { out += "<mark>" + escapeHtml(name[i]) + "</mark>"; qi++; }
+      else { out += escapeHtml(name[i]); }
+    }
+    return out;
+  }
+  function setSel(i) {
+    var items = results.querySelectorAll(".ritem");
+    if (!items.length) return;
+    sel = (i + items.length) % items.length;
+    items.forEach(function (el, idx) { el.classList.toggle("sel", idx === sel); });
+    items[sel].scrollIntoView({ block: "nearest" });
+  }
+  function go(it) { if (!it) return; closePalette(); location.hash = it.hash; }
+
+  function openPalette() { overlay.classList.add("open"); input.value = ""; render(""); input.focus(); }
+  function closePalette() { overlay.classList.remove("open"); }
+  function closeSc() { scOverlay.classList.remove("open"); }
+
+  input.addEventListener("input", function () { render(input.value.trim()); });
+  document.getElementById("openPalette").addEventListener("click", openPalette);
+  overlay.addEventListener("click", function (e) { if (e.target === overlay) closePalette(); });
+  scOverlay.addEventListener("click", function (e) { if (e.target === scOverlay) closeSc(); });
+
+  // ---------- mobile nav ----------
+  document.getElementById("menuBtn").addEventListener("click", function () { document.body.classList.toggle("nav-open"); });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-close-nav]"), function (el) {
+    el.addEventListener("click", function () { document.body.classList.remove("nav-open"); });
+  });
+  nav.addEventListener("click", function (e) { if (e.target.closest("a")) document.body.classList.remove("nav-open"); });
+
+  // ---------- keyboard ----------
+  var gPending = false;
+  function currentSectionIndex() {
+    var st = window.scrollY + 90, best = 0;
+    sections.forEach(function (s, i) { if (s.offsetTop <= st) best = i; });
+    return best;
+  }
+  document.addEventListener("keydown", function (e) {
+    var paletteOpen = overlay.classList.contains("open");
+    var scOpen = scOverlay.classList.contains("open");
+
+    if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) { e.preventDefault(); paletteOpen ? closePalette() : openPalette(); return; }
+    if (e.key === "Escape") { if (paletteOpen) closePalette(); if (scOpen) closeSc(); document.body.classList.remove("nav-open"); return; }
+
+    if (paletteOpen) {
+      if (e.key === "ArrowDown") { e.preventDefault(); setSel(sel + 1); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); setSel(sel - 1); }
+      else if (e.key === "Enter") { e.preventDefault(); go(filtered[sel]); }
+      return;
+    }
+
+    var typing = /^(input|textarea|select)$/i.test((e.target.tagName || ""));
+    if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+
+    if (e.key === "/") { e.preventDefault(); openPalette(); }
+    else if (e.key === "?") { e.preventDefault(); scOpen ? closeSc() : scOverlay.classList.add("open"); }
+    else if (e.key === "j" || e.key === "J") { e.preventDefault(); var n = Math.min(currentSectionIndex() + 1, sections.length - 1); sections[n].scrollIntoView({ behavior: "smooth" }); }
+    else if (e.key === "k" || e.key === "K") { e.preventDefault(); var p = Math.max(currentSectionIndex() - 1, 0); sections[p].scrollIntoView({ behavior: "smooth" }); }
+    else if (e.key === "g" || e.key === "G") {
+      if (gPending) { window.scrollTo({ top: 0, behavior: "smooth" }); gPending = false; }
+      else { gPending = true; setTimeout(function () { gPending = false; }, 500); }
+    }
+  });
+})();
+</script>
+</body>
+</html>
