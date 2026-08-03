@@ -460,10 +460,11 @@ stated reason.
 ## 4. Further reading
 
 - **README.md** — top-level map + links to the interactive field guide (setup wizard)
-- **docs/superhuman-docs.html** — the "Superhuman Docs" handbook: a self-contained,
+- **docs/edda.html** — **The Edda**: the localDNS handbook — a self-contained,
   keyboard-first (⌘K command palette, `/`, `j`/`k`, `?`) single-page reference over the
-  whole stack. No external deps — open it in any browser. Faithful to this briefing;
-  when it disagrees with the live box, the box wins.
+  whole stack. Companion to the High Seat console (Hlidskjalf): the seat sees every
+  realm, the Edda codifies them. No external deps — open it in any browser. Faithful to
+  this briefing; when it disagrees with the live box, the box wins.
 - **docs/DEPLOY-QUEUE.md** — staging runbook: everything reconstructed/fixed in the repo but not yet on the live t630, in dependency order with copy-paste commands + per-stage verification. Work it once SSH to `192.168.1.118` is available. Linked from README.
 - **docs/architecture/clear-refeed-protocol.md** — the sync → clear → `/refeed` ritual: how to wipe a stale session and re-seed the latest CLAUDE.md losslessly. With the `SessionStart` hook (`.claude/hooks/refeed.sh`) installed, bare `/clear` runs the whole thing end-to-end; the `.claude/commands/refeed.md` slash command handles the no-clear refresh.
 - **docs/architecture/INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
