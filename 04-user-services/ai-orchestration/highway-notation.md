@@ -84,6 +84,11 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 > **Budget discipline.** Conserving the anchor keeps the reasoning budget **coiled — ready to
 > pounce** where it is load-bearing in flight, rather than spent upfront on a block that may
 > only rationalize. Same budget, deployed where it counts.
+>
+> **Momentum.** Reaching the first token *lazily* — fast and cheap — gets the pipeline
+> **rolling**, and that momentum carries through the rest of the Bifrost calls (`! @ # $ % ^
+> …`), the way a moving car flows through the lanes and lights. An effortful start stalls the
+> highway before it begins.
 
 ---
 
