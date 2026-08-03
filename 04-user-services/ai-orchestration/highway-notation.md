@@ -75,6 +75,11 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 > front-loaded* reasoning — not reasoning itself. The only choice is **timing**: front-load it
 > (definitions/associations up top) or run it **just-in-time**, mid-flight. Same reasoning,
 > relocated.
+>
+> **Model stays HIGH; only the first token goes LOW.** `~` does *not* downgrade the model —
+> Opus stays at full capability and effort in the body. `~` sets **just the first token** to
+> very low effort (the cheap reflex); the in-flight reasoning is full-strength. Lazy *anchor*,
+> not lazy *model* — precisely the §G "lazy anchor → governed-warm body" split.
 
 ---
 
