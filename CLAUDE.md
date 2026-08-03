@@ -446,6 +446,11 @@ clean Ubuntu 24.04.
 open PRs or park work on feature branches for these repos; land each change as a
 coherent, deployable commit straight on `main`.
 
+**Never use the PR "watch" feature** — founder's standing instruction (2026-08-03).
+Do not subscribe to PR activity (no `subscribe_pr_activity`), and don't offer to watch,
+monitor, babysit, or autofix a PR — it's too expensive. When a PR is up, say so and
+stop; the founder drives it from there.
+
 **Conform to the LLM sampling doctrine** ([section G](#g-llm-sampling-doctrine--the-jury)).
 Any work that configures, prompts, or aggregates this stack's own models — router
 configs, orchestration, evals, agents — follows the doctrine by default: lazy anchor
