@@ -11,8 +11,10 @@ the running assistant keeps quoting the *old* briefing until the context is clea
 the re-seed restores the full standing briefing (the manifest below), not just the
 single file Claude Code auto-reinjects.
 
-One-liner: **sync → clear → `/refeed`** — or, with the hook installed, just
-**`/clear`** and the other two happen for you.
+One-liner: **sync → clear → refeed** — or, with the hook installed, just **`/clear`**
+and the other two happen for you. For a mid-session refresh *without* clearing, one
+command does both the sync and the reseed: **`/repull`** (it pulls `--ff-only` on `main`,
+then re-reads the manifest).
 
 ---
 
@@ -76,8 +78,11 @@ Scope and safety:
 - It never re-injects CLAUDE.md (Claude Code reloads that from disk on every
   clear); it only pulls in the *other three* manifest files.
 
-`/refeed` (the slash command) still exists for the **no-clear** case — refreshing the
-briefing mid-session without wiping the conversation.
+`/repull` (the slash command, formerly `/refeed`) is the **no-clear** case — refreshing
+the briefing mid-session without wiping the conversation. Because a bare re-read reloads
+*stale* files when local is behind, it **pulls `--ff-only` on `main` first**, then reads
+the manifest — folding Stage 1's sync into the command so the no-clear path can't seed
+stale.
 
 ---
 
@@ -87,15 +92,15 @@ Re-seed the standing briefing from disk. This is the "lossless" step — it relo
 whole [manifest](#the-lossless-manifest), not only the file Claude Code re-injects on
 its own.
 
-1. Run `/refeed` (the project slash command in `.claude/commands/refeed.md`).
-2. It fetches read-only, prints the CLAUDE.md revision it loaded, and reads all four
-   manifest files in one batch.
-3. It stops on a one-line "feed is fresh" confirmation naming the revision. If it
-   reports the remote CLAUDE.md is ahead of local, go back to **Stage 1** and pull —
-   the clear happened against a copy that was already behind.
+1. Run `/repull` (the project slash command in `.claude/commands/repull.md`).
+2. It **pulls `--ff-only` on `main`** to land the latest on disk (skipped on a dirty or
+   diverged tree — it stops and says so rather than seeding stale), prints the CLAUDE.md
+   revision it landed, and reads all four manifest files in one batch.
+3. It stops on a one-line "feed is fresh and on the latest" confirmation naming the
+   revision and whether the pull fast-forwarded or was already current.
 
-Manual fallback (no slash command available): read the four manifest files yourself,
-top to bottom, starting with CLAUDE.md.
+Manual fallback (no slash command available): `git pull --ff-only` on a clean tree, then
+read the four manifest files yourself, top to bottom, starting with CLAUDE.md.
 
 ---
 
@@ -153,19 +158,30 @@ slower without changing which decisions the assistant can make from the standing
   session would know is missing. It is *not* a memory of the cleared conversation:
   in-flight work, uncommitted reasoning, and scratch state are gone by design. Commit
   or note anything worth keeping **before** Stage 2.
-- **Latest-or-it-says-so** — Stage 1 makes staleness visible; `/refeed` refuses to
-  pretend a behind-local copy is current. If remote is ahead, it tells you to pull
-  rather than seeding stale.
+- **Latest, not just latest-or-it-says-so** — `/repull` doesn't merely *flag* a
+  behind-local copy, it **fixes** it: a `--ff-only` pull on `main` lands the latest on
+  disk before the reseed, so the no-clear refresh can't reload stale files. It still
+  refuses to force anything — a dirty or diverged tree stops with a note rather than
+  seeding stale or clobbering in-flight work.
 
 ---
 
 ## Revision log
 
+- **2026-08-03** — Renamed the no-clear command `/refeed` → `/repull`
+  (`.claude/commands/repull.md`) and made it **pull `--ff-only` on `main` before
+  reading** instead of a read-only fetch: a "refresh" is really a pull, so re-reading a
+  behind-local tree reloaded stale files. `/refresh`'s in-place path pulls the same way.
+- **2026-08-03** — Made the `SessionStart` hook emit the **§G lazy anchor first**: the
+  fresh session opens by acting on the top "Default next actions" item, with the
+  lossless manifest load demoted to "as the work demands it" so it can't anchor the
+  trajectory into a read-everything preamble.
 - **2026-07-29** — Added the `/refresh` front door: a pre-wipe Q&A gate
   (`.claude/commands/refresh.md`) that asks keep-history vs. clear, auto-running the
   in-place refeed on "keep" and handing off to `/clear` on "clear."
 - **2026-07-29** — Added the one-command path: a `SessionStart` hook
   (`.claude/hooks/refeed.sh` + `.claude/settings.json`) that auto-runs sync + refeed
   on `startup`/`clear`, making bare `/clear` the end-to-end command.
-- **2026-07-29** — Protocol created. Three-stage sync → clear → `/refeed` ritual, the
-  four-file lossless manifest, and the `.claude/commands/refeed.md` slash command.
+- **2026-07-29** — Protocol created. Three-stage sync → clear → refeed ritual, the
+  four-file lossless manifest, and the slash command now at `.claude/commands/repull.md`
+  (created as `refeed.md`; renamed 2026-08-03).
