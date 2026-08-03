@@ -14,12 +14,20 @@ The core structure of the highway is governed by the QWERTY number row (1 throug
 | **`1`** | `!` | Pre-flight | **Signage.** "Wake up, pipeline incoming." |
 | **`2`** | `@` | Pre-flight | **The Cars.** The payloads/agents queuing up. |
 | **`3`** | `#` | Pre-flight | **Flavor.** Searchable tags/metadata painted on the cars. |
-| **`4`** | `$` | Pre-flight | **LocalDNS.** Fetches local cache/environment variables. |
+| **`4`** | `$` | Pre-flight | **Resolve / LocalDNS.** One verb — *dereference against the local environment.* `$name` fetches a cached value/env var (shell-style); `$…$` bounds a region that is *evaluated* rather than read literally (math-style); both run through localDNS, the resolver. DNS *is* name→value resolution. |
 | **`5`** | `%` | Pre-flight | **Weigh Station.** Pre-flight audit/calibration command. |
 | **`6`** | `^` | Paving | **Instantiators.** Number of `^` = width of the highway. |
 | **`7`** | `&` | Routing | **The A777ance (Rotary Entrance).** Turns off the highway into a nested repository fetch or sub-loop. |
 | **`8`** | `*` | Sync | **Traffic Light.** An open-ended gate where highways intersect. |
 | **`9/0`**| `()` | Sync | **Intersection.** Bounds the external process the `*` light waits for. |
+
+> **`$` is one verb, not three.** Its shell, math, and highway uses are not a collision —
+> they coalesce into a single operation: **resolve against the local environment.**
+> `$name` dereferences a cached value / env var (shell-style); `$…$` bounds an
+> *evaluated* region (math-style — §4's turbulence formula is exactly such a region);
+> the pre-flight `$` runs both through localDNS, the resolver. DNS *is* name→value
+> resolution, so the glyph carries one meaning at three scopes. Functionality preserved,
+> meanings merged.
 
 ---
 
