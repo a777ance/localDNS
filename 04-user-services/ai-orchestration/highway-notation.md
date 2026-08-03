@@ -53,6 +53,12 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 > **Video-game framing: `~` is the *opposite of Preload*.** The Preload phase (keys 1–4/5)
 > stages everything *before* you drive; `~` is the anti-preload — live immediately, streaming
 > continuity *in-flight* (lazy / on-demand loading, not load-it-all-upfront).
+>
+> **Why the dial coheres (associative reasoning).** The *more* you define upfront — heavier
+> Preload, tighter `$`/`%` guardrails — the *more* the first token should be reflex, not
+> deliberation: the scaffold already carries the reasoning, so an immediate free-association
+> (Rorschach / psychoanalysis) is the honest response, and a detached thinking block would
+> only rationalize. Heavy definition ⟹ a lazier `~`.
 
 ---
 
