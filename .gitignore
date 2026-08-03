@@ -11,6 +11,10 @@ vault/cleartext/
 # LLM router runtime data (Open WebUI state — created on the box, not in the repo)
 04-user-services/ai-orchestration/open-webui-data/
 
+# Momentum loop arm/state (per-session, local — never committed)
+.claude/.momentum-on
+.claude/.momentum-state
+
 # Editor scratch
 *~
 *.swp

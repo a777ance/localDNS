@@ -2,7 +2,7 @@
 
 > **Reconstructed scaffolding — no real secrets.** This is the tooling for the
 > "no secrets in git" workflow (CLAUDE.md), rebuilt from the Known-issues notes
-> (was `12-secrets/` in the 1.x layout). It ships `.sops.yaml`, the seal/unseal/
+> (was `12-secrets` in the 1.x layout). It ships `.sops.yaml`, the seal/unseal/
 > rotate scripts, and the manifest — all with `CHANGE_ME` placeholders. No sealed
 > `*.env.sops` are committed yet; create them from the real values on the t630.
 > Verify the deploy paths in `secrets.manifest` against the box before relying on

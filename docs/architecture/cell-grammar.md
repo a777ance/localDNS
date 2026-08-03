@@ -107,7 +107,7 @@ G.**
 it is named, not bought:
 
 - **Root of trust.** The reference every decision chains back to. Literal in this repo: the
-  DNSSEC root anchor (`01-unbound/root-auto-trust-anchor-file.conf`).
+  DNSSEC root anchor (`01-core-network/unbound/root-auto-trust-anchor-file.conf`).
 - **Fail-safe.** The state everything drains to when uncertain or faulting — *fail closed:
   route to local/private, escalate to the human* — like current to earth.
 - **Source of truth.** The germline/repo the system is reprovisioned from. "Ground truth,"

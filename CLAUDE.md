@@ -223,7 +223,7 @@ components that are documented for the live box but not snapshotted here, see th
 | `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
-| `tools/check-docs.py` | run directly (validate Markdown links across root docs) | `python3 tools/check-docs.py` |
+| `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths) | `python3 tools/check-docs.py` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
 
 **Drift to reconcile — documented for the live box but NOT in this repo snapshot.**
@@ -407,7 +407,7 @@ warm draw.
 | Host-net Pi-hole vs systemd-resolved `:53` | Host-net Pi-hole binds `0.0.0.0:53`, colliding with the resolved stub on `127.0.0.53:53`. `01-core-network/host-dns/host-dns.conf` now sets `DNSStubListener=no` and the field-guide DNS steps re-point `/etc/resolv.conf` off the stub. On the live box, check current state before re-applying (see docs/architecture/INSTALL-NOTES.md item 13). |
 | VPN peer DNS over the tunnel | **Resolved.** Pi-hole switched to `network_mode: host` — Docker DNAT no longer in the path, so `10.8.0.1:53` is answered directly for queries sourced from `wg0`. Port 8080 also added to the WG UFW rules so the Pi-hole UI is reachable from VPN peers. |
 | WireGuard `::/0` IPv6 black hole | Server is IPv4-only in-tunnel; peers routing `::/0` black-hole IPv6 (handshake OK, pages hang). Peer template now defaults to `0.0.0.0/0`. Leak-free dual-stack fix (ULA + NAT66) documented in docs/architecture/network-context.md "WireGuard IPv6 black hole". |
-| WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Now reconciled into `01-core-network/wireguard/wg0.conf` (real public keys) but still UNIDENTIFIED with no recent handshake — identify each device or remove the stale peer. |
+| WireGuard peers 10.8.0.4, 10.8.0.5, 10.8.0.6 | Present on the **live box** (real public keys) but still UNIDENTIFIED with no recent handshake — identify each device or remove the stale peer. The repo `01-core-network/wireguard/wg0.conf` represents them as commented placeholder `[Peer]` blocks (real keys never live in git). |
 | Windows laptop WireGuard key | Exposed during setup; rotate before trusting this peer |
 | Pi-hole v5 → v6 env vars | `pihole/pihole:latest` is v6; compose migrated from v5 vars (`WEBPASSWORD`, `WEB_PORT`, `PIHOLE_DNS_`) to `FTLCONF_*`. The v5 names are silently ignored by v6. |
 | `FTLCONF_webserver_api_password` in pihole compose | Now sourced from `~/pihole/.env` (sops+age vault — not yet snapshotted, see section C drift note), fail-closed via `${...:?}` — no credential in git. Unseal the vault before `docker compose up`. |
@@ -460,6 +460,7 @@ stated reason.
 ## 4. Further reading
 
 - **README.md** — top-level map + links to the interactive field guide (setup wizard)
+- **docs/DEPLOY-QUEUE.md** — staging runbook: everything reconstructed/fixed in the repo but not yet on the live t630, in dependency order with copy-paste commands + per-stage verification. Work it once SSH to `192.168.1.118` is available. Linked from README.
 - **docs/architecture/clear-refeed-protocol.md** — the sync → clear → `/refeed` ritual: how to wipe a stale session and re-seed the latest CLAUDE.md losslessly. With the `SessionStart` hook (`.claude/hooks/refeed.sh`) installed, bare `/clear` runs the whole thing end-to-end; the `.claude/commands/refeed.md` slash command handles the no-clear refresh.
 - **docs/architecture/INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
 - **docs/architecture/SKILLS.md** — skills demonstrated by the stack, each mapped to proving artifacts
@@ -468,7 +469,7 @@ stated reason.
 - **docs/architecture/network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
 - **docs/architecture/cell-grammar.md** — supporting architecture notes
-- **tools/check-docs.py** — validates every Markdown link in the root docs (run before committing)
+- **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script.
 
 ---
 

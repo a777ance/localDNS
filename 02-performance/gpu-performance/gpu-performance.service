@@ -8,7 +8,11 @@ After=multi-user.target
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash -c 'echo high > /sys/class/drm/card*/device/power_dpm_force_performance_level'
+# `tee`, not `>`: the card* glob can match several sysfs paths (connector subdirs
+# resolve through a `device` symlink to the same GPU attr), and a multi-word target
+# makes `>` an "ambiguous redirect" that fails the unit — leaving the GPU throttled.
+# tee writes to every match (all the same attr) and matches cpu-performance.service.
+ExecStart=/bin/bash -c 'echo high | tee /sys/class/drm/card*/device/power_dpm_force_performance_level'
 RemainAfterExit=yes
 
 [Install]

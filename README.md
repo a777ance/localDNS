@@ -53,3 +53,15 @@ localdns/
 > - the sealed `vault/*.env.sops` files — the sops+age tooling (`vault/`) is in the repo; the sealed secrets themselves are created from the real values on the box
 >
 > See CLAUDE.md § C ("drift to reconcile") for the full mapping.
+
+---
+
+## 🚀 Deploy Queue (staging)
+
+Config that has been **reconstructed or bug-fixed in this repo but not yet applied to
+the live t630** is staged, in dependency order with copy-paste commands and per-stage
+verification, in **[docs/DEPLOY-QUEUE.md](docs/DEPLOY-QUEUE.md)**. It's a runbook ready
+to execute the moment SSH access to `192.168.1.118` is available — including the two
+functional fixes that must land (`host-dns` freeing `:53`, the Pi-hole v6 migration),
+the reconstructed configs to diff-then-deploy, the secrets vault to seal, and the
+snapshot-back tasks (Odin, sealed `*.env.sops`) that only the live box can fill.

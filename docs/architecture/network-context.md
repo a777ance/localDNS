@@ -31,7 +31,7 @@ README step.
 - [Step 6. UFW Firewall](#step-6-ufw-firewall)
 - [Step 7. WireGuard VPN](#step-7-wireguard-vpn)
   - [Topology](#topology)
-  - [Server config: 01-core-network/wireguard/wg0.conf](#server-config-05-wireguardwg0conf)
+  - [Server config: 01-core-network/wireguard/wg0.conf](#server-config-01-core-networkwireguardwg0conf)
   - [IP forwarding](#ip-forwarding)
   - [Phone client (WireGuard iOS)](#phone-client-wireguard-ios)
   - [Why port 51820 is open to Anywhere](#why-port-51820-is-open-to-anywhere)
