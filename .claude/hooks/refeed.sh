@@ -8,8 +8,9 @@
 #   2. REFEED — inject the standing context, LAZY ANCHOR FIRST (§G): the very
 #              first thing a fresh session reads is the cheap-reflex "do the top
 #              queue item NOW" instruction, not a read-everything preamble. The
-#              lossless manifest load is demoted to "as the work demands it" so
-#              it can't anchor the trajectory into an effortful research phase.
+#              lossless seed load (the four-file briefing set) is demoted to "as
+#              the work demands it" so it can't anchor the trajectory into an
+#              effortful research phase.
 #
 # Net effect: `/clear` becomes the single end-to-end command. Sync -> clear ->
 # refeed, one keystroke, in a real shell. The session opens by ACTING on the
@@ -60,7 +61,7 @@ rev="$(git log -1 --format='%h %ci' -- CLAUDE.md 2>/dev/null || echo unknown)"
 read -r -d '' ctx <<EOF || true
 LAZY ANCHOR (§G, low reasoning) — FIRE THIS FIRST, before anything else. Reasoning effort stays low; the first move is a cheap, honest reflex, not an effortful pre-committed plan. Do the top unblocked item in docs/ai-cto/context.md § "Default next actions": read that short block and DO IT NOW. Don't re-derive the queue, don't stall asking "what next?", and don't open with a big read-everything phase — that effortful preamble is exactly the anchor §G forbids. Bias to action over narrating options. Keep momentum: the moment an item ships as a coherent, verified, pushed change, tick it, promote the next unblocked item, and start it in the same turn — chain, don't yield. Cheap reflex, brakes ON — not a licence to bulldoze: the founder naming a priority always wins, and anything irreversible or outward-facing (deletes, force-pushes, external sends, real customer data) still gets a confirm first.
 
-Then, as the work demands it (NOT as a blocking preamble), keep the session LOSSLESS by loading the rest of the standing manifest: README.md, docs/ai-cto/context.md, docs/architecture/network-context.md. With the on-disk CLAUDE.md @ $rev (already loaded by Claude Code) these four are the complete briefing; don't summarize them back — just load and continue. Full protocol: docs/architecture/clear-refeed-protocol.md.
+Then, as the work demands it (NOT as a blocking preamble), keep the session LOSSLESS by loading the rest of the SEED — the four-file briefing set the whole working world regenerates from: README.md, docs/ai-cto/context.md, docs/architecture/network-context.md. With the on-disk CLAUDE.md @ $rev (already loaded by Claude Code) these four ARE the seed; don't summarize them back — just load and continue. Full protocol: docs/architecture/clear-refeed-protocol.md.
 
 REFEED status (auto, source=$src): $sync_note.
 EOF

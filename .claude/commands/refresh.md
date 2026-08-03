@@ -1,5 +1,5 @@
 ---
-description: Front-door refresh — ask keep-history vs. clear first, then repull+refeed the latest CLAUDE.md down the chosen path
+description: Front-door refresh — ask keep-history vs. clear first, then pull+reseed the latest CLAUDE.md down the chosen path
 allowed-tools: AskUserQuestion, Bash(git fetch:*), Bash(git pull:*), Bash(git log:*), Bash(git status:*), Read
 ---
 
@@ -16,16 +16,17 @@ read anything yet.** This is the gate that a bare `/clear` can't offer (by the t
 
 ## 2. If "Refeed in place" → do it now, no clear
 
-Run the `/repull` logic directly, conversation intact — **pull, then read**:
+Run the `/reseed` logic directly, conversation intact — **pull the seed, then read**:
 
 1. `git fetch origin --quiet`, then `git status --short` — the tree must be clean.
-2. `git pull --ff-only` to land `origin/main` on disk (a "refresh" is really a pull;
-   a read-only re-read would reload stale files if local is behind). **Dirty tree or
-   non-fast-forward → do not pull; stop and say so** rather than seeding stale.
-3. Read the four-file manifest in one batch from the now-current tree: `CLAUDE.md`,
+2. `git pull --ff-only` to land the current seed (`origin/main`) on disk (a "refresh"
+   is really a pull; regenerating from a behind-local seed rebuilds a stale world).
+   **Dirty tree or non-fast-forward → do not pull; stop and say so** rather than
+   reseeding stale.
+3. Read the four-file seed in one batch from the now-current tree: `CLAUDE.md`,
    `README.md`, `docs/ai-cto/context.md`, `docs/architecture/network-context.md`.
 4. Confirm in one line: the loaded CLAUDE.md revision + whether the pull
-   fast-forwarded or was already current + "refed in place, history kept." Then stop
+   fast-forwarded or was already current + "reseeded in place, history kept." Then stop
    and wait for work.
 
 ## 3. If "Clear + refeed" → hand off to /clear

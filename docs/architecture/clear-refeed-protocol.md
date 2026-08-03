@@ -8,13 +8,13 @@ than the copy that happened to be injected when the session opened.
 context. If it's edited mid-session — by you, another session, or a founder push —
 the running assistant keeps quoting the *old* briefing until the context is cleared.
 `/clear` drops that stale copy; the refeed re-seeds the current one. "Lossless" means
-the re-seed restores the full standing briefing (the manifest below), not just the
+the re-seed restores the full standing briefing (**the seed** below), not just the
 single file Claude Code auto-reinjects.
 
 One-liner: **sync → clear → refeed** — or, with the hook installed, just **`/clear`**
 and the other two happen for you. For a mid-session refresh *without* clearing, one
-command does both the sync and the reseed: **`/repull`** (it pulls `--ff-only` on `main`,
-then re-reads the manifest).
+command does both the sync and the reseed: **`/reseed`** (it pulls the current seed
+`--ff-only` on `main`, then regenerates the briefing world from it).
 
 ---
 
@@ -28,7 +28,7 @@ numbers, not by reading order — Stage 1 runs first even though it's listed las
 - [Stage 3 — Refeed](#stage-3--refeed)
 - [Stage 2 — Clear](#stage-2--clear)
 - [Stage 1 — Sync](#stage-1--sync)
-- [The lossless manifest](#the-lossless-manifest)
+- [The seed](#the-seed)
 - [Guarantees & limits](#guarantees--limits)
 - [Revision log](#revision-log)
 
@@ -78,29 +78,29 @@ Scope and safety:
 - It never re-injects CLAUDE.md (Claude Code reloads that from disk on every
   clear); it only pulls in the *other three* manifest files.
 
-`/repull` (the slash command, formerly `/refeed`) is the **no-clear** case — refreshing
+`/reseed` (the slash command, formerly `/refeed`) is the **no-clear** case — regenerating
 the briefing mid-session without wiping the conversation. Because a bare re-read reloads
-*stale* files when local is behind, it **pulls `--ff-only` on `main` first**, then reads
-the manifest — folding Stage 1's sync into the command so the no-clear path can't seed
-stale.
+*stale* files when local is behind, it **pulls the current seed `--ff-only` on `main`
+first**, then regenerates from it — folding Stage 1's sync into the command so the
+no-clear path can't reseed a stale world.
 
 ---
 
 ## Stage 3 — Refeed
 
-Re-seed the standing briefing from disk. This is the "lossless" step — it reloads the
-whole [manifest](#the-lossless-manifest), not only the file Claude Code re-injects on
+Re-seed the standing briefing from disk. This is the "lossless" step — it regenerates the
+whole world from the [seed](#the-seed), not only the file Claude Code re-injects on
 its own.
 
-1. Run `/repull` (the project slash command in `.claude/commands/repull.md`).
-2. It **pulls `--ff-only` on `main`** to land the latest on disk (skipped on a dirty or
-   diverged tree — it stops and says so rather than seeding stale), prints the CLAUDE.md
-   revision it landed, and reads all four manifest files in one batch.
-3. It stops on a one-line "feed is fresh and on the latest" confirmation naming the
+1. Run `/reseed` (the project slash command in `.claude/commands/reseed.md`).
+2. It **pulls `--ff-only` on `main`** to land the current seed on disk (skipped on a dirty
+   or diverged tree — it stops and says so rather than reseeding stale), prints the
+   CLAUDE.md revision it landed, and reads all four seed files in one batch.
+3. It stops on a one-line "regenerated from the latest seed" confirmation naming the
    revision and whether the pull fast-forwarded or was already current.
 
 Manual fallback (no slash command available): `git pull --ff-only` on a clean tree, then
-read the four manifest files yourself, top to bottom, starting with CLAUDE.md.
+read the four seed files yourself, top to bottom, starting with CLAUDE.md.
 
 ---
 
@@ -130,11 +130,12 @@ stale working tree just reloads stale — order matters.
 
 ---
 
-## The lossless manifest
+## The seed
 
-The four files that constitute a complete standing briefing. Read together, they lose
-nothing a fresh session would have had. Listed Z→A per house style; read CLAUDE.md
-first regardless.
+The four files that constitute a complete standing briefing — **the seed**. Like a map
+seed, the whole working world regenerates deterministically from this small set; read
+together they lose nothing a fresh session would have had. Listed Z→A per house style;
+read CLAUDE.md first regardless.
 
 | File | Role in the briefing |
 | ---- | -------------------- |
@@ -143,7 +144,7 @@ first regardless.
 | `docs/ai-cto/context.md` | Live component status + current open items (the moving part) |
 | `CLAUDE.md` | The authoritative summary of the whole system — always first |
 
-Deliberately **out** of the manifest (pull on demand, keep the refeed fast):
+Deliberately **out** of the seed (pull on demand, keep the refeed fast):
 `docs/architecture/INSTALL-NOTES.md`, `docs/architecture/SKILLS.md`, the
 `docs/statements/` tooling, and per-service configs. Adding them would make the refeed
 slower without changing which decisions the assistant can make from the standing set.
@@ -158,23 +159,25 @@ slower without changing which decisions the assistant can make from the standing
   session would know is missing. It is *not* a memory of the cleared conversation:
   in-flight work, uncommitted reasoning, and scratch state are gone by design. Commit
   or note anything worth keeping **before** Stage 2.
-- **Latest, not just latest-or-it-says-so** — `/repull` doesn't merely *flag* a
-  behind-local copy, it **fixes** it: a `--ff-only` pull on `main` lands the latest on
-  disk before the reseed, so the no-clear refresh can't reload stale files. It still
-  refuses to force anything — a dirty or diverged tree stops with a note rather than
-  seeding stale or clobbering in-flight work.
+- **Latest, not just latest-or-it-says-so** — `/reseed` doesn't merely *flag* a
+  behind-local seed, it **fixes** it: a `--ff-only` pull on `main` lands the current seed
+  on disk before regenerating, so the no-clear refresh can't rebuild a stale world. It
+  still refuses to force anything — a dirty or diverged tree stops with a note rather than
+  reseeding stale or clobbering in-flight work.
 
 ---
 
 ## Revision log
 
-- **2026-08-03** — Renamed the no-clear command `/refeed` → `/repull`
-  (`.claude/commands/repull.md`) and made it **pull `--ff-only` on `main` before
-  reading** instead of a read-only fetch: a "refresh" is really a pull, so re-reading a
-  behind-local tree reloaded stale files. `/refresh`'s in-place path pulls the same way.
+- **2026-08-03** — Renamed the no-clear command `/refeed` → `/reseed`
+  (`.claude/commands/reseed.md`) and made it **pull `--ff-only` on `main` before
+  regenerating** instead of a read-only fetch: a "refresh" is really a pull, so
+  regenerating from a behind-local seed rebuilt a stale world. Adopted **"the seed"** as
+  the name for the four-file briefing set (like a map seed, the world regenerates from
+  it). `/refresh`'s in-place path pulls the same way.
 - **2026-08-03** — Made the `SessionStart` hook emit the **§G lazy anchor first**: the
   fresh session opens by acting on the top "Default next actions" item, with the
-  lossless manifest load demoted to "as the work demands it" so it can't anchor the
+  lossless seed load demoted to "as the work demands it" so it can't anchor the
   trajectory into a read-everything preamble.
 - **2026-07-29** — Added the `/refresh` front door: a pre-wipe Q&A gate
   (`.claude/commands/refresh.md`) that asks keep-history vs. clear, auto-running the
@@ -183,5 +186,5 @@ slower without changing which decisions the assistant can make from the standing
   (`.claude/hooks/refeed.sh` + `.claude/settings.json`) that auto-runs sync + refeed
   on `startup`/`clear`, making bare `/clear` the end-to-end command.
 - **2026-07-29** — Protocol created. Three-stage sync → clear → refeed ritual, the
-  four-file lossless manifest, and the slash command now at `.claude/commands/repull.md`
-  (created as `refeed.md`; renamed 2026-08-03).
+  four-file seed (then called the "lossless manifest"), and the slash command now at
+  `.claude/commands/reseed.md` (created as `refeed.md`; renamed 2026-08-03).
