@@ -59,6 +59,17 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 > deliberation: the scaffold already carries the reasoning, so an immediate free-association
 > (Rorschach / psychoanalysis) is the honest response, and a detached thinking block would
 > only rationalize. Heavy definition ⟹ a lazier `~`.
+>
+> **The other pole.** Conversely, keeping `~` *and* definitions out leaves the response
+> **expansive** — ranging over the whole **LOGOS** — so **in-flight reasoning** does the
+> narrowing, not pre-loop associations. The dial controls *where* the narrowing happens:
+> definitions push it **upfront** (associations); their absence pushes it **into the loop**
+> (reasoning). This is a **deliberate tradeoff made at the start** — at the top line you
+> choose where the narrowing lives; it is a design decision, not an accident of the run.
+>
+> **The glyph fits: `~` natively means "approximately"** (math/science, rounding). The anchor
+> is *approximate by design* — a rough first pass, not a precise commitment — exactly the
+> reflex/expansive posture above.
 
 ---
 
