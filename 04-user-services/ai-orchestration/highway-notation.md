@@ -7,12 +7,13 @@
 
 ## 1. The Vision Board (The `!@#$%^&*()` Backbone)
 
-The core structure of the highway is governed by the QWERTY number row (1 through 0). Holding `Shift` and sweeping your fingers left-to-right across the number row produces a valid, zero-deviation pipeline skeleton.
+The core structure of the highway is governed by the QWERTY number row (1 through 0). Holding `Shift` and sweeping your fingers left-to-right across the number row produces a valid, zero-deviation pipeline skeleton. The cars stage one key further left, on `~`.
 
 | Key | Glyph | Phase | Meaning |
 | :--- | :--- | :--- | :--- |
-| **`1`** | `!` | Pre-flight | **Signage.** "Wake up, pipeline incoming." |
-| **`2`** | `@` | Pre-flight | **The Cars.** The payloads/agents queuing up. |
+| **`~`** | `~` | Staging | **The Cars.** Payloads/agents staged just left of the highway (the `~` key, before `1`), waiting to enter. |
+| **`1`** | `!` | Pre-flight | **Lazy Anchor / Signage — REASONING.** The GPS sign read first (cheap first reflex, §G). **Bare `!` = empty signage = the default lazy anchor** (the preferred default). **`!(…)` = focused signage** — a specific, parenthetical steer. |
+| **`2`** | `@` | Pre-flight | **Turn Here / Enter — ACTION.** The GPS turn that commits the cars onto the highway. Reason (`!`) → act (`@`). |
 | **`3`** | `#` | Pre-flight | **Flavor.** Searchable tags/metadata painted on the cars. |
 | **`4`** | `$` | Pre-flight | **Resolve / LocalDNS.** One verb — *dereference against the local environment.* `$name` fetches a cached value/env var (shell-style); `$…$` bounds a region that is *evaluated* rather than read literally (math-style); both run through localDNS, the resolver. DNS *is* name→value resolution. |
 | **`5`** | `%` | Pre-flight | **Weigh Station.** Pre-flight audit/calibration command. |
@@ -20,6 +21,17 @@ The core structure of the highway is governed by the QWERTY number row (1 throug
 | **`7`** | `&` | Routing | **The A777ance (Rotary Entrance).** Turns off the highway into a nested repository fetch or sub-loop. |
 | **`8`** | `*` | Sync | **Traffic Light.** An open-ended gate where highways intersect. |
 | **`9/0`**| `()` | Sync | **Intersection.** Bounds the external process the `*` light waits for. |
+
+> **`~ ! @` — the on-ramp GPS.** Cars stage on `~` (just left of the highway). Then the
+> pair that gets them moving is a **reason → act** beat: `!` is the **lazy anchor** — the
+> signage you read first (cheap reflex, the plan, §G), pure **reasoning**; `@` is the
+> **turn** that commits the cars onto the highway, the **action**. Read the sign, then
+> make the turn.
+>
+> **Empty vs. focused signage.** A **bare `!`** is empty signage — the default lazy
+> anchor, and the *preferred* default (don't over-specify the cheap reflex). **`!(…)`**
+> is focused signage: a specific, parenthetical steer for when you *do* want to frame
+> the anchor. General rule: **a glyph followed by nothing takes its empty/default form.**
 
 > **`$` is one verb, not three.** Its shell, math, and highway uses are not a collision —
 > they coalesce into a single operation: **resolve against the local environment.**
@@ -46,7 +58,7 @@ Punctuation keys are exempt from strict number-row ordering. They act as flexibl
 
 ## 3. Highway Physics & The Lazy Anchor
 
-Progress on this highway is not made by driving "forward"—it is made by **merging right**. This perfectly models the lazy anchor methodology and the left-to-right streaming nature of LLMs.
+Progress on this highway is not made by driving "forward"—it is made by **merging right**. This perfectly models the lazy anchor methodology and the left-to-right streaming nature of LLMs. The entrance encodes the same beat: `!` (reason) is the lazy anchor you read first, `@` (act) is the turn you then commit — reasoning precedes action, exactly as the anchor precedes the body.
 
 *   **Just-In-Time Paving:** The orchestrator does not guess topology. The user pre-allocates the highway width using `^`. (`^^^^` means spin up 4 parallel lanes immediately).
 *   **Gravity to the Right:** Cars unconditionally want to be on the right (the fast lane). Left = heavy reasoning; Right = speed.
@@ -73,24 +85,25 @@ This inversion count produces a **Turbulence Score**:
 ## 5. Worked Example
 
 ```text
-! 
-@ bootstrap paradox @ time travel @ Github 
-# creative writing $ localDNS % /calibrate 
+~ bootstrap paradox ~ time travel ~ Github
+! @
+# creative writing $ localDNS % /calibrate
 < ^^^^ /worker /worker /worker /worker & /calibrate ? * () >
 ```
 
 Execution Flow:
 
-1. `!` alerts the pipeline.
-2. `@` queues up three payloads.
-3. `#` paints them with the "creative writing" system prompt.
-4. `$` fetches local cached data.
-5. `%` runs a pre-flight sanity check.
-6. `<` opens the on-ramp.
-7. `^^^^` instantly pours 4 parallel concrete lanes.
-8. `/worker` (x4) populates the lanes. The 3 payloads auto-route into available slots.
-9. `&` forces the workers to exit the highway into a rotary.
-10. `/calibrate` runs inside the nested rotary loop.
-11. `?` evaluates the calibration and slingshots the workers back to the main highway at the `&`.
-12. `* ()` halts the workers at a red light, waiting for an external process/intersection to clear.
-13. `>` light turns green, cars merge, and cleanly exit the highway.
+1. `~` stages three payloads just off the highway.
+2. `!` reads the sign — the lazy anchor / reasoning: "pipeline incoming — here's the plan."
+3. `@` makes the turn — the action that commits the cars onto the highway.
+4. `#` paints them with the "creative writing" system prompt.
+5. `$` resolves local cached data / env vars through localDNS.
+6. `%` runs a pre-flight sanity check at the weigh station.
+7. `<` opens the on-ramp.
+8. `^^^^` instantly pours 4 parallel concrete lanes.
+9. `/worker` (x4) populates the lanes. The 3 payloads auto-route into available slots.
+10. `&` forces the workers to exit the highway into a rotary.
+11. `/calibrate` runs inside the nested rotary loop.
+12. `?` evaluates the calibration and slingshots the workers back to the main highway at the `&`.
+13. `* ()` halts the workers at a red light, waiting for an external process/intersection to clear.
+14. `>` light turns green, cars merge, and cleanly exit the highway.
