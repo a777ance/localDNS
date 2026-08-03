@@ -476,5 +476,8 @@ stated reason.
 ## 5. AI CTO state
 
 Read `docs/ai-cto/context.md` in this repo for current open items and component status.
+Its **"Default next actions"** block at the top is the pre-computed session-start
+queue — the ordered default next moves (P1 ship chain + repo-hygiene) so a fresh
+session doesn't re-derive them. Start there when the founder hasn't named a priority.
 The portfolio hub (cross-repo roadmap, decisions log, tech debt) lives in
 `DESIGN-Full-Workflow-Integration-end-to-end-/docs/ai-cto/portfolio.md`.

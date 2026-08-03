@@ -2,7 +2,35 @@
 
 Read alongside the portfolio hub: `DESIGN-Full-Workflow-Integration-end-to-end-/docs/ai-cto/portfolio.md`.
 
-**Last updated:** 2026-08-02
+**Last updated:** 2026-08-03
+
+---
+
+## Default next actions
+
+Pre-computed session-start queue — don't re-derive it. Do the top unblocked item.
+Rationale lives in CLAUDE.md § F / § C and the open-items table below; don't restate
+it here. Override only when the founder names a different priority. When an item
+ships, tick it and promote the next.
+
+**Do this (SSH to t630 `192.168.1.118` available):** everything now stages through
+`docs/DEPLOY-QUEUE.md` — work it top-to-bottom by stage number.
+
+1. Deploy the nftables volume populator → run CLAUDE.md § F end to end (DEPLOY-QUEUE Stage 10).
+2. Test the Statement PWA install (commit `6134824`) on iOS + Android.
+3. Generate the first real Statement — measured numbers only (honesty invariant).
+
+**Else (no SSH):** the repo-drift snapshots are **done** — `local-records.conf`, the
+sops+age vault tooling, `04-user-services/console/`, and the LiteLLM front door of
+`04-user-services/ai-orchestration/` are all in the repo now (reconstructed from docs;
+`tools/check-docs.py` guards against re-drift). What's left needs the box:
+
+1. Snapshot the Odin supervisor `04-user-services/ai-orchestration/langgraph-router/`
+   FROM the live box — don't fabricate it (DEPLOY-QUEUE Stage 12).
+2. Seal the real secrets into `vault/*.env.sops` (needs an age key + real values).
+3. Verify every reconstructed config against the live box before trusting it.
+
+P2/P3 items (physical access, later deploy cycles) — see the open-items table.
 
 ---
 
