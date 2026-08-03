@@ -1,5 +1,9 @@
-# Highway Notation — the "Vision Board" command algebra
+# Bifrost — the Highway Notation schema
 
+**Name.** This protocol/schema is **Bifrost** — the Norse rainbow bridge, fitting the
+stack's Odin / Edda / High-Seat naming — also called *the Rainbow Bridge*. (That alias
+also names `MARKETING/notebooklm-bridge/`; the overlap is fine and to be reconciled later,
+not a conflict — it's a good part of the creative process.)
 **Status:** Draft · **notation only.** A *design reference*, not an implemented parser —
 no dispatcher turns these strings into execution yet.
 **Audience & how to read.** For anyone reviewing or extending the A777ance
@@ -15,9 +19,10 @@ fulfilled by slash commands and a plain-language sub-prompt.
 
 ## 1. The backbone (`!@#$%^&*()`)
 
-The number row is the road. Two **staging keys** sit just off its left end (`~` and
-`` ` ``). Left→right, the row splits into a **Preload** (keys 1–5: stage everything) and a
-**Travel Path** (keys 6–10: the journey).
+The number row is the road — and **"highway" has two senses:** *broad* (the whole physical
+row) and *narrow* (keys **5–0**, the drivable road). Two **staging keys** sit off the left
+end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (key 5) is the
+**gateway on**; keys **6–0** are the open **Travel** road.
 
 | Key | Glyph | Phase | Archetype | Meaning |
 | :-- | :-- | :-- | :-- | :-- |
@@ -26,8 +31,8 @@ The number row is the road. Two **staging keys** sit just off its left end (`~` 
 | `1` | `!` | Preload | Payloads (Cars) | The cars/payloads themselves. *(The `!` reads visually as a car.)* |
 | `2` | `@` | Preload | Signage | The signage / labelling on the road. |
 | `3` | `#` | Preload | Repository | A junction that **is a repo** — the repository to work in or against. |
-| `4` | `$` | Preload | Tollbooth / Known-Good | The **actual start** — tollbooth, customs, security. Validates entry against the **known-good** baseline (house style / point of comparison). |
-| `5` | `%` | Preload | Weigh Station | Immediate pre-flight audit / calibration — **"are we compliant?"** |
+| `4` | `$` | Preload | Sanity / Tollbooth | The **sanity check** at the actual start — tollbooth, customs, security. Validates entry against the **known-good** baseline (house style / point of comparison). |
+| `5` | `%` | Gateway | Weigh Station | Immediate pre-flight audit / calibration — **"are we compliant?"** The gateway *onto* the highway (first step of the narrow highway, 5–0). |
 | `6` | `^` | Travel | Instantiators | Count of `^` = width of the highway (`^^^^` = 4 parallel lanes). |
 | `7` | `&` | Travel | Rotary (A777ance) | Turns off into a nested sub-loop that **runs the FULL highway process**, nested inside the main. |
 | `8` | `*` | Travel | Traffic Light | An open-ended gate where highways intersect. |
@@ -55,16 +60,25 @@ placed "top right corner."
 
 ---
 
-## 3. Flexible modifiers (`/ < > ?`)
+## 3. The command lane (`/`) and the soft helpers
 
-Punctuation keys are exempt from number-row ordering; they weave through the backbone.
+**`/` is real syntax** — the command lane. One or more `/how` slash commands fulfil an
+archetype and fill instantiated `^` slots (§2).
 
-| Glyph | Role | Meaning |
-| :-- | :-- | :-- |
-| `<` | Boundary | **On-Ramp** — physical start of the paved highway. |
-| `/` | Lane | **Commands** — the `/how` blocks that fill instantiated `^` slots. |
-| `?` | Routing | **Endpoint Signage** — evaluates rotary work; U-turns the car back to the `&` it exited. |
-| `>` | Boundary | **Off-Ramp** — physical end of the highway (right shoulder / wilderness boundary). |
+**Everything in `< > ? { } [ ] " ' : ;` is soft** — *glow-in-the-dark road lines* and
+**secondary signage** (the creative-writing punctuation), **not hard syntax.** They add
+visibility and disambiguate; drop them and the pipeline still means the same thing.
+
+| Glyph(s) | Soft role |
+| :-- | :-- |
+| `?` | Back-reference reflector — points back to a `!` (its referent). |
+| `< > { } [ ]` | Reflectors / visibility brackets — mark on-ramp/off-ramp edges, group hints. |
+| `" ' : ;` | Secondary signage — creative-writing punctuation: soft labels, pauses, quotes for clarity. |
+
+Because this tier is soft, you can **mash the keyboard and still land a coherent loop** —
+the helpers wash out and the backbone, plus the three **guardrail essences** — `~`
+**continuity**, `$` **sanity**, `%` **compliance** — carries the meaning. That is the
+tolerance §5's turbulence score formalizes.
 
 ---
 
@@ -77,7 +91,7 @@ method and the left→right streaming of LLMs.
 - **Gravity to the right:** cars want the right (fast) lane. Left = heavy reasoning; right = speed.
 - **Fog of war:** an agent sees only its lane and the one to its right — no global map.
 - **Friction:** heavy payloads get caught left and must do reasoning work (e.g. drop into an `&` rotary) to shed it; if the right lane is full, the car waits.
-- **The shoulder:** the final `>` bounds the system. Deadlocked lanes become emergency vehicles, abort merging, and eject onto the right shoulder into the wilderness.
+- **The shoulder:** the `>` reflector marks the off-ramp / right edge. Deadlocked lanes become emergency vehicles, abort merging, and eject onto the right shoulder into the wilderness.
 
 ---
 
@@ -117,10 +131,18 @@ Newest first. Recorded so reviewers can trace intent; **git history of this file
 exact line-by-line diff.** This is a live design — earlier passes were deliberately
 superseded, not mistakes.
 
-- **Archetype model (current).** Backbone reassigned: `!` cars · `@` signage · `#` repo ·
-  `$` tollbooth/known-good · `%` weigh/compliance. Added the archetype → `/how` →
-  sub-prompt grammar; `~` = requirement/bridge (no slash); `` ` `` = shaded descriptor;
-  split 1–5 **Preload** / 6–10 **Travel Path**.
+- **Bifrost naming, gateway split, soft helpers (current).** Named the schema **Bifrost**
+  (alias *Rainbow Bridge*; overlaps `MARKETING/notebooklm-bridge/`, to reconcile later).
+  Distinguished "highway" broad (all physical keys) vs narrow (keys 5–0, the drivable road;
+  `%` the gateway on). Added the **soft-helper tier** `< > ? { } [ ] " ' : ;` — glow-in-the-
+  dark road lines / secondary (creative-writing) signage (e.g. `?` → a `!`), explicitly
+  *not* hard syntax, so a keyboard-mash still resolves to a coherent loop; `/` stays the
+  real command lane. Precise guardrail essences: `~` **continuity** · `$` **sanity** ·
+  `%` **compliance**.
+- **Archetype model.** Backbone reassigned: `!` cars · `@` signage · `#` repo ·
+  `$` sanity/tollbooth (known-good) · `%` compliance/weigh-station. Added the archetype →
+  `/how` → sub-prompt grammar; `~` = requirement/bridge (no slash); `` ` `` = shaded
+  descriptor; split **Preload** (1–4) / **Highway** (5–0).
   *Resolved:* `~` is one glyph — the requirement **and** the continuity operator
   (coalesce / carry-forward / interleave prior session context & state); `` ` `` is
   **subordinate to `~`** as its descriptor.
