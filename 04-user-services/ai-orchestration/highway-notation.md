@@ -44,6 +44,15 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 > **immediately** — a cheap, honest reflex that tethers the trajectory to reality up front —
 > while the coalescing of prior context/state happens **mid-flight**, load-bearing in the
 > body, not pre-reasoned. Anchor ASAP; continue in-flight.
+>
+> **Laziness is a spectrum.** No `~` = the anchor matters less, so it's OK to reason a
+> little before the first token. `~` = the lazy anchor. `~~~~~~~` = the *laziest* — cranked
+> toward stream-of-consciousness (maximally immediate, minimal upfront reasoning). More `~`
+> = lazier, the inverse of §G reasoning-effort.
+>
+> **Video-game framing: `~` is the *opposite of Preload*.** The Preload phase (keys 1–4/5)
+> stages everything *before* you drive; `~` is the anti-preload — live immediately, streaming
+> continuity *in-flight* (lazy / on-demand loading, not load-it-all-upfront).
 
 ---
 
@@ -174,6 +183,9 @@ superseded, not mistakes.
 - **`~` sharpened to the lazy anchor (current).** `~` is not *reasoning about* continuity
   but **actual** continuity: first token fires ASAP (the §G lazy anchor leaving the raft to
   tether to reality); the coalescing of prior state happens **mid-flight**, not pre-reasoned.
+  Laziness is a spectrum: no `~` = OK to reason a little; `~~~~` = laziest
+  (stream-of-consciousness); more `~` = lower reasoning-effort. `~` is the *opposite of
+  Preload* — live/streaming, not staged upfront.
 - **Intensity dials + schema continuity.** `+` (and repetition) = more/tighter —
   `$+++` ≡ `$$$$` (sanity), `%+++` ≡ `%%%%` (compliance), `^+++` ≡ `^^^^` (lanes). **`-`
   inverts into a stress test** — inject a purposeful chance of failure (adversarial, like
