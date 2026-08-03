@@ -21,8 +21,8 @@ The number row is the road. Two **staging keys** sit just off its left end (`~` 
 
 | Key | Glyph | Phase | Archetype | Meaning |
 | :-- | :-- | :-- | :-- | :-- |
-| `~` | `~` | Staging | Requirement / Bridge | Plain-language **requirement**, given as a **callback** to the last input. The **only archetype with no slash command**. Visual: a bridge. |
-| `` ` `` | `` ` `` | Staging | Descriptor | Inline qualifier, renders **shaded**; attaches description (e.g. colors) to the nearest item. |
+| `~` | `~` | Staging | Requirement / Bridge | Plain-language **requirement**, and the **continuity operator** — it *coalesces, carries forward, and interleaves* prior session context / state (a callback/bridge to what came before). The **only archetype with no slash command**. Visual: a bridge. |
+| `` ` `` | `` ` `` | Staging | Descriptor | Inline qualifier, renders **shaded**; **subordinate to `~`** — it hangs under the requirement and describes it (e.g. `` `yellow, large, browning, bunch` ``). |
 | `1` | `!` | Preload | Payloads (Cars) | The cars/payloads themselves. *(The `!` reads visually as a car.)* |
 | `2` | `@` | Preload | Signage | The signage / labelling on the road. |
 | `3` | `#` | Preload | Repository | A junction that **is a repo** — the repository to work in or against. |
@@ -47,8 +47,8 @@ Each backbone glyph is an **archetype** — a role — filled in up to three par
 
 - **`/how`** — one or more slash commands: the mechanism that fulfils the archetype.
 - **sub-prompt** — plain-language specifics.
-- **`~`** is the exception — a requirement in plain language, **no** slash command.
-- **`` `…` ``** — a shaded **descriptor**, attached to the nearest item.
+- **`~`** is the exception — a plain-language requirement, **no** slash command; it is also the **continuity operator**, coalescing and interleaving prior session context / state (a callback to what came before).
+- **`` `…` ``** — a shaded **descriptor**, **subordinate to `~`**: it hangs under the requirement and qualifies it.
 
 Example slot: `@ /label top right corner` = the *signage* archetype, done via `/label`,
 placed "top right corner."
@@ -102,7 +102,7 @@ $$K = \sum_{i < j} \mathbb{I}(v_i > v_j)$$
 ```
 
 1. `~ 800 by 600 image of a banana` — **Requirement** (no slash command).
-2. `` `yellow, brown` `` — **Descriptor** (shaded): the colors.
+2. `` `yellow, brown` `` — **Descriptor** (shaded), subordinate to the `~` requirement: the colors.
 3. `! /render /usage /composition` — **Payload**, fulfilled via those slash commands.
 4. `@ top right corner` — **Signage**: placement.
 5. `# dashboard pre-built` — **Repository**: the pre-built `dashboard` repo.
@@ -121,8 +121,9 @@ superseded, not mistakes.
   `$` tollbooth/known-good · `%` weigh/compliance. Added the archetype → `/how` →
   sub-prompt grammar; `~` = requirement/bridge (no slash); `` ` `` = shaded descriptor;
   split 1–5 **Preload** / 6–10 **Travel Path**.
-  *Adopted interpretation, open to revisit:* `~` unifies "requirement" and "callback"
-  into one glyph; may split into two later.
+  *Resolved:* `~` is one glyph — the requirement **and** the continuity operator
+  (coalesce / carry-forward / interleave prior session context & state); `` ` `` is
+  **subordinate to `~`** as its descriptor.
 - **Left-edge pass (superseded).** `~` = payloads; `!` = reasoning / lazy anchor;
   `@` = action / turn (reason→act); bare `!` = default anchor. Replaced by the reassignment above.
 - **`$` coalesced (superseded).** `$` unified as one verb — *resolve/dereference*
