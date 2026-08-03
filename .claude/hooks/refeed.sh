@@ -5,12 +5,17 @@
 # (source=clear). Does the two halves the model can't guarantee on its own:
 #   1. SYNC  — git fetch, then a guarded fast-forward pull, so the on-disk
 #              CLAUDE.md is the latest before anything reads it.
-#   2. REFEED — inject the rest of the standing manifest so the fresh session
-#              is lossless, not just CLAUDE.md (which Claude Code reloads natively).
+#   2. REFEED — inject the standing context, LAZY ANCHOR FIRST (§G): the very
+#              first thing a fresh session reads is the cheap-reflex "do the top
+#              queue item NOW" instruction, not a read-everything preamble. The
+#              lossless manifest load is demoted to "as the work demands it" so
+#              it can't anchor the trajectory into an effortful research phase.
 #
 # Net effect: `/clear` becomes the single end-to-end command. Sync -> clear ->
-# refeed, one keystroke, in a real shell. On resume/compact it stays out of the
-# way (no pull, no re-inject) so in-progress work isn't disturbed.
+# refeed, one keystroke, in a real shell. The session opens by ACTING on the
+# pre-computed queue (lazy anchor), loading the rest of the briefing as it goes.
+# On resume/compact it stays out of the way (no pull, no re-inject) so
+# in-progress work isn't disturbed.
 set -uo pipefail
 
 payload="$(cat)"
@@ -50,10 +55,14 @@ if [ -n "$upstream" ]; then
   fi
 fi
 
-# --- 2. REFEED (manifest, minus CLAUDE.md which Claude Code reloads itself) --
+# --- 2. REFEED — LAZY ANCHOR FIRST, then the manifest (CLAUDE.md reloads itself) --
 rev="$(git log -1 --format='%h %ci' -- CLAUDE.md 2>/dev/null || echo unknown)"
 read -r -d '' ctx <<EOF || true
-REFEED (auto, source=$src). $sync_note. On-disk CLAUDE.md @ $rev is already loaded by Claude Code. To make this session LOSSLESS, read now — in one batch, before other work — the rest of the standing manifest: README.md, docs/ai-cto/context.md, docs/architecture/network-context.md. Together with CLAUDE.md these four are the complete briefing. Do not summarize them back unless asked; just load them and continue. Full protocol: docs/architecture/clear-refeed-protocol.md. LAZY ANCHOR (§G, low reasoning): the default first move is the top unblocked item in docs/ai-cto/context.md § "Default next actions" — DO IT NOW. Don't re-derive the queue and don't stall asking "what next?". Keep momentum across items: the moment one ships as a coherent, verified, pushed change, tick it, promote the next unblocked item, and start it in the same turn — chain, don't yield. Bias to action over narrating options. This is a cheap reflex with the brakes still ON, not a licence to bulldoze: the founder naming a priority always wins, and anything irreversible or outward-facing (deletes, force-pushes, external sends, real customer data) still gets a confirm first.
+LAZY ANCHOR (§G, low reasoning) — FIRE THIS FIRST, before anything else. Reasoning effort stays low; the first move is a cheap, honest reflex, not an effortful pre-committed plan. Do the top unblocked item in docs/ai-cto/context.md § "Default next actions": read that short block and DO IT NOW. Don't re-derive the queue, don't stall asking "what next?", and don't open with a big read-everything phase — that effortful preamble is exactly the anchor §G forbids. Bias to action over narrating options. Keep momentum: the moment an item ships as a coherent, verified, pushed change, tick it, promote the next unblocked item, and start it in the same turn — chain, don't yield. Cheap reflex, brakes ON — not a licence to bulldoze: the founder naming a priority always wins, and anything irreversible or outward-facing (deletes, force-pushes, external sends, real customer data) still gets a confirm first.
+
+Then, as the work demands it (NOT as a blocking preamble), keep the session LOSSLESS by loading the rest of the standing manifest: README.md, docs/ai-cto/context.md, docs/architecture/network-context.md. With the on-disk CLAUDE.md @ $rev (already loaded by Claude Code) these four are the complete briefing; don't summarize them back — just load and continue. Full protocol: docs/architecture/clear-refeed-protocol.md.
+
+REFEED status (auto, source=$src): $sync_note.
 EOF
 
 # Emit as SessionStart additionalContext (JSON-escape the string).
