@@ -57,12 +57,20 @@ localdns/
 
 ---
 
-## 🚀 Deploy Queue (staging)
+## 🚀 Deploying to the live box
 
-Config that has been **reconstructed or bug-fixed in this repo but not yet applied to
-the live t630** is staged, in dependency order with copy-paste commands and per-stage
-verification, in **[docs/DEPLOY-QUEUE.md](docs/DEPLOY-QUEUE.md)**. It's a runbook ready
-to execute the moment SSH access to `192.168.1.118` is available — including the two
-functional fixes that must land (`host-dns` freeing `:53`, the Pi-hole v6 migration),
-the reconstructed configs to diff-then-deploy, the secrets vault to seal, and the
-snapshot-back tasks (Odin, sealed `*.env.sops`) that only the live box can fill.
+Two documents, one job — getting config from this repo onto the t630 at
+`192.168.1.118`:
+
+*   **⚙️ [docs/DEPLOY-PROTOCOL.md](docs/DEPLOY-PROTOCOL.md) — the *how*.** The repeatable
+    procedure for landing **one** committed change safely, every time: sync the box's
+    checkout, diff before overwrite, back up, validate, reload, then verify the *effect*
+    (not just that the command ran). Read this before you `cp` anything onto the box —
+    it encodes the failures that silently no-op a deploy.
+*   **📋 [docs/DEPLOY-QUEUE.md](docs/DEPLOY-QUEUE.md) — the *what*.** The one-time backlog
+    of config that has been **reconstructed or bug-fixed in this repo but not yet applied
+    to the live t630**, staged in dependency order with copy-paste commands and per-stage
+    verification — the two functional fixes that must land (`host-dns` freeing `:53`, the
+    Pi-hole v6 migration), the reconstructed configs to diff-then-deploy, the secrets
+    vault to seal, and the snapshot-back tasks (Odin, sealed `*.env.sops`) only the live
+    box can fill. Each stage assumes the per-change procedure in DEPLOY-PROTOCOL.

@@ -177,6 +177,10 @@ Every row below corresponds to a file that **actually exists in this repo**. For
 components that are documented for the live box but not snapshotted here, see the
 "drift to reconcile" note under the table.
 
+This table is the repo→system→reload map; **`docs/DEPLOY-PROTOCOL.md` is the procedure
+that uses it** to land one change safely (sync the checkout → diff → back up → validate
+→ reload → verify the *effect*). Read the protocol before deploying a row by hand.
+
 | Repo path | System path | Reload |
 | --------- | ----------- | ------ |
 | `01-core-network/unbound/server.conf` | `/etc/unbound/unbound.conf.d/server.conf` | `sudo systemctl restart unbound` |
@@ -497,7 +501,8 @@ stated reason.
   whole stack. Companion to the High Seat console (Hlidskjalf): the seat sees every
   realm, the Edda codifies them. No external deps — open it in any browser. Faithful to
   this briefing; when it disagrees with the live box, the box wins.
-- **docs/DEPLOY-QUEUE.md** — staging runbook: everything reconstructed/fixed in the repo but not yet on the live t630, in dependency order with copy-paste commands + per-stage verification. Work it once SSH to `192.168.1.118` is available. Linked from README.
+- **docs/DEPLOY-PROTOCOL.md** — the **how** of deploying: the repeatable per-change procedure for landing one committed change on the live t630 safely (sync the checkout → diff → back up → validate → reload → verify the *effect*). Read it before `cp`-ing anything onto the box. Linked from README; the DEPLOY-QUEUE stages assume it.
+- **docs/DEPLOY-QUEUE.md** — the **what** of deploying: staging runbook of everything reconstructed/fixed in the repo but not yet on the live t630, in dependency order with copy-paste commands + per-stage verification. Work it once SSH to `192.168.1.118` is available. Linked from README.
 - **docs/architecture/clear-refeed-protocol.md** — the sync → clear → refeed ritual: how to wipe a stale session and re-seed the latest CLAUDE.md losslessly. With the `SessionStart` hook (`.claude/hooks/refeed.sh`) installed, bare `/clear` runs the whole thing end-to-end (fires the §G lazy anchor first, then loads the seed); the `.claude/commands/reseed.md` slash command (`/reseed`) handles the no-clear refresh — it pulls the current seed `--ff-only` on `main` before regenerating, so it never rebuilds a stale world. **The seed** = the four-file briefing set (CLAUDE.md + README + `docs/ai-cto/context.md` + `docs/architecture/network-context.md`).
 - **docs/architecture/INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
 - **docs/architecture/SKILLS.md** — skills demonstrated by the stack, each mapped to proving artifacts

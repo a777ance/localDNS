@@ -10,6 +10,11 @@ The moment SSH access to `192.168.1.118` is available, work this list top-to-bot
 > against the live file first** (`diff` command given per stage) and reconcile any
 > difference into the repo before applying — don't blindly overwrite a working box.
 
+> **This is the *what*; [DEPLOY-PROTOCOL.md](DEPLOY-PROTOCOL.md) is the *how*.** Each
+> stage below is a batch of the per-change procedure — sync the checkout, diff before
+> overwrite, back up, validate, reload, verify the *effect*. When a stage says "deploy"
+> or "verify," it means run those phases. Read the protocol once before working this list.
+
 ---
 
 ## How to read this list
