@@ -399,10 +399,13 @@ warm draw.
 
 ## H. Bifrost — command schema (loads every session)
 
-**Bifrost is the A777ance command-composition schema, and it loads with this briefing — so
-it is active at the start of every session.** A keyboard-spatial notation: hold `Shift` and
-sweep the number row `!@#$%^&*()` left→right; each glyph is an *archetype* (a role) fulfilled
-by slash commands + a plain-language sub-prompt.
+**Bifrost is the A777ance command-composition schema. It loads with this briefing, so it is
+active — and to be *followed* — from the first token of every session:** adopt the `~`
+lazy-anchor posture (§G) at session start — first token ASAP, the *model* stays high,
+continuity coalesces mid-flight — and read Bifrost notation per this schema whenever the
+founder uses it. A keyboard-spatial notation: hold `Shift` and sweep the number row
+`!@#$%^&*()` left→right; each glyph is an *archetype* (a role) fulfilled by slash commands +
+a plain-language sub-prompt.
 
 - **Backbone:** `~` continuity/lazy-anchor · `` ` `` descriptor · `!` payloads · `@` signage ·
   `#` repo · `$` sanity · `%` compliance · `^` lanes · `&` rotary · `*` traffic-light ·
