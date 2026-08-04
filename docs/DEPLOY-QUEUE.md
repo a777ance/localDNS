@@ -263,11 +263,13 @@ Everything below assumes these hold.
 
 ```bash
 ssh USER@192.168.1.118          # or ssh USER@10.8.0.1 over WireGuard
-# On the box, get this branch's files. Either clone/pull the repo:
-git clone <repo-url> ~/localDNS && cd ~/localDNS && git checkout claude/new-session-nb82mn
+# On the box, get the current files. Either clone/pull the repo (work lands on main —
+# CLAUDE.md § 3 "Push to main, no branches"):
+git clone <repo-url> ~/localDNS && cd ~/localDNS      # fresh
+git -C ~/localDNS checkout main && git -C ~/localDNS pull --ff-only origin main   # existing
 # …or scp individual files (paths are given per stage as <repo>/…).
 ```
 
 - [ ] SSH + `sudo` confirmed.
-- [ ] This branch checked out on the box (or files stated per stage are reachable).
+- [ ] `main` checked out and up to date on the box (or files stated per stage are reachable).
 - [ ] `python3 tools/check-docs.py` green before you start (sanity: repo is consistent).
