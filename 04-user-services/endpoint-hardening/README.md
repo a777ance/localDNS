@@ -34,10 +34,27 @@ Two choices are stricter than Firefox's own "Strict" preset:
 `…allow_list.convenience.enabled` are both **false**, which removes the
 exception lists Mozilla ships to keep logins and checkout flows working.
 
-One choice is deliberately *looser* than a maximal posture: cookies and
-sessions survive shutdown, so the always-on console seat keeps its logins to
-Pi-hole, Uptime Kuma and Open WebUI across a restart. That is a stated
-tradeoff, not an oversight.
+One choice is deliberately *looser* than a maximal posture — and it is the one
+that shows the two layers were designed together.
+
+### Why the endpoint doesn't need to be maximally sanitised
+
+Cookies, form data and sessions survive shutdown; only cache and browsing
+history are cleared. That is a **dividend of network-layer security, not a
+convenience concession.**
+
+Burning all browser state on every exit is what you do when you cannot trust
+the network the endpoint sits on — the browser is the last line of defence, so
+it has to behave like it. That is not this network. Unbound resolves
+recursively with DNSSEC, Pi-hole filters at the DNS layer, UFW is default-deny,
+and WireGuard carries everything off-box. The perimeter is real and it is
+holding, so the endpoint does not have to compensate for it.
+
+The strictness is therefore spent where the network layer genuinely cannot
+reach — fingerprinting, WebRTC, telemetry, tracker classification — and not on
+ritual session destruction that would buy nothing here except friction. A
+harder posture is not automatically a better one; it is only better where it
+closes a gap something else isn't already closing.
 
 ---
 

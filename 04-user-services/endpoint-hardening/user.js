@@ -80,13 +80,21 @@ user_pref("datareporting.healthreport.uploadEnabled", false);
 user_pref("datareporting.usage.uploadEnabled", false);
 
 // ---------------------------------------------------------------------------
-// Data retained at shutdown — a deliberate usability/privacy tradeoff
+// Data retained at shutdown — a dividend of network-layer security
 // ---------------------------------------------------------------------------
 // Sanitisation on shutdown is ON, but scoped: cache and browsing history are
-// cleared, while cookies, form data and sessions are deliberately KEPT so the
-// browser stays usable as the always-on console seat (Pi-hole, Uptime Kuma and
-// Open WebUI logins survive a restart). This is an intentional relaxation, not
-// an oversight.
+// cleared, while cookies, form data and sessions are deliberately KEPT.
+//
+// This is not a convenience concession. Aggressive endpoint sanitisation is
+// compensation for an untrusted network — you burn browser state on every exit
+// because you cannot control what happens to the traffic. That is not this
+// network. Unbound resolves recursively with DNSSEC, Pi-hole filters at the DNS
+// layer, UFW is default-deny, and WireGuard carries everything off-box. The
+// browser is not the last line of defence here, so it does not have to behave
+// as if it were.
+//
+// Spend the strictness where the network layer genuinely cannot help —
+// fingerprinting, WebRTC, telemetry, tracking — and keep the logins.
 user_pref("privacy.sanitize.sanitizeOnShutdown", true);
 user_pref("privacy.history.custom", true);
 user_pref("privacy.clearOnShutdown_v2.cookiesAndStorage", false);

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Field guide — conform any Firefox profile to the A777ance endpoint-hardening house rules. Interactive paths, copy-paste commands, verification.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🦊%3C/text%3E%3C/svg%3E">
+<title>Firefox Hardening — A777ance Field Guide</title>
+<style>
+  :root {
+    --ground:#f6f5f2; --surface:#ffffff; --surface-2:#f0eff4; --line:#dcd9e2;
+    --ink:#1a2033; --muted:#5a6178; --faint:#8a90a6;
+    --accent:#c1521d; --accent-ink:#8f3c14; --accent-wash:#fbeee5;
+    --warn:#c2691f; --warn-wash:#f7ede2;
+    --ok:#2f9e6b; --ok-wash:#e6f4ed;
+    --radius:10px; --maxw:1060px; --prose:74ch;
+    --mono:"SFMono-Regular","SF Mono","Cascadia Code","JetBrains Mono",ui-monospace,"Consolas","Courier New",monospace;
+    --sans:"Gill Sans MT","Gill Sans",Calibri,"Trebuchet MS",sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:#0d1220; --surface:#141a2b; --surface-2:#1a2136; --line:#2a3350;
+      --ink:#e6e9f2; --muted:#9aa3bd; --faint:#6b748f;
+      --accent:#f08a4b; --accent-ink:#ffb184; --accent-wash:#33210f;
+      --warn:#e8a24d; --warn-wash:#33270f;
+      --ok:#4fce8f; --ok-wash:#11291f;
+    }
+  }
+  :root[data-theme="light"]{--ground:#f6f5f2;--surface:#fff;--surface-2:#f0eff4;--line:#dcd9e2;--ink:#1a2033;--muted:#5a6178;--faint:#8a90a6;--accent:#c1521d;--accent-ink:#8f3c14;--accent-wash:#fbeee5;--warn:#c2691f;--warn-wash:#f7ede2;--ok:#2f9e6b;--ok-wash:#e6f4ed;}
+  :root[data-theme="dark"]{--ground:#0d1220;--surface:#141a2b;--surface-2:#1a2136;--line:#2a3350;--ink:#e6e9f2;--muted:#9aa3bd;--faint:#6b748f;--accent:#f08a4b;--accent-ink:#ffb184;--accent-wash:#33210f;--warn:#e8a24d;--warn-wash:#33270f;--ok:#4fce8f;--ok-wash:#11291f;}
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+       font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px 80px}
+  a{color:var(--accent-ink);text-underline-offset:2px}
+  code,kbd{font-family:var(--mono);font-size:.88em}
+
+  header{padding:56px 0 28px;border-bottom:1px solid var(--line);margin-bottom:32px}
+  h1{font-size:2.3rem;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+  .lede{color:var(--muted);max-width:var(--prose);margin:0}
+  .eyebrow{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;
+           color:var(--accent);font-weight:600;margin:0 0 12px}
+
+  h2{font-size:1.35rem;margin:0 0 4px;letter-spacing:-.005em}
+  h3{font-size:1.02rem;margin:22px 0 8px;color:var(--ink)}
+  p{max-width:var(--prose)}
+
+  .block{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+         padding:24px 26px;margin:0 0 20px}
+  .blocknum{display:inline-flex;align-items:center;justify-content:center;
+            min-width:2.1rem;height:2.1rem;padding:0 .5rem;border-radius:6px;
+            background:var(--accent-wash);color:var(--accent-ink);
+            font-weight:700;font-size:.92rem;margin-right:12px;flex:none}
+  .bhead{display:flex;align-items:flex-start;margin-bottom:6px}
+  .bsub{color:var(--muted);font-size:.93rem;margin:2px 0 0}
+
+  ol.steps{padding-left:0;list-style:none;counter-reset:none;margin:16px 0 0}
+  ol.steps>li{position:relative;padding-left:36px;margin:0 0 18px}
+  ol.steps>li::before{content:attr(data-n);position:absolute;left:0;top:.1em;
+        width:24px;height:24px;border-radius:50%;background:var(--surface-2);
+        border:1px solid var(--line);color:var(--muted);font-size:.78rem;
+        font-weight:700;display:flex;align-items:center;justify-content:center}
+
+  pre{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;
+      padding:14px 16px;overflow-x:auto;margin:10px 0;position:relative}
+  pre code{color:var(--ink);white-space:pre}
+  .copy{position:absolute;top:8px;right:8px;border:1px solid var(--line);
+        background:var(--surface);color:var(--muted);border-radius:6px;
+        font-family:var(--sans);font-size:.74rem;padding:3px 9px;cursor:pointer}
+  .copy:hover{color:var(--ink);border-color:var(--muted)}
+  .copy.done{color:var(--ok);border-color:var(--ok)}
+
+  .picker{background:var(--accent-wash);border:1px solid var(--line);
+          border-radius:var(--radius);padding:20px 24px;margin:0 0 28px}
+  .picker h2{font-size:1.05rem;margin-bottom:4px}
+  .fields{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px}
+  .field{display:flex;flex-direction:column;gap:5px;min-width:200px;flex:1}
+  .field label{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;
+               color:var(--muted);font-weight:600}
+  select,input[type=text]{font-family:var(--mono);font-size:.86rem;padding:8px 10px;
+        border:1px solid var(--line);border-radius:6px;background:var(--surface);
+        color:var(--ink);width:100%}
+
+  .toc{background:var(--surface);border:1px solid var(--line);
+       border-radius:var(--radius);padding:20px 24px;margin:0 0 28px}
+  .toc h2{font-size:1.05rem;margin-bottom:10px}
+  .toc ol{list-style:none;padding:0;margin:0}
+  .toc li{padding:5px 0;border-bottom:1px solid var(--line)}
+  .toc li:last-child{border-bottom:0}
+  .toc a{text-decoration:none;display:flex;gap:12px;align-items:baseline}
+  .toc a:hover{text-decoration:underline}
+  .toc .n{font-family:var(--mono);font-size:.8rem;color:var(--accent);
+          font-weight:700;min-width:1.6rem}
+
+  .note{border-left:3px solid var(--accent);background:var(--surface-2);
+        padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0;
+        font-size:.94rem;max-width:var(--prose)}
+  .note.warn{border-left-color:var(--warn);background:var(--warn-wash)}
+  .note strong{color:var(--ink)}
+
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:.9rem}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);
+        vertical-align:top}
+  th{font-size:.76rem;letter-spacing:.06em;text-transform:uppercase;
+     color:var(--muted);font-weight:600}
+  td code{color:var(--accent-ink)}
+  .tablewrap{overflow-x:auto}
+
+  footer{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);
+         color:var(--muted);font-size:.9rem}
+  .theme{position:fixed;top:14px;right:14px;border:1px solid var(--line);
+         background:var(--surface);color:var(--muted);border-radius:6px;
+         padding:5px 11px;font-family:var(--sans);font-size:.78rem;cursor:pointer;z-index:9}
+  @media (max-width:640px){ body{font-size:16px} h1{font-size:1.8rem} .block{padding:20px 18px} }
+</style>
+</head>
+<body>
+<button class="theme" id="themeBtn" type="button">◐ theme</button>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">A777ance · Field Guide</p>
+  <h1>Conforming Firefox to the house rules</h1>
+  <p class="lede">The endpoint half of the localDNS stack. Unbound, Pi-hole and WireGuard
+  govern what leaves the <em>network</em>; this governs what the <em>browser</em> gives away
+  before a packet is ever sent. Follow it on any machine to bring a Firefox profile to the
+  same posture the t630 and the XPS-13 run.</p>
+</header>
+
+<section class="block" id="why" style="border-left:3px solid var(--accent)">
+  <h2>Why this posture is strict in some places and relaxed in others</h2>
+  <p>Read the two layers together or none of it makes sense. Cookies, form data and
+  sessions <em>survive</em> shutdown here — only cache and browsing history are cleared.
+  Most hardening guides would call that a failure. It isn't. It is a <strong>dividend of
+  network-layer security</strong>.</p>
+
+  <p>Destroying all browser state on every exit is what you do when you cannot trust the
+  network the endpoint sits on: the browser is the last line of defence, so it has to
+  behave like one. That is not this network. Unbound resolves recursively with DNSSEC,
+  Pi-hole filters at the DNS layer, UFW is default-deny, and WireGuard carries everything
+  off-box. The perimeter is real and it is holding — so the endpoint does not have to
+  compensate for a threat the network already absorbed.</p>
+
+  <p>So the strictness goes where the network layer genuinely <em>cannot</em> reach:
+  fingerprinting, WebRTC address disclosure, telemetry, tracker classification. It does
+  not go into ritual session destruction, which here would buy nothing but friction.</p>
+
+  <div class="note" style="margin-bottom:0">
+    <strong>A harder posture is not automatically a better one.</strong> It is only better
+    where it closes a gap something else isn't already closing. Copy these prefs onto a
+    laptop on hostile Wi-Fi with no tunnel and no local resolver, and you should tighten
+    the shutdown behaviour — because there, the browser <em>is</em> the last line.
+  </div>
+</section>
+
+<section class="picker">
+  <h2>Set your paths</h2>
+  <p class="bsub">Every command on this page rewrites itself to match. Firefox stores
+  profiles under a random ID, so fill in yours once and the rest follows.</p>
+  <div class="fields">
+    <div class="field">
+      <label for="install">Install method</label>
+      <select id="install">
+        <option value="snap">Snap (Ubuntu default)</option>
+        <option value="native">Native package / .tar.bz2</option>
+        <option value="flatpak">Flatpak</option>
+        <option value="mac">macOS</option>
+        <option value="win">Windows</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="profile">Profile directory</label>
+      <input type="text" id="profile" value="xxxxxxxx.default" spellcheck="false">
+    </div>
+  </div>
+</section>
+
+<nav class="toc">
+  <h2>Blocks</h2>
+  <ol>
+    <li><a href="#b5"><span class="n">5</span><span>Pin DNS to your own resolver</span></a></li>
+    <li><a href="#b4"><span class="n">4</span><span>Expect the breakage — and what to do about it</span></a></li>
+    <li><a href="#b3"><span class="n">3</span><span>Verify the posture took</span></a></li>
+    <li><a href="#b2"><span class="n">2</span><span>Install the user.js</span></a></li>
+    <li><a href="#b1"><span class="n">1</span><span>Locate your profile</span></a></li>
+  </ol>
+  <div class="note" style="margin-bottom:0">
+    <strong>Blocks run last-to-first; steps inside each block run in order.</strong>
+    The numbers are fixed and never renumber, so execution order stays readable
+    whichever way you read the page. Doing it for the first time? Start at block 1
+    at the bottom and work up.
+  </div>
+</nav>
+
+<!-- ============================ BLOCK 5 ============================ -->
+<section class="block" id="b5">
+  <div class="bhead"><span class="blocknum">5</span>
+    <div><h2>Pin DNS to your own resolver</h2>
+      <p class="bsub">Optional, and the one step that only makes sense on a network running its own recursive resolver.</p></div>
+  </div>
+
+  <p>Firefox can enable DNS-over-HTTPS on its own and send every lookup to Cloudflare.
+  On a normal laptop that is a privacy win. On <em>this</em> network it is a bypass: it
+  routes around Unbound, around Pi-hole's blocklists, and around the split-resolution
+  policy that decides which domains are allowed off-box in the first place.</p>
+
+  <p>The captured profile leaves <code>network.trr.mode</code> unset, so DoH sits at
+  whatever Firefox's default happens to be. Making it explicit is the point.</p>
+
+  <ol class="steps">
+    <li data-n="1">Open <code>about:config</code> and accept the warning.</li>
+    <li data-n="2">Search for <code>network.trr.mode</code>, set it to <code>5</code>
+      — “off, by explicit user choice.” Firefox will not re-enable DoH behind you.</li>
+    <li data-n="3">Confirm your queries are landing on your own resolver. From the box
+      running Pi-hole, watch the query log while you load a page in the browser.</li>
+  </ol>
+
+  <div class="note">
+    Prefer this in the file rather than the UI? The line already exists in
+    <code>user.js</code>, commented out — uncomment it and skip the clicking.
+  </div>
+</section>
+
+<!-- ============================ BLOCK 4 ============================ -->
+<section class="block" id="b4">
+  <div class="bhead"><span class="blocknum">4</span>
+    <div><h2>Expect the breakage — and what to do about it</h2>
+      <p class="bsub">All of this is intended. None of it is a failed install.</p></div>
+  </div>
+
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>What you'll notice</th><th>Cause</th><th>If you need it back</th></tr></thead>
+    <tbody>
+      <tr><td>Theme is forced light; window reports an odd size</td>
+          <td><code>privacy.resistFingerprinting</code> standardises both</td>
+          <td>Accept it — these are two of the highest-entropy signals you have</td></tr>
+      <tr><td>Video calls in Firefox never connect</td>
+          <td><code>media.peerconnection.enabled=false</code> disables WebRTC</td>
+          <td>Use a separate un-hardened profile for calls, not a global re-enable</td></tr>
+      <tr><td>Maps, 3D and some canvas-heavy sites fail</td>
+          <td><code>webgl.disabled=true</code></td>
+          <td>Per-site is not possible; flip the pref temporarily or use another profile</td></tr>
+      <tr><td>A login or checkout flow breaks</td>
+          <td>Both Mozilla tracking allow-lists are switched off</td>
+          <td>Add a per-site exception via the shield icon in the address bar</td></tr>
+      <tr><td>A page loads blank over plain HTTP</td>
+          <td>HTTPS-Only mode is interstitialling it</td>
+          <td>“Continue to HTTP site” for that one site only</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="note warn">
+    <strong>Use exceptions, not rollbacks.</strong> The shield icon disables protection
+    for one site. Turning a pref back off globally to fix one checkout page undoes the
+    posture everywhere — which is how hardening quietly decays into a default install.
+  </div>
+</section>
+
+<!-- ============================ BLOCK 3 ============================ -->
+<section class="block" id="b3">
+  <div class="bhead"><span class="blocknum">3</span>
+    <div><h2>Verify the posture took</h2>
+      <p class="bsub">Check the effect, not the copy. A file in the right place proves nothing until Firefox has read it.</p></div>
+  </div>
+
+  <ol class="steps">
+    <li data-n="1">Open <code>about:support</code> and find
+      <strong>Important Modified Preferences</strong>. Your prefs should be listed there.
+      If the section looks stock, Firefox never read the file — check the filename and
+      that it sits <em>beside</em> <code>prefs.js</code>, not in the parent directory.</li>
+    <li data-n="2">Spot-check two in <code>about:config</code>:
+      <code>privacy.resistFingerprinting</code> and <code>webgl.disabled</code>,
+      both <code>true</code>.</li>
+    <li data-n="3">Confirm the WebRTC leak is actually closed — the check that matters
+      most if you are behind the tunnel. Visit
+      <a href="https://browserleaks.com/webrtc" rel="noopener">browserleaks.com/webrtc</a>;
+      it should disclose no local and no public address.</li>
+    <li data-n="4">Confirm the GPC signal is going out at
+      <a href="https://global-privacy-control.glitch.me/" rel="noopener">global-privacy-control.glitch.me</a>.</li>
+  </ol>
+</section>
+
+<!-- ============================ BLOCK 2 ============================ -->
+<section class="block" id="b2">
+  <div class="bhead"><span class="blocknum">2</span>
+    <div><h2>Install the <code>user.js</code></h2>
+      <p class="bsub">Why this file and not the one Firefox already writes.</p></div>
+  </div>
+
+  <p>Firefox rewrites <code>prefs.js</code> on every clean shutdown. A posture recorded
+  there is one crash away from being lost and cannot be version-controlled meaningfully.
+  <code>user.js</code> sits in the same directory, is re-applied at every startup, and is
+  the only file in the profile worth tracking in git.</p>
+
+  <ol class="steps">
+    <li data-n="1">Quit Firefox completely. It reads <code>user.js</code> only at startup,
+      and will overwrite <code>prefs.js</code> on the way out.</li>
+    <li data-n="2">Copy the house <code>user.js</code> into the profile directory:
+      <pre data-tpl="install"><code></code></pre></li>
+    <li data-n="3">Start Firefox again.</li>
+  </ol>
+
+  <div class="note">
+    Already have a <code>user.js</code>? Concatenate rather than overwrite, then remove
+    duplicate <code>user_pref</code> lines — on a collision the last line in the file wins.
+  </div>
+</section>
+
+<!-- ============================ BLOCK 1 ============================ -->
+<section class="block" id="b1">
+  <div class="bhead"><span class="blocknum">1</span>
+    <div><h2>Locate your profile</h2>
+      <p class="bsub">Start here on a machine you have not hardened before.</p></div>
+  </div>
+
+  <ol class="steps">
+    <li data-n="1">Find the profile directory. The folder name is a random ID, so let the
+      shell find it:
+      <pre data-tpl="find"><code></code></pre></li>
+    <li data-n="2">If nothing comes back, Firefox is installed by a different method than
+      the one selected above — switch it in <em>Set your paths</em> and re-run. On any
+      platform, <code>about:profiles</code> inside Firefox shows the true path under
+      <strong>Root Directory</strong>.</li>
+    <li data-n="3">Put the folder name — the part before <code>/prefs.js</code> — into the
+      <strong>Profile directory</strong> field above. Every command on this page updates.</li>
+  </ol>
+
+  <div class="note">
+    Ubuntu ships Firefox as a snap, so the profile is <em>not</em> at
+    <code>~/.mozilla/firefox/</code> where most guides send you. That path existing but
+    being empty is the usual first wrong turn.
+  </div>
+</section>
+
+<footer>
+  <p><strong>Canonical source.</strong> The prefs and the reasoning behind each one live in
+  <a href="https://github.com/a777ance/localDNS/tree/main/04-user-services/endpoint-hardening"
+     rel="noopener"><code>04-user-services/endpoint-hardening/</code></a> — this page is the
+  walkthrough, that directory is the record. Where they disagree, the repo wins; where the
+  repo disagrees with the live box, the box wins.</p>
+  <p>Part of <a href="https://github.com/a777ance/localDNS" rel="noopener">localDNS</a> ·
+     A777ance</p>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var root = document.documentElement;
+  document.getElementById('themeBtn').addEventListener('click', function(){
+    var cur = root.getAttribute('data-theme');
+    if(!cur){ cur = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+    root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+  });
+
+  var PATHS = {
+    snap:    {base:"~/snap/firefox/common/.mozilla/firefox", sh:true},
+    native:  {base:"~/.mozilla/firefox", sh:true},
+    flatpak: {base:"~/.var/app/org.mozilla.firefox/.mozilla/firefox", sh:true},
+    mac:     {base:"~/Library/Application Support/Firefox/Profiles", sh:true},
+    win:     {base:"%APPDATA%\\\\Mozilla\\\\Firefox\\\\Profiles", sh:false}
+  };
+
+  function render(){
+    var kind = document.getElementById('install').value;
+    var prof = document.getElementById('profile').value.trim() || 'xxxxxxxx.default';
+    var p = PATHS[kind];
+    var out = {};
+
+    if(p.sh){
+      var root_ = p.base.indexOf('~') === 0 ? p.base : p.base;
+      var quoted = root_.indexOf(' ') > -1 ? '"' + root_ + '"' : root_;
+      out.find = 'find ' + quoted + ' -maxdepth 3 -name prefs.js 2>/dev/null';
+      var full = root_ + '/' + prof;
+      var fq = full.indexOf(' ') > -1 ? '"' + full + '"' : full;
+      out.install =
+        'P=' + fq + '\n' +
+        'curl -fsSL https://raw.githubusercontent.com/a777ance/localDNS/main/04-user-services/endpoint-hardening/user.js \\\n' +
+        '  -o "$P/user.js"\n' +
+        'grep -c user_pref "$P/user.js"   # sanity: expect 30';
+    } else {
+      out.find = 'dir /s /b "%APPDATA%\\Mozilla\\Firefox\\Profiles\\prefs.js"';
+      out.install =
+        'set P=%APPDATA%\\Mozilla\\Firefox\\Profiles\\' + prof + '\n' +
+        'curl -fsSL https://raw.githubusercontent.com/a777ance/localDNS/main/04-user-services/endpoint-hardening/user.js -o "%P%\\user.js"\n' +
+        'find /c "user_pref" "%P%\\user.js"';
+    }
+
+    document.querySelectorAll('pre[data-tpl]').forEach(function(pre){
+      var key = pre.getAttribute('data-tpl');
+      if(out[key] === undefined) return;
+      pre.querySelector('code').textContent = out[key];
+      if(!pre.querySelector('.copy')){
+        var b = document.createElement('button');
+        b.className = 'copy'; b.type = 'button'; b.textContent = 'copy';
+        b.addEventListener('click', function(){
+          navigator.clipboard.writeText(pre.querySelector('code').textContent).then(function(){
+            b.textContent = 'copied'; b.classList.add('done');
+            setTimeout(function(){ b.textContent = 'copy'; b.classList.remove('done'); }, 1400);
+          });
+        });
+        pre.appendChild(b);
+      }
+    });
+  }
+
+  document.getElementById('install').addEventListener('change', render);
+  document.getElementById('profile').addEventListener('input', render);
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-name: Publish statement gallery + Bifrost to Pages
+name: Publish statement gallery + Bifrost + field guides to Pages
 
 # Makes the statement mockups (and the Bifrost notation page) openable by anyone
 # at a first-party URL. GitHub serves .html files as source code, not rendered
@@ -17,6 +17,7 @@ on:
     paths:
       - "docs/statements/**"
       - "docs/bifrost.html"
+      - "docs/firefox-hardening.html"
       - ".github/workflows/pages.yml"
 
 permissions:
@@ -54,6 +55,7 @@ jobs:
           mkdir -p _site
           cp -a docs/statements/. _site/
           if [ -f docs/bifrost.html ]; then cp docs/bifrost.html _site/bifrost.html; fi
+          if [ -f docs/firefox-hardening.html ]; then cp docs/firefox-hardening.html _site/firefox-hardening.html; fi
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
