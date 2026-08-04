@@ -477,12 +477,13 @@ clean Ubuntu 24.04.
 open PRs or park work on feature branches for these repos; land each change as a
 coherent, deployable commit straight on `main`.
 
-**Deploy & git hygiene** — the summary; full procedure in **docs/DEPLOY-PROTOCOL.md**:
+**Deploy & git hygiene** — the summary; full procedure in
+[docs/DEPLOY-PROTOCOL.md](docs/DEPLOY-PROTOCOL.md):
 
 - **Box is the source of truth** — diff before overwrite; reconcile drift back into the repo first.
 - **Verify the *effect*, not the command** — a failed `cp` + a clean restart silently reloads the old file; check `ss`/`dig` after every reload.
 - **Validate before reload, back up before overwrite** — `unbound-checkconf` (etc.) first; a timestamped copy makes rollback one command.
-- **git pull ≠ deploy** — it moves checkout files only; the running system is untouched until you apply a change (the staged backlog is **docs/DEPLOY-QUEUE.md**).
+- **git pull ≠ deploy** — it moves checkout files only; the running system is untouched until you apply a change (staged backlog: [docs/DEPLOY-QUEUE.md](docs/DEPLOY-QUEUE.md)).
 - **Push:** fast-forward when the branch is just `main` + your commits; retry with backoff; `tools/check-docs.py` green before committing docs.
 
 **Never use the PR "watch" feature** — founder's standing instruction (2026-08-03).

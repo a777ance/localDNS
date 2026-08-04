@@ -121,13 +121,22 @@ def looks_like_repo_path(tok):
 
 
 def candidate_tokens(text):
-    """Path-ish tokens from inline-code spans (commands may embed a path)."""
+    """Path-ish tokens from inline-code spans (commands may embed a path).
+
+    A Markdown code span never crosses a blank line, so scan paragraph by
+    paragraph. Without this, a single unbalanced backtick (e.g. the `` ` ``
+    escapes in the Bifrost section) pairs the `INLINE` regex across blank lines
+    and swallows a later `[text](path)` link into one span — misreading the
+    `path](path` fragment as a bogus repo path. Paragraph scoping confines a
+    stray backtick to its own paragraph so it can't reach an unrelated link.
+    """
     toks = []
-    for span in INLINE.findall(text):
-        for t in span.split():
-            t = t.strip("`").rstrip(".,;:!?").strip("()[]<>\"'")
-            if t:
-                toks.append(t)
+    for para in re.split(r"\n\s*\n", text):
+        for span in INLINE.findall(para):
+            for t in span.split():
+                t = t.strip("`").rstrip(".,;:!?").strip("()[]<>\"'")
+                if t:
+                    toks.append(t)
     return toks
 
 
