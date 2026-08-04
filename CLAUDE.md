@@ -418,7 +418,8 @@ a plain-language sub-prompt.
 
 **Status:** notation only — no dispatcher parses it yet. Full spec (glyph table, grammar,
 physics, MASH turbulence, worked examples, changelog):
-`04-user-services/ai-orchestration/highway-notation.md`.
+`04-user-services/ai-orchestration/highway-notation.md` · rendered page:
+<https://a777ance.github.io/localDNS/bifrost.html>.
 
 ---
 
