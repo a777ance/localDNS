@@ -215,6 +215,7 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `04-user-services/console/ttyd-laptop.service` | `/etc/systemd/system/ttyd-laptop.service` | `sudo systemctl daemon-reload` |
 | `04-user-services/console/ttyd.env.example` | `/etc/a777ance/ttyd.env` (git-ignored; `chmod 600`) | — |
 | `04-user-services/console/browser-odin.md` | reference only | — |
+| `04-user-services/endpoint-hardening/user.js` | `<firefox-profile>/user.js` (snap: `~/snap/firefox/common/.mozilla/firefox/<profile>/`) | restart Firefox |
 | `04-user-services/ai-orchestration/docker-compose.yml` | `~/llm-router/docker-compose.yml` | `cd ~/llm-router && docker compose up -d` |
 | `04-user-services/ai-orchestration/config.yaml` | `~/llm-router/config.yaml` | `cd ~/llm-router && docker compose up -d` |
 | `04-user-services/ai-orchestration/.env.example` | copy to `~/llm-router/.env` (git-ignored), set `LITELLM_MASTER_KEY` (+ `ANTHROPIC_API_KEY` for overflow) | — |
