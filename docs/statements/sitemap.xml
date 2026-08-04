@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sitemap for the published Pages site.
+
+  Lives in docs/statements/ because pages.yml assembles the site with
+  `cp -a docs/statements/. _site/`, so this file lands at the site ROOT:
+  https://a777ance.github.io/localDNS/sitemap.xml
+
+  NOTE ON DISCOVERY: crawlers normally find a sitemap via robots.txt, and
+  robots.txt is honored only at the DOMAIN root (a777ance.github.io/robots.txt),
+  which this project repo cannot publish to. Until an a777ance.github.io
+  user-site repo exists, submit this sitemap manually in Google Search Console
+  for it to have any effect.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+    <loc>https://a777ance.github.io/localDNS/</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <url>
+    <loc>https://a777ance.github.io/localDNS/bifrost.html</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://a777ance.github.io/localDNS/operator/alliance-member-portfolio.html</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://a777ance.github.io/localDNS/client/archetype-prime-time.html</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://a777ance.github.io/localDNS/client/archetype-home-office.html</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://a777ance.github.io/localDNS/client/archetype-connected-family.html</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+</urlset>

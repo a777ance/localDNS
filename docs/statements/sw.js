@@ -2,7 +2,7 @@
  * Makes the gallery installable (PWA) and openable offline on phone and laptop.
  * Cache-first for the known static assets; network with an offline fallback for
  * everything else. Bump CACHE when the published assets change. */
-const CACHE = 'a777ance-statements-v1';
+const CACHE = 'a777ance-statements-v2';
 
 // Precache the shell. Only list files that always exist, so install never fails.
 const ASSETS = [
