@@ -1,0 +1,45 @@
+name: CI — tests + doc validation
+
+# Enforces what CLAUDE.md § 3 already prescribes by convention: check-docs.py
+# green before committing docs, and the Bifrost suite green before committing
+# the parser. That convention was sufficient while this repo was configs and
+# documentation. It now carries executable logic whose correctness rests on
+# regression tests (the intensity-collapse guard in particular), and human
+# memory is not a reliable test runner.
+#
+# Both checks are standard library only, so there is no install step and no
+# dependency that can rot. Deliberately does NOT run the statement generators
+# — those need segno and belong to pages.yml, which owns publishing.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      # Validates Markdown links (anchors + file links) AND inline repo-path
+      # references across every doc, and hard-fails on legacy 1.x folder paths.
+      - name: Validate docs
+        run: python3 tools/check-docs.py
+
+      # 36 tests over the glyph table, both scoring normalizations, descriptor
+      # masking, the band edges, and the spec's own §5 / §6 examples.
+      - name: Bifrost parser + scorer tests
+        working-directory: 04-user-services/ai-orchestration/bifrost
+        run: python3 test_bifrost.py
