@@ -2,7 +2,7 @@
 
 Read alongside the portfolio hub: `DESIGN-Full-Workflow-Integration-end-to-end-/docs/ai-cto/portfolio.md`.
 
-**Last updated:** 2026-08-03
+**Last updated:** 2026-08-04
 
 ---
 
@@ -51,6 +51,7 @@ The live HP t630 configuration snapshot AND the Statement artifacts under `docs/
 | nftables volume populator | Scaffolded, not deployed | Blocking per-category data in statements |
 | AI gateway (LiteLLM) + Open WebUI | Front door config in repo (reconstructed), not deployed | **Stage renamed `10-llm-router` → `10-ai-orchestration`.** LiteLLM (ai.home.lan:4040) fronts local Ollama + cloud tiers (now incl. cloud-explore/code/vision); Open WebUI (chat.home.lan:3000) browser UI; routes whole models, no sharding; t630 is CPU-only. **`docker-compose.yml` / `config.yaml` / `.env.example` now snapshotted** (reconstructed from docs — pin model IDs + the Tailscale GPU host and verify vs the live box). `langgraph-router/` (Odin) still absent. |
 | Console / high seat (`04-user-services/console/`) | Config in repo (reconstructed), not deployed | **New Step 13.** Static launcher (`console.home.lan:8088`) pinning every realm + two `ttyd` web terminals — thin client (`term.home.lan:7681`) and laptop via the t630 as SSH-jump (`laptop.home.lan:7682`). Host-side systemd; UFW-gated LAN+WG only (a web shell — never WAN). The browser-as-Odin sidebar/persistence config is `04-user-services/console/browser-odin.md`. Laptop SSH target ships as a `CHANGE_ME`. **Launcher page + 3 systemd units + `ttyd.env.example` now snapshotted** (reconstructed — verify vs the live box); UFW gates 8088/7681/7682. |
+| Bifrost notation (`04-user-services/ai-orchestration/bifrost/`) | Parse + score in repo and tested; routing absent by design | Stages 1–2 of the dispatcher: split-on-glyph lexer + the §5 Kendall tau turbulence scorer, stdlib-only and side-effect free, 36 tests green. Two normalizations carry it — staging glyphs (`~`, `` ` ``) excluded from the count, and adjacent runs/`+`/`-` collapsed to one weighted node so emphasis can't panic into MASH. Stage 3 (ROUTE) is **deliberately not written**: it would have to be invented from the spec instead of read off the live Odin supervisor, so it blocks on the same snapshot as the row below. No general glyph escape exists in the notation — a documented spec gap, pinned by a test rather than patched in the parser. |
 | Odin orchestration layer (`04-user-services/ai-orchestration/langgraph-router/`) | Design + self-tested, not deployed | LangGraph supervisor **Odin** (alias Lionheart) above the front door: deterministic privacy gate (Heimdall), 3 orders of 5 + bound adversarial critic (Loki), Frigg (PII redaction), Hoard-Warden (spend cap), Huginn RAG (Mímir's well — local embeddings via the front door, needs `local-embed`/`nomic-embed-text`), Muninn (resume). `setup.sh` + `odin` CLI provided. Deterministic safety logic runs stdlib-only (`--selftest`); a live run needs `pip install -r requirements.txt` + the front door. The flat `dispatcher.py` remains the dumb-switch default. Lore in `docs/chronikonomicon/the-alliance-codex.md`. |
 
 ## Open items

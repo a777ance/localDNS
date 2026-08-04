@@ -13,7 +13,9 @@ name: Publish statement gallery + Bifrost to Pages
 on:
   workflow_dispatch:
   push:
-    branches: ["main", "claude/meta-audit-priorities-MzByf", "claude/inspiring-fermi-FIdYr"]
+    # main only — a stale session branch must never be able to redeploy the
+    # live public site.
+    branches: ["main"]
     paths:
       - "docs/statements/**"
       - "docs/bifrost.html"
