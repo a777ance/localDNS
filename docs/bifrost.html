@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Bifrost — the A777ance keyboard-spatial command-composition schema. A shareable, audit-ready reference.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌈%3C/text%3E%3C/svg%3E">
+<title>Bifrost — the Highway Notation schema</title>
+<style>
+  :root {
+    /* neutrals: indigo-biased, chosen not defaulted */
+    --ground: #f6f5f2;
+    --surface: #ffffff;
+    --surface-2: #f0eff4;
+    --line: #dcd9e2;
+    --ink: #1a2033;
+    --muted: #5a6178;
+    --faint: #8a90a6;
+    /* single accent: aurora teal */
+    --accent: #0f9b8e;
+    --accent-ink: #0a6b61;
+    --accent-wash: #e2f3f0;
+    /* stress / warning semantic (not the accent) */
+    --warn: #c2691f;
+    --warn-wash: #f7ede2;
+    /* turbulence scale */
+    --t-ok: #2f9e6b;
+    --t-mid: #c99a1e;
+    --t-hi: #cf6a3a;
+    --t-max: #c0453f;
+    /* the bridge: aurora spectrum, used once */
+    --bridge: linear-gradient(90deg,#57c98a,#2fb6a8,#3f9fd8,#7f7ee0,#d167b6);
+    --radius: 10px;
+    --maxw: 1060px;
+    --prose: 72ch;
+    --mono: "SFMono-Regular","SF Mono","Cascadia Code","JetBrains Mono",ui-monospace,"Consolas","Courier New",monospace;
+    --sans: "Gill Sans MT","Gill Sans",Calibri,"Trebuchet MS",sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0d1220;
+      --surface: #141a2b;
+      --surface-2: #1a2136;
+      --line: #2a3350;
+      --ink: #e6e9f2;
+      --muted: #9aa3bd;
+      --faint: #6b748f;
+      --accent: #4fd6c9;
+      --accent-ink: #8ce9df;
+      --accent-wash: #133532;
+      --warn: #e8a24d;
+      --warn-wash: #33270f;
+      --t-ok: #4fce8f;
+      --t-mid: #e3c25a;
+      --t-hi: #ec9a63;
+      --t-max: #ec6f66;
+    }
+  }
+  :root[data-theme="light"] {
+    --ground:#f6f5f2;--surface:#fff;--surface-2:#f0eff4;--line:#dcd9e2;--ink:#1a2033;--muted:#5a6178;--faint:#8a90a6;
+    --accent:#0f9b8e;--accent-ink:#0a6b61;--accent-wash:#e2f3f0;--warn:#c2691f;--warn-wash:#f7ede2;
+    --t-ok:#2f9e6b;--t-mid:#c99a1e;--t-hi:#cf6a3a;--t-max:#c0453f;
+  }
+  :root[data-theme="dark"] {
+    --ground:#0d1220;--surface:#141a2b;--surface-2:#1a2136;--line:#2a3350;--ink:#e6e9f2;--muted:#9aa3bd;--faint:#6b748f;
+    --accent:#4fd6c9;--accent-ink:#8ce9df;--accent-wash:#133532;--warn:#e8a24d;--warn-wash:#33270f;
+    --t-ok:#4fce8f;--t-mid:#e3c25a;--t-hi:#ec9a63;--t-max:#ec6f66;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+  .prose { max-width: var(--prose); }
+
+  a { color: var(--accent-ink); text-underline-offset: 3px; }
+
+  /* ---------- hero ---------- */
+  header.hero { padding: 72px 0 40px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .74rem; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--accent-ink); margin: 0 0 18px;
+  }
+  h1.wordmark {
+    font-size: clamp(2.6rem, 7vw, 4.4rem);
+    line-height: .95; letter-spacing: -.02em; margin: 0;
+    font-weight: 600; text-wrap: balance;
+  }
+  .tagline { font-size: 1.18rem; color: var(--muted); margin: 18px 0 0; max-width: 60ch; text-wrap: balance; }
+  .tagline b { color: var(--ink); font-weight: 600; }
+  code, .mono { font-family: var(--mono); }
+  .tagline code, p code, li code, td code, .note code, .meta code {
+    font-family: var(--mono); font-size: .86em;
+    background: var(--surface-2); padding: .08em .34em; border-radius: 5px;
+    border: 1px solid var(--line);
+  }
+
+  .meta { display: flex; flex-wrap: wrap; gap: 10px 22px; margin: 30px 0 4px; font-size: .84rem; color: var(--muted); }
+  .meta .pill {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .04em;
+    padding: 4px 10px; border: 1px solid var(--line); border-radius: 100px; background: var(--surface);
+  }
+  .pill.draft { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); }
+
+  /* ---------- the keyboard highway ---------- */
+  .highway { margin: 44px 0 8px; }
+  .lane-labels { display: grid; grid-template-columns: 1.9fr 3.4fr 1fr 4fr; gap: 8px; margin-bottom: 8px; }
+  .lane-labels span {
+    font-family: var(--mono); font-size: .66rem; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--faint); padding-left: 2px;
+  }
+  .keys { display: grid; grid-template-columns: 1.9fr 3.4fr 1fr 4fr; gap: 8px; }
+  .group { display: flex; gap: 8px; padding: 10px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
+  .group.stage { background: var(--surface-2); }
+  .group.gate { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+  .cap {
+    flex: 1; min-width: 0; text-align: center; padding: 12px 4px 10px;
+    border-radius: 8px; background: var(--ground);
+    border: 1px solid var(--line);
+    transition: transform .14s ease, border-color .14s ease;
+  }
+  .cap .g { font-family: var(--mono); font-size: 1.55rem; font-weight: 600; line-height: 1; color: var(--ink); display: block; }
+  .cap .k { font-family: var(--mono); font-size: .6rem; color: var(--faint); display: block; margin-top: 8px; }
+  .cap .a { font-size: .66rem; color: var(--muted); display: block; margin-top: 3px; line-height: 1.25; }
+  .cap:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .bridge { height: 5px; border-radius: 100px; background: var(--bridge); margin: 14px 0 6px; }
+  .sweep { display: flex; justify-content: space-between; font-family: var(--mono); font-size: .68rem; color: var(--faint); letter-spacing: .06em; }
+
+  /* ---------- sections ---------- */
+  main { padding: 8px 0 90px; }
+  section { padding: 40px 0; border-top: 1px solid var(--line); }
+  section:first-child { border-top: none; }
+  h2 {
+    font-size: 1.5rem; letter-spacing: -.01em; margin: 0 0 6px; font-weight: 600; text-wrap: balance;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  h2 .num { font-family: var(--mono); font-size: .8rem; color: var(--accent-ink); font-weight: 600; }
+  .lede { color: var(--muted); margin: 0 0 22px; max-width: var(--prose); }
+  p { max-width: var(--prose); }
+  h3 { font-size: 1.02rem; margin: 26px 0 6px; font-weight: 600; }
+
+  /* ---------- table ---------- */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: .92rem; }
+  thead th {
+    text-align: left; font-family: var(--mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--faint); font-weight: 500; padding: 12px 14px; border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  tbody td { padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.glyph { font-family: var(--mono); font-size: 1.05rem; font-weight: 600; color: var(--accent-ink); white-space: nowrap; }
+  td.key { font-family: var(--mono); font-size: .8rem; color: var(--faint); }
+  .phase { font-family: var(--mono); font-size: .66rem; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+  .phase.stage { background: var(--surface-2); }
+  .phase.gate { color: var(--accent-ink); border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+  td.arch { font-weight: 600; white-space: nowrap; }
+
+  /* ---------- code ---------- */
+  pre {
+    font-family: var(--mono); font-size: .84rem; line-height: 1.6;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; overflow-x: auto; margin: 16px 0; color: var(--ink);
+  }
+  pre .k { color: var(--accent-ink); }
+  pre .dim { color: var(--faint); }
+
+  /* ---------- grammar diagram ---------- */
+  .grammar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+  .gcell { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; background: var(--surface); text-align: center; }
+  .gcell .glyphline { font-family: var(--mono); font-size: 1.05rem; color: var(--accent-ink); font-weight: 600; }
+  .gcell .role { font-family: var(--mono); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin-top: 8px; }
+  .gcell .desc { font-size: .86rem; color: var(--muted); margin-top: 4px; }
+
+  /* dials */
+  .dials { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+  .dial { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; background: var(--surface); }
+  .dial.more { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+  .dial.stress { border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); }
+  .dial h4 { margin: 0 0 6px; font-family: var(--mono); font-size: .95rem; }
+  .dial.more h4 { color: var(--accent-ink); }
+  .dial.stress h4 { color: var(--warn); }
+  .dial p { font-size: .88rem; color: var(--muted); margin: 0; max-width: none; }
+
+  /* ---------- anchor essay ---------- */
+  .anchor-intro { border-left: 3px solid var(--accent); padding: 4px 0 4px 20px; margin: 0 0 26px; }
+  .anchor-intro p { margin: 0; font-size: 1.06rem; }
+  .facets { display: grid; gap: 2px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--line); }
+  .facet { background: var(--surface); padding: 16px 20px; }
+  .facet h4 { margin: 0 0 5px; font-size: .96rem; font-weight: 600; }
+  .facet p { margin: 0; font-size: .92rem; color: var(--muted); max-width: none; }
+  .facet:hover { background: var(--surface-2); }
+
+  /* helpers list */
+  .softgrid { display: grid; grid-template-columns: auto 1fr; gap: 10px 18px; align-items: baseline; margin: 8px 0 0; }
+  .softgrid .g { font-family: var(--mono); color: var(--accent-ink); font-weight: 600; }
+  .softgrid .d { color: var(--muted); font-size: .92rem; }
+
+  ul.clean { padding-left: 0; list-style: none; max-width: var(--prose); }
+  ul.clean li { padding-left: 20px; position: relative; margin: 10px 0; }
+  ul.clean li::before { content: ""; position: absolute; left: 2px; top: .72em; width: 6px; height: 6px; border-radius: 2px; background: var(--accent); }
+  ul.clean li b { color: var(--ink); }
+
+  /* turbulence scale */
+  .turb { display: grid; gap: 8px; margin-top: 18px; }
+  .turb .row { display: grid; grid-template-columns: 130px 1fr; gap: 14px; align-items: center; }
+  .turb .tag { font-family: var(--mono); font-size: .72rem; padding: 5px 10px; border-radius: 6px; text-align: center; color: #fff; font-weight: 600; }
+  .turb .desc { font-size: .9rem; color: var(--muted); }
+  .formula { text-align: center; font-family: var(--mono); font-size: 1.15rem; padding: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); margin: 8px 0 4px; }
+  .formula .sub { font-size: .7em; vertical-align: sub; color: var(--muted); }
+
+  /* changelog */
+  .log { border-left: 2px solid var(--line); padding-left: 22px; margin: 8px 0 0; display: grid; gap: 20px; max-width: var(--prose); }
+  .log .entry { position: relative; }
+  .log .entry::before { content: ""; position: absolute; left: -27px; top: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--line); border: 2px solid var(--ground); }
+  .log .entry.now::before { background: var(--accent); }
+  .log h4 { margin: 0 0 4px; font-size: .96rem; }
+  .log .entry.super h4 { color: var(--faint); }
+  .log p { margin: 0; font-size: .88rem; color: var(--muted); max-width: none; }
+
+  .example { margin-top: 26px; }
+  .example .cap-label { font-family: var(--mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); }
+
+  footer { border-top: 1px solid var(--line); padding: 30px 0 60px; color: var(--faint); font-size: .82rem; }
+  footer code { font-family: var(--mono); }
+
+  @media (max-width: 720px) {
+    .lane-labels, .keys { grid-template-columns: 1fr; }
+    .grammar { grid-template-columns: 1fr; }
+    .dials { grid-template-columns: 1fr; }
+    .cap .a { display: none; }
+    .turb .row { grid-template-columns: 110px 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <p class="eyebrow">A777ance · notation schema</p>
+    <h1 class="wordmark">Bifrost</h1>
+    <p class="tagline">The <b>rainbow bridge</b> as a keyboard. A spatial way to <b>draw</b> a pipeline — hold <code>Shift</code> and sweep the number row <code>!@#$%^&amp;*()</code> left&rarr;right, where each glyph is an <b>archetype</b> fulfilled by slash commands and plain-language sub-prompts.</p>
+
+    <div class="meta">
+      <span class="pill draft">Status · Draft — notation only</span>
+      <span class="pill">Designed 2026-08-03</span>
+      <span>Named for the Norse rainbow bridge — kin to the stack's Odin / Edda / High-Seat naming. No dispatcher parses this yet; it is a design reference.</span>
+    </div>
+
+    <div class="highway" aria-label="The number row as a highway">
+      <div class="lane-labels">
+        <span>Staging</span><span>Preload · 1–4</span><span>Gate · 5</span><span>Travel · 6–0</span>
+      </div>
+      <div class="keys">
+        <div class="group stage">
+          <div class="cap"><span class="g">~</span><span class="a">continuity</span><span class="k">~</span></div>
+          <div class="cap"><span class="g">`</span><span class="a">descriptor</span><span class="k">`</span></div>
+        </div>
+        <div class="group">
+          <div class="cap"><span class="g">!</span><span class="a">cars</span><span class="k">1</span></div>
+          <div class="cap"><span class="g">@</span><span class="a">signage</span><span class="k">2</span></div>
+          <div class="cap"><span class="g">#</span><span class="a">repo</span><span class="k">3</span></div>
+          <div class="cap"><span class="g">$</span><span class="a">sanity</span><span class="k">4</span></div>
+        </div>
+        <div class="group gate">
+          <div class="cap"><span class="g">%</span><span class="a">compliance</span><span class="k">5</span></div>
+        </div>
+        <div class="group">
+          <div class="cap"><span class="g">^</span><span class="a">lanes</span><span class="k">6</span></div>
+          <div class="cap"><span class="g">&amp;</span><span class="a">rotary</span><span class="k">7</span></div>
+          <div class="cap"><span class="g">*</span><span class="a">light</span><span class="k">8</span></div>
+          <div class="cap"><span class="g">(&nbsp;)</span><span class="a">intersection</span><span class="k">9 0</span></div>
+        </div>
+      </div>
+      <div class="bridge"></div>
+      <div class="sweep"><span>&larr; staging</span><span>anchor ASAP · continue in-flight</span><span>off-ramp &rarr;</span></div>
+    </div>
+  </header>
+
+  <main>
+
+    <section>
+      <h2><span class="num">§1</span> The backbone</h2>
+      <p class="lede">The number row <em>is</em> the road. "Highway" has two senses — <b>broad</b> (the whole physical row) and <b>narrow</b> (keys&nbsp;5–0, the drivable road). Keys 1–4 are the <b>Preload</b> (stage everything), <code>%</code> is the <b>gateway on</b>, keys 6–0 are the open <b>Travel</b> road; <code>~</code> and <code>`</code> stage off the left edge.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Glyph</th><th>Key</th><th>Phase</th><th>Archetype</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td class="glyph">~</td><td class="key">~</td><td><span class="phase stage">Staging</span></td><td class="arch">Continuity / Anchor</td><td>The requirement + the <b>continuity operator</b> (coalesce, carry-forward, interleave prior state; "stay in the schema") <b>and the immediate lazy anchor</b>. The only archetype with no slash command. See §2·The Anchor.</td></tr>
+            <tr><td class="glyph">`</td><td class="key">`</td><td><span class="phase stage">Staging</span></td><td class="arch">Descriptor</td><td>Inline qualifier, renders shaded; <b>subordinate to <code>~</code></b> — hangs under the requirement (e.g. <code>`yellow, browning`</code>).</td></tr>
+            <tr><td class="glyph">!</td><td class="key">1</td><td><span class="phase">Preload</span></td><td class="arch">Payloads</td><td>The cars / payloads themselves. <em>(The <code>!</code> reads visually as a car.)</em></td></tr>
+            <tr><td class="glyph">@</td><td class="key">2</td><td><span class="phase">Preload</span></td><td class="arch">Signage</td><td>The signage / labelling on the road.</td></tr>
+            <tr><td class="glyph">#</td><td class="key">3</td><td><span class="phase">Preload</span></td><td class="arch">Repository</td><td>A junction that <b>is a repo</b> — the repository to work in or against.</td></tr>
+            <tr><td class="glyph">$</td><td class="key">4</td><td><span class="phase">Preload</span></td><td class="arch">Sanity</td><td>The <b>sanity check</b> at the actual start — tollbooth, customs, security. Validates entry against the <b>known-good</b> baseline (house style).</td></tr>
+            <tr><td class="glyph">%</td><td class="key">5</td><td><span class="phase gate">Gateway</span></td><td class="arch">Weigh Station</td><td>Pre-flight audit / calibration — <b>"are we compliant?"</b> The gateway onto the highway (first step of the narrow highway, 5–0).</td></tr>
+            <tr><td class="glyph">^</td><td class="key">6</td><td><span class="phase">Travel</span></td><td class="arch">Instantiators</td><td>Count of <code>^</code> = width of the highway (<code>^^^^</code> = 4 parallel lanes).</td></tr>
+            <tr><td class="glyph">&amp;</td><td class="key">7</td><td><span class="phase">Travel</span></td><td class="arch">Rotary</td><td>Turns off into a nested sub-loop that <b>runs the FULL highway process</b>, nested inside the main.</td></tr>
+            <tr><td class="glyph">*</td><td class="key">8</td><td><span class="phase">Travel</span></td><td class="arch">Traffic Light</td><td>An open-ended gate where highways intersect.</td></tr>
+            <tr><td class="glyph">(&nbsp;)</td><td class="key">9 / 0</td><td><span class="phase">Travel</span></td><td class="arch">Intersection</td><td>Bounds the external process the <code>*</code> light waits for.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">§2</span> The Anchor — <code>~</code></h2>
+      <div class="anchor-intro">
+        <p><code>~</code> does <b>not</b> mean <em>reason about</em> continuity — an effortful, pre-committed thinking block. It is <b>actual</b> continuity: the first token leaves the gate <b>immediately</b>, a cheap honest reflex that tethers the trajectory to reality up front, while the coalescing of prior state happens <b>mid-flight</b>, load-bearing in the body. Anchor ASAP; continue in-flight.</p>
+      </div>
+      <div class="facets">
+        <div class="facet"><h4>Laziness is a spectrum</h4><p>No <code>~</code> = reason a little first. <code>~</code> = the lazy anchor. <code>~~~~~~~</code> = the laziest, cranked toward stream-of-consciousness. More <code>~</code> = lower reasoning-effort.</p></div>
+        <div class="facet"><h4>The opposite of Preload</h4><p>Where the Preload stages everything <em>before</em> you drive, <code>~</code> is the anti-preload — live immediately, streaming continuity in-flight (lazy / on-demand, not load-it-all-upfront).</p></div>
+        <div class="facet"><h4>Why the dial coheres</h4><p>The more you define upfront, the more the first token should be <em>reflex</em>, not deliberation: the scaffold already carries the reasoning, so free-association (Rorschach) is honest — a detached thinking block would only rationalize.</p></div>
+        <div class="facet"><h4>The other pole</h4><p>Keep <code>~</code> and definitions out and the response stays expansive — ranging the whole LOGOS — so in-flight reasoning does the narrowing. The dial chooses <em>where</em> narrowing lives: upfront (associations) or in the loop (reasoning). A deliberate tradeoff, made at the start.</p></div>
+        <div class="facet"><h4>The glyph fits</h4><p><code>~</code> natively means <em>approximately</em> (math/science rounding). The anchor is approximate by design — a rough first pass, not a precise commitment.</p></div>
+        <div class="facet"><h4>Reasoning is conserved</h4><p>Never eliminated. <code>~</code> short-circuits <em>front-loaded</em> reasoning, not reasoning itself. The only choice is timing: front-load, or just-in-time. Same reasoning, relocated.</p></div>
+        <div class="facet"><h4>Model HIGH, first token LOW</h4><p><code>~</code> does not downgrade the model — Opus stays at full capability in the body. It sets only the first token to very low effort. Lazy <em>anchor</em>, not lazy <em>model</em> — the §G "lazy anchor → governed-warm body" split.</p></div>
+        <div class="facet"><h4>Budget discipline</h4><p>Conserving the anchor keeps the reasoning budget coiled — ready to pounce where it is load-bearing in flight, not spent upfront on a block that may only rationalize.</p></div>
+        <div class="facet"><h4>Momentum — the inertia irony</h4><p>A lazy first token gets the pipeline rolling; by inertia (a body in motion stays in motion) that carries through the rest of the calls. The <em>laziest</em> start buys the <em>most</em> sustained motion — an effortful start never overcomes rest.</p></div>
+        <div class="facet"><h4>External enzymes</h4><p>The anchor is the internal catalyst; external enzymes lower its activation energy further — the session-start schema load, a prefill seeding the first token, <code>SessionStart</code> hooks that pre-warm context.</p></div>
+        <div class="facet"><h4>Continuity is Aikido</h4><p><code>~</code> matches the surrounding speeds — blending with the momentum already present instead of a hard reset, the way you match traffic speed to merge <em>safely</em>. A speed mismatch is a collision.</p></div>
+        <div class="facet"><h4>Intent to merge — either direction</h4><p>Matching the flow can mean speeding up (more reflex) or slowing down (more reasoning). <code>~</code> signals the intent and adapts either way — it is not fixed at "faster." A lack of <code>~</code> is a lack of situational awareness: merging blind.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">§3</span> The archetype grammar</h2>
+      <p class="lede">Each backbone glyph is an <b>archetype</b> — a role — filled in up to three parts.</p>
+      <div class="grammar">
+        <div class="gcell"><div class="glyphline">⟨archetype⟩</div><div class="role">the glyph</div><div class="desc">the ROLE — what kind of thing</div></div>
+        <div class="gcell"><div class="glyphline">/how</div><div class="role">slash command(s)</div><div class="desc">HOW it is fulfilled</div></div>
+        <div class="gcell"><div class="glyphline">sub-prompt</div><div class="role">plain language</div><div class="desc">the specifics</div></div>
+      </div>
+      <p><code>~</code> is the exception — a plain-language requirement with no slash command; <code>`…`</code> is a shaded descriptor subordinate to it. Example slot: <code>@ /label top right corner</code> = the <em>signage</em> archetype, done via <code>/label</code>, placed "top right corner."</p>
+
+      <h3>Intensity — the thumb on the scale</h3>
+      <div class="dials">
+        <div class="dial more">
+          <h4>+ &nbsp;·&nbsp; repetition &nbsp;=&nbsp; MORE</h4>
+          <p>Tighter, stricter — enforce the archetype harder. Each <code>+</code> adds one level, so <code>$+++</code> ≡ <code>$$$$</code> (heavy sanity), <code>%+++</code> ≡ <code>%%%%</code> (heavy compliance), <code>^+++</code> ≡ <code>^^^^</code> (4 lanes). Never retype the webbing to add weight.</p>
+        </div>
+        <div class="dial stress">
+          <h4>&minus; &nbsp;=&nbsp; INVERT → stress test</h4>
+          <p>Relax or flip the guardrail to inject a <em>purposeful chance of failure</em> (adversarial fault injection), like raising temperature. <code>$-</code> = "a chance it violates ERISA — probe that." More <code>&minus;</code> cranks the stress.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">§4</span> The command lane &amp; soft helpers</h2>
+      <p class="lede"><code>/</code> is real syntax — the command lane. Everything in <code>&lt; &gt; ? { } [ ] " ' : ;</code> is <b>soft</b>: glow-in-the-dark road lines and secondary (creative-writing) signage, <b>not hard syntax</b>. Drop them and the pipeline still means the same thing.</p>
+      <div class="softgrid">
+        <span class="g">?</span><span class="d">Back-reference reflector — points back to a <code>!</code> (its referent).</span>
+        <span class="g">&lt; &gt; { } [ ]</span><span class="d">Reflectors / visibility brackets — mark on-ramp / off-ramp edges, group hints.</span>
+        <span class="g">" ' : ;</span><span class="d">Secondary signage — creative-writing punctuation: soft labels, pauses, quotes.</span>
+      </div>
+      <p style="margin-top:22px">Because this tier is soft, you can <b>mash the keyboard and still land a coherent loop</b> — the helpers wash out and the three <b>guardrail essences</b> carry the meaning: <code>~</code> continuity · <code>$</code> sanity · <code>%</code> compliance.</p>
+    </section>
+
+    <section>
+      <h2><span class="num">§5</span> Highway physics</h2>
+      <p class="lede">Progress is made by <b>merging right</b>, not driving forward — modelling the lazy-anchor method and the left&rarr;right streaming of LLMs.</p>
+      <ul class="clean">
+        <li><b>Just-in-time paving.</b> The user pre-allocates width with <code>^</code>; the orchestrator never guesses topology.</li>
+        <li><b>Gravity to the right.</b> Cars want the right (fast) lane. Left = heavy reasoning; right = speed.</li>
+        <li><b>Fog of war.</b> An agent sees only its lane and the one to its right — no global map.</li>
+        <li><b>Friction.</b> Heavy payloads get caught left and must do reasoning work (drop into an <code>&amp;</code> rotary) to shed it; if the right lane is full, the car waits.</li>
+        <li><b>The shoulder.</b> The <code>&gt;</code> reflector marks the off-ramp. Deadlocked lanes become emergency vehicles, abort merging, and eject onto the right shoulder into the wilderness.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span class="num">§6</span> Topological drift &amp; the MASH protocol</h2>
+      <p class="lede">A broken order doesn't crash — the orchestrator measures how far the input sits from the Golden Rule <code>!@#$%^&amp;*()</code> via Kendall tau distance (inversions).</p>
+      <div class="formula">K = &Sigma;<span class="sub">i&lt;j</span> &#120793;( v<span class="sub">i</span> &gt; v<span class="sub">j</span> )</div>
+      <div class="turb">
+        <div class="row"><span class="tag" style="background:var(--t-ok)">0 · Straightaway</span><span class="desc">Perfect order; predictable and standard.</span></div>
+        <div class="row"><span class="tag" style="background:var(--t-mid)">1–5 · Scenic Route</span><span class="desc">Deliberate weaving (e.g. <code>%</code> audit after <code>^</code>); customized physics.</span></div>
+        <div class="row"><span class="tag" style="background:var(--t-hi)">6–15 · Spaghetti</span><span class="desc">Computationally dense; heavy nested logic to resolve.</span></div>
+        <div class="row"><span class="tag" style="background:var(--t-max)">&gt;15 · MASH</span><span class="desc">A keyboard-smash, not a road. Panic-abort: drop payloads, respond with human-centric intervention — not a dry syntax error.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">§7</span> Worked examples</h2>
+
+      <div class="example">
+        <p class="cap-label">1 · a rendered banana on a dashboard</p>
+        <pre>~ 800 by 600 image of a banana  <span class="dim">`yellow, brown`</span>  ! <span class="k">/render /usage /composition</span>  @ top right corner  # dashboard pre-built  $ the adjacent buttons on the dashboard  %</pre>
+        <ul class="clean">
+          <li><code>~</code> — <b>Requirement</b> (no slash command): an 800×600 banana image.</li>
+          <li><code>`yellow, brown`</code> — <b>Descriptor</b> (shaded), subordinate to <code>~</code>.</li>
+          <li><code>! /render /usage /composition</code> — <b>Payload</b>, fulfilled via those slash commands.</li>
+          <li><code>@ top right corner</code> — <b>Signage</b>: placement. &nbsp; <code>#</code> the pre-built dashboard repo.</li>
+          <li><code>$ …adjacent buttons…</code> — <b>Known-Good</b>: match house style. &nbsp; <code>%</code> — compliance check.</li>
+        </ul>
+      </div>
+
+      <div class="example">
+        <p class="cap-label">2 · intensity + continuity — both lines are identical</p>
+        <pre>~ ! 401k ruleset  <span class="k">$$$$</span> needs to adhere to ERISA rules  <span class="k">%%%%</span> unit testing for AI hallucination
+~ ! 401k ruleset  <span class="k">$+++</span> needs to adhere to ERISA rules  <span class="k">%+++</span> unit testing for AI hallucination</pre>
+        <p style="font-size:.9rem;color:var(--muted)"><code>$$$$</code> ≡ <code>$+++</code> dials <b>sanity</b> hard against ERISA; <code>%%%%</code> ≡ <code>%+++</code> dials <b>compliance</b> up to heavy hallucination unit-testing. <code>~</code> = stay in-schema, no webbing retyped.</p>
+      </div>
+
+      <div class="example">
+        <p class="cap-label">3 · stress test — <code>&minus;</code> inverts the guardrails</p>
+        <pre>~ ! 401k ruleset  <span style="color:var(--warn)">$-</span> needs to adhere to ERISA rules  <span style="color:var(--warn)">%--</span> unit testing for AI hallucination</pre>
+        <p style="font-size:.9rem;color:var(--muted)">Same payload, but <code>$-</code> and <code>%--</code> deliberately inject a <em>chance of failure</em> — probe what happens if it violates ERISA, or (harder) fails the hallucination tests. Purposeful error, the way raising temperature manufactures variance.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">§8</span> Changelog &amp; lineage</h2>
+      <p class="lede">Newest first. A live design — earlier passes were deliberately superseded, not mistakes. Git history of the source file is the exact line-by-line diff.</p>
+      <div class="log">
+        <div class="entry now"><h4><code>~</code> sharpened to the lazy anchor</h4><p>Actual continuity, first token ASAP, mid-flight; laziness spectrum; the anti-Preload. The full "Anchor" essay (§2).</p></div>
+        <div class="entry"><h4>Intensity dials + schema continuity</h4><p><code>+</code>/repetition = more; <code>&minus;</code> inverts into a stress test; <code>~</code> = stay in-schema.</p></div>
+        <div class="entry"><h4>Bifrost naming · gateway split · soft helpers</h4><p>Named the schema; broad vs narrow highway; the soft-helper tier; guardrail essences <code>~ $ %</code>.</p></div>
+        <div class="entry"><h4>Archetype model</h4><p>Backbone reassigned (<code>!</code> cars, <code>@</code> signage, <code>#</code> repo, <code>$</code> sanity, <code>%</code> compliance); the archetype → <code>/how</code> → sub-prompt grammar.</p></div>
+        <div class="entry super"><h4>Left-edge pass · $ coalesced <span style="font-weight:400">(superseded)</span></h4><p>Earlier: <code>~</code>=payloads, <code>!</code>=reasoning; <code>$</code> as resolve/dereference. Replaced by the reassignment.</p></div>
+        <div class="entry super"><h4>The Vision Board · Highway/traffic model</h4><p>The QWERTY number-row mapping and turbulence/MASH; the road-vs-traffic, rotary, gate, and single-terminus intuitions — carried forward, most bindings later reassigned.</p></div>
+        <div class="entry super"><h4>First operators <span style="font-weight:400">(superseded)</span></h4><p><code>^ &amp; |</code> as sequence/compound/parallel; <code>.</code>-dotted nesting. Folded or rejected.</p></div>
+        <div class="entry"><h4>Origin</h4><p><code>workout.calibrate</code> — the first (and so far only) <em>paved</em> road that exists as a committed command.</p></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Bifrost · notation only, no dispatcher yet. Canonical source: <code>localDNS/04-user-services/ai-orchestration/highway-notation.md</code>. The guardrails — <code>~</code> continuity, <code>$</code> sanity, <code>%</code> compliance — carry meaning even through a keyboard-mash.</p>
+  </footer>
+</div>
+
+</body>
+</html>

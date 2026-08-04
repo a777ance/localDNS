@@ -1,9 +1,10 @@
-name: Publish statement gallery to Pages
+name: Publish statement gallery + Bifrost to Pages
 
-# Makes the statement mockups openable by anyone at a first-party URL.
-# GitHub serves .html files as source code, not rendered pages — so to "open"
-# them in a browser we publish docs/statements/ as a GitHub Pages site. The
-# gallery index lands at the site root: https://<owner>.github.io/<repo>/
+# Makes the statement mockups (and the Bifrost notation page) openable by anyone
+# at a first-party URL. GitHub serves .html files as source code, not rendered
+# pages — so to "open" them in a browser we publish an assembled site as GitHub
+# Pages. The statement gallery index lands at the site root
+# (https://<owner>.github.io/<repo>/) and the Bifrost page at /bifrost.html.
 #
 # ONE-TIME SETUP (repo Settings → Pages → Build and deployment → Source:
 # "GitHub Actions"). After that, this workflow publishes on every push that
@@ -15,6 +16,7 @@ on:
     branches: ["main", "claude/meta-audit-priorities-MzByf", "claude/inspiring-fermi-FIdYr"]
     paths:
       - "docs/statements/**"
+      - "docs/bifrost.html"
       - ".github/workflows/pages.yml"
 
 permissions:
@@ -46,8 +48,14 @@ jobs:
           python tools/generate_client.py
           python tools/generate_operator.py
       - uses: actions/configure-pages@v5
+      - name: Assemble the Pages site (statement gallery at root + Bifrost)
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          cp -a docs/statements/. _site/
+          if [ -f docs/bifrost.html ]; then cp docs/bifrost.html _site/bifrost.html; fi
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/statements
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
