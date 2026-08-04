@@ -4,8 +4,10 @@
 stack's Odin / Edda / High-Seat naming — also called *the Rainbow Bridge*. (That alias
 also names `MARKETING/notebooklm-bridge/`; the overlap is fine and to be reconciled later,
 not a conflict — it's a good part of the creative process.)
-**Status:** Draft · **notation only.** A *design reference*, not an implemented parser —
-no dispatcher turns these strings into execution yet.
+**Status:** Draft · **parse + score implemented; route not.** `bifrost/` implements stages 1
+and 2 — a lexer and the §5 Kendall tau scorer, pure and offline-testable. Nothing yet turns a
+parsed string into *execution*: routing waits on the live supervisor being snapshotted (see
+`bifrost/README.md` "Why route is missing").
 **Audience & how to read.** For anyone reviewing or extending the A777ance
 command-composition model. Start at §1 (glyphs) and §2 (grammar); §6 is a full worked
 example; §7 records how the design evolved (the diffs). Designed 2026-08-03; this file is
@@ -142,9 +144,18 @@ placed "top right corner."
   **compliance**), `^+++` ≡ `^^^^` (4 lanes). Never retype the webbing to add weight — stack
   the glyph or add `+`.
 - **`-` = INVERT into a stress test** — relax or flip the guardrail to inject a *purposeful
-  chance of failure* (adversarial fault injection), **like raising temperature** (§G's
-  variance dial). `$-` = "there's a chance it violates ERISA — probe that"; `%-` = "a chance
-  it fails the hallucination tests." More `-` = more stress.
+  chance of failure* (adversarial fault injection). `$-` = "there's a chance it violates
+  ERISA — probe that"; `%-` = "a chance it fails the hallucination tests." More `-` = more
+  stress.
+  > **`-` is not a temperature knob.** It serves the same *end* as §G's variance dial —
+  > decorrelated draws for a vote to select over — but from a different **layer**, and the
+  > layers must not be conflated. Temperature is a **decoding** parameter in the vendor's
+  > sampler; `-` is a **prompt-level framing** inversion, what §G calls a *synthetic*
+  > diversity source. That distinction is the point, not pedantry: vendors are removing the
+  > decoding knobs (see §G — some now **accept and silently ignore** `temperature`/`top_p`/
+  > `top_k`, returning `200 OK` while the guarantee is gone). `-` survives that because it
+  > never lived in the vendor's layer. Keep the layers separate in any dispatcher: `-`
+  > belongs in the notation, heat belongs behind the vote.
 
 ---
 

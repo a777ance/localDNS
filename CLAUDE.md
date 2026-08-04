@@ -225,6 +225,8 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `04-user-services/ai-orchestration/jury/.env.example` | copy to `…/jury/.env` (git-ignored), add `FIREWORKS_API_KEY` | — |
 | `04-user-services/ai-orchestration/jury-claude/jury_claude.py` | Claude-backend Jury — imports the `jury/` voter, adds a `ClaudeSampler` (Anthropic SDK). Run on any host with a key (see section G) | `python3 jury_claude.py deliberate …` / `… calibrate …` |
 | `04-user-services/ai-orchestration/jury-claude/.env.example` | copy to `…/jury-claude/.env` (git-ignored), add `ANTHROPIC_API_KEY` | — |
+| `04-user-services/ai-orchestration/bifrost/bifrost.py` | run anywhere — Bifrost lexer + Kendall tau turbulence scorer (§H). Pure/offline; no routing | `python3 bifrost.py "<string>"` |
+| `04-user-services/ai-orchestration/bifrost/test_bifrost.py` | run in `bifrost/` — 36 tests over the glyph table, both normalizations, and the §5/§6 spec examples | `python3 test_bifrost.py` |
 | `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
@@ -368,10 +370,33 @@ making any single draw heavier.
   the task before trusting a vote.
 
 **Portability — the vote is the governor that survives vendor changes.** The
-per-token knobs live in the *vendor's* layer, and vendors are removing them: some
-frontier model families (e.g. the latest Gemini models, mid-2026) now ignore
-`temperature`/`top_p`/`top_k`, steering variance through system instructions and
-thinking-level settings instead. When a provider fixes or removes the decoding
+per-token knobs live in the *vendor's* layer, and vendors are removing them — but
+the removal comes in two flavors, and **the quiet one is the dangerous one**:
+
+- **Loud (fails closed).** The knob is rejected. Current Claude models `400` on
+  `temperature`/`top_p`/`top_k`. Your pipeline halts, alerts fire, you adapt.
+- **Silent (fails open).** The knob is *accepted and ignored*. Gemini 3.6 Flash,
+  3.5 Flash-Lite and 3.5 Flash Cyber (GA 2026-07-21) still return `200 OK` while
+  the value does nothing; Google has said future generations will `400`, but today
+  they do not. A pipeline pinned to `temperature=0` for determinism keeps getting
+  success responses long after the guarantee is gone.
+
+So the accurate statement of the risk is **not** "vendors remove the knobs" — it is
+"**vendors keep accepting the knobs and stop honoring them.**" Nothing errors,
+nothing logs, every health check stays green, and a self-consistency vote over
+draws that quietly stopped being decorrelated collapses into a single draw wearing
+a quorum's clothing. You do not get a crash; you get worse verdicts that look
+exactly like good ones.
+
+**This is what promotes "measure `p`, don't guess it" from good practice to
+load-bearing.** On a loud-failure platform the exception tells you the knobs are
+gone. On a silent-failure platform, **calibration is the only instrument that can
+detect it** — a shift in measured per-sample accuracy is the sole signal that your
+variance source died underneath you. Calibration stops being a tuning step and
+becomes *monitoring*; re-run `calibrate` after any provider or model change, not
+just when building a new task.
+
+When a provider fixes or removes the decoding
 knobs, source juror diversity **synthetically** — prompt/framing/persona variation,
 or cross-model ensembling — and lean on the selector. Keep synthetic variants
 **answer-preserving and quality-matched**, or they inject the systematic error a
@@ -420,8 +445,10 @@ a plain-language sub-prompt.
 - **Guardrails survive a keyboard-mash:** `~` continuity, `$` sanity, `%` compliance.
   `+` / repetition = more; `-` inverts into a stress test.
 
-**Status:** notation only — no dispatcher parses it yet. Full spec (glyph table, grammar,
-physics, MASH turbulence, worked examples, changelog):
+**Status:** parse + score implemented (`04-user-services/ai-orchestration/bifrost/` — lexer +
+Kendall tau turbulence scorer, stdlib only, 36 tests); **routing not** — it waits on the live
+Odin supervisor being snapshotted, rather than being invented from the spec. Full spec (glyph
+table, grammar, physics, MASH turbulence, worked examples, changelog):
 `04-user-services/ai-orchestration/highway-notation.md` · rendered page:
 <https://a777ance.github.io/localDNS/bifrost.html>.
 
