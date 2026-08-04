@@ -63,6 +63,7 @@ especially the customer-facing **Statements** it owns under `docs/statements/`.
 - [D. Unbound config](#d-unbound-config)
 - [E. AMD Carrizo GPU](#e-amd-carrizo-gpu)
 - [G. LLM sampling doctrine — the Jury](#g-llm-sampling-doctrine--the-jury)
+- [H. Bifrost — command schema (loads every session)](#h-bifrost--command-schema-loads-every-session)
 - [1. Known issues](#1-known-issues)
 - [2. Verification](#2-verification)
 - [3. Working philosophy](#3-working-philosophy)
@@ -393,6 +394,28 @@ subagent (`.claude/agents/juror.md`) plus the `/cardio` command
 (`.claude/commands/cardio.md`) empanel a concurrent jury of Claude Code subagents
 and take a plurality — for one-off judgment calls where you'd otherwise consume a single
 warm draw.
+
+---
+
+## H. Bifrost — command schema (loads every session)
+
+**Bifrost is the A777ance command-composition schema, and it loads with this briefing — so
+it is active at the start of every session.** A keyboard-spatial notation: hold `Shift` and
+sweep the number row `!@#$%^&*()` left→right; each glyph is an *archetype* (a role) fulfilled
+by slash commands + a plain-language sub-prompt.
+
+- **Backbone:** `~` continuity/lazy-anchor · `` ` `` descriptor · `!` payloads · `@` signage ·
+  `#` repo · `$` sanity · `%` compliance · `^` lanes · `&` rotary · `*` traffic-light ·
+  `()` intersection. Off-row `~`/`` ` `` stage; keys 1–4 **Preload**; `%` (key 5) **gateway**;
+  keys 6–0 **Travel**.
+- **`~` is the §G lazy anchor:** fire the first token ASAP (very low effort — the *model*
+  stays high), and let continuity coalesce **mid-flight**; more `~` = lazier.
+- **Guardrails survive a keyboard-mash:** `~` continuity, `$` sanity, `%` compliance.
+  `+` / repetition = more; `-` inverts into a stress test.
+
+**Status:** notation only — no dispatcher parses it yet. Full spec (glyph table, grammar,
+physics, MASH turbulence, worked examples, changelog):
+`04-user-services/ai-orchestration/highway-notation.md`.
 
 ---
 
