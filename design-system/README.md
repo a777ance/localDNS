@@ -4,13 +4,18 @@ The look, extracted from the shipped Statements and made reusable — and the br
 carries it into **Claude Design** (claude.ai/design) without losing any of the rules that
 govern the rest of this portfolio.
 
-Two things live here:
+Three things live here:
 
 1. **The system itself** — tokens, base layer, and every Statement component as a
    self-contained preview.
 2. **[`CONVENTIONS.md`](CONVENTIONS.md)** — how the A777ance way of working (house style,
    honesty rule, voice, public/private invariant, Bifrost, git) applies on a design
    surface. **Read that first** when starting design work.
+3. **[`DESIGN-BRIEFING.md`](DESIGN-BRIEFING.md)** — the same consensus, written *to* Claude
+   Design and made self-sufficient: every token value inline, plus an execution checklist
+   (§ 10) and a definition of done (§ 11). **This is the file you hand to Claude Design** —
+   paste it, upload it, or point Design at it after importing the repo. `CONVENTIONS.md` is
+   for a session working in the repo; this is for a session working on the canvas.
 
 ---
 
@@ -137,6 +142,7 @@ document the month the data behind them is real.
 ## Further reading
 
 - **[`CONVENTIONS.md`](CONVENTIONS.md)** — the working rules on the design surface
+- **[`DESIGN-BRIEFING.md`](DESIGN-BRIEFING.md)** — the self-sufficient briefing to hand to Claude Design
 - **[`../CLAUDE.md`](../CLAUDE.md)** — the stack briefing; § I covers this bridge
 - **[`../docs/statements/README.md`](../docs/statements/README.md)** — the Statement gallery and generator
 - **[`../04-user-services/ai-orchestration/highway-notation.md`](../04-user-services/ai-orchestration/highway-notation.md)** — Bifrost, including the design lane
