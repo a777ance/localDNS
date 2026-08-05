@@ -1,0 +1,98 @@
+<!-- @dsCard group="Foundations" name="Color" subtitle="Brand · surface · ink · status · category ramp" viewport="740x900" -->
+<style>
+.swatches { padding: 0 var(--gutter) var(--sp-section); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.sw { border: var(--hairline) solid var(--rule); border-radius: var(--radius); overflow: hidden; }
+.sw .chip { height: 62px; }
+.sw .meta { padding: 8px 10px 10px; }
+.sw .tok { font-size: var(--fs-2xs); color: var(--navy); font-weight: 600; }
+.sw .hex { font-family: var(--font-fig); font-size: var(--fs-3xs); color: var(--muted); margin-top: 2px; }
+.sw .use { font-size: var(--fs-3xs); color: var(--ink-sub); line-height: var(--lh-tight); margin-top: 5px; }
+.ramp { display: flex; border: var(--hairline) solid var(--rule); border-radius: var(--radius); overflow: hidden; }
+.ramp div { flex: 1; height: 54px; }
+.ramp-note { font-size: var(--fs-3xs); color: var(--muted); font-style: italic; margin-top: 9px; }
+.rule-note { margin-top: 16px; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+</style>
+
+<div class="page">
+  <div class="body">
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Brand</div>
+        <div class="section-note">navy carries authority · bronze carries the human hand</div>
+      </div>
+      <div class="grid">
+        <div class="sw"><div class="chip" style="background:var(--navy)"></div><div class="meta"><div class="tok">--navy</div><div class="hex">#13314f</div><div class="use">Headers, section titles, figures.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--navy-deep)"></div><div class="meta"><div class="tok">--navy-deep</div><div class="hex">#0e2640</div><div class="use">Gradient floor; text reversed out of bronze.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--navy-mid)"></div><div class="meta"><div class="tok">--navy-mid</div><div class="hex">#1c4a73</div><div class="use">Gradient ceiling — monogram, avatar, badge.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--bronze)"></div><div class="meta"><div class="tok">--bronze</div><div class="hex">#a9803f</div><div class="use">The accent that means <em>a person did this</em>.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--bronze-soft)"></div><div class="meta"><div class="tok">--bronze-soft</div><div class="hex">#c6a463</div><div class="use">Bronze on navy, where the darker tone goes muddy.</div></div></div>
+      </div>
+      <div class="rule-note"><strong>Spend bronze sparingly.</strong> It marks the operator's name, the rule under the header, the edge of a called-out block — the places where a human hand touched the work. Decorate with it and it stops meaning anything.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Surface</div>
+        <div class="section-note">a document lying on a desk, not a web page</div>
+      </div>
+      <div class="grid">
+        <div class="sw"><div class="chip" style="background:var(--paper)"></div><div class="meta"><div class="tok">--paper</div><div class="hex">#fbfaf7</div><div class="use">The document. Warm — never pure white.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--canvas)"></div><div class="meta"><div class="tok">--canvas</div><div class="hex">#e9ecf0</div><div class="use">The desk the document lies on.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--white);box-shadow:inset 0 0 0 1px var(--rule)"></div><div class="meta"><div class="tok">--white</div><div class="hex">#ffffff</div><div class="use">QR frames only. Never a page background.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--rule)"></div><div class="meta"><div class="tok">--rule</div><div class="hex">#e6e2d6</div><div class="use">Warm hairline, on paper.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--rule-2)"></div><div class="meta"><div class="tok">--rule-2</div><div class="hex">#eceef1</div><div class="use">Cool hairline, between table rows.</div></div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Ink</div>
+        <div class="section-note">four weights of attention</div>
+      </div>
+      <div class="grid">
+        <div class="sw"><div class="chip" style="background:var(--ink)"></div><div class="meta"><div class="tok">--ink</div><div class="hex">#1f2733</div><div class="use">Default text.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--ink-body)"></div><div class="meta"><div class="tok">--ink-body</div><div class="hex">#3a4553</div><div class="use">Running prose — softer than default.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--ink-sub)"></div><div class="meta"><div class="tok">--ink-sub</div><div class="hex">#5a6573</div><div class="use">Supporting detail under a heading.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--muted)"></div><div class="meta"><div class="tok">--muted</div><div class="hex">#8a93a0</div><div class="use">Notes, captions, table headers.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--on-navy)"></div><div class="meta"><div class="tok">--on-navy</div><div class="hex">#8fb0cc</div><div class="use">Text on the navy header and footer.</div></div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Status</div>
+        <div class="section-note">severity order — worst first</div>
+      </div>
+      <div class="grid">
+        <div class="sw"><div class="chip" style="background:var(--alert)"></div><div class="meta"><div class="tok">--alert</div><div class="hex">#b4542a</div><div class="use">High severity — act now.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--neg)"></div><div class="meta"><div class="tok">--neg</div><div class="hex">#a0524a</div><div class="use">Worse than the comparison baseline.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--amber)"></div><div class="meta"><div class="tok">--amber</div><div class="hex">#c08a2e</div><div class="use">Medium — needs attention, not tonight.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--watch)"></div><div class="meta"><div class="tok">--watch</div><div class="hex">#2d6aa8</div><div class="use">Informational — worth a look, no action.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--pos)"></div><div class="meta"><div class="tok">--pos</div><div class="hex">#3f7a4d</div><div class="use">Healthy; better than baseline.</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--neutral-bar)"></div><div class="meta"><div class="tok">--neutral-bar</div><div class="hex">#a8adb4</div><div class="use">Different, but neither good nor bad.</div></div></div>
+      </div>
+      <div class="rule-note"><strong>Never carry state by color alone.</strong> Every status on a Statement is also spelled out in words — “Needs attention”, “High”, “Healthy (17)”. These documents get printed, photocopied, and read by people who don't see red and green apart.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Category ramp</div>
+        <div class="section-note">navy → bronze → stone · largest share first</div>
+      </div>
+      <div class="ramp">
+        <div style="background:var(--cat-1)"></div>
+        <div style="background:var(--cat-2)"></div>
+        <div style="background:var(--cat-3)"></div>
+        <div style="background:var(--cat-4)"></div>
+        <div style="background:var(--cat-5)"></div>
+        <div style="background:var(--cat-6)"></div>
+        <div style="background:var(--cat-7)"></div>
+      </div>
+      <div class="ramp-note">Sequential, not categorical. Traffic categories are ranked by volume, so the ramp reads as the ranking. Don't reach for it when the categories have no order — it will invent one.</div>
+    </div>
+
+  </div>
+</div>

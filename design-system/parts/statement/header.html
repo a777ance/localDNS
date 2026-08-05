@@ -1,0 +1,73 @@
+<!-- @dsCard group="Statement" name="Statement header" subtitle="Monogram · wordmark · doc title · account bar" viewport="740x300" -->
+<style>
+.header { background: var(--navy); color: #fff; padding: 30px var(--gutter) 26px; border-bottom: var(--header-rule) solid var(--bronze); }
+.header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.brandwrap { display: flex; align-items: center; gap: 15px; }
+.monogram { width: 44px; height: 44px; border-radius: 9px; background: linear-gradient(150deg, var(--navy-mid), var(--navy-deep)); border: var(--hairline) solid var(--bronze); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.25); }
+.monogram span { font-family: var(--font-fig); font-size: var(--fs-mono); font-weight: 700; color: var(--bronze-soft); letter-spacing: 0.02em; }
+.brand { font-size: var(--fs-brand); font-weight: 700; letter-spacing: var(--ls-brand); color: #fff; }
+.brand-sub { font-size: var(--fs-6xs); color: var(--on-navy); letter-spacing: var(--ls-eyebrow); text-transform: uppercase; margin-top: 6px; }
+.tag { display: inline-block; margin-top: 8px; font-size: var(--fs-6xs); letter-spacing: var(--ls-caps); text-transform: uppercase; color: var(--navy-deep); background: var(--bronze-soft); border-radius: var(--radius-sm); padding: 3px 8px; font-weight: 700; }
+.doc-title { text-align: right; }
+.doc-title .label { font-size: var(--fs-4xs); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--on-navy); }
+.doc-title .period { font-family: var(--font-fig); font-size: var(--fs-period); margin-top: 5px; color: #fff; }
+.acct-bar { display: flex; gap: 40px; margin-top: 22px; padding-top: var(--sp-head); border-top: var(--hairline) solid rgba(255,255,255,0.13); }
+.acct-field .k { font-size: var(--fs-6xs); letter-spacing: var(--ls-caps); text-transform: uppercase; color: var(--on-navy-dim); }
+.acct-field .v { font-family: var(--font-fig); font-size: var(--fs-base); color: #fff; margin-top: 4px; }
+.variant-label { font-size: var(--fs-3xs); color: var(--muted); font-style: italic; padding: 18px var(--gutter) 0; }
+@media (max-width: 600px) {
+  .header { padding: 22px var(--gutter-sm); }
+  .header-top { flex-direction: column; gap: 14px; }
+  .doc-title { text-align: left; }
+  .acct-bar { flex-wrap: wrap; gap: 16px 28px; }
+}
+</style>
+
+<div class="page">
+  <div class="variant-label">Client — Network Activity Statement</div>
+  <div class="header">
+    <div class="header-top">
+      <div class="brandwrap">
+        <div class="monogram"><span>A7</span></div>
+        <div>
+          <div class="brand">A777ANCE</div>
+          <div class="brand-sub">Residential Network Services</div>
+        </div>
+      </div>
+      <div class="doc-title">
+        <div class="label">Network Activity Statement</div>
+        <div class="period">Statement Period: May 1 – May 31, 2026</div>
+      </div>
+    </div>
+    <div class="acct-bar">
+      <div class="acct-field"><div class="k">Account Holder</div><div class="v">The Sample Household</div></div>
+      <div class="acct-field"><div class="k">Service Node</div><div class="v">HP t630</div></div>
+      <div class="acct-field"><div class="k">Account No.</div><div class="v">A77-000</div></div>
+      <div class="acct-field"><div class="k">Statement Date</div><div class="v">June 1, 2026</div></div>
+    </div>
+  </div>
+
+  <div class="variant-label">Operator — Alliance Member Portfolio (adds the bronze role tag)</div>
+  <div class="header">
+    <div class="header-top">
+      <div class="brandwrap">
+        <div class="monogram"><span>A7</span></div>
+        <div>
+          <div class="brand">A777ANCE</div>
+          <div class="brand-sub">Residential Network Services</div>
+          <div class="tag">Alliance Member Portfolio</div>
+        </div>
+      </div>
+      <div class="doc-title">
+        <div class="label">Monthly Portfolio Statement</div>
+        <div class="period">May 2026</div>
+      </div>
+    </div>
+    <div class="acct-bar">
+      <div class="acct-field"><div class="k">Alliance Member</div><div class="v">Sample Operator</div></div>
+      <div class="acct-field"><div class="k">Member ID</div><div class="v">ALY-0000</div></div>
+      <div class="acct-field"><div class="k">Homes Under Management</div><div class="v">20</div></div>
+      <div class="acct-field"><div class="k">Statement Date</div><div class="v">June 1, 2026</div></div>
+    </div>
+  </div>
+</div>

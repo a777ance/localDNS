@@ -1,0 +1,49 @@
+<!-- @dsCard group="Portfolio" name="Homes roster" subtitle="Status dot · account · archetype · figures · legend" viewport="760x420" -->
+<style>
+table.roster { width: 100%; border-collapse: collapse; }
+table.roster th { font-size: var(--fs-6xs); text-transform: uppercase; letter-spacing: var(--ls-loose); color: var(--muted); font-weight: 600; text-align: left; padding: 0 8px 8px; border-bottom: var(--hairline) solid var(--rule); }
+table.roster th.r, table.roster td.fig { text-align: right; }
+table.roster td { padding: 7px 8px; font-size: var(--fs-sm); border-bottom: var(--hairline) solid var(--rule-2); color: var(--ink); }
+table.roster tr:last-child td { border-bottom: none; }
+.rdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+.acct { font-family: var(--font-fig); color: var(--muted); font-size: var(--fs-2xs); }
+.nm { font-weight: 600; color: var(--navy); }
+.arch { color: var(--ink-sub); font-size: var(--fs-2xs); }
+.legend-note { margin-top: 12px; font-size: var(--fs-3xs); color: var(--muted); display: flex; gap: var(--sp-head); }
+.legend-note span { display: flex; align-items: center; gap: 6px; }
+.rule-note { margin-top: 16px; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+</style>
+
+<div class="page wide">
+  <div class="body">
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Your Homes</div>
+        <div class="section-note">20 statements generated &amp; delivered this month</div>
+      </div>
+      <table class="roster">
+        <thead>
+          <tr><th></th><th>Account</th><th>Household</th><th>Profile</th><th class="r">Threats Blocked</th><th class="r">Uptime</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="rdot" style="background:var(--pos)"></span></td><td class="acct">A77-001</td><td class="nm">Sample A</td><td class="arch">Prime-Time</td><td class="fig">16,258</td><td class="fig">99.97%</td></tr>
+          <tr><td><span class="rdot" style="background:var(--pos)"></span></td><td class="acct">A77-002</td><td class="nm">Sample B</td><td class="arch">Home Office</td><td class="fig">7,246</td><td class="fig">99.98%</td></tr>
+          <tr><td><span class="rdot" style="background:var(--pos)"></span></td><td class="acct">A77-003</td><td class="nm">Sample C</td><td class="arch">Connected Family</td><td class="fig">17,962</td><td class="fig">99.99%</td></tr>
+          <tr><td><span class="rdot" style="background:var(--amber)"></span></td><td class="acct">A77-005</td><td class="nm">Sample D</td><td class="arch">Home Office</td><td class="fig">13,243</td><td class="fig">99.98%</td></tr>
+          <tr><td><span class="rdot" style="background:var(--pos)"></span></td><td class="acct">A77-006</td><td class="nm">Sample E</td><td class="arch">Connected Family</td><td class="fig">12,645</td><td class="fig">99.9%</td></tr>
+          <tr><td><span class="rdot" style="background:var(--watch)"></span></td><td class="acct">A77-011</td><td class="nm">Sample F</td><td class="arch">Home Office</td><td class="fig">17,397</td><td class="fig">99.98%</td></tr>
+          <tr><td><span class="rdot" style="background:var(--pos)"></span></td><td class="acct">A77-012</td><td class="nm">Sample G</td><td class="arch">Connected Family</td><td class="fig">9,329</td><td class="fig">99.99%</td></tr>
+          <tr><td><span class="rdot" style="background:var(--pos)"></span></td><td class="acct">A77-019</td><td class="nm">Sample H</td><td class="arch">Prime-Time</td><td class="fig">15,551</td><td class="fig">99.99%</td></tr>
+        </tbody>
+      </table>
+      <div class="legend-note">
+        <span><span class="rdot" style="background:var(--pos)"></span>Healthy (17)</span>
+        <span><span class="rdot" style="background:var(--amber)"></span>Needs attention (2)</span>
+        <span><span class="rdot" style="background:var(--watch)"></span>Watch (1)</span>
+      </div>
+
+      <div class="rule-note"><strong>The legend counts, so the dots don't have to be counted.</strong> A dot column is scannable but not readable — the counted legend underneath is what makes the table honest for someone printing it in grayscale. Household names on a real portfolio are real people: this card ships with <code>Sample A…H</code> because the design system is public. Never paste a live roster into a component preview.</div>
+    </div>
+  </div>
+</div>

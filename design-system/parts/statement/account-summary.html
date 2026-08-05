@@ -1,0 +1,38 @@
+<!-- @dsCard group="Statement" name="Account summary" subtitle="Period · prior · change · year to date" viewport="740x360" -->
+<style>
+table.summary { width: 100%; border-collapse: collapse; }
+table.summary th { font-size: var(--fs-5xs); text-transform: uppercase; letter-spacing: var(--ls-table); color: var(--muted); font-weight: 600; text-align: right; padding: 0 0 var(--sp-tight); border-bottom: var(--hairline) solid var(--rule); }
+table.summary th.lead { text-align: left; }
+table.summary td { padding: var(--sp-tight) 0; font-size: var(--fs-md); text-align: right; border-bottom: var(--hairline) solid var(--rule-2); color: var(--ink); }
+table.summary td.lead { text-align: left; color: var(--ink-body); font-size: var(--fs-base); }
+table.summary tr:last-child td { border-bottom: none; }
+.chg-pos { color: var(--pos); }
+.chg-neg { color: var(--neg); }
+.rule-note { margin-top: 16px; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+</style>
+
+<div class="page">
+  <div class="body">
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Account Summary</div>
+        <div class="section-note">All figures for the statement period</div>
+      </div>
+      <table class="summary">
+        <thead>
+          <tr><th class="lead">Activity</th><th>This Period</th><th>Prior Period</th><th>Change</th><th>Year to Date</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="lead">Queries resolved</td><td class="fig">88,260</td><td class="fig">90,140</td><td class="fig chg-pos">&minus;2.1%</td><td class="fig">441,300</td></tr>
+          <tr><td class="lead">Threats &amp; trackers blocked</td><td class="fig">17,540</td><td class="fig">16,990</td><td class="fig chg-pos">+3.2%</td><td class="fig">84,120</td></tr>
+          <tr><td class="lead">Protection rate</td><td class="fig">19.9%</td><td class="fig">18.8%</td><td class="fig chg-pos">+1.1 pts</td><td class="fig">19.1%</td></tr>
+          <tr><td class="lead">Network availability</td><td class="fig">99.95%</td><td class="fig">99.9%</td><td class="fig chg-pos">+0.05 pts</td><td class="fig">99.93%</td></tr>
+          <tr><td class="lead">Peak loaded latency</td><td class="fig">14 ms</td><td class="fig">16 ms</td><td class="fig chg-pos">&minus;2 ms</td><td class="fig">15 ms</td></tr>
+          <tr><td class="lead">Secure VPN sessions</td><td class="fig">21</td><td class="fig">19</td><td class="fig chg-pos">+2</td><td class="fig">96</td></tr>
+        </tbody>
+      </table>
+      <div class="rule-note"><strong>Green means better, not bigger.</strong> Queries down 2.1% and threats up 3.2% are both <code>.chg-pos</code> — the color tracks whether the household is better off, not the direction of the arrow. Decide which way is good for each row before you color it, and say so in the row label.</div>
+    </div>
+  </div>
+</div>

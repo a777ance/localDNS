@@ -1,0 +1,33 @@
+<!-- @dsCard group="Statement" name="Service status & privacy" subtitle="Six-state grid + the standing privacy note" viewport="740x300" -->
+<style>
+.status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-tight) 24px; }
+.status-item { display: flex; align-items: center; gap: var(--sp-tight); font-size: var(--fs-body); color: var(--ink-body); }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pos); flex-shrink: 0; }
+.privacy { margin-top: var(--sp-head); padding: var(--sp-row) 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.privacy strong { color: var(--navy); }
+.rule-note { margin-top: 16px; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+@media (max-width: 600px) { .status-grid { grid-template-columns: 1fr 1fr; } }
+</style>
+
+<div class="page">
+  <div class="body">
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Service Status</div>
+        <div class="section-note">all systems verified through statement close</div>
+      </div>
+      <div class="status-grid">
+        <div class="status-item"><span class="status-dot"></span>DNS filtering active</div>
+        <div class="status-item"><span class="status-dot"></span>DNS queries encrypted</div>
+        <div class="status-item"><span class="status-dot"></span>DNSSEC validation on</div>
+        <div class="status-item"><span class="status-dot"></span>VPN tunnel healthy</div>
+        <div class="status-item"><span class="status-dot"></span>Firewall — no incidents</div>
+        <div class="status-item"><span class="status-dot"></span>Traffic shaping active</div>
+      </div>
+      <div class="privacy"><strong>A note on privacy.</strong> Individual websites and domains are never logged, stored, or reported. The categories, profile, and suggestions above are derived from aggregate volume by type only — counted in real time and discarded. Your network appliance runs entirely within your home; no browsing data is sent to A777ance or any third party.</div>
+
+      <div class="rule-note"><strong>Every line here is a claim, and every claim is checkable.</strong> The six states map one-to-one onto things the appliance verifies (CLAUDE.md §2) — “DNS queries encrypted” means the DoT forward path resolved, “DNSSEC validation on” means the <code>ad</code> flag came back. If a check can't be run for a household, drop the line rather than leave a green dot standing for an assumption. The privacy note is standing text: it appears on every Statement, unchanged, whether or not anyone asked.</div>
+    </div>
+  </div>
+</div>

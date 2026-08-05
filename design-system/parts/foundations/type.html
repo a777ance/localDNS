@@ -1,0 +1,71 @@
+<!-- @dsCard group="Foundations" name="Type" subtitle="Gill Sans MT · one family · 16 sizes, descending" viewport="740x760" -->
+<style>
+.row { display: grid; grid-template-columns: 116px 1fr; gap: 20px; align-items: baseline; padding: 10px 0; border-bottom: var(--hairline) solid var(--rule-2); }
+.row:last-child { border-bottom: none; }
+.spec { font-family: var(--font-fig); font-size: var(--fs-3xs); color: var(--muted); }
+.spec b { display: block; color: var(--navy); font-size: var(--fs-2xs); font-weight: 600; }
+.stack { font-size: var(--fs-body); color: var(--ink-body); line-height: var(--lh-prose); }
+.stack code { font-family: var(--font-fig); color: var(--navy); }
+.tnum { display: grid; grid-template-columns: 1fr 1fr; gap: 0 30px; max-width: 460px; }
+.tnum div { display: flex; justify-content: space-between; padding: 4px 0; font-size: var(--fs-md); border-bottom: var(--hairline) solid var(--rule-2); }
+.tnum span:first-child { color: var(--ink-sub); font-size: var(--fs-body); }
+.off { font-family: var(--font-sans); font-feature-settings: normal; }
+.rule-note { margin-top: 16px; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+</style>
+
+<div class="page">
+  <div class="body">
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">The family</div>
+        <div class="section-note">house style — every surface, customer-facing or internal</div>
+      </div>
+      <div class="stack">
+        <code>--font-sans: 'Gill Sans MT', 'Gill Sans', Calibri, 'Trebuchet MS', sans-serif;</code>
+        <p style="margin-top:10px">One family, no exceptions. The fallbacks are ordered so a machine without Gill Sans MT lands on the closest humanist sans it does have — Calibri before Trebuchet, and a generic sans only when both are missing.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Scale</div>
+        <div class="section-note">largest first · every size is one a real Statement already uses</div>
+      </div>
+      <div class="row"><div class="spec"><b>--fs-display</b>28px</div><div style="font-size:28px;color:var(--navy);font-family:var(--font-fig)">224,963</div></div>
+      <div class="row"><div class="spec"><b>--fs-figure</b>23px</div><div style="font-size:23px;color:var(--navy);font-family:var(--font-fig)">934 GB</div></div>
+      <div class="row"><div class="spec"><b>--fs-name</b>22px</div><div style="font-size:22px;color:var(--navy)">The Connected Family</div></div>
+      <div class="row"><div class="spec"><b>--fs-brand</b>21px</div><div style="font-size:21px;font-weight:700;letter-spacing:var(--ls-brand);color:var(--navy)">A777ANCE</div></div>
+      <div class="row"><div class="spec"><b>--fs-period</b>17px</div><div style="font-size:17px;color:var(--navy)">Statement Period: May 1 – May 31, 2026</div></div>
+      <div class="row"><div class="spec"><b>--fs-lg</b>15px</div><div style="font-size:15px;font-weight:700;color:var(--navy)">Tom Bishop</div></div>
+      <div class="row"><div class="spec"><b>--fs-md</b>13.5px</div><div style="font-size:13.5px">Nothing to change this month.</div></div>
+      <div class="row"><div class="spec"><b>--fs-base</b>13px</div><div style="font-size:13px">Account Holder: The Okafor Family</div></div>
+      <div class="row"><div class="spec"><b>--fs-body</b>12.5px</div><div style="font-size:12.5px;color:var(--ink-body);line-height:var(--lh-tight)">A smart-plug in your home started flooding the network with chatter; it was isolated before anyone felt a lag.</div></div>
+      <div class="row"><div class="spec"><b>--fs-sm</b>12px</div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:var(--ls-caps);color:var(--navy)">Account Summary</div></div>
+      <div class="row"><div class="spec"><b>--fs-xs</b>11.5px</div><div style="font-size:11.5px;color:var(--ink-sub)">Your real-time dashboard — updated to the minute.</div></div>
+      <div class="row"><div class="spec"><b>--fs-2xs</b>11px</div><div style="font-size:11px;color:var(--bronze);font-family:var(--font-fig)">May 12</div></div>
+      <div class="row"><div class="spec"><b>--fs-3xs</b>10.5px</div><div style="font-size:10.5px;color:var(--muted);font-style:italic">work done on your behalf — usually before you noticed</div></div>
+      <div class="row"><div class="spec"><b>--fs-4xs</b>10px</div><div style="font-size:10px;letter-spacing:var(--ls-label);text-transform:uppercase;color:var(--muted)">Network Activity Statement</div></div>
+      <div class="row"><div class="spec"><b>--fs-5xs</b>9.5px</div><div style="font-size:9.5px;letter-spacing:var(--ls-table);text-transform:uppercase;color:var(--muted);font-weight:600">Threats Blocked (all homes)</div></div>
+      <div class="row"><div class="spec"><b>--fs-6xs</b>9px</div><div style="font-size:9px;letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--muted)">Account No.</div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Figures</div>
+        <div class="section-note">tabular by default — anything in a column has to line up</div>
+      </div>
+      <div class="tnum">
+        <div><span>Queries resolved</span><span class="fig">88,260</span></div>
+        <div><span>Same, proportional</span><span class="off">88,260</span></div>
+        <div><span>Threats blocked</span><span class="fig">17,540</span></div>
+        <div><span>Same, proportional</span><span class="off">17,540</span></div>
+        <div><span>Availability</span><span class="fig">99.95%</span></div>
+        <div><span>Same, proportional</span><span class="off">99.95%</span></div>
+      </div>
+      <div class="rule-note"><strong>Use <code>.fig</code> on every number in a column.</strong> It switches on tabular figures so digits sit in fixed-width cells and the decimal points stack. On a document people compare month to month, a wandering column reads as sloppiness in the work itself.</div>
+    </div>
+
+  </div>
+</div>

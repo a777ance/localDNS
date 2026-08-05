@@ -1,0 +1,62 @@
+<!-- @dsCard group="Statement" name="Our read this month" subtitle="Suggestion cards + the all-clear affirmation" viewport="740x420" -->
+<style>
+.suggest { display: flex; flex-direction: column; gap: var(--sp-row); }
+.sg { display: flex; gap: 14px; align-items: flex-start; padding: var(--sp-row) 15px; background: var(--suggest-bg); border: var(--hairline) solid var(--rule-2); border-left: var(--accent-edge) solid var(--bronze); border-radius: 6px; }
+.sg .ic { font-size: 19px; line-height: 1.2; flex-shrink: 0; }
+.sg .q { font-size: var(--fs-base); color: var(--navy); font-weight: 600; }
+.sg .r { font-size: var(--fs-xs); color: var(--ink-sub); line-height: var(--lh-tight); margin-top: 3px; }
+.sg .ask { font-size: var(--fs-3xs); color: var(--bronze); margin-top: 6px; letter-spacing: 0.03em; }
+.affirm { display: flex; gap: 15px; align-items: center; padding: var(--sp-head) 20px; background: var(--pos-wash); border: var(--hairline) solid var(--pos-edge); border-radius: var(--radius); }
+.affirm .ic { font-size: 28px; }
+.affirm .t { font-size: var(--fs-md); color: var(--pos-ink); font-weight: 600; }
+.affirm .d { font-size: var(--fs-xs); color: var(--pos-ink-sub); line-height: var(--lh-tight); margin-top: 3px; }
+.rule-note { margin-top: 16px; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+</style>
+
+<div class="page">
+  <div class="body">
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Have You Tried?</div>
+        <div class="section-note">optional improvements — never a bill</div>
+      </div>
+      <div class="suggest">
+        <div class="sg">
+          <div class="ic">&#128246;</div>
+          <div>
+            <div class="q">A second access point for the back of the house?</div>
+            <div class="r">Your upstairs devices work a little harder to reach the router than the rest. Nothing is failing — but the far bedrooms would feel snappier with a second point.</div>
+            <div class="ask">Ask Jose on the next visit — about an hour, no rewiring</div>
+          </div>
+        </div>
+        <div class="sg">
+          <div class="ic">&#128274;</div>
+          <div>
+            <div class="q">A separate network for the smart-home gadgets?</div>
+            <div class="r">You run eleven smart devices. Putting them on their own lane keeps a chatty plug or camera from ever touching the laptops and phones.</div>
+            <div class="ask">Ask Jose on the next visit — no new hardware needed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Our Read This Month</div>
+        <div class="section-note">our read this month</div>
+      </div>
+      <div class="affirm">
+        <div class="ic">&#9989;</div>
+        <div>
+          <div class="t">Nothing to change this month.</div>
+          <div class="d">We looked hard — with 18 devices and nearly a terabyte of traffic, your network stayed fast, filtered, and congestion-free all month. There's genuinely nothing we'd tune right now. Beautifully boring. We'll keep watching.</div>
+        </div>
+      </div>
+
+      <div class="rule-note"><strong>“Nothing to change” has to be a real option.</strong> The suggestion cards are the hand-raise the whole funnel runs on, which is exactly why the section must be able to come back empty. A month where we invent a suggestion to fill the space is the month the section stops being worth reading — and a flat retainer means every invented job costs the operator money anyway. Green affirmation when the answer is genuinely nothing; bronze cards when there is something worth asking about; never both.</div>
+    </div>
+
+  </div>
+</div>

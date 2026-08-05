@@ -1,0 +1,23 @@
+<!-- @dsCard group="Portfolio" name="KPI band" subtitle="Four figures across the book · warn state" viewport="760x220" -->
+<style>
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: var(--hairline) solid var(--rule); }
+.kpi { padding: 22px 16px; text-align: center; border-right: var(--hairline) solid var(--rule); }
+.kpi:last-child { border-right: none; }
+.kpi .v { font-family: var(--font-fig); font-size: var(--fs-display); color: var(--navy); line-height: 1; }
+.kpi .v.warn { color: var(--amber); }
+.kpi .l { font-size: var(--fs-5xs); letter-spacing: var(--ls-loose); text-transform: uppercase; color: var(--muted); margin-top: 7px; }
+.rule-note { margin: 16px var(--gutter); padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+@media (max-width: 600px) { .kpis { grid-template-columns: 1fr 1fr; } .kpi:nth-child(2) { border-right: none; } }
+</style>
+
+<div class="page wide">
+  <div class="kpis">
+    <div class="kpi"><div class="v">20</div><div class="l">Homes Managed</div></div>
+    <div class="kpi"><div class="v">224,963</div><div class="l">Threats Blocked (all homes)</div></div>
+    <div class="kpi"><div class="v">99.9%</div><div class="l">Avg Uptime</div></div>
+    <div class="kpi"><div class="v warn">2</div><div class="l">Homes Need Attention</div></div>
+  </div>
+
+  <div class="rule-note"><strong>Four numbers, and the fourth one is allowed to be bad.</strong> A portfolio band that can only ever show good news is a band nobody checks. The amber “needs attention” count is what makes the other three trustworthy — and on a flat retainer it is also the operator's actual to-do list, since every one of those is a cost. Exactly four; a fifth column pushes the figures below a glanceable size at 760px.</div>
+</div>

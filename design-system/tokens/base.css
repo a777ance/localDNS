@@ -1,0 +1,76 @@
+/* A777ance base layer — the page chrome every Statement component sits inside.
+ *
+ * Everything here is shared by both the client Statement and the operator
+ * Portfolio. Component-specific CSS belongs in that component's part file, not
+ * here: if only one component uses a rule, it is not base.
+ *
+ * Depends on tokens.css. Load that first.
+ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--canvas);
+  color: var(--ink);
+  padding: 40px 20px;
+}
+
+/* The document. A Statement is a piece of paper lying on a desk — the shadow
+ * and the warm --paper are what make it read as a kept document rather than a
+ * web page. Don't flatten them. */
+.page {
+  max-width: var(--page-w);
+  margin: 0 auto;
+  background: var(--paper);
+  box-shadow: var(--shadow-page);
+}
+.page.wide { max-width: var(--page-w-wide); }
+
+/* Any number that sits in a column. Tabular figures so digits line up. */
+.fig {
+  font-family: var(--font-fig);
+  font-feature-settings: "tnum";
+}
+
+.body { padding: 0 var(--gutter); }
+
+.section {
+  padding: var(--sp-section) 0;
+  border-bottom: var(--hairline) solid var(--rule);
+}
+.section:last-child { border-bottom: none; }
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--sp-head);
+}
+.section-title {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--navy);
+}
+/* The section note is where the plain-English caveat goes — the scope of the
+ * figures, the period, the "always opt-in". It is italic and quiet on purpose:
+ * it should be readable but never compete with the number it qualifies. */
+.section-note {
+  font-size: var(--fs-3xs);
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* Print — a Statement is mailed on paper as often as it is emailed. */
+@media print {
+  body { background: white; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { box-shadow: none; margin: 0; }
+}
+
+/* Read from a phone via the QR code: one scrollable column. */
+@media (max-width: 600px) {
+  body { padding: 0; }
+  .body { padding: 0 var(--gutter-sm); }
+}

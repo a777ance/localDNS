@@ -1,0 +1,59 @@
+<!-- @dsCard group="Portfolio" name="Needs your attention" subtitle="High / Med / Watch · most urgent first" viewport="760x360" -->
+<style>
+.att { display: flex; flex-direction: column; gap: 10px; }
+.ai { display: flex; gap: var(--sp-row); padding: 12px 14px; border-radius: var(--radius); border-left: var(--accent-edge) solid; background: var(--attn-bg); }
+.ai.high { border-color: var(--alert); background: var(--alert-wash); }
+.ai.med  { border-color: var(--amber); background: var(--amber-wash); }
+.ai.low  { border-color: var(--watch); background: var(--watch-wash); }
+.ai .sev { font-size: var(--fs-6xs); font-weight: 700; letter-spacing: var(--ls-loose); text-transform: uppercase; width: 42px; flex-shrink: 0; padding-top: 2px; }
+.ai.high .sev { color: var(--alert); }
+.ai.med .sev  { color: var(--amber); }
+.ai.low .sev  { color: var(--watch); }
+.ai .body2 { flex: 1; }
+.ai .h { font-size: var(--fs-base); color: var(--navy); font-weight: 600; }
+.ai .h .arch { color: var(--muted); font-weight: 400; }
+.ai .d { font-size: var(--fs-xs); color: var(--ink-sub); line-height: var(--lh-tight); margin-top: 3px; }
+.ai .meta { font-size: var(--fs-3xs); color: var(--muted); margin-top: 4px; }
+.ai .meta .who { color: var(--bronze); font-weight: 600; }
+.rule-note { margin-top: 16px; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+</style>
+
+<div class="page wide">
+  <div class="body">
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Needs Your Attention</div>
+        <div class="section-note">flagged across your book — most urgent first</div>
+      </div>
+      <div class="att">
+        <div class="ai high">
+          <div class="sev">High</div>
+          <div class="body2">
+            <div class="h">A77-020 · Sample Loft <span class="arch">(Home Office)</span></div>
+            <div class="d">Appliance storage at <b>88%</b> — query logs growing faster than expected. Left unattended, logging could stall within ~9 days.</div>
+            <div class="meta">Owned by <span class="who">Jose</span> · cleanup scheduled tonight 02:00 · client not affected yet</div>
+          </div>
+        </div>
+        <div class="ai med">
+          <div class="sev">Med</div>
+          <div class="body2">
+            <div class="h">A77-005 · Sample Household <span class="arch">(Connected Family)</span></div>
+            <div class="d">One of three Wi-Fi points is <b>dropping nightly around 1 a.m.</b> and self-recovering. Looks like a failing unit, not config.</div>
+            <div class="meta">Owned by <span class="who">Jose</span> · replacement unit en route · ETA Jun 3</div>
+          </div>
+        </div>
+        <div class="ai low">
+          <div class="sev">Watch</div>
+          <div class="body2">
+            <div class="h">A77-011 · Sample Residence <span class="arch">(Prime-Time)</span></div>
+            <div class="d">VPN key is <b>over a year old</b>. No issue today, but worth rotating on the next visit for good hygiene.</div>
+            <div class="meta">Flagged by the system · no action needed this month</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-note"><strong>Every row answers “is the client affected?” before the operator has to ask.</strong> That is the difference between a monitoring alert and a work queue. Severity is spelled out in the <code>.sev</code> label as well as the color, most urgent first per house style, and each row names who owns it — a flag with no owner is a flag nobody clears. “Watch” exists so genuine non-urgencies have somewhere to go that isn't Med.</div>
+    </div>
+  </div>
+</div>

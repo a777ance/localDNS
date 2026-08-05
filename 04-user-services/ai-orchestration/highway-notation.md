@@ -241,7 +241,13 @@ Newest first. Recorded so reviewers can trace intent; **git history of this file
 exact line-by-line diff.** This is a live design — earlier passes were deliberately
 superseded, not mistakes.
 
-- **`~` sharpened to the lazy anchor (current).** `~` is not *reasoning about* continuity
+- **The design lane (current).** Bound the existing backbone to Claude Design work
+  (§ 8) — no new glyphs, just the reading: `@` = the `@dsCard` signage, `#` = the
+  `design-system/` repo as origin against the Design project as mirror, `$` =
+  `build.py --check`, `^` = component variants. `%` becomes the load-bearing guardrail on
+  this lane and is the first glyph with a real implementation behind it (the pre-upload
+  compliance gate in `/design-sync`).
+- **`~` sharpened to the lazy anchor.** `~` is not *reasoning about* continuity
   but **actual** continuity: first token fires ASAP (the §G lazy anchor leaving the raft to
   tether to reality); the coalescing of prior state happens **mid-flight**, not pre-reasoned.
   Laziness is a spectrum: no `~` = OK to reason a little; `~~~~` = laziest
@@ -283,3 +289,45 @@ superseded, not mistakes.
   nesting. Folded or rejected.
 - **Origin.** `.claude/commands/workout.calibrate.md` — the first (and so far only) *paved*
   road that actually exists as a committed command.
+
+---
+
+## 8. The design lane (Claude Design)
+
+Bifrost is active in **every** surface the founder works in, not only Claude Code. Claude
+Design (claude.ai/design) is one of them, so the glyphs get a binding there. Added
+2026-08-05 alongside `design-system/`.
+
+Nothing new is invented here — this is the existing backbone read against design work:
+
+| Key | Glyph | Archetype | On the design lane |
+| :-- | :-- | :-- | :-- |
+| `~` | `~` | Continuity / lazy anchor | Open the component and start editing; let the token rationale coalesce mid-flight. The Statements already made most of the decisions — re-deriving a design system from first principles is the *opposite* of `~`. |
+| `` ` `` | `` ` `` | Descriptor | The shaded qualifier hanging under the requirement — `` `bronze, tighter, one line` ``. |
+| `1` | `!` | Payloads | The components themselves — the cars being moved. |
+| `2` | `@` | Signage | The `@dsCard` markers (group / name / subtitle / viewport). Literally the signage on the road: it is what the Design System pane reads to label a card. |
+| `3` | `#` | Repository | `localDNS/design-system/` — the source of truth. The Design **project is a mirror**, never the origin; when the two disagree, the repo wins. |
+| `4` | `$` | Sanity / tollbooth | `python3 design-system/build.py --check` — does the committed bundle still match its sources? The known-good baseline is the shipped Statement. |
+| `5` | `%` | Weigh station / compliance | The pre-upload gate: no real names, accounts, QR codes, pricing, or secrets; no unmeasured-data component stripped of its warning block. **On this lane `%` is the load-bearing guardrail** — it is what stands between a private roster and a shared design project. |
+| `6` | `^` | Instantiators | Component variants — how many states one card shows (severity levels; client vs. operator header). `^^^` on a status component = show three severities, not one. |
+| `7` | `&` | Rotary | A nested full pass on a single component (extract → build → review → sync) inside a wider sweep. |
+| `8` `9/0` | `*` `()` | Traffic light / intersection | Waiting on the founder's review of a card before it lands — the `*` in step 4 of `/design-sync`. |
+
+**Worked example — one component, governed:**
+
+```text
+~ handled-for-you card  `bronze operator name, newest first`  ! /design-sync  @ group=Statement  # design-system  $ match the shipped client statement  %%
+```
+
+1. `~ handled-for-you card` — the requirement; start editing, don't pre-plan the system.
+2. `` `bronze operator name, newest first` `` — the descriptor: the two rules that make the block work.
+3. `! /design-sync` — the payload, fulfilled by the committed command.
+4. `@ group=Statement` — signage: which group the card lands in.
+5. `# design-system` — the repo lane.
+6. `$ match the shipped client statement` — known-good: the live document, not taste.
+7. `%%` — compliance dialled up: run the pre-upload gate hard, because this card carries an operator's name and a household's month.
+
+**Status:** notation only, like the rest of this spec — but `%` on this lane is the one
+glyph that already has a real implementation behind it (step 2 of
+[`/design-sync`](../../.claude/commands/design-sync.md)). The conventions it enforces are in
+[`design-system/CONVENTIONS.md`](../../design-system/CONVENTIONS.md) § 5.

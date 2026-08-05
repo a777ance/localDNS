@@ -1,0 +1,64 @@
+<!-- @dsCard group="Statement" name="See for yourself" subtitle="QR tiles — live status + statement online" viewport="740x280" -->
+<style>
+.live { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.tile { display: flex; gap: 16px; align-items: center; }
+.qr-frame { width: 104px; height: 104px; flex-shrink: 0; padding: var(--sp-tight); background: var(--white); border: var(--hairline) solid var(--rule); border-radius: var(--radius); box-shadow: var(--shadow-qr); }
+.qr-frame svg { display: block; width: 100%; height: 100%; }
+.tile-text .t { font-size: var(--fs-base); color: var(--navy); font-weight: 600; }
+.tile-text .d { font-size: var(--fs-xs); color: var(--muted); line-height: var(--lh-tight); margin-top: 5px; }
+.tile-text .lock { font-size: var(--fs-4xs); color: var(--bronze); margin-top: 7px; letter-spacing: 0.04em; }
+.rule-note { margin-top: 16px; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+@media (max-width: 600px) { .live { grid-template-columns: 1fr; gap: var(--sp-head); } }
+</style>
+
+<div class="page">
+  <div class="body">
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">See For Yourself</div>
+        <div class="section-note">scan with your phone camera</div>
+      </div>
+      <div class="live">
+        <div class="tile">
+          <div class="qr-frame">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 29 29" shape-rendering="crispEdges" role="img" aria-label="QR code placeholder">
+              <rect width="29" height="29" fill="#fff"/>
+              <g fill="#13314f">
+                <path d="M0 0h7v7H0zM22 0h7v7h-7zM0 22h7v7H0z"/>
+                <path fill="#fff" d="M1 1h5v5H1zM23 1h5v5h-5zM1 23h5v5H1z"/>
+                <path d="M2 2h3v3H2zM24 2h3v3h-3zM2 24h3v3H2z"/>
+                <path d="M9 0h2v1H9zM12 0h1v3h-1zM9 2h1v2H9zM11 3h2v1h-2zM14 1h1v2h-1zM16 0h2v1h-2zM19 0h1v2h-1zM17 2h1v3h-1zM19 4h1v2h-1zM9 5h3v1H9zM14 5h2v1h-2zM0 9h1v2H0zM2 9h2v1H2zM5 9h2v1H5zM0 12h2v1H0zM3 11h1v3H3zM5 13h2v1H5zM0 15h1v3H0zM2 16h2v1H2zM5 17h1v2H5zM0 20h3v1H0zM4 19h1v2H4zM9 8h1v2H9zM11 9h2v1h-2zM14 8h1v3h-1zM16 9h1v2h-1zM18 8h2v1h-2zM10 11h1v2h-1zM12 12h2v1h-2zM15 11h2v1h-2zM18 11h1v3h-1zM9 14h2v1H9zM13 14h1v2h-1zM16 14h2v1h-2zM19 15h1v2h-1zM10 16h2v1h-2zM14 17h2v1h-2zM9 18h1v2H9zM12 18h1v3h-1zM17 18h1v2h-1zM22 8h1v3h-1zM24 9h2v1h-2zM27 8h1v2h-1zM22 12h2v1h-2zM25 11h1v3h-1zM27 12h1v2h-1zM22 15h1v2h-1zM24 16h1v2h-1zM26 15h2v1h-2zM22 19h2v1h-2zM25 19h1v2h-1zM27 19h1v1h-1zM9 22h1v3H9zM11 22h2v1h-2zM14 22h1v2h-1zM16 22h2v1h-2zM19 22h1v3h-1zM21 22h2v1h-2zM24 22h1v3h-1zM26 22h2v1h-2zM10 24h2v1h-2zM13 25h2v1h-2zM16 24h1v3h-1zM18 25h2v1h-2zM21 24h2v1h-2zM25 25h2v1h-2zM9 27h2v1H9zM12 26h1v2h-1zM14 27h2v1h-2zM18 27h2v1h-2zM21 26h1v2h-1zM23 27h2v1h-2zM26 27h2v1h-2z"/>
+              </g>
+            </svg>
+          </div>
+          <div class="tile-text">
+            <div class="t">Live network status</div>
+            <div class="d">Your real-time dashboard — uptime, response time, and service health, updated to the minute.</div>
+            <div class="lock">&#128274; Private to your account</div>
+          </div>
+        </div>
+        <div class="tile">
+          <div class="qr-frame">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 29 29" shape-rendering="crispEdges" role="img" aria-label="QR code placeholder">
+              <rect width="29" height="29" fill="#fff"/>
+              <g fill="#13314f">
+                <path d="M0 0h7v7H0zM22 0h7v7h-7zM0 22h7v7H0z"/>
+                <path fill="#fff" d="M1 1h5v5H1zM23 1h5v5h-5zM1 23h5v5H1z"/>
+                <path d="M2 2h3v3H2zM24 2h3v3h-3zM2 24h3v3H2z"/>
+                <path d="M9 0h1v3H9zM11 0h2v1h-2zM14 0h1v2h-1zM16 1h2v1h-2zM19 0h1v3h-1zM11 2h1v3h-1zM13 3h2v1h-2zM16 3h1v2h-1zM18 4h2v1h-2zM9 4h1v2H9zM13 5h1v1h-1zM0 8h2v1H0zM3 8h1v3H3zM5 9h2v1H5zM0 11h1v3H0zM2 12h2v1H2zM5 12h1v2H5zM0 15h2v1H0zM3 15h1v2H3zM6 16h1v2H6zM0 18h1v3H0zM2 19h3v1H2zM9 9h1v2H9zM12 8h1v3h-1zM14 9h2v1h-2zM17 8h1v2h-1zM19 9h1v2h-1zM10 12h2v1h-2zM13 12h1v3h-1zM15 13h2v1h-2zM18 12h2v1h-2zM9 15h2v1H9zM12 16h1v2h-1zM15 15h1v3h-1zM17 16h2v1h-2zM10 18h1v2h-1zM13 19h2v1h-2zM16 19h1v2h-1zM18 18h2v1h-2zM22 9h2v1h-2zM25 8h1v3h-1zM27 9h1v2h-1zM22 11h1v3h-1zM24 12h2v1h-2zM27 13h1v2h-1zM22 16h2v1h-2zM25 15h1v3h-1zM27 17h1v2h-1zM22 19h1v2h-1zM24 20h2v1h-2zM9 22h2v1H9zM12 22h1v2h-1zM14 22h2v1h-2zM17 22h1v3h-1zM19 22h2v1h-2zM22 22h1v2h-1zM24 22h2v1h-2zM27 22h1v3h-1zM9 25h1v3H9zM11 24h2v1h-2zM13 25h1v2h-1zM15 24h2v1h-2zM19 25h2v1h-2zM22 25h2v1h-2zM25 24h1v3h-1zM11 26h1v2h-1zM14 27h3v1h-3zM18 26h2v1h-2zM21 27h3v1h-3zM26 27h2v1h-2z"/>
+              </g>
+            </svg>
+          </div>
+          <div class="tile-text">
+            <div class="t">This statement, online</div>
+            <div class="d">The full digital version of this report, with month-by-month history you can scroll back through.</div>
+            <div class="lock">&#128274; Password protected</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-note"><strong>A QR without a lock line is a broken promise.</strong> These codes lead to a household's own data, so each tile states in plain words how it is protected before anyone lifts a phone. The codes drawn here are <em>placeholder patterns</em> — they encode nothing. Real codes are generated per household at statement time and never live in this repo.</div>
+    </div>
+  </div>
+</div>

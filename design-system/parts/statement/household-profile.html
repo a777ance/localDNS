@@ -1,0 +1,53 @@
+<!-- @dsCard group="Statement" name="Household profile" subtitle="Badge · archetype name · chips · macro line" viewport="740x330" -->
+<style>
+.profile { display: grid; grid-template-columns: 118px 1fr; gap: 28px; align-items: center; }
+.profile-badge { width: 118px; height: 118px; border-radius: 50%; background: radial-gradient(120% 120% at 30% 25%, var(--navy-mid), var(--navy-deep)); border: 2px solid var(--bronze); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: var(--shadow-card); }
+.profile-badge .emoji { font-size: 34px; line-height: 1; }
+.profile-badge .of { font-size: 7.5px; letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--bronze-soft); margin-top: 7px; }
+.profile-name { font-family: var(--font-fig); font-size: var(--fs-name); color: var(--navy); }
+.profile-tag { font-size: var(--fs-sm); color: var(--bronze); font-style: italic; margin-top: 2px; }
+.profile-body { font-size: var(--fs-body); line-height: 1.65; color: var(--ink-body); margin-top: 11px; }
+.chips { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 7px; }
+.chip { font-size: var(--fs-3xs); letter-spacing: 0.03em; color: var(--navy); background: var(--chip-bg); border: var(--hairline) solid var(--rule); border-radius: var(--radius-pill); padding: 4px 11px; }
+.chip b { color: var(--bronze); font-weight: 600; }
+.macro-line { margin-top: var(--sp-row); font-size: var(--fs-2xs); color: var(--muted); border-top: var(--hairline) dashed var(--rule); padding-top: 11px; }
+.macro-line b { font-family: var(--font-fig); color: var(--navy); }
+.rule-note { margin-top: 16px; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+@media (max-width: 600px) {
+  .profile { grid-template-columns: 1fr; gap: var(--sp-head); text-align: center; }
+  .profile-badge { margin: 0 auto; }
+  .chips { justify-content: center; }
+}
+</style>
+
+<div class="page">
+  <div class="body">
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Your Household Profile</div>
+        <div class="section-note">your network's "macros" this month</div>
+      </div>
+      <div class="profile">
+        <div class="profile-badge">
+          <div class="emoji">&#128106;</div>
+          <div class="of">Profile of the Month</div>
+        </div>
+        <div>
+          <div class="profile-name">The Connected Family</div>
+          <div class="profile-tag">many devices, one happy network</div>
+          <div class="profile-body">With <b>18 devices</b> under one roof — phones, tablets, consoles, and a small army of smart-home gadgets — yours is one of the busiest networks we manage. Smart Home / IoT alone was 20% of traffic. And yet it stayed fast and tidy all month: no congestion, no slowdowns, even on weekend evenings when everything is on at once.</div>
+          <div class="chips">
+            <span class="chip">&#128241; <b>Device-dense (18)</b></span>
+            <span class="chip">&#128126; IoT-heavy</span>
+            <span class="chip">&#128118; Family hours</span>
+            <span class="chip">&#127777; Weekend-peaked</span>
+          </div>
+          <div class="macro-line">A wonderfully balanced spread — no single macro dominates, which is exactly what you want in a full house. Vs. April, volume eased <b>2%</b> even as device count grew.</div>
+        </div>
+      </div>
+
+      <div class="rule-note"><strong>The archetype is a compliment, never a diagnosis.</strong> Three ship today — Connected Family, Home Office, Prime-Time — and each one describes a household back to itself in words it would happily repeat to a neighbor. Nothing here reads as a judgment about how much someone streams. The chips carry the measured facts; the prose carries the warmth.</div>
+    </div>
+  </div>
+</div>

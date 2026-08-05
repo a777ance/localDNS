@@ -1,0 +1,89 @@
+<!-- @dsCard group="Foundations" name="Layout & rhythm" subtitle="740px page · 44px gutter · section stack · phone fallback" viewport="740x680" -->
+<style>
+.demo { position: relative; border: var(--hairline) dashed var(--bronze); }
+.gutter-mark { position: absolute; top: 0; bottom: 0; width: var(--gutter); background: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(169,128,63,0.13) 4px, rgba(169,128,63,0.13) 8px); }
+.gutter-mark.l { left: 0; } .gutter-mark.r { right: 0; }
+.measure { display: grid; grid-template-columns: 128px 1fr; gap: 16px; align-items: baseline; padding: 8px 0; border-bottom: var(--hairline) solid var(--rule-2); }
+.measure:last-child { border-bottom: none; }
+.measure .k { font-size: var(--fs-2xs); font-weight: 600; color: var(--navy); }
+.measure .v { font-family: var(--font-fig); font-size: var(--fs-3xs); color: var(--muted); }
+.measure .d { font-size: var(--fs-xs); color: var(--ink-sub); line-height: var(--lh-tight); grid-column: 2; }
+.bar { height: 10px; background: var(--navy); border-radius: 2px; opacity: 0.15; }
+.phone { width: 260px; border: var(--hairline) solid var(--rule); border-radius: var(--radius); overflow: hidden; background: var(--paper); }
+.phone .hd { background: var(--navy); color: #fff; padding: 14px 20px; font-size: var(--fs-3xs); letter-spacing: var(--ls-brand); font-weight: 700; border-bottom: 2px solid var(--bronze); }
+.phone .bd { padding: 14px 20px; font-size: var(--fs-xs); color: var(--ink-body); line-height: var(--lh-tight); }
+.two { display: grid; grid-template-columns: 1fr 260px; gap: 30px; align-items: start; }
+.rule-note { margin-top: 16px; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+</style>
+
+<div class="page">
+  <div class="body">
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">The page</div>
+        <div class="section-note">740px client · 760px operator</div>
+      </div>
+      <div class="demo">
+        <div class="gutter-mark l"></div>
+        <div class="gutter-mark r"></div>
+        <div style="padding:22px var(--gutter);">
+          <div class="bar" style="width:38%"></div>
+          <div class="bar" style="width:100%;margin-top:9px"></div>
+          <div class="bar" style="width:88%;margin-top:5px"></div>
+          <div class="bar" style="width:64%;margin-top:5px"></div>
+        </div>
+      </div>
+      <div style="font-size:var(--fs-3xs);color:var(--muted);font-style:italic;margin-top:9px">Hatched columns are the 44px gutter. Nothing crosses it — not a rule, not a table, not a QR frame.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Rhythm</div>
+        <div class="section-note">the vertical measurements, largest first</div>
+      </div>
+      <div class="measure"><div class="k">--gutter</div><div class="v">44px</div></div>
+      <div class="measure"><div class="k">--sp-section</div><div class="v">26px</div><div class="d">Above and below every <code>.section</code>, with a hairline rule between. The last section drops its rule — the footer closes the document.</div></div>
+      <div class="measure"><div class="k">--gutter-sm</div><div class="v">20px</div><div class="d">The page gutter under 600px, when the Statement is opened from the QR code.</div></div>
+      <div class="measure"><div class="k">--sp-head</div><div class="v">18px</div><div class="d">Section head to its content.</div></div>
+      <div class="measure"><div class="k">--sp-row</div><div class="v">13px</div><div class="d">Between stacked cards in a list — suggestions, attention items.</div></div>
+      <div class="measure"><div class="k">--sp-tight</div><div class="v">9px</div><div class="d">Inside a row: swatch to label, dot to text.</div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Section anatomy</div>
+        <div class="section-note">title left, scope note right — always both</div>
+      </div>
+      <div class="two">
+        <div>
+          <div style="border:var(--hairline) dashed var(--rule);padding:14px 16px;border-radius:var(--radius)">
+            <div class="section-head" style="margin-bottom:12px">
+              <div class="section-title">Account Summary</div>
+              <div class="section-note">All figures for the statement period</div>
+            </div>
+            <div class="bar" style="width:100%"></div>
+            <div class="bar" style="width:100%;margin-top:6px"></div>
+            <div class="bar" style="width:72%;margin-top:6px"></div>
+          </div>
+          <div class="rule-note"><strong>The note is not decoration.</strong> It is where the scope of the numbers gets stated in plain English — the period they cover, what they exclude, that a thing is opt-in. A section title without its qualifying note is how a Statement starts implying more than it measured.</div>
+        </div>
+        <div>
+          <div class="phone">
+            <div class="hd">A777ANCE</div>
+            <div class="bd">
+              <div style="font-size:var(--fs-sm);font-weight:700;text-transform:uppercase;letter-spacing:var(--ls-caps);color:var(--navy)">Account Summary</div>
+              <div style="font-size:var(--fs-3xs);color:var(--muted);font-style:italic;margin:4px 0 10px">All figures for the statement period</div>
+              <div class="bar" style="width:100%"></div>
+              <div class="bar" style="width:100%;margin-top:6px"></div>
+              <div class="bar" style="width:80%;margin-top:6px"></div>
+            </div>
+          </div>
+          <div style="font-size:var(--fs-3xs);color:var(--muted);font-style:italic;margin-top:9px">Under 600px every multi-column block collapses to one scrollable column, and the head stacks. Same document, read on a phone at the kitchen table.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

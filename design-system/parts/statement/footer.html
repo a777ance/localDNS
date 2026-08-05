@@ -1,0 +1,27 @@
+<!-- @dsCard group="Statement" name="Statement footer" subtitle="Navy close · appliance line · one way to reach a person" viewport="740x200" -->
+<style>
+.footer { padding: 16px var(--gutter); display: flex; justify-content: space-between; align-items: center; background: var(--navy); color: var(--on-navy); font-size: var(--fs-3xs); }
+.footer .fb { font-weight: 700; letter-spacing: var(--ls-brand); color: #fff; font-size: var(--fs-2xs); }
+.footer a { color: var(--on-navy-link); text-decoration: none; }
+.footer.wide { padding: var(--sp-head) var(--gutter); }
+.variant-label { font-size: var(--fs-3xs); color: var(--muted); font-style: italic; padding: 18px var(--gutter) 8px; }
+.rule-note { margin: 16px var(--gutter) 0; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+@media (max-width: 600px) { .footer { flex-direction: column; gap: 8px; text-align: center; } }
+</style>
+
+<div class="page">
+  <div class="variant-label">Client statement</div>
+  <div class="footer">
+    <div class="fb">A777ANCE</div>
+    <div>Managed on-premises · HP t630 appliance · Account A77-000 &nbsp;·&nbsp; <a href="mailto:hello@a777ance.com">hello@a777ance.com</a> · (555) 000-0000</div>
+  </div>
+
+  <div class="variant-label">Operator portfolio</div>
+  <div class="footer wide">
+    <div class="fb">A777ANCE</div>
+    <div>Twenty homes, one view · individual statements bundled &amp; mailed · Member ALY-0000 · hello@a777ance.com</div>
+  </div>
+
+  <div class="rule-note"><strong>The footer's job is to close the document and name a way to reach a person.</strong> “Managed on-premises” is doing real work there — it is the last thing a homeowner reads, and it repeats the one fact that separates this from every cloud service: the box is in <em>their</em> house. Keep an email and a phone number on the client footer. Placeholder contact details here are <code>CHANGE_ME</code> stand-ins; real ones live in the generator's data, never in the public repo.</div>
+</div>

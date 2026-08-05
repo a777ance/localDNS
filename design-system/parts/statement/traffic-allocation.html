@@ -1,0 +1,52 @@
+<!-- @dsCard group="Statement" name="Traffic allocation" subtitle="Donut + ranked legend · seven categories" viewport="740x360" -->
+<style>
+.alloc { display: grid; grid-template-columns: 200px 1fr; gap: 40px; align-items: center; }
+.donut-wrap { position: relative; width: 184px; height: 184px; margin: 0 auto; }
+.donut { width: 184px; height: 184px; border-radius: 50%;
+  background: conic-gradient(var(--cat-1) 0% 30%, var(--cat-2) 30% 50%, var(--cat-3) 50% 66%, var(--cat-4) 66% 80%, var(--cat-5) 80% 90%, var(--cat-6) 90% 96%, var(--cat-7) 96% 100%); }
+.donut::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 108px; height: 108px; border-radius: 50%; background: var(--paper); }
+.donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 108px; }
+.donut-center .big { font-family: var(--font-fig); font-size: var(--fs-figure); color: var(--navy); line-height: 1; }
+.donut-center .lbl { font-size: var(--fs-6xs); letter-spacing: var(--ls-table); text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+.legend { width: 100%; border-collapse: collapse; }
+.legend td { padding: 5px 0; font-size: var(--fs-body); vertical-align: middle; }
+.legend .sw { width: 16px; }
+.legend .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 2px; }
+.legend .cat { color: var(--ink); padding-left: 4px; }
+.legend .pct { text-align: right; font-family: var(--font-fig); color: var(--navy); width: 44px; }
+.legend .vol { text-align: right; font-family: var(--font-fig); color: var(--muted); width: 64px; font-size: var(--fs-xs); }
+.rule-note { margin-top: 16px; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+@media (max-width: 600px) { .alloc { grid-template-columns: 1fr; gap: 22px; } }
+</style>
+
+<div class="page">
+  <div class="body">
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Traffic Allocation</div>
+        <div class="section-note">934 GB total · by category</div>
+      </div>
+      <div class="alloc">
+        <div class="donut-wrap">
+          <div class="donut"></div>
+          <div class="donut-center">
+            <div class="big">934<span style="font-size:var(--fs-base)"> GB</span></div>
+            <div class="lbl">Total Volume</div>
+          </div>
+        </div>
+        <table class="legend">
+          <tr><td class="sw"><span class="swatch" style="background:var(--cat-1)"></span></td><td class="cat">Streaming &amp; Video</td><td class="pct">30%</td><td class="vol">280.2 GB</td></tr>
+          <tr><td class="sw"><span class="swatch" style="background:var(--cat-2)"></span></td><td class="cat">Smart Home / IoT</td><td class="pct">20%</td><td class="vol">186.8 GB</td></tr>
+          <tr><td class="sw"><span class="swatch" style="background:var(--cat-3)"></span></td><td class="cat">Gaming &amp; Downloads</td><td class="pct">16%</td><td class="vol">149.4 GB</td></tr>
+          <tr><td class="sw"><span class="swatch" style="background:var(--cat-4)"></span></td><td class="cat">Social &amp; Messaging</td><td class="pct">14%</td><td class="vol">130.8 GB</td></tr>
+          <tr><td class="sw"><span class="swatch" style="background:var(--cat-5)"></span></td><td class="cat">Cloud &amp; Backups</td><td class="pct">10%</td><td class="vol">93.4 GB</td></tr>
+          <tr><td class="sw"><span class="swatch" style="background:var(--cat-6)"></span></td><td class="cat">Shopping &amp; Web</td><td class="pct">6%</td><td class="vol">56.0 GB</td></tr>
+          <tr><td class="sw"><span class="swatch" style="background:var(--cat-7)"></span></td><td class="cat">Other</td><td class="pct">4%</td><td class="vol">37.4 GB</td></tr>
+        </table>
+      </div>
+
+      <div class="rule-note"><strong>Do not ship this component yet.</strong> The per-category byte accounting it draws is scaffolded on the appliance (CLAUDE.md §F) but not stood up, so there is no measured number behind these slices. It lives in the design system so the shape is settled and reviewed — but a Statement that goes out for money omits this section until nftables is counting. Order the legend by share, largest first, and keep percent and volume both: a percentage alone invites the reader to guess the denominator.</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,57 @@
+<!-- @dsCard group="Statement" name="How You Compare" subtitle="Diverging axis vs. the average home — PLACEHOLDER DATA" viewport="740x330" -->
+<style>
+.cmp-axislabels { display: grid; grid-template-columns: 176px 1fr; margin-bottom: 10px; }
+.cmp-axislabels .ends { position: relative; display: flex; justify-content: space-between; font-size: var(--fs-6xs); letter-spacing: 0.08em; text-transform: uppercase; color: #aab2bd; }
+.cmp-axislabels .ctr { position: absolute; left: 50%; transform: translateX(-50%); }
+.cmp-axislabels .ctr span { font-size: 8.5px; letter-spacing: var(--ls-table); text-transform: uppercase; color: var(--muted); background: var(--paper); padding: 0 6px; }
+.cmp-row { display: grid; grid-template-columns: 176px 1fr; align-items: center; margin-bottom: 14px; }
+.cmp-row:last-child { margin-bottom: 0; }
+.cmp-metric { font-size: var(--fs-sm); color: var(--ink-body); padding-right: 14px; text-align: right; }
+.cmp-metric .vd { font-size: var(--fs-4xs); color: var(--muted); margin-top: 2px; }
+.cmp-track { position: relative; height: 18px; }
+.cmp-track::before { content: ''; position: absolute; left: 50%; top: -4px; bottom: -4px; border-left: var(--hairline) dashed #c2b89c; }
+.cmp-bar { position: absolute; top: 2px; height: 14px; border-radius: 3px; }
+.cmp-bar.right { left: 50%; }
+.cmp-bar.left { right: 50%; }
+.cmp-bar.good { background: var(--pos); }
+.cmp-bar.neutral { background: var(--neutral-bar); }
+.cmp-bar.bad { background: var(--neg); }
+.cmp-val { position: absolute; top: 50%; transform: translateY(-50%); font-family: var(--font-fig); font-size: var(--fs-2xs); color: var(--ink); white-space: nowrap; }
+.cmp-bar.right .cmp-val { left: 100%; margin-left: 7px; }
+.cmp-bar.left .cmp-val { right: 100%; margin-right: 7px; text-align: right; }
+.stop { margin-top: 16px; padding: 13px 16px; background: var(--alert-wash); border-left: var(--accent-edge) solid var(--alert); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.stop strong { color: var(--alert); }
+</style>
+
+<div class="page">
+  <div class="body">
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">How You Compare</div>
+        <div class="section-note">vs. similar households — large families, 12+ devices</div>
+      </div>
+      <div class="cmp-axislabels">
+        <div></div>
+        <div class="ends"><span>&#9666; below average</span><div class="ctr"><span>Average home</span></div><span>above average &#9656;</span></div>
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-metric">Total monthly volume</div>
+        <div class="cmp-track"><div class="cmp-bar neutral right" style="width:45.5%"><span class="cmp-val">934 GB &middot; +99%</span></div></div>
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-metric">Devices on the network</div>
+        <div class="cmp-track"><div class="cmp-bar neutral right" style="width:46.0%"><span class="cmp-val">18 &middot; +100%</span></div></div>
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-metric">Threats blocked / day<div class="vd">keeping a big house clean</div></div>
+        <div class="cmp-track"><div class="cmp-bar good right" style="width:35.4%"><span class="cmp-val">566/day &middot; +77%</span></div></div>
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-metric">Responsiveness under load<div class="vd">steady despite the crowd</div></div>
+        <div class="cmp-track"><div class="cmp-bar good left" style="width:24.4%"><span class="cmp-val">14 ms &middot; &minus;53%</span></div></div>
+      </div>
+
+      <div class="stop"><strong>Placeholder — must not ship for money.</strong> There is no real cohort dataset behind “the average home”, so every percentage above is invented. The component is here because the <em>form</em> is settled and worth reviewing: diverging axis, better-is-green regardless of direction, a plain-English gloss under any metric a homeowner wouldn't recognize. It earns a place on a real Statement the month a genuine peer benchmark exists — and not before. Never print an invented figure on a document someone keeps.</div>
+    </div>
+  </div>
+</div>

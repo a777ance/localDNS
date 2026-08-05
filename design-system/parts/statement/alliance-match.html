@@ -1,0 +1,78 @@
+<!-- @dsCard group="Statement" name="Connect in the Alliance" subtitle="Match card · avatar · QR · opt-in note" viewport="740x360" -->
+<style>
+.ally-intro { font-size: var(--fs-body); color: var(--ink-body); line-height: var(--lh-prose); margin-bottom: 16px; }
+.ally-card { display: grid; grid-template-columns: 78px 1fr 110px; gap: var(--sp-head); align-items: center; padding: var(--sp-head); background: linear-gradient(180deg, var(--card-grad-a), var(--card-grad-b)); border: var(--hairline) solid var(--rule); border-radius: var(--radius-lg); }
+.avatar { width: 78px; height: 78px; }
+.avatar svg { display: block; width: 100%; height: 100%; }
+.ally-name { font-size: var(--fs-lg); color: var(--navy); font-weight: 700; }
+.ally-role { font-size: var(--fs-2xs); color: var(--bronze); margin-top: 2px; }
+.ally-loc { font-size: var(--fs-3xs); color: var(--muted); margin-top: 2px; }
+.ally-blurb { font-size: var(--fs-sm); color: var(--ink-body); font-style: italic; line-height: var(--lh-tight); margin-top: 8px; }
+.ally-match { display: inline-block; margin-top: var(--sp-tight); font-size: var(--fs-4xs); color: var(--navy); background: var(--chip-bg); border: var(--hairline) solid var(--rule); border-radius: var(--radius-pill); padding: 3px 10px; }
+.ally-qr { text-align: center; }
+.ally-qr .frame { width: 92px; height: 92px; margin: 0 auto; padding: 8px; background: var(--white); border: var(--hairline) solid var(--rule); border-radius: var(--radius); }
+.ally-qr .frame svg { display: block; width: 100%; height: 100%; }
+.ally-qr .cap { font-size: var(--fs-5xs); color: var(--muted); margin-top: 6px; letter-spacing: 0.04em; }
+.ally-opt { font-size: var(--fs-3xs); color: var(--muted); font-style: italic; margin-top: 12px; text-align: center; }
+.rule-note { margin-top: 16px; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+@media (max-width: 600px) {
+  .ally-card { grid-template-columns: 1fr; text-align: center; gap: 14px; }
+  .avatar, .ally-qr { margin: 0 auto; }
+}
+</style>
+
+<div class="page">
+  <div class="body">
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Connect in the Alliance</div>
+        <div class="section-note">optional · always opt-in</div>
+      </div>
+      <div class="ally-intro">Your A777ance membership is also a network of people. Based on your household profile, we think you'd hit it off with a member who runs a busy, device-dense home like yours:</div>
+
+      <div class="ally-card">
+        <div class="avatar">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Member avatar placeholder">
+            <defs>
+              <radialGradient id="av-bg" cx="50%" cy="38%" r="70%">
+                <stop offset="0%" stop-color="#1c4a73"/><stop offset="100%" stop-color="#0e2640"/>
+              </radialGradient>
+              <clipPath id="av-circ"><circle cx="50" cy="50" r="50"/></clipPath>
+            </defs>
+            <g clip-path="url(#av-circ)">
+              <rect width="100" height="100" fill="url(#av-bg)"/>
+              <circle cx="50" cy="40" r="17" fill="#e6d6b8"/>
+              <path d="M18 100 C18 74 33 64 50 64 C67 64 82 74 82 100 Z" fill="#e6d6b8"/>
+            </g>
+            <circle cx="50" cy="50" r="48.5" fill="none" stroke="#a9803f" stroke-width="2.5"/>
+          </svg>
+        </div>
+        <div>
+          <div class="ally-name">Sample Member</div>
+          <div class="ally-role">Smart-home &amp; multi-device specialist</div>
+          <div class="ally-loc">A777ance member · 3.0 miles away</div>
+          <div class="ally-blurb">&ldquo;I wrangle big smart-home setups — separate lanes for the gadgets, guest networks, parental schedules. Always glad to swap tips.&rdquo;</div>
+          <span class="ally-match">Matched to: The Connected Family</span>
+        </div>
+        <div class="ally-qr">
+          <div class="frame">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 29 29" shape-rendering="crispEdges" role="img" aria-label="QR code placeholder">
+              <rect width="29" height="29" fill="#fff"/>
+              <g fill="#13314f">
+                <path d="M0 0h7v7H0zM22 0h7v7h-7zM0 22h7v7H0z"/>
+                <path fill="#fff" d="M1 1h5v5H1zM23 1h5v5h-5zM1 23h5v5H1z"/>
+                <path d="M2 2h3v3H2zM24 2h3v3h-3zM2 24h3v3H2z"/>
+                <path d="M9 0h1v2H9zM12 0h2v1h-2zM9 3h2v1H9zM13 2h1v3h-1zM11 5h2v1h-2zM9 6h1v1H9zM16 0h1v1h-1zM19 1h1v2h-1zM17 3h2v1h-2zM16 5h1v2h-1zM19 5h1v1h-1zM0 9h2v1H0zM3 9h1v2H3zM5 10h2v1H5zM1 12h1v2H1zM4 13h2v1H4zM0 16h1v2H0zM3 16h2v1H3zM6 18h1v1H6zM0 19h2v1H0zM9 9h2v1H9zM12 10h1v2h-1zM10 12h2v1h-2zM14 9h1v3h-1zM16 10h2v1h-2zM19 9h1v2h-1zM9 14h1v2H9zM12 14h2v1h-2zM15 15h2v1h-2zM18 14h1v2h-1zM10 17h2v1h-2zM13 18h1v2h-1zM16 17h1v2h-1zM19 18h2v1h-2zM22 9h1v2h-1zM24 10h2v1h-2zM27 9h1v1h-1zM22 12h2v1h-2zM25 13h1v2h-1zM27 12h1v3h-1zM22 16h1v2h-1zM24 17h2v1h-2zM27 17h1v2h-1zM22 20h2v1h-2zM26 20h2v1h-2zM9 22h2v1H9zM12 22h1v3h-1zM15 22h2v1h-2zM18 22h1v2h-1zM21 22h2v1h-2zM24 22h1v2h-1zM27 22h1v2h-1zM9 25h1v3H9zM11 25h2v1h-2zM14 25h1v2h-1zM16 25h2v1h-2zM19 25h1v3h-1zM22 25h2v1h-2zM25 26h1v2h-1zM27 26h2v1h-2zM11 27h3v1h-3zM16 27h2v1h-2zM22 27h2v1h-2z"/>
+              </g>
+            </svg>
+          </div>
+          <div class="cap">Scan to connect</div>
+        </div>
+      </div>
+      <div class="ally-opt">Prefer to keep to yourself? The Alliance directory is opt-in — you'll only ever appear, or be matched, if you choose to.</div>
+
+      <div class="rule-note"><strong>The opt-in line is part of the component, not a footnote.</strong> This card is the marketplace router — the point where a kept document turns into an introduction — so it is exactly where a homeowner is most entitled to be told they can decline. Ship the card and the opt-in sentence together, or don't ship the card. The QR above is a <em>placeholder pattern</em>, not a scannable code: real codes carry a real account URL and never belong in a public repo or a design-system card.</div>
+    </div>
+  </div>
+</div>

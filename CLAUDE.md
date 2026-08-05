@@ -25,6 +25,11 @@ These conventions apply across **every** A777ance repo — current and future. (
 - **Font: Gill Sans MT everywhere.** Every surface — customer-facing or internal — uses
   Gill Sans MT. Web/CSS stack:
   `'Gill Sans MT', 'Gill Sans', Calibri, 'Trebuchet MS', sans-serif`.
+- **Design surfaces inherit all of the above.** The look itself — tokens, the Statement
+  components, and the rules for working on them — lives in `localDNS/design-system/`, and is
+  mirrored into **Claude Design** (claude.ai/design) by `/design-sync`. Take a color or a size
+  from `tokens.css`; never invent one or sample it off a screenshot. Newest-first is a
+  *component behavior* too: a log that renders oldest-first is a bug, not a preference.
 
 ---
 
@@ -64,6 +69,7 @@ especially the customer-facing **Statements** it owns under `docs/statements/`.
 - [E. AMD Carrizo GPU](#e-amd-carrizo-gpu)
 - [G. LLM sampling doctrine — the Jury](#g-llm-sampling-doctrine--the-jury)
 - [H. Bifrost — command schema (loads every session)](#h-bifrost--command-schema-loads-every-session)
+- [I. Design system — the Claude Design bridge](#i-design-system--the-claude-design-bridge)
 - [1. Known issues](#1-known-issues)
 - [2. Verification](#2-verification)
 - [3. Working philosophy](#3-working-philosophy)
@@ -229,6 +235,10 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
+| `design-system/tokens/tokens.css` | repo-only (no system path) — THE source of truth for the look; hand-authored | `python3 design-system/build.py` |
+| `design-system/parts/**/*.html` | repo-only — hand-authored component fragments (`@dsCard` + style + markup) | `python3 design-system/build.py` |
+| `design-system/build.py` | run directly — composes parts + tokens into self-contained `previews/`; `--check` gates commits | `python3 design-system/build.py` |
+| `design-system/previews/**/*.html` | **generated + committed** — uploaded to Claude Design by `/design-sync`. Never hand-edit | — |
 | `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths) | `python3 tools/check-docs.py` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
 
@@ -428,6 +438,53 @@ physics, MASH turbulence, worked examples, changelog):
 
 ---
 
+## I. Design system — the Claude Design bridge
+
+`design-system/` holds the look — tokens, base layer, and every Statement component as a
+self-contained preview — plus the bridge that carries it into **Claude Design**
+(claude.ai/design). Adopted 2026-08-05.
+
+**Extracted, not invented.** Every token and component was pulled out of documents that
+already ship (`docs/statements/client/*.html`, `docs/statements/operator/*.html`). That
+direction is the point: the Statements are the product, and this is a description of them,
+kept honest by being derived. **When the two disagree, the shipped Statement wins** — the
+same rule as the live t630 versus this repo.
+
+**One source of truth, enforced by a build.** The palette is written once in
+`design-system/tokens/tokens.css`. `design-system/build.py` inlines it into each preview
+(a Design card must render standalone, no external requests) and generates
+`tokens/tokens.json`. `--check` fails the moment `previews/` drifts from `parts/`. Edit
+`parts/` and `tokens/*.css`; never edit `previews/` or `tokens.json`.
+
+**The whole way of working carries over.** `design-system/CONVENTIONS.md` is the briefing
+for design work — the public/private invariant, honesty of the kept document restated in
+design terms, plain-English component naming, house-style ordering as *component behavior*
+(a log that renders oldest-first is a bug), the Bifrost design lane, the sync protocol, and
+git. Read it before design work the way you read this file before touching the stack.
+
+**Sync with `/design-sync`** (`.claude/commands/design-sync.md`): build → `%` compliance
+gate → structural diff → plan → push. **Incremental, one component at a time — never a
+wholesale replace.** The gate runs before any upload and blocks real names, real accounts,
+real QR codes, pricing, secrets, and any unmeasured-data component whose warning block has
+gone missing.
+
+**Known limits (2026-08-05):**
+
+- The generated Statements are self-contained by design — the generator inlines their CSS
+  per household — so they do **not** yet consume `tokens.css`. The tokens are a faithful
+  copy, not a shared dependency: a change here does not reach a customer's document.
+  Teaching `docs/statements/tools/generate_client.py` to inline `design-system/tokens/`
+  is the next real step and is not done.
+- `DesignSync` needs a design-system authorization that `/design-login` can only grant
+  from an **interactive terminal**. A Claude Code *web* session cannot push; run the sync
+  from a terminal, or seed the workspace via Claude Design's "Send to Claude Code Web".
+- Two components — `How You Compare` and `Traffic allocation` — must not ship on a
+  Statement sold for money (no cohort dataset; nftables accounting not stood up, see
+  [section F](#f-nftables-volume-layer--deploy-checklist)). Each says so inside the card,
+  where a designer reaching for it will read it.
+
+---
+
 ## 1. Known issues
 
 | Issue | Action |
@@ -514,6 +571,11 @@ stated reason.
 - **docs/DEPLOY-PROTOCOL.md** — the **how** of deploying: the repeatable per-change procedure for landing one committed change on the live t630 safely (sync the checkout → diff → back up → validate → reload → verify the *effect*). Read it before `cp`-ing anything onto the box. Linked from README; the DEPLOY-QUEUE stages assume it.
 - **docs/DEPLOY-QUEUE.md** — the **what** of deploying: staging runbook of everything reconstructed/fixed in the repo but not yet on the live t630, in dependency order with copy-paste commands + per-stage verification. Work it once SSH to `192.168.1.118` is available. Linked from README.
 - **docs/architecture/clear-refeed-protocol.md** — the sync → clear → refeed ritual: how to wipe a stale session and re-seed the latest CLAUDE.md losslessly. With the `SessionStart` hook (`.claude/hooks/refeed.sh`) installed, bare `/clear` runs the whole thing end-to-end (fires the §G lazy anchor first, then loads the seed); the `.claude/commands/reseed.md` slash command (`/reseed`) handles the no-clear refresh — it pulls the current seed `--ff-only` on `main` before regenerating, so it never rebuilds a stale world. **The seed** = the four-file briefing set (CLAUDE.md + README + `docs/ai-cto/context.md` + `docs/architecture/network-context.md`).
+- **design-system/CONVENTIONS.md** — the briefing for design work: how the A777ance way of
+  working (house style, honesty rule, voice, public/private invariant, Bifrost, git) applies
+  on the Claude Design surface. Read it before touching `design-system/`, the way you read
+  this file before touching the stack. Its companion **design-system/README.md** covers the
+  bundle layout, the build, and how to add a component.
 - **docs/architecture/INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
 - **docs/architecture/SKILLS.md** — skills demonstrated by the stack, each mapped to proving artifacts
 - **PLUGINS.md** — which Claude Code Directory plugins apply to this config repo (short

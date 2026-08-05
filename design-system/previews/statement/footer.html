@@ -1,0 +1,257 @@
+<!-- @dsCard group="Statement" name="Statement footer" subtitle="Navy close · appliance line · one way to reach a person" viewport="740x200" -->
+<meta charset="utf-8">
+<title>Statement footer — A777ance design system</title>
+<style>
+/* A777ance design tokens — the single source of truth for the look.
+ *
+ * Extracted from the shipped Statements (docs/statements/client/*.html and
+ * docs/statements/operator/*.html). Every value here is one a real, printed
+ * Statement already uses — nothing was invented to fill a gap in the scale.
+ *
+ * House style: Gill Sans MT everywhere (see --font-sans).
+ * Groups below run newest-decision-first where they are time-based; the
+ * palette is grouped by role, not alphabetized, because role order is the
+ * useful order for picking a color.
+ */
+
+:root {
+
+  /* ── Type ───────────────────────────────────────────────────────────────
+   * One family, everywhere, on every surface — customer-facing or internal.
+   * --font-fig is the same stack with tabular figures switched on; use it on
+   * any number that sits in a column and has to line up.
+   */
+  --font-sans: 'Gill Sans MT', 'Gill Sans', Calibri, 'Trebuchet MS', sans-serif;
+  --font-fig:  'Gill Sans MT', 'Gill Sans', Calibri, 'Trebuchet MS', sans-serif;
+
+  /* Sizes, largest → smallest (house style: descending).
+   * The half-steps are real: the Statement is a dense one-page document and
+   * 11.5px vs 12px is a decision, not a rounding error. */
+  --fs-display: 28px;   /* portfolio KPI value */
+  --fs-figure:  23px;   /* donut center */
+  --fs-name:    22px;   /* household profile name */
+  --fs-brand:   21px;   /* A777ANCE wordmark */
+  --fs-mono:    19px;   /* monogram "A7" */
+  --fs-period:  17px;   /* statement period */
+  --fs-lg:      15px;   /* alliance member name */
+  --fs-md:      13.5px; /* summary table cell, affirmation title */
+  --fs-base:    13px;   /* body default, account field value */
+  --fs-body:    12.5px; /* running prose, log lines */
+  --fs-sm:      12px;   /* section title, roster cell */
+  --fs-xs:      11.5px; /* secondary prose */
+  --fs-2xs:     11px;   /* dates, captions */
+  --fs-3xs:     10.5px; /* section note, footer, chips */
+  --fs-4xs:     10px;   /* doc-title label */
+  --fs-5xs:     9.5px;  /* table head, KPI label */
+  --fs-6xs:     9px;    /* account-field key, eyebrow */
+
+  --lh-prose: 1.6;      /* multi-line customer prose */
+  --lh-tight: 1.5;      /* log entries, dense list rows */
+
+  /* Letterspacing — the Statement's "engraved" feel comes from these. */
+  --ls-brand:   0.16em; /* wordmark */
+  --ls-eyebrow: 0.2em;  /* brand sub-line */
+  --ls-label:   0.18em; /* doc-title label */
+  --ls-caps:    0.16em; /* section titles, account keys */
+  --ls-table:   0.12em; /* table headers */
+  --ls-loose:   0.1em;  /* KPI labels, severity chips */
+
+  /* ── Brand ──────────────────────────────────────────────────────────────
+   * Navy carries authority, bronze carries the human hand. Bronze is the
+   * accent that marks *a person did this* — the operator's name, the rule
+   * under the header, the border on the monogram. Use it sparingly; it stops
+   * meaning "someone was here" if it decorates everything.
+   */
+  --navy:       #13314f;  /* primary — headers, section titles, figures */
+  --navy-deep:  #0e2640;  /* gradient floor, reversed-out text on bronze */
+  --navy-mid:   #1c4a73;  /* gradient ceiling (monogram, avatar, badge) */
+  --bronze:     #a9803f;  /* accent — the human hand */
+  --bronze-soft:#c6a463;  /* accent on navy (meets contrast reversed out) */
+
+  /* ── Surface ────────────────────────────────────────────────────────── */
+  --paper:      #fbfaf7;  /* the document itself — warm, not white */
+  --canvas:     #e9ecf0;  /* the desk the document lies on */
+  --white:      #ffffff;  /* QR frames only — never a page background */
+  --rule:       #e6e2d6;  /* warm hairline, on paper */
+  --rule-2:     #eceef1;  /* cool hairline, between table rows */
+
+  /* ── Ink ────────────────────────────────────────────────────────────── */
+  --ink:        #1f2733;  /* default text */
+  --ink-body:   #3a4553;  /* running prose — softer than default */
+  --ink-sub:    #5a6573;  /* supporting detail under a heading */
+  --muted:      #8a93a0;  /* notes, captions, table headers */
+  --slate:      #9aa7b4;  /* disabled / furthest-back text */
+  --on-navy:    #8fb0cc;  /* text on the navy header + footer */
+  --on-navy-dim:#7e9fbb;  /* account-field keys on navy */
+  --on-navy-link:#b8d0e6; /* links in the navy footer */
+
+  /* ── Status ─────────────────────────────────────────────────────────────
+   * Four states, in severity order. Never carry state by color alone — every
+   * status in the Statements is also spelled out in words ("Needs attention",
+   * "High"), because these documents get printed, faxed, and photocopied.
+   */
+  --alert:      #b4542a;  /* high severity — operator attention list */
+  --neg:        #a0524a;  /* worse than the comparison baseline */
+  --amber:      #c08a2e;  /* medium severity — needs attention */
+  --watch:      #2d6aa8;  /* informational — worth a look, no action */
+  --pos:        #3f7a4d;  /* healthy, better than baseline */
+  --neutral-bar:#a8adb4;  /* neither good nor bad, just different */
+
+  /* Status tints — the wash behind a status block. */
+  --alert-wash: #fbf2ec;
+  --amber-wash: #fbf6ea;
+  --watch-wash: #eef4fa;
+  --pos-wash:   #eef4ef;
+  --pos-edge:   #d7e6da;
+  --pos-ink:    #2f5d3c;
+  --pos-ink-sub:#4a6a52;
+
+  /* ── Category ramp ──────────────────────────────────────────────────────
+   * Ordered navy → bronze → stone, largest share first. Sequential by design:
+   * the categories are ranked by volume, so the ramp reads as a ranking.
+   * NOT for unordered categorical data — it implies an order that isn't there.
+   */
+  --cat-1: #13314f;
+  --cat-2: #2d5a82;
+  --cat-3: #4d82a8;
+  --cat-4: #7aa6c4;
+  --cat-5: #a9803f;
+  --cat-6: #c6a463;
+  --cat-7: #ddd6c6;
+
+  /* ── Component washes ───────────────────────────────────────────────── */
+  --chip-bg:    #eef2f0;  /* profile chips, match pill */
+  --suggest-bg: #f5f7f9;  /* "Have you tried?" card */
+  --privacy-bg: #f2efe7;  /* the privacy note */
+  --privacy-ink:#5a5446;
+  --attn-bg:    #faf7f1;  /* operator attention row, default severity */
+  --card-grad-a:#fbfaf7;  /* alliance card gradient — top */
+  --card-grad-b:#f3f1ea;  /* alliance card gradient — bottom */
+
+  /* ── Space ──────────────────────────────────────────────────────────────
+   * The Statement's rhythm: a 44px page gutter, 26px between sections,
+   * 18px from a section head to its content.
+   */
+  --page-w:      740px;   /* client statement */
+  --page-w-wide: 760px;   /* operator portfolio — one more column to hold */
+  --gutter:      44px;
+  --gutter-sm:   20px;    /* under 600px, when read from the QR code */
+  --sp-section:  26px;
+  --sp-head:     18px;
+  --sp-row:      13px;
+  --sp-tight:    9px;
+
+  /* ── Line & shadow ──────────────────────────────────────────────────── */
+  --hairline:    1px;
+  --header-rule: 3px;     /* the bronze rule under the header */
+  --accent-edge: 3px;     /* left border on a called-out block */
+  --radius-sm:   4px;
+  --radius:      8px;
+  --radius-lg:   10px;
+  --radius-pill: 20px;
+  --shadow-page: 0 6px 40px rgba(0, 0, 0, 0.13);
+  --shadow-card: 0 4px 16px rgba(19, 49, 79, 0.25);
+  --shadow-qr:   0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* A777ance base layer — the page chrome every Statement component sits inside.
+ *
+ * Everything here is shared by both the client Statement and the operator
+ * Portfolio. Component-specific CSS belongs in that component's part file, not
+ * here: if only one component uses a rule, it is not base.
+ *
+ * Depends on tokens.css. Load that first.
+ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--canvas);
+  color: var(--ink);
+  padding: 40px 20px;
+}
+
+/* The document. A Statement is a piece of paper lying on a desk — the shadow
+ * and the warm --paper are what make it read as a kept document rather than a
+ * web page. Don't flatten them. */
+.page {
+  max-width: var(--page-w);
+  margin: 0 auto;
+  background: var(--paper);
+  box-shadow: var(--shadow-page);
+}
+.page.wide { max-width: var(--page-w-wide); }
+
+/* Any number that sits in a column. Tabular figures so digits line up. */
+.fig {
+  font-family: var(--font-fig);
+  font-feature-settings: "tnum";
+}
+
+.body { padding: 0 var(--gutter); }
+
+.section {
+  padding: var(--sp-section) 0;
+  border-bottom: var(--hairline) solid var(--rule);
+}
+.section:last-child { border-bottom: none; }
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--sp-head);
+}
+.section-title {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--navy);
+}
+/* The section note is where the plain-English caveat goes — the scope of the
+ * figures, the period, the "always opt-in". It is italic and quiet on purpose:
+ * it should be readable but never compete with the number it qualifies. */
+.section-note {
+  font-size: var(--fs-3xs);
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* Print — a Statement is mailed on paper as often as it is emailed. */
+@media print {
+  body { background: white; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { box-shadow: none; margin: 0; }
+}
+
+/* Read from a phone via the QR code: one scrollable column. */
+@media (max-width: 600px) {
+  body { padding: 0; }
+  .body { padding: 0 var(--gutter-sm); }
+}
+
+.footer { padding: 16px var(--gutter); display: flex; justify-content: space-between; align-items: center; background: var(--navy); color: var(--on-navy); font-size: var(--fs-3xs); }
+.footer .fb { font-weight: 700; letter-spacing: var(--ls-brand); color: #fff; font-size: var(--fs-2xs); }
+.footer a { color: var(--on-navy-link); text-decoration: none; }
+.footer.wide { padding: var(--sp-head) var(--gutter); }
+.variant-label { font-size: var(--fs-3xs); color: var(--muted); font-style: italic; padding: 18px var(--gutter) 8px; }
+.rule-note { margin: 16px var(--gutter) 0; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+@media (max-width: 600px) { .footer { flex-direction: column; gap: 8px; text-align: center; } }
+</style>
+<div class="page">
+  <div class="variant-label">Client statement</div>
+  <div class="footer">
+    <div class="fb">A777ANCE</div>
+    <div>Managed on-premises · HP t630 appliance · Account A77-000 &nbsp;·&nbsp; <a href="mailto:hello@a777ance.com">hello@a777ance.com</a> · (555) 000-0000</div>
+  </div>
+
+  <div class="variant-label">Operator portfolio</div>
+  <div class="footer wide">
+    <div class="fb">A777ANCE</div>
+    <div>Twenty homes, one view · individual statements bundled &amp; mailed · Member ALY-0000 · hello@a777ance.com</div>
+  </div>
+
+  <div class="rule-note"><strong>The footer's job is to close the document and name a way to reach a person.</strong> “Managed on-premises” is doing real work there — it is the last thing a homeowner reads, and it repeats the one fact that separates this from every cloud service: the box is in <em>their</em> house. Keep an email and a phone number on the client footer. Placeholder contact details here are <code>CHANGE_ME</code> stand-ins; real ones live in the generator's data, never in the public repo.</div>
+</div>

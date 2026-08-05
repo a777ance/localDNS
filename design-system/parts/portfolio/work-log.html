@@ -1,0 +1,32 @@
+<!-- @dsCard group="Portfolio" name="Work log" subtitle="Scope column · what carried the subscription" viewport="760x320" -->
+<style>
+.log { display: flex; flex-direction: column; }
+.lx { display: flex; gap: var(--sp-row); padding: 10px 0; border-bottom: var(--hairline) solid var(--rule-2); }
+.lx:last-child { border-bottom: none; }
+.lx .scope { font-family: var(--font-fig); font-size: var(--fs-2xs); color: var(--bronze); width: 70px; flex-shrink: 0; padding-top: 1px; }
+.lx .txt { font-size: var(--fs-body); color: var(--ink-body); line-height: var(--lh-tight); flex: 1; }
+.lx .txt b { color: var(--navy); }
+.rule-note { margin-top: 16px; padding: 13px 16px; background: var(--privacy-bg); border-left: var(--accent-edge) solid var(--bronze); font-size: var(--fs-xs); line-height: var(--lh-prose); color: var(--privacy-ink); }
+.rule-note strong { color: var(--navy); }
+</style>
+
+<div class="page wide">
+  <div class="body">
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">This Month, Across Your Homes</div>
+        <div class="section-note">your work log — what carried your subscription</div>
+      </div>
+      <div class="log">
+        <div class="lx"><div class="scope">20 / 20</div><div class="txt">Rolled out <b>Cloudflare's encrypted-DNS update (v2026.5)</b> to every home the day it shipped. No client saw a hiccup.</div></div>
+        <div class="lx"><div class="scope">20 / 20</div><div class="txt">Closed a <b>router-service security flaw (CVE-2026-3118)</b> across all appliances the morning it was disclosed.</div></div>
+        <div class="lx"><div class="scope">20 / 20</div><div class="txt">Refreshed ad &amp; tracker blocklists fleet-wide — <b>+4,100 new domains</b>.</div></div>
+        <div class="lx"><div class="scope">3 homes</div><div class="txt">Onboarded <b>7 new devices</b> (tablets, a console, two smart-home hubs) onto secure networks.</div></div>
+        <div class="lx"><div class="scope">2 homes</div><div class="txt"><b>Proactive hardware swaps</b> — power adapters reading flaky at two homes, replaced before failure.</div></div>
+        <div class="lx"><div class="scope">1 home</div><div class="txt">Re-pointed DNS mid-stream during an ISP routing change — <b>zero downtime</b>.</div></div>
+      </div>
+
+      <div class="rule-note"><strong>The scope column is the argument.</strong> “20 / 20” says one action covered the whole book — that is what dues buy, and why the fleet-wide rows sit above the single-home ones. Ordered by reach, not by effort. The client's “Handled For You” is the same log narrowed to one household and rewritten in their words; keep the two consistent, or a customer who compares notes with their operator finds a seam.</div>
+    </div>
+  </div>
+</div>
