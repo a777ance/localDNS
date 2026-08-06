@@ -184,3 +184,22 @@ person.
 A–F are the vessel; **G** is whom it serves; **C** is the tonic the vessel is keyed to,
 tuned to G. They share a letter with the core because the root of trust lives in the
 sealed center — and the vessel has no meaning apart from the service.
+
+---
+
+## Where this came from, and where it keeps growing
+
+This document is the **contract** — settled, load-bearing, and deliberately narrow. The
+open quarry it was cut from is [`microbiology/`](microbiology/README.md): a collection of
+extended metaphors from cell biology, held to a rule that each must make a falsifiable
+claim about this box and log its own disanalogy. Ideas live there until they have
+predicted something twice; then the *conclusion* is promoted here (if it is a
+naming/boundary rule), into an ADR (if it is a decision), or into `CLAUDE.md` (if it is
+an invariant), while the derivation stays behind.
+
+Two current entries bear directly on this grammar. **Amphiphiles** asks what crosses the
+membrane without transiting B or D at all — and finds that four of this stack's
+containers *fused* with the boundary rather than entering it. **Permeability and
+gradients** presses on the two-leaflet framing above: real leaflet asymmetry is
+maintained at continuous cost, and an inner-leaflet fact appearing on the outer face is
+itself the alarm.

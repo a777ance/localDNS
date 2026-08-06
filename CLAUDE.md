@@ -521,6 +521,11 @@ stated reason.
 - **docs/architecture/network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
 - **docs/architecture/cell-grammar.md** — supporting architecture notes
+- **docs/architecture/microbiology/** — the **microbiology collection**: extended
+  metaphors from cell biology, kept because they keep paying. The quarry
+  `cell-grammar.md` was cut from, and still open. Each entry must make a falsifiable
+  claim about *this* box and log its own disanalogy; nothing there is deployed, and
+  nothing there overrides this briefing or the live t630. Read its `README.md` first.
 - **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script.
 
 ---
