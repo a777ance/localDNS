@@ -18,6 +18,7 @@ on:
       - "docs/statements/**"
       - "docs/bifrost.html"
       - "docs/firefox-hardening.html"
+      - "docs/atlas.html"
       - ".github/workflows/pages.yml"
 
 permissions:
@@ -56,6 +57,7 @@ jobs:
           cp -a docs/statements/. _site/
           if [ -f docs/bifrost.html ]; then cp docs/bifrost.html _site/bifrost.html; fi
           if [ -f docs/firefox-hardening.html ]; then cp docs/firefox-hardening.html _site/firefox-hardening.html; fi
+          if [ -f docs/atlas.html ]; then cp docs/atlas.html _site/atlas.html; fi
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
