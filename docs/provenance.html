@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The Provenance Ladder — how A777ance governs epistemic inheritance: the tiers a claim can hold, the gates that check them, and the checker that enforces it.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧭%3C/text%3E%3C/svg%3E">
+<title>Provenance — governing epistemic inheritance</title>
+<style>
+  :root {
+    --ground:#f7f5f1; --surface:#fff; --surface-2:#f1eee8; --line:#ded8cc;
+    --ink:#1e2029; --muted:#5c5f6e; --faint:#8b8e9d;
+    --accent:#a8761c; --accent-ink:#7a5410; --accent-wash:#f6ecd8;
+    --warn:#b8452f; --warn-wash:#f8e7e2;
+    --m:#2f7f5b; --o:#3a7fa8; --d:#6b6fb5; --r:#b8862f; --a:#a8503f;
+    --radius:10px; --maxw:1080px; --prose:74ch;
+    --mono:"SFMono-Regular","SF Mono","Cascadia Code","JetBrains Mono",ui-monospace,Consolas,monospace;
+    --sans:"Gill Sans MT","Gill Sans",Calibri,"Trebuchet MS",sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#14161d; --surface:#1b1e27; --surface-2:#22262f; --line:#333846;
+      --ink:#e8e6e1; --muted:#a1a5b3; --faint:#717689;
+      --accent:#e0ab55; --accent-ink:#f2cd8e; --accent-wash:#33280f;
+      --warn:#e88a71; --warn-wash:#38211c;
+      --m:#5cc294; --o:#6bb6dd; --d:#9a9ee8; --r:#e0b45c; --a:#e08a76;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#14161d; --surface:#1b1e27; --surface-2:#22262f; --line:#333846;
+    --ink:#e8e6e1; --muted:#a1a5b3; --faint:#717689;
+    --accent:#e0ab55; --accent-ink:#f2cd8e; --accent-wash:#33280f;
+    --warn:#e88a71; --warn-wash:#38211c;
+    --m:#5cc294; --o:#6bb6dd; --d:#9a9ee8; --r:#e0b45c; --a:#e08a76;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--sans); font-size:17px; line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap { max-width:var(--maxw); margin:0 auto; padding:0 22px 96px; }
+  header.top { padding:52px 0 34px; border-bottom:1px solid var(--line); margin-bottom:34px; }
+  .eyebrow { font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent-ink); margin:0 0 10px; }
+  h1 { font-size:clamp(30px,4.6vw,46px); line-height:1.12; margin:0 0 14px; font-weight:600; letter-spacing:-.01em; }
+  .lede { font-size:20px; color:var(--muted); max-width:var(--prose); margin:0; }
+  .thesis {
+    margin:26px 0 0; padding:16px 20px; border-left:3px solid var(--accent);
+    background:var(--accent-wash); border-radius:0 var(--radius) var(--radius) 0;
+    max-width:var(--prose); color:var(--ink);
+  }
+  h2 { font-size:26px; margin:56px 0 6px; font-weight:600; letter-spacing:-.005em; scroll-margin-top:20px; }
+  h2 .num { color:var(--faint); font-variant-numeric:tabular-nums; margin-right:.5em; font-weight:400; }
+  h3 { font-size:19px; margin:32px 0 6px; font-weight:600; }
+  p, li { max-width:var(--prose); }
+  p { margin:12px 0; }
+  a { color:var(--accent-ink); text-decoration-thickness:1px; text-underline-offset:2px; }
+  code { font-family:var(--mono); font-size:.88em; background:var(--surface-2); padding:1px 5px; border-radius:4px; }
+  pre { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+        padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:13.5px; line-height:1.55; }
+  pre code { background:none; padding:0; font-size:inherit; }
+  .scroll { overflow-x:auto; margin:18px 0; }
+  table { border-collapse:collapse; width:100%; min-width:640px; font-size:15px; background:var(--surface);
+          border:1px solid var(--line); border-radius:var(--radius); }
+  th, td { text-align:left; padding:10px 13px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { background:var(--surface-2); font-weight:600; font-size:13px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); }
+  tr:last-child td { border-bottom:none; }
+  td p, td li { max-width:none; }
+  .tier { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px;
+          border-radius:6px; font-weight:700; font-size:14px; color:#fff; flex:none; }
+  .t-M{background:var(--m)} .t-O{background:var(--o)} .t-D{background:var(--d)} .t-R{background:var(--r)} .t-A{background:var(--a)}
+  nav.toc { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+            padding:16px 20px; margin:32px 0 0; }
+  nav.toc ol { margin:8px 0 0; padding-left:20px; columns:2; column-gap:32px; }
+  @media (max-width:640px){ nav.toc ol { columns:1; } }
+  nav.toc li { margin:4px 0; max-width:none; }
+  .callout { border:1px solid var(--line); border-left:3px solid var(--warn); background:var(--warn-wash);
+             padding:14px 18px; border-radius:0 var(--radius) var(--radius) 0; margin:20px 0; max-width:var(--prose); }
+  .callout strong:first-child { color:var(--warn); }
+  .rule { border:1px solid var(--line); background:var(--surface); border-radius:var(--radius);
+          padding:14px 18px; margin:14px 0; max-width:var(--prose); }
+  .rule b { display:block; margin-bottom:2px; }
+  figure { margin:26px 0; }
+  figcaption { font-size:14px; color:var(--muted); margin-top:10px; max-width:var(--prose); }
+  footer { margin-top:72px; padding-top:22px; border-top:1px solid var(--line); color:var(--muted); font-size:14px; }
+  .toggle { position:fixed; top:14px; right:14px; background:var(--surface); color:var(--muted);
+            border:1px solid var(--line); border-radius:999px; padding:6px 13px; font-family:var(--sans);
+            font-size:13px; cursor:pointer; }
+  .toggle:hover { color:var(--ink); }
+</style>
+</head>
+<body>
+<button class="toggle" id="tt" aria-label="Toggle colour theme">◐ theme</button>
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">A777ance · localDNS · governance</p>
+  <h1>Provenance — governing epistemic inheritance</h1>
+  <p class="lede">Every claim in this repo arrived from somewhere. This page defines the
+  tiers a claim can hold, the rules that move it between them, the gates that check it
+  before it reaches anything irreversible, and the script that enforces all three.</p>
+  <p class="thesis"><strong>The one law:</strong> nothing here gets truer by being copied.
+  Transmission — quoting, summarising, reformatting, publishing, agreeing — preserves or
+  lowers a claim's tier. Only fresh contact with the origin raises it.</p>
+
+  <nav class="toc" aria-label="Contents">
+    <strong>Contents</strong>
+    <ol>
+      <li><a href="#defect">The defect</a></li>
+      <li><a href="#ladder">The Ladder</a></li>
+      <li><a href="#physics">The physics</a></li>
+      <li><a href="#gates">The gates</a></li>
+      <li><a href="#marking">Marking</a></li>
+      <li><a href="#enforcement">Enforcement</a></li>
+      <li><a href="#laundering">Laundering — failure catalogue</a></li>
+      <li><a href="#field">Field procedure</a></li>
+      <li><a href="#log">Revision log</a></li>
+    </ol>
+  </nav>
+</header>
+
+<h2 id="defect"><span class="num">1</span>The defect: epistemic inheritance</h2>
+
+<p>An artifact's authority is <em>inherited</em> from whatever it was made from. That is
+normally invisible, because the inheritance is fine — a config read off the running box
+inherits the box's authority. The defect appears when a step in the chain <strong>looks
+like</strong> verification but is only transmission, and the artifact ends up cited at a
+tier its source never held.</p>
+
+<p>Two cases from this repo, months and three orders of magnitude apart, with identical
+structure:</p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Case</th><th>The loop</th><th>What made it invisible</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>The jury menu</strong><br><span style="color:var(--muted);font-size:14px">2026-08-07</span></td>
+      <td>A kept transcript supplied the four candidate labels for a later run, because it
+      was the "reference". Nobody had ever chosen those four labels on the merits — their
+      only provenance was an earlier copy of themselves.</td>
+      <td>The second run agreed with the first, and agreement reads as confirmation. It
+      wasn't: a shared option set correlates the draws, and correlated jurors agree
+      <em>because</em> they're correlated.</td>
+    </tr>
+    <tr>
+      <td><strong>The reconstructed configs</strong><br><span style="color:var(--muted);font-size:14px">ongoing</span></td>
+      <td>Docs were written <em>from</em> the live box. Configs were later rebuilt
+      <em>from those docs</em>. Those configs are the repo's rollback target — so if one is
+      ever deployed unverified, the box takes its state from a description of itself.</td>
+      <td>The files are real, syntactically valid, and sit in the same directory as configs
+      that <em>were</em> read off the box. Nothing in the filesystem distinguishes them.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Same shape both times: <strong>a claim rose a tier by being moved.</strong> That is the
+thing this page governs. It is not a documentation problem — it is a problem of what the
+repo is <em>for</em>, since a rollback target that can't tell you where it came from is not
+a rollback target.</p>
+
+<div class="callout">
+<strong>Why a page is not enough, and why this one ships with a script.</strong>
+The root-cause finding that produced this page was that doctrine in prose is
+<em>advisory</em>: runs inherit their behaviour from the file that executes them, so an
+invariant living only in a briefing gets re-broken by the next operator following that
+briefing faithfully. A page about epistemic governance that is only a page would be the
+same defect wearing its own uniform. The enforceable half is
+<code>tools/check-provenance.py</code> (§6).
+</div>
+
+<h2 id="ladder"><span class="num">2</span>The Ladder</h2>
+
+<p>Five tiers, highest first. The tier answers one question — <em>what did this come from,
+and is that thing the origin or a description of it?</em></p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Tier</th><th>Means</th><th>Licensed to</th><th>Example here</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><span class="tier t-M">M</span> <strong>Measured</strong></td>
+      <td>A number this stack actually produced, with the command that produced it. The only
+      tier that may carry a figure.</td>
+      <td>Print on a customer Statement · size a jury · close an issue</td>
+      <td>The <code>/diet</code> table (120 questions, seed 7) in the jury reference session</td>
+    </tr>
+    <tr>
+      <td><span class="tier t-O">O</span> <strong>Observed</strong></td>
+      <td>Read off the source of truth — the live t630 — rather than off a description of
+      it. Not a metric; a state.</td>
+      <td>Deploy · be cited in the briefing as fact · overwrite a repo file</td>
+      <td>A config <code>diff</code>ed against <code>192.168.1.118</code> and dated</td>
+    </tr>
+    <tr>
+      <td><span class="tier t-D">D</span> <strong>Derived</strong></td>
+      <td>Follows deterministically from stated M/O inputs. Never higher than its weakest
+      input — cite them.</td>
+      <td>Whatever its weakest input is licensed to</td>
+      <td>"85 Mbit is 85% of the measured downlink" — D over an M</td>
+    </tr>
+    <tr>
+      <td><span class="tier t-R">R</span> <strong>Reconstructed</strong></td>
+      <td>Rebuilt from a <em>description</em> of the thing rather than the thing. Plausible,
+      often correct, and structurally unable to certify itself.</td>
+      <td>Be reviewed · be staged in the deploy queue. <strong>Never</strong> deployed
+      undiffed, never quoted as fact</td>
+      <td><code>local-records.conf</code>, the console units, the LiteLLM front door</td>
+    </tr>
+    <tr>
+      <td><span class="tier t-A">A</span> <strong>Asserted</strong></td>
+      <td>Design intent, plan, or lore. No origin outside the author. Legitimate — just
+      never mistaken for the other four.</td>
+      <td>Be argued with</td>
+      <td>The Odin roster; anything in <code>docs/chronikonomicon/</code></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>R is the dangerous rung</strong>, and it is dangerous precisely because it is
+useful. Reconstruction is how this repo got back a rollback target for services whose
+configs were never snapshotted. The tier is not a criticism of the work; it is the label
+that keeps the work from being mistaken for a reading.</p>
+
+<h2 id="physics"><span class="num">3</span>The physics</h2>
+
+<figure>
+<svg viewBox="0 0 720 260" role="img" aria-label="Ladder diagram: transmission moves claims sideways or down; only contact with the origin moves them up." style="width:100%;height:auto;max-width:720px">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <g font-family="Gill Sans MT, Gill Sans, Calibri, sans-serif" font-size="13">
+    <!-- rungs -->
+    <g>
+      <rect x="60" y="26"  width="230" height="30" rx="6" style="fill:var(--m)" opacity=".16"/>
+      <rect x="60" y="70"  width="230" height="30" rx="6" style="fill:var(--o)" opacity=".16"/>
+      <rect x="60" y="114" width="230" height="30" rx="6" style="fill:var(--d)" opacity=".16"/>
+      <rect x="60" y="158" width="230" height="30" rx="6" style="fill:var(--r)" opacity=".16"/>
+      <rect x="60" y="202" width="230" height="30" rx="6" style="fill:var(--a)" opacity=".16"/>
+      <text x="74" y="46"  style="fill:var(--ink)" font-weight="600">M · measured</text>
+      <text x="74" y="90"  style="fill:var(--ink)" font-weight="600">O · observed</text>
+      <text x="74" y="134" style="fill:var(--ink)" font-weight="600">D · derived</text>
+      <text x="74" y="178" style="fill:var(--ink)" font-weight="600">R · reconstructed</text>
+      <text x="74" y="222" style="fill:var(--ink)" font-weight="600">A · asserted</text>
+    </g>
+    <!-- transmission: sideways / down, free -->
+    <g color="var(--muted)" stroke="currentColor" fill="none" stroke-width="1.6">
+      <path d="M300 173 C 360 173, 360 173, 420 173" marker-end="url(#ar)"/>
+      <path d="M300 178 C 360 200, 360 205, 420 217" marker-end="url(#ar)"/>
+    </g>
+    <text x="430" y="168" style="fill:var(--muted)">copy · quote · reformat · publish · agree</text>
+    <text x="430" y="188" style="fill:var(--muted)" font-style="italic">tier preserved, or lowered — never raised</text>
+    <!-- promotion: only via origin -->
+    <g color="var(--accent)" stroke="currentColor" fill="none" stroke-width="2">
+      <path d="M175 158 L 175 104" marker-end="url(#ar)"/>
+    </g>
+    <text x="188" y="130" style="fill:var(--accent-ink)" font-weight="600">diff vs the live box</text>
+    <text x="188" y="148" style="fill:var(--muted)">the only way up</text>
+    <text x="60" y="252" style="fill:var(--faint)">Agreement, repetition and formatting are all transmission.</text>
+  </g>
+</svg>
+<figcaption>The asymmetry is the whole system: moving a claim is free and never promotes it;
+promotion costs a trip to the origin.</figcaption>
+</figure>
+
+<div class="rule"><b>1 · Transmission never promotes.</b>
+Copying, quoting, summarising, reformatting, publishing, and voting all preserve or lower a
+tier. If you cannot name what <em>new</em> contact with the origin occurred, no promotion
+happened.</div>
+
+<div class="rule"><b>2 · Agreement is not provenance.</b>
+Five sources agreeing is one source if they share an ancestor. This is the jury result
+generalised: at <code>rho=0.9</code> a vote's lift is <code>Δ=+0.00</code> while per-draw
+accuracy is unchanged — unanimity is equally the signature of a strong panel and a
+collapsed one. Independence is a property of <em>origins</em>, not of counts.</div>
+
+<div class="rule"><b>3 · A derived claim is as strong as its weakest input.</b>
+D over an R is an R. One unverified input taints the conclusion, no matter how sound the
+reasoning on top of it.</div>
+
+<div class="rule"><b>4 · Age is not verification.</b>
+An R-tier file does not become O-tier by surviving in git for six months. Conversely an
+O-tier reading <em>decays</em> — the box drifts — so a stale observation must be re-taken,
+not re-labelled. Staleness never lowers a recorded tier; it invalidates its currency.</div>
+
+<div class="rule"><b>5 · Format is not evidence.</b>
+Rendering a claim as a table, a rendered page, a PDF, or a customer Statement changes
+nothing about where it came from. The most dangerous promotion in this portfolio is
+R → "printed on a document a customer keeps".</div>
+
+<h2 id="gates"><span class="num">4</span>The gates</h2>
+
+<p>Tiers only matter where a claim crosses into something you can't take back. Four
+crossings in this stack, each with a minimum tier:</p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Gate</th><th>Crossing</th><th>Minimum</th><th>Mechanism</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Deploy</strong></td><td>repo → the live t630</td>
+      <td><span class="tier t-O">O</span></td>
+      <td><a href="https://github.com/a777ance/localDNS/blob/main/docs/DEPLOY-PROTOCOL.md">DEPLOY-PROTOCOL</a>: diff before overwrite, validate before reload, verify the <em>effect</em>. An R-tier file must be staged in DEPLOY-QUEUE and diffed on the box — that diff <em>is</em> the promotion.</td></tr>
+    <tr><td><strong>Print</strong></td><td>repo → a customer Statement</td>
+      <td><span class="tier t-M">M</span></td>
+      <td>The honesty invariant: omit the section rather than print an unsupported figure. People keep these documents.</td></tr>
+    <tr><td><strong>Brief</strong></td><td>a session's inference → CLAUDE.md</td>
+      <td><span class="tier t-O">O</span> / label it</td>
+      <td>The seed is read as authority by every future session. An inference written into it unlabelled is laundered into fact on the next <code>/clear</code>.</td></tr>
+    <tr><td><strong>Verdict</strong></td><td>model draws → a decision</td>
+      <td><span class="tier t-M">M</span> to certify</td>
+      <td>§G: a keyless plurality certifies that the elicitation converged, not that the answer is right. Measured <code>p̂</code> or it stays unpriced.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>These are <strong>Bifrost <code>*()</code> gates</strong> in the command schema: <code>*</code>
+cuts the road into dispensations and <code>()</code> states what must hold before the next
+opens. Provenance is what goes inside the parentheses. The lazy anchor is affordable
+precisely because the irreversible steps ride past a light — and "what tier is this?" is
+what the light checks.</p>
+
+<h2 id="marking"><span class="num">5</span>Marking</h2>
+
+<p>One tag, in whatever comment syntax the file speaks. It records what the artifact came
+<em>from</em> — not what it describes.</p>
+
+<pre><code>&lt;!-- provenance: R · rebuilt from docs/architecture/network-context.md "Step 12" · 2026-08-07 · verify: DEPLOY-QUEUE Stage 12 --&gt;
+
+# provenance: M · python3 …/jury_claude.py diet (120 q, seed 7) · 2026-08-07</code></pre>
+
+<p>Fields, <code>·</code>-separated: <strong>tier</strong> · <strong>source</strong> ·
+<strong>date the claim was made</strong> · optional <code>verify:</code> — the route back to
+an origin outside the loop. R and A tiers <em>must</em> carry <code>verify:</code>; a tier
+with no promotion path is a dead end that quietly ages into assumed truth.</p>
+
+<p><strong>Untagged is not a tier.</strong> An untagged file is unknown provenance, which the
+gates treat as R until someone establishes otherwise. Coverage is reported, not assumed —
+today 2 of 48 deploy targets carry a tag, and the checker prints that ratio on every run
+rather than hiding it behind a green tick.</p>
+
+<h2 id="enforcement"><span class="num">6</span>Enforcement</h2>
+
+<p><code>python3 tools/check-provenance.py</code> — standard library only, same house
+pattern as <code>tools/check-docs.py</code>. It fails on:</p>
+
+<ul>
+  <li>a tier letter not on the ladder, a missing source, a malformed or future-dated claim;</li>
+  <li>an R- or A-tier tag with no <code>verify:</code> route;</li>
+  <li>an R- or A-tier <em>deploy target</em> that is not staged in
+      <code>docs/DEPLOY-QUEUE.md</code> — the specific path by which a description of the box
+      becomes the box.</li>
+</ul>
+
+<p>And reports, as warnings, M/O observations older than <code>--stale-days</code> (180 by
+default) — <em>re-observe, don't re-label</em>. <code>--strict</code> promotes staleness to a
+failure and additionally requires every deploy target to be tagged; the default is
+adoptable today, and <code>--strict</code> is where this ends up once the box is reachable
+and the reconstructed set has been diffed.</p>
+
+<pre><code>$ python3 tools/check-provenance.py
+R    01-core-network/unbound/local-records.conf  ←  rebuilt from CLAUDE.md § D …  (2026-08-07)
+M    …/examples/workout-bootstrap-paradox-session.md  ←  two juror panels + diet …  (2026-08-07)
+…
+Deploy-target coverage: 2/48 tagged  (run --strict to require full coverage)
+
+All 5 provenance tag(s) valid.</code></pre>
+
+<h2 id="laundering"><span class="num">7</span>Laundering — the failure catalogue</h2>
+
+<p>Named so they can be called out in review. Every one of these is a tier rising without
+contact with an origin.</p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Name</th><th>The move</th><th>Tell</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Reconstruction loop</strong></td>
+      <td>Docs written from the thing; the thing rebuilt from the docs; the rebuild treated as the thing.</td>
+      <td>You cannot name a date on which anyone looked at the original.</td></tr>
+    <tr><td><strong>Consensus laundering</strong></td>
+      <td>Multiple outputs of one prior counted as multiple sources of evidence.</td>
+      <td>The sources would have agreed even if the fact were false.</td></tr>
+    <tr><td><strong>Format laundering</strong></td>
+      <td>A guess acquires authority by being rendered — a table, a published page, a kept document.</td>
+      <td>The claim got more confident and nothing new was learned.</td></tr>
+    <tr><td><strong>Briefing capture</strong></td>
+      <td>A session writes its own inference into the seed; the next session reads it as standing fact.</td>
+      <td>The briefing asserts something no commit or command ever established.</td></tr>
+    <tr><td><strong>Lore bleed</strong></td>
+      <td>A-tier narrative (rosters, names, mythology) restated as configuration.</td>
+      <td>"Snapshot it from the live box, don't fabricate it from lore."</td></tr>
+    <tr><td><strong>Staleness promotion</strong></td>
+      <td>An old reading treated as current because nothing contradicted it.</td>
+      <td>The date on the claim predates changes to the thing it describes.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="field"><span class="num">8</span>Field procedure</h2>
+
+<p><strong>The one question</strong>, asked of any claim about to cross a gate:</p>
+
+<p class="thesis"><em>Where did this enter from outside the loop?</em> If the answer is "an
+earlier copy of itself", it has no origin — you are about to deploy, print, or believe a
+bootstrap paradox.</p>
+
+<h3>Promoting R → O</h3>
+<ol>
+  <li>Fetch the live artifact from <code>192.168.1.118</code> — the actual file, not its documentation.</li>
+  <li><code>diff</code> it against the repo copy. Reconcile <em>toward the box</em>; the box is the source of truth.</li>
+  <li>Update the tag: tier <code>O</code>, source = the command you ran, date = today, drop <code>verify:</code>.</li>
+  <li>Commit the diff resolution and the tag in the same change, so the promotion has a record.</li>
+</ol>
+<p>Steps 1–2 are the promotion. Steps 3–4 are what stop the next session from re-deriving
+it — <strong>RCPS</strong>: root-cause and record, interleaved, neither counting alone.</p>
+
+<h3>Reviewing someone else's claim</h3>
+<p>Ask for the tier, not for reassurance. "How confident are you?" invites transmission;
+"what did that come from, and when?" cannot be answered by repetition.</p>
+
+<h2 id="log"><span class="num">9</span>Revision log</h2>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Date</th><th>Change</th></tr></thead>
+  <tbody>
+    <tr><td>2026-08-07</td><td>Page created. Ladder (M/O/D/R/A), five physics rules, four gates, tag grammar, <code>tools/check-provenance.py</code>, laundering catalogue. Prompted by the root-cause finding behind the jury honesty flags — that doctrine in prose is advisory — and by the reconstructed-config set, which is the same defect at deploy scale.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<footer>
+  <p><strong>A777ance · localDNS.</strong> Companions:
+  <a href="./bifrost.html">Bifrost</a> (command schema — <code>*()</code> governance is where these gates live) ·
+  <a href="./edda.html">The Edda</a> (stack handbook) ·
+  <code>CLAUDE.md</code> §3 (RCPS) and §G (sampling doctrine).</p>
+  <p>The live t630 is the source of truth. When this page disagrees with the box, the box wins —
+  which is itself the only rule on it that needed no page.</p>
+</footer>
+
+</div>
+<script>
+  (function () {
+    var b = document.getElementById('tt');
+    b.addEventListener('click', function () {
+      var cur = document.documentElement.getAttribute('data-theme');
+      if (!cur) {
+        cur = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+    });
+  })();
+</script>
+</body>
+</html>

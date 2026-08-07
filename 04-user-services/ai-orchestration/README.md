@@ -1,5 +1,7 @@
 # AI orchestration — the LLM router (route, not shard)
 
+<!-- provenance: R · rebuilt from CLAUDE.md + docs/architecture/network-context.md "Step 12. LLM router" · 2026-08-07 · verify: docs/DEPLOY-QUEUE.md Stage 12 — pin model IDs and the Tailscale host on the box -->
+
 > **Front door reconstructed from documentation, not yet verified against the live
 > box.** `docker-compose.yml`, `config.yaml`, and `.env.example` are rebuilt from
 > CLAUDE.md and `docs/architecture/network-context.md` "Step 12". Pin the model IDs

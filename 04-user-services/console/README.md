@@ -1,5 +1,7 @@
 # Console — the High Seat
 
+<!-- provenance: R · rebuilt from CLAUDE.md topology table + Known issues + docs/ai-cto/context.md Step 13 · 2026-08-07 · verify: docs/DEPLOY-QUEUE.md Stage 13 — diff each unit against 192.168.1.118 -->
+
 > **Reconstructed from documentation, not yet verified against the live box.**
 > These files are rebuilt from the CLAUDE.md topology table, the Known-issues
 > entries, and `docs/ai-cto/context.md` (Step 13). The live t630 at

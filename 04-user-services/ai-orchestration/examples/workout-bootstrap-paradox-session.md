@@ -1,5 +1,7 @@
 # Reference sessions — `/workout` on "bootstrap paradox"
 
+<!-- provenance: M · two in-harness juror panels + `python3 04-user-services/ai-orchestration/jury-claude/jury_claude.py diet` (120 q, seed 7) · 2026-08-07 -->
+
 **Two runs of the same prompt, newest-first**, kept as the **good example of how an
 in-harness Jury run should report itself** — including, and especially, how it states
 what it did *not* prove.

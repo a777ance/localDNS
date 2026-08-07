@@ -229,6 +229,7 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
+| `tools/check-provenance.py` | run directly (validate provenance tags; fail on an unstaged `R`-tier deploy target, an `R`/`A` tag with no `verify:` route, or a malformed claim; `--strict` also requires full deploy-target coverage) | `python3 tools/check-provenance.py` |
 | `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths) | `python3 tools/check-docs.py` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
 
@@ -537,6 +538,28 @@ repetition alone. Ask where it entered from *outside* the loop; if the answer is
 earlier copy of itself", it has no origin and you are cargo-culting a bootstrap
 paradox. Worked case: `04-user-services/ai-orchestration/examples/workout-bootstrap-paradox-session.md`.
 
+**The Provenance Ladder governs that check** — the full grammar, gates, and failure
+catalogue live in `docs/provenance.html` (published at
+<https://a777ance.github.io/localDNS/provenance.html>). The short form, which is
+binding here:
+
+- **Tiers:** `M` measured (a figure this stack produced, with its command) · `O` observed
+  (read off the live box) · `D` derived (no higher than its weakest input) · `R`
+  reconstructed (rebuilt from a *description* of the thing) · `A` asserted (intent, plan,
+  lore). **Untagged reads as `R`.**
+- **Transmission never promotes.** Copying, quoting, reformatting, publishing, and
+  agreeing all preserve or lower a tier; only fresh contact with the origin raises it.
+  Agreement is not provenance — five sources sharing an ancestor are one source (§G's
+  collapsed jury, generalized). Age is not verification: an `R` file does not ripen into
+  an `O` file in git, and a stale `O` means *re-observe, don't re-label*.
+- **Gates (minimum tier to cross):** deploy to the box → `O`; print on a Statement → `M`;
+  write into the seed/briefing as fact → `O` or label the tier; certify a jury verdict →
+  measured `p̂`. These are the Bifrost `*()` release conditions (§H) — provenance is what
+  goes inside the parentheses.
+- **Mark it, don't remember it:** `provenance: TIER · source · date · verify: …` in the
+  file's own comment syntax; `R`/`A` must carry the `verify:` route back to an origin.
+  `python3 tools/check-provenance.py` enforces it (see § C).
+
 **Deploy & git hygiene** — the summary; full procedure in
 [docs/DEPLOY-PROTOCOL.md](docs/DEPLOY-PROTOCOL.md):
 
@@ -580,6 +603,7 @@ stated reason.
 - **docs/architecture/network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
 - **docs/architecture/cell-grammar.md** — supporting architecture notes
+- **docs/provenance.html** — **the Provenance Ladder**: how a claim earns authority here (`M`/`O`/`D`/`R`/`A`), why transmission never promotes a tier, the four gates that check one before anything irreversible, the tag grammar, and the laundering catalogue. Published at <https://a777ance.github.io/localDNS/provenance.html>. Read it before citing a reconstructed config as fact or a plurality as a verdict — enforced by `tools/check-provenance.py`.
 - **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script.
 
 ---

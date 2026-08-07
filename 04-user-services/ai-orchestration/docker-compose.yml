@@ -1,3 +1,5 @@
+# provenance: R · rebuilt from CLAUDE.md + docs/architecture/network-context.md "Step 12. LLM router" · 2026-08-07 · verify: docs/DEPLOY-QUEUE.md Stage 12 — diff vs ~/llm-router on 192.168.1.118
+#
 # Deploys to: ~/llm-router/docker-compose.yml
 # Reload: cd ~/llm-router && docker compose up -d
 #
