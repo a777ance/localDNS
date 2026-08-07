@@ -412,12 +412,18 @@ founder uses it. A keyboard-spatial notation: hold `Shift` and sweep the number 
 `!@#$%^&*()` left→right; each glyph is an *archetype* (a role) fulfilled by slash commands +
 a plain-language sub-prompt.
 
-- **Backbone:** `~` continuity/lazy-anchor · `` ` `` descriptor · `!` cargo (a *manifest*) ·
-  `@` source (read from) · `#` repo/destination (write to) · `$` sanity · `%` compliance ·
-  `^` cars/lanes · `&` rotary (also the sequential form) · `*` stop signal (red by default) ·
-  `()` governance (release conditions). Off-row `~`/`` ` `` stage; keys 1–4 **Preload** — a
-  complete manifest (*what · from where · to where · against what*); `%` (key 5) **gateway**;
-  keys 6–0 **Travel**.
+- **Backbone:** `'` ignition (begins the Bifrost) · `~` continuity/lazy-anchor · `` ` ``
+  descriptor · `!` cargo (a *manifest*) · `@` source (read from) · `#` repo/destination (write
+  to) · `$` sanity · `%` compliance · `^` cars/lanes · `&` rotary (also the sequential form) ·
+  `*` stop signal (red by default) · `()` governance (release conditions). Off-row
+  `'`/`~`/`` ` `` stage; keys 1–4 **Preload** — a complete manifest (*what · from where · to
+  where · against what*); `%` (key 5) **gateway**; keys 6–0 **Travel**.
+- **`'` is always the signal to begin the Bifrost** (founder's rule, 2026-08-07 — fixes a mobile
+  bug). Treat `'`, `'` (curly) and `′` as the same glyph, and treat **presence and absence as
+  the same string**: `' ~ !…` ≡ `~ !…`, `''` ≡ `'`. It marks *where* the Bifrost starts, never
+  *what* runs, so it takes no sub-prompt, no `/how`, no intensity dial, and scores `0`
+  turbulence. A letter-flanked `'` (`don't`, `founder's`) is prose in a sub-prompt, not an
+  ignition — only a free-standing `'` ignites. Never ask which apostrophe the phone chose.
 - **`~` is the §G lazy anchor:** fire the first token ASAP (very low effort — the *model*
   stays high), and let continuity coalesce **mid-flight**; more `~` = lazier.
 - **`*` cuts the road into Dispensations.** Each chunk is bounded and self-governing; `()`
