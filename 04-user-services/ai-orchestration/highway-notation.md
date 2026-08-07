@@ -27,7 +27,7 @@ number row (`'`, `~`, `` ` ``); keys **1–4** are the **Preload** (stage everyt
 
 | Key | Glyph | Phase | Archetype | Meaning |
 | :-- | :-- | :-- | :-- | :-- |
-| `'` | `'` | Staging | Ignition | The **start signal**: everything from here rightward is read as Bifrost. Carries no sub-prompt and no slash command. **Optional by construction — a string means the same thing with or without it** (see the note below). |
+| `'` | `'` | Staging | Ignition | The **start signal**: everything from here rightward is read as Bifrost. Carries no sub-prompt and no slash command. **Optional by construction — a string means the same thing with or without it.** A **bare `'`** (nothing after it) is the **reference call** — print the schema card. See the note below. |
 | `~` | `~` | Staging | Continuity / Lazy Anchor | The plain-language **requirement**, the **continuity operator** (coalesce / carry-forward / interleave prior context/state; "stay in the Bifrost schema," loaded at session start), **and the immediate top-line lazy anchor** — see the note below. The **only archetype with no slash command**. Visual: a bridge. |
 | `` ` `` | `` ` `` | Staging | Descriptor | Inline qualifier, renders **shaded**; **subordinate to `~`** — it hangs under the requirement and describes it (e.g. `` `yellow, large, browning, bunch` ``). |
 | `1` | `!` | Preload | Cargo | The **manifest** — *what* is carried. Cargo is not executed on loading; the road decides when each item acts. |
@@ -68,6 +68,47 @@ number row (`'`, `~`, `` ` ``); keys **1–4** are the **Preload** (stage everyt
 > `~` and `` ` ``, are buried behind the deeper symbols page. Ignition gives a thumb-typed
 > string a reachable opener, and spatially it already sits where an opener belongs: on the home
 > row, left of Enter — the last key before you send.
+
+> **A bare `'` is the reference call.** Send `'` and nothing else and the answer is the **schema
+> card** (below) — ignition with no road behind it, so the bridge shows you itself. This is the
+> mobile affordance: on a phone you cannot skim a spec, and the glyph you want is the one you
+> can't remember. One tap of the most reachable key on the keyboard returns the whole backbone.
+>
+> - **It does not break the with-or-without invariant.** That identity quantifies over
+>   *non-empty* remainders: `' R` ≡ `R` for any `R`. Strip the `'` from a bare `'` and what is
+>   left is the empty message — not a Bifrost at all — so the degenerate case was never bound by
+>   the identity, and defining it costs nothing. `''` ≡ `'` still holds: it returns the same card.
+> - **Precedent — Bifrost already reads bare glyphs.** A bare `*` is a full stop awaiting manual
+>   release; a bare `%` is a compliance check with no sub-prompt (§6, Example 1). A bare glyph is
+>   the archetype with its slots empty, not a syntax error.
+> - **Null effect, and that is the point.** The reference call reads nothing, writes nothing, and
+>   runs no cargo — there is no `!` manifest to fire and no `#` to write to. This matters
+>   precisely *because* autocorrect inserts apostrophes unbidden: the character most likely to
+>   arrive by accident must have the most harmless standalone meaning available. A stray `'`
+>   costs you a reference card. Fail-safe, in the same spirit as `*` being red by default.
+> - **The card is phone-shaped.** One glyph per line — glyph, archetype, a few words — never the
+>   §1 table, which is unreadable on a narrow screen. It is printed in **Golden Rule order**
+>   (left→right along the road), *not* the house Z→A ordering: the order is the notation's
+>   meaning, the same reason step numbers are never renumbered.
+> - **It is free to answer.** Bifrost loads with the session briefing, so the card is already in
+>   context — the reference call reconstructs nothing and reads no file. Another **external
+>   enzyme**, in the §1 sense: preloaded schema, so the response is pure reflex.
+>
+> ```text
+> '   ignition     begins the Bifrost — optional; bare = this card
+> ~   continuity   lazy anchor: first token ASAP, coalesce in-flight
+> `   descriptor   qualifies the ~ requirement (shaded)
+> !   cargo        the manifest — what rides (not fired on loading)
+> @   source       read FROM
+> #   repo         write TO (two-way)
+> $   sanity       tollbooth — check against known-good
+> %   compliance   weigh station — the gateway onto the road
+> ^   cars         lanes; ^^^ = 3, each addressable with a sub-prompt
+> &   rotary       nested full sub-highway; also the sequential form
+> *   stop         red by default — cuts the road into Dispensations
+> ()  governance   release conditions; re-flag returns upstream
+> +   more / tighter      -   invert into a stress test      /   command lane
+> ```
 
 > **`!` cargo vs. `^` cars — the split.** These were one glyph ("Payloads (Cars)"), fusing
 > *what is carried* with *what carries it*. They are now separate, and the separation is
@@ -420,6 +461,16 @@ around it. The founder should never have to look at which apostrophe their phone
 Note also that `docs/statements/` and a sub-prompt like `the founder's intro` both contain
 characters the soft tier would otherwise fight over; only a **free-standing** `'` ignites.
 
+**Example 6 — the reference call** (the whole message is one character):
+
+```text
+'
+```
+
+Ignition with no road behind it ⇒ print the **schema card** (§1). Reads nothing, writes nothing,
+fires no cargo. The degenerate case of the most-reachable key on a phone keyboard is also the
+safest thing a stray autocorrect can produce.
+
 ---
 
 ## 7. Changelog & superseded passes
@@ -428,7 +479,16 @@ Newest first. Recorded so reviewers can trace intent; **git history of this file
 exact line-by-line diff.** This is a live design — earlier passes were deliberately
 superseded, not mistakes.
 
-- **`'` promoted to Ignition — the mobile fix (current).** Founder-reported bug from a phone:
+- **Bare `'` = the reference call (current).** Sending `'` alone prints the **schema card** — a
+  phone-shaped one-line-per-glyph backbone in Golden Rule order (§1). Ignition with no road
+  behind it, so the bridge shows you itself; the mobile affordance for "I can't skim a spec and
+  can't remember the glyph." It does **not** break the with-or-without invariant, which
+  quantifies over *non-empty* remainders (`' R` ≡ `R`) — strip the mark from a bare `'` and what
+  is left is the empty message, never a Bifrost, so the degenerate slot was always free. Follows
+  the existing bare-glyph precedent (bare `*`, bare `%`). **Null effect by design:** reads
+  nothing, writes nothing, fires no cargo — the character autocorrect inserts unbidden gets the
+  most harmless standalone meaning available.
+- **`'` promoted to Ignition — the mobile fix.** Founder-reported bug from a phone:
   the apostrophe is the one character a mobile keyboard will not hold still (smart punctuation
   swaps `'` for `'`, autocorrect inserts one unbidden, another keyboard drops it), and `'` sat in
   the **soft tier** where it meant nothing in particular — so the same string differed between

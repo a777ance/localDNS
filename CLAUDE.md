@@ -424,6 +424,28 @@ a plain-language sub-prompt.
   *what* runs, so it takes no sub-prompt, no `/how`, no intensity dial, and scores `0`
   turbulence. A letter-flanked `'` (`don't`, `founder's`) is prose in a sub-prompt, not an
   ignition — only a free-standing `'` ignites. Never ask which apostrophe the phone chose.
+- **A bare `'` (the whole message) = the reference call — print the schema card**, the block
+  below, verbatim-ish and phone-shaped. Answer it *immediately*: the card is already in this
+  briefing, so it reads no file and reconstructs nothing. Null effect — no cargo fires, nothing
+  is written. Don't break the with-or-without invariant worrying about it: that identity covers
+  non-empty remainders only, so the bare case was always free. Order is the road's, **not** the
+  house Z→A rule — the order *is* the meaning.
+
+  ```text
+  '   ignition     begins the Bifrost — optional; bare = this card
+  ~   continuity   lazy anchor: first token ASAP, coalesce in-flight
+  `   descriptor   qualifies the ~ requirement (shaded)
+  !   cargo        the manifest — what rides (not fired on loading)
+  @   source       read FROM
+  #   repo         write TO (two-way)
+  $   sanity       tollbooth — check against known-good
+  %   compliance   weigh station — the gateway onto the road
+  ^   cars         lanes; ^^^ = 3, each addressable with a sub-prompt
+  &   rotary       nested full sub-highway; also the sequential form
+  *   stop         red by default — cuts the road into Dispensations
+  ()  governance   release conditions; re-flag returns upstream
+  +   more / tighter      -   invert into a stress test      /   command lane
+  ```
 - **`~` is the §G lazy anchor:** fire the first token ASAP (very low effort — the *model*
   stays high), and let continuity coalesce **mid-flight**; more `~` = lazier.
 - **`*` cuts the road into Dispensations.** Each chunk is bounded and self-governing; `()`

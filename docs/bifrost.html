@@ -294,7 +294,7 @@
         <table>
           <thead><tr><th>Glyph</th><th>Key</th><th>Phase</th><th>Archetype</th><th>Meaning</th></tr></thead>
           <tbody>
-            <tr><td class="glyph">'</td><td class="key">'</td><td><span class="phase stage">Staging</span></td><td class="arch">Ignition</td><td>The <b>start signal</b> — everything from here rightward is read as Bifrost. No sub-prompt, no slash command. <b>Optional by construction:</b> a string means the same thing with or without it. See the note below.</td></tr>
+            <tr><td class="glyph">'</td><td class="key">'</td><td><span class="phase stage">Staging</span></td><td class="arch">Ignition</td><td>The <b>start signal</b> — everything from here rightward is read as Bifrost. No sub-prompt, no slash command. <b>Optional by construction:</b> a string means the same thing with or without it. A <b>bare <code>'</code></b> is the <b>reference call</b> — print the schema card. See the note below.</td></tr>
             <tr><td class="glyph">~</td><td class="key">~</td><td><span class="phase stage">Staging</span></td><td class="arch">Continuity / Anchor</td><td>The requirement + the <b>continuity operator</b> (coalesce, carry-forward, interleave prior state; "stay in the schema") <b>and the immediate lazy anchor</b>. The only archetype with no slash command. See §2·The Anchor.</td></tr>
             <tr><td class="glyph">`</td><td class="key">`</td><td><span class="phase stage">Staging</span></td><td class="arch">Descriptor</td><td>Inline qualifier, renders shaded; <b>subordinate to <code>~</code></b> — hangs under the requirement (e.g. <code>`yellow, browning`</code>).</td></tr>
             <tr><td class="glyph">!</td><td class="key">1</td><td><span class="phase">Preload</span></td><td class="arch">Cargo</td><td>The <b>manifest</b> — <em>what</em> is carried. Cargo is <b>not executed on loading</b>; the road decides when each item acts.</td></tr>
@@ -320,6 +320,34 @@
         <div class="facet"><h4>Off-road for turbulence</h4><p>Like <code>~</code> and <code>`</code>, it holds no position in the Golden Rule and scores <code>0</code> toward <code>K</code> (§6). A phone-inserted apostrophe can never push a chunk toward MASH.</p></div>
         <div class="facet"><h4>Contractions are not ignitions</h4><p>A <code>'</code> with a letter on <b>both</b> sides — <code>don't</code>, <code>founder's</code> — is prose inside a sub-prompt. Only a <b>free-standing</b> <code>'</code> ignites: at the head of the string, or between slots.</p></div>
         <div class="facet"><h4>Why this key</h4><p>The apostrophe is the punctuation a phone hands you most readily, while both other staging glyphs sit behind the deeper symbols page. And it already sits where an opener belongs: home row, left of Enter — the last key before you send.</p></div>
+      </div>
+
+      <h3 style="margin-top:2rem">A bare <code>'</code> is the reference call</h3>
+      <div class="anchor-intro">
+        <p>Send <code>'</code> and nothing else and the answer is the <b>schema card</b> below — ignition with no road behind it, so the bridge shows you itself. This is the mobile affordance: on a phone you cannot skim a spec, and the glyph you want is the one you can't remember. One tap of the most reachable key on the keyboard returns the whole backbone.</p>
+      </div>
+      <div class="facets">
+        <div class="facet"><h4>It does not break the invariant</h4><p>"With or without" quantifies over <em>non-empty</em> remainders: <code>' R</code> ≡ <code>R</code>. Strip the mark from a bare <code>'</code> and what is left is the empty message — never a Bifrost — so the degenerate slot was always free. <code>''</code> ≡ <code>'</code> still holds: same card.</p></div>
+        <div class="facet"><h4>Bare glyphs are already read</h4><p>A bare <code>*</code> is a full stop awaiting manual release; a bare <code>%</code> is a compliance check with no sub-prompt (§7·1). A bare glyph is the archetype with its slots empty, not a syntax error.</p></div>
+        <div class="facet"><h4>Null effect — and that is the point</h4><p>It reads nothing, writes nothing, fires no cargo: there is no <code>!</code> manifest and no <code>#</code> to write to. Because autocorrect inserts apostrophes unbidden, the character most likely to arrive by accident must carry the most harmless standalone meaning available. A stray <code>'</code> costs you a reference card.</p></div>
+        <div class="facet"><h4>Phone-shaped, road-ordered</h4><p>One glyph per line — never the §1 table, unreadable on a narrow screen. Printed in <b>Golden Rule order</b>, not the house Z→A ordering: here the order <em>is</em> the meaning, the same reason step numbers are never renumbered.</p></div>
+        <div class="facet"><h4>Free to answer</h4><p>Bifrost loads with the session briefing, so the card is already in context — the call reconstructs nothing and reads no file. Another <b>external enzyme</b> (§2): preloaded schema, so the response is pure reflex.</p></div>
+      </div>
+      <div class="example" style="margin-top:18px">
+        <p class="cap-label">the card</p>
+        <pre><span class="k">'</span>   ignition     begins the Bifrost — optional; bare = this card
+~   continuity   lazy anchor: first token ASAP, coalesce in-flight
+`   descriptor   qualifies the ~ requirement (shaded)
+!   cargo        the manifest — what rides (not fired on loading)
+@   source       read FROM
+#   repo         write TO (two-way)
+$   sanity       tollbooth — check against known-good
+%   compliance   weigh station — the gateway onto the road
+^   cars         lanes; ^^^ = 3, each addressable with a sub-prompt
+&amp;   rotary       nested full sub-highway; also the sequential form
+*   stop         red by default — cuts the road into Dispensations
+()  governance   release conditions; re-flag returns upstream
++   more / tighter      -   invert into a stress test      /   command lane</pre>
       </div>
 
       <p style="font-size:.9rem;color:var(--muted);margin-top:1.5rem"><b>Cargo vs. cars.</b> These were one glyph ("Payloads (Cars)"), fusing <em>what is carried</em> with <em>what carries it</em>. Split, the separation is load-bearing: because <code>!</code> is a manifest, an item at road position 1 does <b>not</b> fire at position 1 — it rides until the road lets it act. That is what makes it safe to declare an irreversible command (<code>/share</code>, <code>/deploy</code>) in a string whose gate sits far downstream (§5, <em>the one-way door</em>).</p>
@@ -484,13 +512,20 @@
           <li>Note that <code>docs/statements/</code> and a sub-prompt like <code>the founder's intro</code> both carry marks the soft tier would otherwise fight over. Only a <b>free-standing</b> <code>'</code> ignites.</li>
         </ul>
       </div>
+
+      <div class="example">
+        <p class="cap-label">6 · the reference call — the whole message is one character</p>
+        <pre><span class="k">'</span></pre>
+        <p style="font-size:.9rem;color:var(--muted)">Ignition with no road behind it ⇒ print the <b>schema card</b> (§1). Reads nothing, writes nothing, fires no cargo. The degenerate case of the most-reachable key on a phone keyboard is also the safest thing a stray autocorrect can produce.</p>
+      </div>
     </section>
 
     <section>
       <h2><span class="num">§8</span> Changelog &amp; lineage</h2>
       <p class="lede">Newest first. A live design — earlier passes were deliberately superseded, not mistakes. Git history of the source file is the exact line-by-line diff.</p>
       <div class="log">
-        <div class="entry now"><h4><code>'</code> promoted to Ignition — the mobile fix</h4><p>Founder-reported bug from a phone: the apostrophe is the one character a mobile keyboard will not hold still (smart punctuation swaps <code>'</code> for <code>&rsquo;</code>, autocorrect inserts one unbidden, another keyboard drops it), and <code>'</code> sat in the <b>soft tier</b> meaning nothing in particular — so the same string differed between phone and desktop in an undefined character. New rule: <b><code>'</code> is always the signal to begin the Bifrost</b>, defined so presence and absence are the <em>same string</em> (<code>' ~ !…</code> ≡ <code>~ !…</code>), form-agnostic across <code>'</code>/<code>&rsquo;</code>/<code>&prime;</code>, idempotent (<code>''</code> ≡ <code>'</code>, immune to the intensity dials), and scoring <code>0</code> turbulence — with a carve-out that a letter-flanked <code>'</code> (<code>don't</code>) is prose, not an ignition. Removed <code>'</code> from the soft tier (now <code>" : ;</code>); added the off-road turbulence rule and worked example 5.</p></div>
+        <div class="entry now"><h4>Bare <code>'</code> = the reference call</h4><p>Sending <code>'</code> alone prints the <b>schema card</b> — a phone-shaped one-line-per-glyph backbone in Golden Rule order (§1). Ignition with no road behind it, so the bridge shows you itself: the mobile affordance for "I can't skim a spec and can't remember the glyph." It does <b>not</b> break the with-or-without invariant, which quantifies over <em>non-empty</em> remainders (<code>' R</code> ≡ <code>R</code>) — strip the mark from a bare <code>'</code> and what is left is the empty message, never a Bifrost, so the degenerate slot was always free. Follows the existing bare-glyph precedent (bare <code>*</code>, bare <code>%</code>). <b>Null effect by design:</b> reads nothing, writes nothing, fires no cargo — the character autocorrect inserts unbidden gets the most harmless standalone meaning available.</p></div>
+        <div class="entry"><h4><code>'</code> promoted to Ignition — the mobile fix</h4><p>Founder-reported bug from a phone: the apostrophe is the one character a mobile keyboard will not hold still (smart punctuation swaps <code>'</code> for <code>&rsquo;</code>, autocorrect inserts one unbidden, another keyboard drops it), and <code>'</code> sat in the <b>soft tier</b> meaning nothing in particular — so the same string differed between phone and desktop in an undefined character. New rule: <b><code>'</code> is always the signal to begin the Bifrost</b>, defined so presence and absence are the <em>same string</em> (<code>' ~ !…</code> ≡ <code>~ !…</code>), form-agnostic across <code>'</code>/<code>&rsquo;</code>/<code>&prime;</code>, idempotent (<code>''</code> ≡ <code>'</code>, immune to the intensity dials), and scoring <code>0</code> turbulence — with a carve-out that a letter-flanked <code>'</code> (<code>don't</code>) is prose, not an ignition. Removed <code>'</code> from the soft tier (now <code>" : ;</code>); added the off-road turbulence rule and worked example 5.</p></div>
         <div class="entry"><h4>Cargo/car split · I/O pair · governance · the Dispensation</h4><p>The largest pass since the archetype model. <code>!</code> "Payloads (Cars)" splits into <code>!</code> <b>cargo</b> (a manifest — not executed on loading) and <code>^</code> <b>cars</b> (vehicles; each takes a sub-prompt, so lanes are addressable). Arity instantiates cars only when no <code>^</code> is present — explicit always wins. <code>@</code> reassigned from "signage" to <b>source</b> (read from); <code>#</code> sharpened to <b>destination</b> (write to, two-way), making keys 1–4 a complete manifest. <code>*</code> is a <b>stop signal, red by default</b>; <code>(&nbsp;)</code> is <b>governance</b> — the conjunction of release conditions — with three outcomes: satisfied, re-flagged (return upstream), unsatisfiable (eject). Added chunking / the <b>one-way door</b> and named the chunk a <b>Dispensation</b>. Turbulence now scores <b>per chunk</b>: end-to-end, ten chapter-gates total <code>K=45</code> and a perfectly orderly novel would MASH panic-abort. Retired the "<code>!</code> reads visually as a car" rationale.</p></div>
         <div class="entry"><h4><code>~</code> sharpened to the lazy anchor</h4><p>Actual continuity, first token ASAP, mid-flight; laziness spectrum; the anti-Preload. The full "Anchor" essay (§2).</p></div>
         <div class="entry"><h4>Intensity dials + schema continuity</h4><p><code>+</code>/repetition = more; <code>&minus;</code> inverts into a stress test; <code>~</code> = stay in-schema.</p></div>
