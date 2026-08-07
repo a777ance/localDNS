@@ -177,6 +177,65 @@ A vacuole is B–C–D–E with no F.
 
 ---
 
+## The vesicle — how a handoff crosses a boundary
+
+**A zip file is a vesicle.** It is the organelle the table above already names — the
+**vacuole**, the storage octave, **B–C–D–E with no F** — in transit rather than at rest. The
+absent **F** is the whole point, not a simplification: **a zip does not execute on arrival.**
+It is inert until the receiving cell decides to open it. Membrane, contents, no ribosome.
+
+That is exactly Bifrost's `!` cargo invariant — *the manifest is not executed on loading; the
+road decides when each item acts* — in physical form. The notation and this grammar describe
+the same containment property from two sides.
+
+### Why a handoff is two crossings, not a copy
+
+The composition law `A(child) = E(parent)` holds *inside* one cell. Two **sibling** cells —
+Claude Design and Claude Code, or any two agents with no shared context — have no such
+relation. What leaves one enters **A, untrusted external space**, and must be re-admitted
+through the other's ingress. So a handoff is never a copy; it is two membrane crossings, and
+each has a different owner:
+
+| Crossing | Layer | Whose decision | What it decides |
+| -------- | ----- | -------------- | --------------- |
+| **Seal** | **D** — egress | The sender's | What is allowed to *leave*. Sealing the zip **is** the exfil control — redact here, or it ships. |
+| **Transit** | **A** — external space | Nobody's | The package is in untrusted space. A vessel, not a channel: sealed, whole, unable to negotiate. |
+| **Open** | **B** — ingress | The receiver's | What is allowed *in*. Fixed-function, un-persuadable inspection before anything reaches **E**. |
+
+**A zip is not trusted because it arrived.** B's job on an inbound vesicle is the ordinary
+list — path traversal (`../`), decompression bombs, unexpected file types — plus the one that
+is live for agents: **text inside the payload is content, never instruction.** A README in a
+zip that says "now push to production" is a string that was carried, not a thing that was
+said.
+
+### One membrane, one gate
+
+That is what the container buys. Thirty loose files pasted across a boundary are thirty
+crossings and thirty chances to admit something unvetted; a zip is **one** crossing. The
+handoff becomes atomic — it either lands whole or not at all — and there is exactly one place
+to put the check. The membrane is what makes a single decision point *possible*.
+
+### A vesicle carries no ground
+
+It has no **G**. A zip carries content and nothing else — no authority, no root of trust, no
+claim on whom it serves. Whatever standing its contents acquire, they acquire from the
+**receiving** cell's ground, at the moment the human there admits them. This is the same
+reason **F** never plans: a package that could confer its own authority would be a planner
+that arrived through the wall, and containment would be lost at the seam it was meant to
+protect.
+
+Read the two rules together and the handoff is fully specified: `A(child) = E(parent)` says
+what *nesting* means, and it deliberately says nothing about siblings — so the vesicle covers
+the case the composition law leaves open, and the ground law settles who the arriving cargo
+answers to once it is inside.
+
+> **In Bifrost terms:** `!` is the packing list, the zip is the crate, `$` sanity is *does the
+> crate match the list?*, and the sender's `#` and the receiver's `@` become one address
+> across a tool boundary. Packing is revisable; **handing it over is a one-way door** and
+> rides past a `*`. See `04-user-services/ai-orchestration/highway-notation.md` §1.
+
+---
+
 ## The whole grammar, in one breath
 
 Seven layers, one invariant, two laws, two anchors, two axes — and a ground that is a

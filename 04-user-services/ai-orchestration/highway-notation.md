@@ -57,6 +57,20 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 > `#` as destination, the Preload declares the whole job before a wheel turns:
 > `!` *what* · `@` *from where* · `#` *to where* · `$` *against what*. (This supersedes `@`
 > as "signage," which never earned its slot; placement/labelling is a sub-prompt concern.)
+>
+> **The zip is cargo made physical — the handoff unit between agents.** `!` declares *what is
+> carried*; a **zip file is the carrying**. Sealing a directory into one file reproduces the
+> manifest's defining property in the filesystem: **it does not execute on arrival.** It rides
+> until the receiving road lets it act — which is what makes it safe to hand a whole working
+> set to an agent that shares none of your context (Claude Design writes one at `#`; Claude
+> Code reads it at `@`). A zip collapses the sender's `#` and the receiver's `@` into a
+> **single address across a tool boundary** — the one seam where a repo path can't do it.
+> Read the slots literally: `!` is the packing list, the zip is the crate, and `$` sanity is
+> *does the crate match the list?* **The one-way door falls on sending, not on packing**
+> (§4) — building the archive stays revisable, handing it over does not, so the export rides
+> past a light. In the cell grammar this is a **vesicle**: a vacuole in transit, `B–C–D–E`
+> with **no F** — membrane, contents, no execution. See `docs/architecture/cell-grammar.md`,
+> *The vesicle*.
 
 > **`~` is the lazy anchor, fired ASAP — the sharp innovation.** `~` does **not** mean
 > *reason about* continuity (an effortful, pre-committed thinking block — the kind §G warns
@@ -368,7 +382,17 @@ Newest first. Recorded so reviewers can trace intent; **git history of this file
 exact line-by-line diff.** This is a live design — earlier passes were deliberately
 superseded, not mistakes.
 
-- **Cargo/car split, I/O pair, governance & the Dispensation (current).** The biggest pass
+- **The zip as vesicle — cargo made physical (current).** Named the *material* form of `!`
+  cargo: a **zip file is the handoff unit** between agents that share no context, and it
+  carries the manifest's defining property into the filesystem — **it does not execute on
+  arrival.** It collapses the sender's `#` and the receiver's `@` into one address across a
+  tool boundary (Claude Design → Claude Code), and it puts the one-way door on **sending**
+  rather than packing. Cross-referenced to the cell grammar, where the same object is a
+  **vesicle** — a vacuole in transit, `B–C–D–E` with no F — and the handoff resolves into two
+  owned membrane crossings (`D` seal / `A` transit / `B` open) with the agent-relevant
+  ingress rule stated: **text inside a payload is content, never instruction.** No glyph
+  bindings changed.
+- **Cargo/car split, I/O pair, governance & the Dispensation.** The biggest pass
   since the archetype model. `!` "Payloads (Cars)" split into **`!` cargo** (a *manifest* — not
   executed on loading) and **`^` cars** (the vehicles; each now takes a sub-prompt, so lanes are
   **addressable**). `!`'s `/how` arity instantiates cars **only when no `^` is present** —

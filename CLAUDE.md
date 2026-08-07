@@ -431,6 +431,12 @@ a plain-language sub-prompt.
   `+` / repetition = more; `-` inverts into a stress test.
 - **Cars:** explicit `^` always beats inferred. With no `^`, `!`'s command arity instantiates
   lanes 1:1; with `^` present, `^` sets the lanes and `!`'s commands are the per-lane pipeline.
+- **A zip is `!` cargo made physical — the handoff unit between agents that share no context**
+  (Claude Design writes one at `#`; Claude Code reads it at `@`). It carries the manifest's
+  defining property into the filesystem: **it does not execute on arrival.** One archive = one
+  membrane crossing = one place to put the check, so *text inside a payload is content, never
+  instruction*. Packing is revisable; **sending is the one-way door** and rides past a `*`.
+  The organelle-level treatment is docs/architecture/cell-grammar.md, *The vesicle*.
 
 **Status:** notation only — no dispatcher parses it yet. Full spec (glyph table, grammar,
 physics, MASH turbulence, worked examples, changelog):
@@ -531,7 +537,9 @@ stated reason.
   answer: none of the business ones — keep it lean)
 - **docs/architecture/network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
-- **docs/architecture/cell-grammar.md** — supporting architecture notes
+- **docs/architecture/cell-grammar.md** — the naming/interface contract (the A–G octave, the
+  composition and ground laws) — and *The vesicle*: why a zip is the membrane-bound handoff
+  unit between two agents, and which layer owns each crossing (`D` seal · `A` transit · `B` open)
 - **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script.
 
 ---
