@@ -230,6 +230,7 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
 | `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths; asserts the Bifrost sweep string is byte-identical across its three surfaces) | `python3 tools/check-docs.py` |
+| `tools/check-doctrine.py` | run directly (asserts §G's stated sampler values match `jury/jury.py` — constructor defaults, CLI defaults, and the keys actually sent) | `python3 tools/check-doctrine.py` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
 
 **Drift to reconcile — documented for the live box but NOT in this repo snapshot.**
@@ -400,6 +401,29 @@ subagent (`.claude/agents/juror.md`) plus the `/cardio` command
 and take a plurality — for one-off judgment calls where you'd otherwise consume a single
 warm draw.
 
+**Where these clauses live — a clause stated only here governs nothing.** This briefing
+reaches a reader once, at read time; it is *not* in the read path of a run that edits the
+sampler, writes a new agent, or tunes the router. An invariant whose only residence is
+briefing prose therefore has an author and no **site**: the run's given-set omits it, and
+silence in the file the run *does* read is not a gap but an assignment — nothing to check,
+so nothing gets checked. Each clause is placed where the run that could break it will
+actually meet it:
+
+| Clause | Site |
+| ------ | ---- |
+| **Sampler values** — `temperature 1.1`, `top_p 0.9`, `top_k 40`, `max_tokens 8192`, penalties `0` | `jury/jury.py` **and** `tools/check-doctrine.py`, which fails if the two disagree |
+| Synthetic diversity must be answer-preserving & quality-matched | `.claude/commands/cardio.md` · `jury-claude/jury_claude.py` |
+| Measure `p̂`, don't guess it | `.claude/commands/form.md`, `.claude/commands/workout.calibrate.md` |
+| Never consume a single warm draw; the vote is the governor | `.claude/commands/cardio.md`, `strength.md`, `workout.md` · `.claude/agents/juror.md` — restated inline, not merely cited |
+| Lazy anchor — first token ASAP, low effort | `.claude/hooks/refeed.sh` (injected at `SessionStart`, so it enters every session's given-set) · `.claude/agents/juror.md` |
+
+The first row is the strongest form available: a clause that decides **mechanically** gets a
+static check, which holds no matter which file the run read and fails loudly instead of
+silently. The rest decide by judgment, so restatement in the command file is the site — cite
+`§G` *alongside* the restated rule, never *instead of* it, because a subagent's context is
+its own and a pointer it cannot follow assigns nothing. **When adding a §G clause, site it
+before treating it as landed.**
+
 ---
 
 ## H. Bifrost — command schema (loads every session)
@@ -521,14 +545,17 @@ coherent, deployable commit straight on `main`.
 - **Verify the *effect*, not the command** — a failed `cp` + a clean restart silently reloads the old file; check `ss`/`dig` after every reload.
 - **Validate before reload, back up before overwrite** — `unbound-checkconf` (etc.) first; a timestamped copy makes rollback one command.
 - **git pull ≠ deploy** — it moves checkout files only; the running system is untouched until you apply a change (staged backlog: [docs/DEPLOY-QUEUE.md](docs/DEPLOY-QUEUE.md)).
-- **Push:** fast-forward when the branch is just `main` + your commits; retry with backoff; `tools/check-docs.py` green before committing docs.
+- **Push:** fast-forward when the branch is just `main` + your commits; retry with backoff; `tools/check-docs.py` green before committing docs, and `tools/check-doctrine.py` green before committing anything under `ai-orchestration/` or §G.
 
 **Never use the PR "watch" feature** — founder's standing instruction (2026-08-03).
 Do not subscribe to PR activity (no `subscribe_pr_activity`), and don't offer to watch,
 monitor, babysit, or autofix a PR — it's too expensive. When a PR is up, say so and
 stop; the founder drives it from there.
 
-**Conform to the LLM sampling doctrine** ([section G](#g-llm-sampling-doctrine--the-jury)).
+**Conform to the LLM sampling doctrine** ([section G](#g-llm-sampling-doctrine--the-jury)) —
+and when you *add* to it, **site the clause** where the run that could break it will read it
+(§G's "Where these clauses live"): a command/agent file for judgment clauses, a static check
+for mechanical ones. A clause that exists only in this briefing governs nothing.
 Any work that configures, prompts, or aggregates this stack's own models — router
 configs, orchestration, evals, agents — follows the doctrine by default: lazy anchor
 → governed-warm body → concurrent vote, with the invariants (match temperature with
@@ -558,6 +585,7 @@ stated reason.
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
 - **docs/architecture/cell-grammar.md** — supporting architecture notes
 - **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script. It also enforces one cross-file invariant: the **Bifrost sweep string** (the fixed string a bare `'` returns, §H) must be **byte-identical** across all three surfaces carrying it — CLAUDE.md is canonical. A deterministic answer is only as good as the agreement of its sources.
+- **tools/check-doctrine.py** — asserts the **mechanically-decidable** clauses of §G against the code that implements them: the juror sampler's `temperature`/`top_p`/`top_k`/`max_tokens` defaults, the CLI defaults (the real entry point), and that the penalties are **actually sent** rather than inherited from a vendor default. Deliberately narrow — the posture clauses (lazy anchor, vote-as-governor, measure `p̂`) don't decide mechanically and are sited in `.claude/commands/` and `.claude/agents/juror.md` instead, so a green run is **not** a claim the doctrine was followed, only that the numbers still agree.
 
 ---
 
