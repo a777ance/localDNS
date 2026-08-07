@@ -42,9 +42,22 @@ plurality vote outvote the idiosyncratic draws.
    The framing changes the *approach*, never the question or the answer. Ask each
    to end with a canonical `ANSWER:` line.
 
+   **Never supply the candidate answers.** Handing the panel an option set makes
+   the draws matchable the cheap way — and a shared option set is a *shared prior*
+   that correlates them by construction, inflating agreement (§G). Matchability is
+   step 2's job, not the question's. If the question genuinely has a closed answer
+   set (yes/no, "which of these three files", a multiple-choice item), the set is
+   part of the question — use it, and **say in the report that you did**. If it
+   does not, ask each juror to **coin its own** answer or label. Never reuse a
+   previous run's option set to make tallies "comparable": that is the same
+   correlation with a second run's authority behind it.
+
 2. **Tally.** Collect each juror's `ANSWER:` line, normalize (lowercase, strip
    surrounding punctuation/whitespace), and count. The **plurality** is the
-   working verdict.
+   working verdict. Normalizing free-form answers is a **judgment call you make
+   after seeing them** — so print the raw strings alongside the merged tally and
+   show which you merged. Post-hoc normalization you disclose is the honest way to
+   get exact-match voting; a pre-supplied menu is not.
 
 3. **Adaptive top-up (bounded).** Judge the agreement:
    - **Decisive** (≥ 4 of 5 agree) → stop; report the verdict.
@@ -57,10 +70,25 @@ plurality vote outvote the idiosyncratic draws.
 
 4. **Report**, briefly:
    - the **verdict** (the plurality answer),
-   - the **tally** (each distinct answer and its vote count), and
-   - a one-line **confidence read**: unanimous / strong majority / split — and if
-     split, say so plainly rather than dressing a coin-flip as a verdict.
+   - the **tally** (each distinct answer and its vote count, raw before merged),
+   - a one-line **agreement read**: unanimous / strong majority / split — and if
+     split, say so plainly rather than dressing a coin-flip as a verdict, and
+   - a one-line **bound** — mandatory, see below.
 
+**Agreement is not confidence, and unanimity is not the top of the scale.** A
+near-unanimous tally is exactly what a **collapsed** jury produces: `/diet` shows
+that as draws correlate (`rho` → 0.9) the vote's lift decays to **Δ=+0.00** while
+`p̂` sits unmoved. Correlated jurors agree *because* they're correlated. This run is
+keyless, so `p̂` is **unmeasured** and you cannot tell a strong panel from a
+collapsed one — say that, in one line, every time:
+
+> Unanimity here is unpriced: with no measured `p̂` I can't separate a strong panel
+> from a collapsed one. Measuring it needs `/form` on a labelled set with a key.
+
+Report what the run **does not** certify as plainly as what it does — a keyless
+plurality certifies that the elicitation converged, not that the answer is right.
 Never present a single juror's draw as the answer, and never average by vibes —
 the vote is the governor (§G). If the jurors mostly agree *and are mostly wrong*,
-that's systematic model bias the vote can't fix; flag it if you suspect it.
+that's systematic model bias the vote can't fix; assume it is *possible* rather
+than waiting to suspect it (`/diet` panel C shows the vote actively entrenching a
+wrong answer below `p=0.5`).

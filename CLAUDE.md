@@ -511,6 +511,32 @@ clean Ubuntu 24.04.
 open PRs or park work on feature branches for these repos; land each change as a
 coherent, deployable commit straight on `main`.
 
+**RCPS — how work gets done here** (adopted 2026-08-07). The acronym carries **two
+readings, and both are required, interleaved**:
+
+- **Root Cause Problem Solving** — fix the thing that *generated* the defect, not the
+  defect. Every finding gets one question before any patch: *what produced this, and
+  what else is it still producing?* A flaw in a run is a flaw in the routine that ran
+  it; a wrong value on the box is a wrong value in the repo it deploys from.
+- **Record · Commit · Push · Sync** — the fix isn't real until it is written down where
+  the next session will read it, committed, pushed, and reconciled with the live box.
+  An uncommitted insight is a rumor.
+
+**Interleaved, not sequential.** Neither half counts alone: a root cause you don't
+record regenerates the defect next session, and a recorded patch with no root cause
+just moves it. So each pass runs *diagnose → fix the generator → record → push*, and
+the record names the generator, not only the symptom. Where the generator is an
+executable surface (`.claude/commands/*.md`, `.claude/agents/*.md`, a script, a unit
+file), patch **that** — doctrine in prose is advisory; runs inherit their behavior from
+the file that ran them, and any invariant not encoded there will be re-broken by
+someone following the file correctly.
+
+**Watch for inherited authority.** A kept artifact — a reference transcript, a prior
+run's parameters, a "we've always done it this way" constant — accrues authority by
+repetition alone. Ask where it entered from *outside* the loop; if the answer is "an
+earlier copy of itself", it has no origin and you are cargo-culting a bootstrap
+paradox. Worked case: `04-user-services/ai-orchestration/examples/workout-bootstrap-paradox-session.md`.
+
 **Deploy & git hygiene** — the summary; full procedure in
 [docs/DEPLOY-PROTOCOL.md](docs/DEPLOY-PROTOCOL.md):
 

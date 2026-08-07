@@ -123,6 +123,31 @@ So what Run 2 certifies is narrow and stated on purpose:
 Run 1's locked caveat therefore survives Run 2 intact, and is now sharper — the collapse
 regime it warned about has a number on it.
 
+## Root cause — why both flags existed (RCPS)
+
+Fixing the two flags in *this* file would have left the machine that produced them
+untouched. Both traced to the **executable surfaces**, not to the runs — the operators
+followed their command files correctly and got the flawed report anyway:
+
+| Flag | Generator (the actual root cause) | Fix |
+| ---- | --------------------------------- | --- |
+| Supplied option set | `/workout` and `/cardio` required a *matchable* answer and said nothing about **who supplies the candidates**. "Make it tally by exact match" is satisfiable two ways — post-hoc normalization (correct, and already step 2 of `/cardio`) or pre-supplying a menu (correlating). The cheap path was the wrong one and nothing marked it. | `.claude/commands/workout.md`, `.claude/commands/cardio.md`: never supply candidates; jurors coin their own; normalize after, show the merges. `.claude/agents/juror.md`: a handed list is a suggestion, not the space of allowed votes. |
+| Unpriced unanimity | Both files defined the report line as a **"confidence read: unanimous / strong majority / split"** — putting unanimity at the *top of a confidence scale*, which is precisely the reading `/diet` panel B falsifies. The bias caveat was gated on "if you suspect it", i.e. skippable by default. | Renamed to an **agreement read** + a mandatory **bound** line on keyless runs; systematic bias now assumed live rather than suspected. |
+
+**The common root cause:** §G was right in prose, and the prose was not load-bearing.
+Runs inherit their epistemics from `.claude/commands/*.md`, so any invariant living only
+in the briefing is advisory — it gets re-broken by the next operator following the command
+file faithfully. Doctrine that isn't encoded in the surface that executes it will be
+re-broken on schedule.
+
+**The recursive one, worth naming because this file is the case study.** Run 2's menu came
+from Run 1's transcript — kept *here*, in the repo, labelled "reference". The option set's
+authority came from its own prior use: no author outside the loop, no moment anyone chose
+those four labels on the merits. That is `originlessness` in the process, discovered by a
+panel that had just finished defining it. The general check, now in CLAUDE.md §3 under
+**RCPS**: ask where a constraint entered from outside the loop, and if the answer is "an
+earlier copy of itself", it has no origin — you are cargo-culting a bootstrap paradox.
+
 ---
 
 # Run 1 — original (uncalibrated) · verbatim transcript

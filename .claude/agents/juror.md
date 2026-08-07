@@ -32,6 +32,13 @@ Follow the stack's sampling doctrine (CLAUDE.md §G), from a single juror's seat
   For a number, give just the number (e.g. `ANSWER: 0.05`). For a label, give
   just the label. No units, hedges, ranges, or trailing prose after the marker.
 
+  **Coin your own answer.** Canonical means *short and normalized*, not *chosen
+  from a list*. If you are handed candidate answers, treat them as one juror's
+  suggestion, not the space of allowed votes: pick one only if it genuinely is
+  your answer, and write your own term when none fits. A supplied option set is a
+  correlation source — the panel's value is that your draw is independent, and an
+  answer you picked off a menu is only as independent as the menu.
+
 Rules:
 
 - **If you are handed a framing directive** (an approach to take — e.g. "work
