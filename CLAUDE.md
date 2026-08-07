@@ -412,14 +412,25 @@ founder uses it. A keyboard-spatial notation: hold `Shift` and sweep the number 
 `!@#$%^&*()` left→right; each glyph is an *archetype* (a role) fulfilled by slash commands +
 a plain-language sub-prompt.
 
-- **Backbone:** `~` continuity/lazy-anchor · `` ` `` descriptor · `!` payloads · `@` signage ·
-  `#` repo · `$` sanity · `%` compliance · `^` lanes · `&` rotary · `*` traffic-light ·
-  `()` intersection. Off-row `~`/`` ` `` stage; keys 1–4 **Preload**; `%` (key 5) **gateway**;
+- **Backbone:** `~` continuity/lazy-anchor · `` ` `` descriptor · `!` cargo (a *manifest*) ·
+  `@` source (read from) · `#` repo/destination (write to) · `$` sanity · `%` compliance ·
+  `^` cars/lanes · `&` rotary (also the sequential form) · `*` stop signal (red by default) ·
+  `()` governance (release conditions). Off-row `~`/`` ` `` stage; keys 1–4 **Preload** — a
+  complete manifest (*what · from where · to where · against what*); `%` (key 5) **gateway**;
   keys 6–0 **Travel**.
 - **`~` is the §G lazy anchor:** fire the first token ASAP (very low effort — the *model*
   stays high), and let continuity coalesce **mid-flight**; more `~` = lazier.
-- **Guardrails survive a keyboard-mash:** `~` continuity, `$` sanity, `%` compliance.
+- **`*` cuts the road into Dispensations.** Each chunk is bounded and self-governing; `()`
+  states what must hold before the next opens. Governance has three outcomes — satisfied,
+  **re-flagged** (return upstream via `&` — this is what makes a fixed string produce unbounded
+  output), or unsatisfiable (eject to the shoulder). **The one-way door:** `~` rushes the
+  reasoning, `*` gates the *effects* — irreversible cargo (share/publish/deploy) rides past a
+  light, which is exactly what makes the lazy start affordable.
+- **Guardrails survive a keyboard-mash:** `~` continuity, `$` sanity, `%` compliance — plus
+  `*()` **governance**, the only one that repeats at every chunk boundary.
   `+` / repetition = more; `-` inverts into a stress test.
+- **Cars:** explicit `^` always beats inferred. With no `^`, `!`'s command arity instantiates
+  lanes 1:1; with `^` present, `^` sets the lanes and `!`'s commands are the per-lane pipeline.
 
 **Status:** notation only — no dispatcher parses it yet. Full spec (glyph table, grammar,
 physics, MASH turbulence, worked examples, changelog):

@@ -28,15 +28,35 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 | :-- | :-- | :-- | :-- | :-- |
 | `~` | `~` | Staging | Continuity / Lazy Anchor | The plain-language **requirement**, the **continuity operator** (coalesce / carry-forward / interleave prior context/state; "stay in the Bifrost schema," loaded at session start), **and the immediate top-line lazy anchor** — see the note below. The **only archetype with no slash command**. Visual: a bridge. |
 | `` ` `` | `` ` `` | Staging | Descriptor | Inline qualifier, renders **shaded**; **subordinate to `~`** — it hangs under the requirement and describes it (e.g. `` `yellow, large, browning, bunch` ``). |
-| `1` | `!` | Preload | Payloads (Cars) | The cars/payloads themselves. *(The `!` reads visually as a car.)* |
-| `2` | `@` | Preload | Signage | The signage / labelling on the road. |
-| `3` | `#` | Preload | Repository | A junction that **is a repo** — the repository to work in or against. |
+| `1` | `!` | Preload | Cargo | The **manifest** — *what* is carried. Cargo is not executed on loading; the road decides when each item acts. |
+| `2` | `@` | Preload | Source (read from) | The **input address** — the document, catalog, or corpus this run reads *from*. (`@` natively means *at* — an address.) |
+| `3` | `#` | Preload | Repository (write to) | The **output address** — a junction that **is a repo**: where work is pushed. Two-way: you read back from it as well. |
 | `4` | `$` | Preload | Sanity / Tollbooth | The **sanity check** at the actual start — tollbooth, customs, security. Validates entry against the **known-good** baseline (house style / point of comparison). |
 | `5` | `%` | Gateway | Weigh Station | Immediate pre-flight audit / calibration — **"are we compliant?"** The gateway *onto* the highway (first step of the narrow highway, 5–0). |
-| `6` | `^` | Travel | Instantiators | Count of `^` = width of the highway (`^^^^` = 4 parallel lanes). |
-| `7` | `&` | Travel | Rotary (A777ance) | Turns off into a nested sub-loop that **runs the FULL highway process**, nested inside the main. |
-| `8` | `*` | Travel | Traffic Light | An open-ended gate where highways intersect. |
-| `9/0` | `()` | Travel | Intersection | Bounds the external process the `*` light waits for. |
+| `6` | `^` | Travel | Cars | The **vehicles**. Count of `^` = width of the highway (`^^^^` = 4 parallel lanes). Each `^` takes its own sub-prompt, making lanes **addressable** (`^ theme1 ^ theme2`). |
+| `7` | `&` | Travel | Rotary (A777ance) | Turns off into a nested sub-loop that **runs the FULL highway process**, nested inside the main. Also the **deterministic/sequential** form — commands under one `&` run in order. |
+| `8` | `*` | Travel | Stop Signal | A gate that is **red by default** — fail-closed. Nothing proceeds to the next road until governance clears it. |
+| `9/0` | `()` | Travel | Governance | The **release conditions**. Everything inside must be satisfied (conjunction) before the `*` goes green. |
+
+> **`!` cargo vs. `^` cars — the split.** These were one glyph ("Payloads (Cars)"), fusing
+> *what is carried* with *what carries it*. They are now separate, and the separation is
+> load-bearing: because `!` is a **manifest**, an item sitting in the `!` slot at road
+> position 1 does **not** fire at position 1. It rides until the road lets it act. That is
+> what makes it safe to declare an irreversible command (`/share`, `/deploy`) up front in a
+> string whose gate sits far downstream — see §4, *the one-way door*.
+>
+> **Cars from arity — inference yields to explicit.** When **no `^` appears**, the `/how`
+> arity under `!` instantiates cars 1:1 (`! /draft /trim` ≡ `! /draft /trim ^^` — two lanes,
+> parallel). When **`^` is present**, `^` sets the cars and `!`'s commands become the
+> **per-car pipeline** each lane runs (`! /write /edit ^ a ^ b` = two lanes, each writing
+> then editing). Explicit always wins; the inference is a convenience for the bare case.
+> This preserves §4's paving invariant — topology still comes from the founder's keystrokes,
+> never from the orchestrator's judgment; only the token it reads has widened.
+>
+> **`@` reads, `#` writes — and keys 1–4 are a complete manifest.** With `@` as source and
+> `#` as destination, the Preload declares the whole job before a wheel turns:
+> `!` *what* · `@` *from where* · `#` *to where* · `$` *against what*. (This supersedes `@`
+> as "signage," which never earned its slot; placement/labelling is a sub-prompt concern.)
 
 > **`~` is the lazy anchor, fired ASAP — the sharp innovation.** `~` does **not** mean
 > *reason about* continuity (an effortful, pre-committed thinking block — the kind §G warns
@@ -163,6 +183,10 @@ visibility and disambiguate; drop them and the pipeline still means the same thi
 | `< > { } [ ]` | Reflectors / visibility brackets — mark on-ramp/off-ramp edges, group hints. |
 | `" ' : ;` | Secondary signage — creative-writing punctuation: soft labels, pauses, quotes for clarity. |
 
+**`( )` is not in this tier.** Round brackets look like the visibility brackets above but are
+**backbone** (keys 9/0) — they carry governance and are load-bearing. Dropping them changes
+what the string means; dropping a `[ ]` does not.
+
 Because this tier is soft, you can **mash the keyboard and still land a coherent loop** —
 the helpers wash out and the backbone, plus the three **guardrail essences** — `~`
 **continuity**, `$` **sanity**, `%` **compliance** — carries the meaning. That is the
@@ -181,6 +205,54 @@ method and the left→right streaming of LLMs.
 - **Friction:** heavy payloads get caught left and must do reasoning work (e.g. drop into an `&` rotary) to shed it; if the right lane is full, the car waits.
 - **The shoulder:** the `>` reflector marks the off-ramp / right edge. Deadlocked lanes become emergency vehicles, abort merging, and eject onto the right shoulder into the wilderness.
 
+### Chunking — the Dispensation
+
+A `*` gate cuts the road into chunks. Inside a chunk you may run flat out; at the boundary
+everything stops until `()` clears it. That is the whole bargain: **`~` rushes the reasoning,
+`*` gates the effects.** You can afford to fire the first token blind precisely *because* the
+road has lights — the lazy anchor and the stop signal are one design, not a compromise between
+fast and careful.
+
+**A chunk is a Dispensation.** The term is borrowed from the `Chronikomicon` twelve-hour clock
+principle, and the two structures are the same object:
+
+| Dispensation (the clock) | Bifrost |
+| :-- | :-- |
+| "A period governed by its own internal logic, its own rules" | The chunk's `()` governance — its own release conditions |
+| "Duration is felt, not measured" | Chunk size is not fixed: one may be a whole book pass, another 220 words |
+| "What is true inside one hour may not hold in the next" | Clearing one gate does not bind the next; each `()` stands alone |
+| "Dispensations can be superseded — when the hour turns, the rules change" | The `*` boundary *is* the hour turning; governance may re-flag and rewrite |
+| "Circular, not linear — after XII is I again" | The `&` rotary and the re-flag return path close the loop |
+
+So a **Bifrost-compliant command is a Dispensation**, and Dispensations **string together**:
+each is bounded, self-governing, and hands off to the next only through a gate it satisfied.
+That is the unit of composition — not the glyph, not the string, but the governed segment.
+
+**The one-way door.** In-flight course correction works because tokens are cheap and
+revisable — a paragraph can be rewritten mid-stream. An action whose effect **leaves the
+system** (share, publish, send, deploy, push) cannot be corrected in flight, because there is
+nothing left to act on. So:
+
+> Any cargo whose effect is irreversible **rides past a light**. Everything upstream of a
+> light stays revisable, which is exactly what makes the lazy start affordable.
+
+This is not a caveat on `~` — it is `~`'s own logic. §1 frames continuity as **safe merging**:
+matching the surrounding speeds, where *a speed mismatch **is** a collision*, and a lack of
+`~` is merging **blind**. A one-way door is a hazard in the flow. `~` means you see it coming.
+
+**Three outcomes at a gate.** Governance is not pass/fail:
+
+| Outcome | What happens |
+| :-- | :-- |
+| **Satisfied** | Green — the chunk releases and the next road opens. |
+| **Re-flagged** | The car returns **upstream** for rework and comes round again — the `&` rotary is the return path. |
+| **Unsatisfiable** | The car ejects to **the shoulder** (above) rather than hanging the road. |
+
+**The return path is the scale mechanism.** A `*` whose `()` permits re-flagging is a **loop**:
+red until the condition holds, every failure routed back for another pass. So a string does not
+enumerate its work — it states a *terminal condition* and loops until the gate turns green.
+**Fixed notation, unbounded output:** the string does not get longer as the book does.
+
 ---
 
 ## 5. Topological drift & the MASH protocol
@@ -195,19 +267,35 @@ $$K = \sum_{i < j} \mathbb{I}(v_i > v_j)$$
 - **Turbulence 6–15 — Spaghetti Junction:** computationally dense; heavy nested logic.
 - **Turbulence > 15 — MASH:** the input is a keyboard-smash, not a road (`(*&#Q$(*#$(*&%!@`). Panic-abort: drop payloads and respond with human-centric intervention, not a dry syntax error.
 
+**Score per chunk, not across the string.** Split the input on `*` and compute `K` **within
+each chunk**; the string's turbulence is the **maximum** over its chunks.
+
+This is required, not cosmetic. Scored end-to-end, a *correctly* chunked string is punished for
+being chunked: each added `* ( … )` boundary re-enters the travel tail, and every `9 → 8` step
+counts as an inversion. Two chapter-gates score `K = 1`; ten score `9+8+…+1 = 45` — **triple the
+MASH threshold.** A perfectly orderly ten-chapter novel would panic-abort as a keyboard smash.
+
+The metric measures **disorder**, and chunking is **order** — repetition of the travel tail is
+the signature of a well-formed multi-stage run. Scored per chunk, the same ten-chapter string is
+`K = 0` in every chunk (Straightaway) and stays Straightaway at fifty chapters.
+
+**Turbulence is shape, not logic.** `K = 0` says the glyphs match the Golden Rule's order. It
+says nothing about whether the *dependencies* are sound — a string can be a flawless Straightaway
+and still gate a condition downstream of the thing it governs. Check both.
+
 ---
 
 ## 6. Worked example
 
 ```text
-~ 800 by 600 image of a banana  `yellow, brown`  ! /render /usage /composition  @ top right corner  # dashboard pre-built  $ the adjacent buttons on the dashboard  %
+~ 800 by 600 image of a banana  `yellow, brown`  ! /render /usage /composition top right corner  @ brand-kit.md  # dashboard pre-built  $ the adjacent buttons on the dashboard  %
 ```
 
 1. `~ 800 by 600 image of a banana` — **Requirement** (no slash command).
 2. `` `yellow, brown` `` — **Descriptor** (shaded), subordinate to the `~` requirement: the colors.
-3. `! /render /usage /composition` — **Payload**, fulfilled via those slash commands.
-4. `@ top right corner` — **Signage**: placement.
-5. `# dashboard pre-built` — **Repository**: the pre-built `dashboard` repo.
+3. `! /render /usage /composition top right corner` — **Cargo**, fulfilled via those slash commands; placement is a sub-prompt concern. No `^`, so arity instantiates **three cars**.
+4. `@ brand-kit.md` — **Source**: the document this reads from.
+5. `# dashboard pre-built` — **Repository**: the pre-built `dashboard` repo, written to.
 6. `$ the adjacent buttons on the dashboard` — **Known-Good**: match the adjacent buttons (house style).
 7. `%` — **Weigh Station** (bare): compliance check.
 
@@ -233,6 +321,45 @@ Same payload, but `$-` and `%--` deliberately inject a *chance of failure* — p
 happens if it violates ERISA (`$-`) or, harder (`%--`), fails the hallucination tests.
 Purposeful error, the way raising temperature manufactures variance (§G).
 
+**Example 4 — nested Dispensations at book scale** (the `Chronikomicon` refeed string):
+
+```text
+~ Chronikon — continue the novel one Dispensation at a time
+  `awe enacted not announced · embodied · committed to the cosmology · never morose`
+  ! /write /edit /review
+  @ shadow/mindmap/shadow/worldbuilding.md @ shadow/mindmap/shadow/themes.md
+  @ shadow/principles/shadow/01-twelve-hour-clock.md @ shadow/principles/shadow/03-cosmological-core.md
+  # Chronikomicon → shadow/manuscript/shadow/chapters/NN-title.md
+  $ access/CLAUDE.md "Chronikon voice" + the prose checklist
+  $+ 03-cosmological-core.md is SEALED — read freely, never propose edits
+  % scripture quoted verbatim from shadow/reference/shadow/scripture/kjv.txt, never paraphrased
+  ^ cycle-and-return ^ authority-and-holiness ^ memory-loss-and-renewal
+  & /wordcount /progress
+  * 220 words minimum this session (human says continue or stop)
+  * one Dispensation complete (human reviews and annotates; may re-flag for rewrite;
+    duration is FELT — a one-page hour at 6 is correct, not a failure)
+  * 12 chapters · 40,000 words · by 2026-11-30 (human approves each sequentially;
+    a re-flag returns that chapter upstream) ! /share /build
+```
+
+What this example demonstrates that the earlier ones do not:
+
+- **Three nested Dispensations** — session (220 words) → chapter → book. Each `*` is one
+  hour turning; the innermost is sized to the author's real working constraint, not the
+  artifact's structure.
+- **`^` carries the parallel axis, `&`/gates carry the sequential one.** Themes are woven
+  concurrently within a chapter (`^` ×3); chapters are approved *sequentially*, so they are
+  never lanes. Getting this backwards is the most common modelling error.
+- **`!` arity yields to explicit `^`** — three commands, three named cars, and the commands
+  become the per-lane pipeline rather than instantiating a fourth lane.
+- **Governance that refuses a uniform metric.** The chapter gate deliberately does *not* set a
+  word floor, because the source principle says duration is felt, not measured. A `()` that
+  contradicts its own `@` source is the failure mode to watch for.
+- **The one-way door, made visible.** `/share /build` sits **past** the final gate rather than
+  in the opening `!` manifest. Both readings are legal (§1 — cargo is not executed on loading),
+  but placing it downstream is self-documenting for a string meant to be re-fed to a session
+  that has none of the surrounding conversation.
+
 ---
 
 ## 7. Changelog & superseded passes
@@ -241,7 +368,26 @@ Newest first. Recorded so reviewers can trace intent; **git history of this file
 exact line-by-line diff.** This is a live design — earlier passes were deliberately
 superseded, not mistakes.
 
-- **`~` sharpened to the lazy anchor (current).** `~` is not *reasoning about* continuity
+- **Cargo/car split, I/O pair, governance & the Dispensation (current).** The biggest pass
+  since the archetype model. `!` "Payloads (Cars)" split into **`!` cargo** (a *manifest* — not
+  executed on loading) and **`^` cars** (the vehicles; each now takes a sub-prompt, so lanes are
+  **addressable**). `!`'s `/how` arity instantiates cars **only when no `^` is present** —
+  explicit always wins, and with `^` present those commands become the per-car pipeline.
+  **`@` reassigned from "signage" to SOURCE** (read from) and **`#` sharpened to destination**
+  (write to, two-way), making Preload keys 1–4 a complete manifest: *what · from where · to
+  where · against what*. **`*` is now a stop signal — red by default, fail-closed** (bare `*` =
+  full stop awaiting manual release), and **`()` is governance** — the conjunction of release
+  conditions, not a pointer at an external process; it may govern slots other than `*`.
+  Governance has **three** outcomes, not two: satisfied → green, **re-flagged → return upstream
+  via the rotary**, unsatisfiable → eject to the shoulder. That return path is the scale
+  mechanism — a gate that can re-flag is a loop, so a fixed-length string yields unbounded
+  output. Added §4 **chunking / the one-way door** (irreversible cargo rides past a light;
+  `~` rushes reasoning, `*` gates effects) and named the chunk a **Dispensation** after the
+  `Chronikomicon` twelve-hour-clock principle — a bounded, self-governing segment whose duration
+  is felt, not measured. **§5 turbulence is now scored per chunk**, fixing a live failure: scored
+  end-to-end, ten chapter-gates total `K = 45` and a perfectly orderly novel would MASH
+  panic-abort as a keyboard smash. Retired the "`!` reads visually as a car" rationale.
+- **`~` sharpened to the lazy anchor.** `~` is not *reasoning about* continuity
   but **actual** continuity: first token fires ASAP (the §G lazy anchor leaving the raft to
   tether to reality); the coalescing of prior state happens **mid-flight**, not pre-reasoned.
   Laziness is a spectrum: no `~` = OK to reason a little; `~~~~` = laziest
