@@ -14,6 +14,11 @@ For every `*.md` file in the repo (recursively, excluding `.git`):
     slashed legacy path is stale drift. This is the tripwire that would have caught
     the 195 rotted `docs/` references the 2.0 migration left behind.
 
+Plus one cross-file invariant: the **Bifrost schema card** — the fixed block a bare
+`'` returns — must be byte-identical in all three surfaces that carry it. That
+answer is specified as a lookup rather than a generation, so the sources have to
+agree or the promise is empty. See `check_bifrost_card` below.
+
 Heading anchors use GitHub's slug algorithm. Headings/links inside fenced code
 are ignored. External (`http(s)://`, `mailto:`) links are skipped. Absolute
 system paths (`/etc/…`) and cross-repo paths (first segment not a repo dir) are
@@ -28,6 +33,7 @@ Usage:
     python3 tools/check-docs.py
 """
 import glob
+import html
 import os
 import re
 import sys
@@ -182,6 +188,86 @@ def check(path):
     return problems
 
 
+# --- Bifrost schema card: the three copies must be byte-identical -------------
+#
+# A bare `'` is the Bifrost reference call, and its answer is specified as a
+# LOOKUP, not a generation: the same bytes every call. That promise is only worth
+# anything if the sources agree, so the card is embedded between
+# `bifrost-card:start` / `:end` markers in each surface and compared here.
+# CLAUDE.md §H is canonical — it is the copy in context when the call is answered.
+CARD_MARK = re.compile(
+    r"bifrost-card:start\b.*?-->(.*?)<!--\s*bifrost-card:end", re.S
+)
+CARD_FILES = [
+    "CLAUDE.md",  # canonical — keep first
+    "04-user-services/ai-orchestration/highway-notation.md",
+    "docs/bifrost.html",
+]
+
+
+def normalize_card(raw, is_html):
+    """Reduce an embedded card to its bare text lines.
+
+    Strips the container each surface wraps it in — Markdown fences, blockquote
+    `> ` prefixes, HTML tags/entities, and any common leading indent (CLAUDE.md
+    nests the card inside a bullet). What survives is the card itself, so a real
+    wording drift fails while a re-indent does not.
+    """
+    if is_html:
+        # Take the <pre> body only: source indentation before the opening tag is
+        # outside the element (it never renders), so including it would flag a
+        # cosmetic re-indent of the HTML as a card drift.
+        pre = re.search(r"<pre[^>]*>(.*?)</pre>", raw, re.S)
+        raw = pre.group(1) if pre else raw
+        raw = re.sub(r"<[^>]+>", "", raw)
+        raw = html.unescape(raw)
+    lines = []
+    for ln in raw.split("\n"):
+        ln = re.sub(r"^\s*>\s?", "", ln)          # blockquote prefix
+        if re.match(r"^\s*```", ln):              # fence open/close
+            continue
+        lines.append(ln.rstrip())
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    body = [ln for ln in lines if ln.strip()]
+    if body:
+        indent = min(len(ln) - len(ln.lstrip()) for ln in body)
+        lines = [ln[indent:] if ln.strip() else "" for ln in lines]
+    return "\n".join(lines)
+
+
+def check_bifrost_card():
+    cards, problems = {}, []
+    for rel in CARD_FILES:
+        p = os.path.join(ROOT, rel)
+        if not os.path.exists(p):
+            problems.append(f"{rel}: missing (expected to carry the Bifrost card)")
+            continue
+        m = CARD_MARK.search(open(p, encoding="utf-8").read())
+        if not m:
+            problems.append(f"{rel}: no bifrost-card:start/end block found")
+            continue
+        cards[rel] = normalize_card(m.group(1), rel.endswith(".html"))
+    if problems:
+        return problems
+    canon_name = CARD_FILES[0]
+    canon = cards[canon_name]
+    for rel, text in cards.items():
+        if rel == canon_name or text == canon:
+            continue
+        problems.append(f"{rel}: card differs from {canon_name} (canonical)")
+        want, got = canon.split("\n"), text.split("\n")
+        for i in range(max(len(want), len(got))):
+            w = want[i] if i < len(want) else "<missing>"
+            g = got[i] if i < len(got) else "<missing>"
+            if w != g:
+                problems.append(f"    line {i + 1}: expected {w!r}")
+                problems.append(f"              found    {g!r}")
+    return problems
+
+
 def main():
     os.chdir(ROOT)
     md = sorted(
@@ -198,6 +284,15 @@ def main():
                 print(f"  - {p}")
         else:
             print(f"ok   {f}")
+    card_problems = check_bifrost_card()
+    if card_problems:
+        failed = True
+        print("FAIL Bifrost schema card (bare `'` reference call)")
+        for p in card_problems:
+            print(f"  - {p}")
+    else:
+        print(f"ok   Bifrost schema card identical across {len(CARD_FILES)} surfaces")
+
     if failed:
         print("\nDoc check FAILED")
         sys.exit(1)

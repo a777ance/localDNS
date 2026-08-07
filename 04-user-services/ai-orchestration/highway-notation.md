@@ -93,7 +93,37 @@ number row (`'`, `~`, `` ` ``); keys **1–4** are the **Preload** (stage everyt
 > - **It is free to answer.** Bifrost loads with the session briefing, so the card is already in
 >   context — the reference call reconstructs nothing and reads no file. Another **external
 >   enzyme**, in the §1 sense: preloaded schema, so the response is pure reflex.
+
+> **The reference call is deterministic — a lookup, not a generation.** The card comes back
+> **verbatim**: the same bytes every time, every session, every model. Nothing before it, nothing
+> after it — no preamble, no trailing offer, no adaptation to the surrounding conversation, no
+> re-ordering, no paraphrase, no "helpful" additions.
 >
+> - **Because sliding your finger down the row is a *hardware* act.** On a laptop, sweeping
+>   `Shift` + the number row returns `!@#$%^&*()` identically every time — produced by the
+>   keyboard, not by a model. A phone has no row to sweep, so `'` **is** the mobile substitute
+>   for that gesture, and a substitute for a hardware act must inherit the hardware's
+>   determinism. Anything less hands the phone a worse Bifrost than the laptop, which is the
+>   exact inequality Ignition exists to remove.
+> - **A reference that varies is not a reference.** The card is the thing you check *against*.
+>   If it paraphrases itself per call you can no longer tell drift in the *answer* from drift in
+>   the *schema*, and it stops being usable as ground truth.
+> - **§G does not apply — a stated deviation** (CLAUDE.md §3 requires the statement). §G governs
+>   *inference*: lazy anchor → governed-warm body → concurrent vote. The reference call performs
+>   none. There is no `p` to measure, nothing to vote on, and no draw to govern — sampling a
+>   constant would be a category error, manufacturing variance inside a lookup table. The
+>   doctrine is not violated; it is out of scope. Note the symmetry: §G's own point is that
+>   temperature is a variance dial you may lose to a vendor while the vote is the governor you
+>   own. The reference call is the limiting case — **variance set to none, because there was
+>   never anything to vary.**
+> - **Enforced, not asserted.** The card is embedded in three surfaces (this file, CLAUDE.md §H,
+>   `docs/bifrost.html`). `tools/check-docs.py` extracts all three between `bifrost-card` markers
+>   and **fails if they differ by a byte**. Determinism across *calls* is worthless if the
+>   *sources* have drifted — so the invariant is tested, not promised. **CLAUDE.md §H is the
+>   canonical copy** (it is the one in context when the call is answered).
+
+<!-- bifrost-card:start -->
+
 > ```text
 > '   ignition     begins the Bifrost — optional; bare = this card
 > ~   continuity   lazy anchor: first token ASAP, coalesce in-flight
@@ -109,6 +139,8 @@ number row (`'`, `~`, `` ` ``); keys **1–4** are the **Preload** (stage everyt
 > ()  governance   release conditions; re-flag returns upstream
 > +   more / tighter      -   invert into a stress test      /   command lane
 > ```
+
+<!-- bifrost-card:end -->
 
 > **`!` cargo vs. `^` cars — the split.** These were one glyph ("Payloads (Cars)"), fusing
 > *what is carried* with *what carries it*. They are now separate, and the separation is
@@ -479,7 +511,17 @@ Newest first. Recorded so reviewers can trace intent; **git history of this file
 exact line-by-line diff.** This is a live design — earlier passes were deliberately
 superseded, not mistakes.
 
-- **Bare `'` = the reference call (current).** Sending `'` alone prints the **schema card** — a
+- **The reference call is deterministic (current).** A bare `'` is a **lookup, not a
+  generation**: the card returns verbatim, same bytes every call, nothing before or after it.
+  The argument is the founder's — sliding a finger down the number row on a laptop is a
+  *hardware* act that yields `!@#$%^&*()` identically every time; `'` is the phone's substitute
+  for a gesture a phone cannot make, so it must inherit the hardware's determinism, or mobile
+  gets a worse Bifrost than the laptop. A reference that varies is not a reference. **§G is out
+  of scope, stated per §3** — it governs inference, and a constant involves none; sampling a
+  lookup table would be a category error. **Enforced:** `tools/check-docs.py` now extracts the
+  card from all three surfaces between `bifrost-card` markers and fails on a one-byte
+  difference, CLAUDE.md §H canonical. Determinism across calls is worthless if the sources drift.
+- **Bare `'` = the reference call.** Sending `'` alone prints the **schema card** — a
   phone-shaped one-line-per-glyph backbone in Golden Rule order (§1). Ignition with no road
   behind it, so the bridge shows you itself; the mobile affordance for "I can't skim a spec and
   can't remember the glyph." It does **not** break the with-or-without invariant, which

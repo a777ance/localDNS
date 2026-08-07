@@ -229,7 +229,7 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
-| `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths) | `python3 tools/check-docs.py` |
+| `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths; asserts the Bifrost schema card is byte-identical across its three surfaces) | `python3 tools/check-docs.py` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
 
 **Drift to reconcile — documented for the live box but NOT in this repo snapshot.**
@@ -424,13 +424,20 @@ a plain-language sub-prompt.
   *what* runs, so it takes no sub-prompt, no `/how`, no intensity dial, and scores `0`
   turbulence. A letter-flanked `'` (`don't`, `founder's`) is prose in a sub-prompt, not an
   ignition — only a free-standing `'` ignites. Never ask which apostrophe the phone chose.
-- **A bare `'` (the whole message) = the reference call — print the schema card**, the block
-  below, verbatim-ish and phone-shaped. Answer it *immediately*: the card is already in this
-  briefing, so it reads no file and reconstructs nothing. Null effect — no cargo fires, nothing
-  is written. Don't break the with-or-without invariant worrying about it: that identity covers
-  non-empty remainders only, so the bare case was always free. Order is the road's, **not** the
-  house Z→A rule — the order *is* the meaning.
+- **A bare `'` (the whole message) = the reference call — emit the schema card below,
+  VERBATIM.** This is a **lookup, not a generation**: the same bytes every time, every session,
+  every model. Nothing before it, nothing after it — no preamble, no trailing offer, no
+  adaptation to the conversation, no re-ordering, no paraphrase, no "helpful" additions. Answer
+  *immediately*: the card is already in this briefing, so it reads no file and reconstructs
+  nothing. Null effect — no cargo fires, nothing is written. The bare case doesn't touch the
+  with-or-without invariant (that identity covers non-empty remainders only). Order is the
+  road's, **not** the house Z→A rule — here the order *is* the meaning.
+  **§G does not apply — stated deviation per §3:** §G governs *inference*, and a constant
+  involves none. There is no `p` to measure, nothing to vote on, no draw to govern; sampling a
+  lookup table would be a category error. This is the limiting case of §G's own logic —
+  variance set to none because there was never anything to vary.
 
+  <!-- bifrost-card:start — canonical copy; tools/check-docs.py fails if the mirrors drift -->
   ```text
   '   ignition     begins the Bifrost — optional; bare = this card
   ~   continuity   lazy anchor: first token ASAP, coalesce in-flight
@@ -446,6 +453,7 @@ a plain-language sub-prompt.
   ()  governance   release conditions; re-flag returns upstream
   +   more / tighter      -   invert into a stress test      /   command lane
   ```
+  <!-- bifrost-card:end -->
 - **`~` is the §G lazy anchor:** fire the first token ASAP (very low effort — the *model*
   stays high), and let continuity coalesce **mid-flight**; more `~` = lazier.
 - **`*` cuts the road into Dispensations.** Each chunk is bounded and self-governing; `()`
@@ -560,7 +568,7 @@ stated reason.
 - **docs/architecture/network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
 - **docs/architecture/cell-grammar.md** — supporting architecture notes
-- **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script.
+- **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script. It also enforces one cross-file invariant: the **Bifrost schema card** (the fixed block a bare `'` returns, §H) must be **byte-identical** across all three surfaces carrying it — CLAUDE.md is canonical. A deterministic answer is only as good as the agreement of its sources.
 
 ---
 
