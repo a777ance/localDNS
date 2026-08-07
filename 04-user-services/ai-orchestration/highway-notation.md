@@ -35,7 +35,7 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 | `5` | `%` | Gateway | Weigh Station | Immediate pre-flight audit / calibration — **"are we compliant?"** The gateway *onto* the highway (first step of the narrow highway, 5–0). |
 | `6` | `^` | Travel | Cars | The **vehicles**. Count of `^` = width of the highway (`^^^^` = 4 parallel lanes). Each `^` takes its own sub-prompt, making lanes **addressable** (`^ theme1 ^ theme2`). |
 | `7` | `&` | Travel | Rotary (A777ance) | Turns off into a nested sub-loop that **runs the FULL highway process**, nested inside the main. Also the **deterministic/sequential** form — commands under one `&` run in order. |
-| `8` | `*` | Travel | Stop Signal | A gate that is **red by default** — fail-closed. Nothing proceeds to the next road until governance clears it. |
+| `8` | `*` | Travel | Stop Signal | A gate that is **red by default** — fail-closed. Nothing proceeds to the next road until governance clears it. A **bare `*`** (no `()`) is a full stop awaiting **manual release** — ungoverned means human-released, not deadlocked. |
 | `9/0` | `()` | Travel | Governance | The **release conditions**. Everything inside must be satisfied (conjunction) before the `*` goes green. |
 
 > **`!` cargo vs. `^` cars — the split.** These were one glyph ("Payloads (Cars)"), fusing
