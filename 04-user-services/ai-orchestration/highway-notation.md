@@ -27,7 +27,7 @@ number row (`'`, `~`, `` ` ``); keys **1–4** are the **Preload** (stage everyt
 
 | Key | Glyph | Phase | Archetype | Meaning |
 | :-- | :-- | :-- | :-- | :-- |
-| `'` | `'` | Staging | Ignition | The **start signal**: everything from here rightward is read as Bifrost. Carries no sub-prompt and no slash command. **Optional by construction — a string means the same thing with or without it.** A **bare `'`** (nothing after it) is the **reference call** — print the schema card. See the note below. |
+| `'` | `'` | Staging | Ignition | The **start signal**: everything from here rightward is read as Bifrost. Carries no sub-prompt and no slash command. **Optional by construction — a string means the same thing with or without it.** A **bare `'`** (nothing after it) is the **reference call** — it returns the sweep, `~!@#$%^&*()`. See the note below. |
 | `~` | `~` | Staging | Continuity / Lazy Anchor | The plain-language **requirement**, the **continuity operator** (coalesce / carry-forward / interleave prior context/state; "stay in the Bifrost schema," loaded at session start), **and the immediate top-line lazy anchor** — see the note below. The **only archetype with no slash command**. Visual: a bridge. |
 | `` ` `` | `` ` `` | Staging | Descriptor | Inline qualifier, renders **shaded**; **subordinate to `~`** — it hangs under the requirement and describes it (e.g. `` `yellow, large, browning, bunch` ``). |
 | `1` | `!` | Preload | Cargo | The **manifest** — *what* is carried. Cargo is not executed on loading; the road decides when each item acts. |
@@ -69,78 +69,63 @@ number row (`'`, `~`, `` ` ``); keys **1–4** are the **Preload** (stage everyt
 > string a reachable opener, and spatially it already sits where an opener belongs: on the home
 > row, left of Enter — the last key before you send.
 
-> **A bare `'` is the reference call.** Send `'` and nothing else and the answer is the **schema
-> card** (below) — ignition with no road behind it, so the bridge shows you itself. This is the
-> mobile affordance: on a phone you cannot skim a spec, and the glyph you want is the one you
-> can't remember. One tap of the most reachable key on the keyboard returns the whole backbone.
+> **A bare `'` is the reference call — it returns the sweep.** Send `'` and nothing else and the
+> answer is this string, and nothing else:
+
+<!-- bifrost-sweep:start -->
+
+> ```text
+> ~!@#$%^&*()
+> ```
+
+<!-- bifrost-sweep:end -->
+
+> **It is the gesture's own output, not a description of it.** On a laptop you hold `Shift` and
+> slide a finger down the row; that is what lands on the screen. A phone has no row to sweep, so
+> `'` **is** the mobile substitute for the gesture — and a substitute for a *hardware* act returns
+> what the hardware returns. Not a legend, not a glossary, not the §1 table: **the row**.
 >
+> - **Deterministic — a lookup, not a generation.** The same bytes every time, every session,
+>   every model. Nothing before it, nothing after it: no preamble, no trailing offer, no
+>   adaptation to the surrounding conversation. A keyboard does not vary its output to suit the
+>   conversation, and neither may this. Anything less hands the phone a worse Bifrost than the
+>   laptop, which is the exact inequality Ignition exists to remove.
+> - **It hands back the *order*, which is the part a phone cannot get for itself.** The glyph
+>   *meanings* are already written down — §1's table, CLAUDE.md §H — and a phone can read those.
+>   What a phone cannot do is *sweep*. So the reference call supplies the sequence, and the
+>   sequence is the notation's meaning (§5: turbulence is measured as distance from this order).
+> - **Two absences that are not omissions.** `` ` `` does not appear because `Shift` on that key
+>   **is** `~` — you cannot sweep the row and un-shift one key at once; the descriptor is the
+>   same key's unshifted face. And `'` itself does not appear, because Ignition is the *call*,
+>   not a stop on the road.
+> - **The sweep vs. the Golden Rule.** This string leads with staging `~`; the **Golden Rule**
+>   against which §5 scores turbulence stays `!@#$%^&*()`, because staging glyphs are off-road.
+>   Same row, two readings — the sweep is what the hand does, the Golden Rule is what the metric
+>   measures.
 > - **It does not break the with-or-without invariant.** That identity quantifies over
 >   *non-empty* remainders: `' R` ≡ `R` for any `R`. Strip the `'` from a bare `'` and what is
 >   left is the empty message — not a Bifrost at all — so the degenerate case was never bound by
->   the identity, and defining it costs nothing. `''` ≡ `'` still holds: it returns the same card.
+>   the identity. `''` ≡ `'` still holds: same string back.
 > - **Precedent — Bifrost already reads bare glyphs.** A bare `*` is a full stop awaiting manual
 >   release; a bare `%` is a compliance check with no sub-prompt (§6, Example 1). A bare glyph is
 >   the archetype with its slots empty, not a syntax error.
-> - **Null effect, and that is the point.** The reference call reads nothing, writes nothing, and
->   runs no cargo — there is no `!` manifest to fire and no `#` to write to. This matters
->   precisely *because* autocorrect inserts apostrophes unbidden: the character most likely to
->   arrive by accident must have the most harmless standalone meaning available. A stray `'`
->   costs you a reference card. Fail-safe, in the same spirit as `*` being red by default.
-> - **The card is phone-shaped.** One glyph per line — glyph, archetype, a few words — never the
->   §1 table, which is unreadable on a narrow screen. It is printed in **Golden Rule order**
->   (left→right along the road), *not* the house Z→A ordering: the order is the notation's
->   meaning, the same reason step numbers are never renumbered.
-> - **It is free to answer.** Bifrost loads with the session briefing, so the card is already in
->   context — the reference call reconstructs nothing and reads no file. Another **external
->   enzyme**, in the §1 sense: preloaded schema, so the response is pure reflex.
-
-> **The reference call is deterministic — a lookup, not a generation.** The card comes back
-> **verbatim**: the same bytes every time, every session, every model. Nothing before it, nothing
-> after it — no preamble, no trailing offer, no adaptation to the surrounding conversation, no
-> re-ordering, no paraphrase, no "helpful" additions.
->
-> - **Because sliding your finger down the row is a *hardware* act.** On a laptop, sweeping
->   `Shift` + the number row returns `!@#$%^&*()` identically every time — produced by the
->   keyboard, not by a model. A phone has no row to sweep, so `'` **is** the mobile substitute
->   for that gesture, and a substitute for a hardware act must inherit the hardware's
->   determinism. Anything less hands the phone a worse Bifrost than the laptop, which is the
->   exact inequality Ignition exists to remove.
-> - **A reference that varies is not a reference.** The card is the thing you check *against*.
->   If it paraphrases itself per call you can no longer tell drift in the *answer* from drift in
->   the *schema*, and it stops being usable as ground truth.
-> - **§G does not apply — a stated deviation** (CLAUDE.md §3 requires the statement). §G governs
->   *inference*: lazy anchor → governed-warm body → concurrent vote. The reference call performs
->   none. There is no `p` to measure, nothing to vote on, and no draw to govern — sampling a
->   constant would be a category error, manufacturing variance inside a lookup table. The
->   doctrine is not violated; it is out of scope. Note the symmetry: §G's own point is that
->   temperature is a variance dial you may lose to a vendor while the vote is the governor you
->   own. The reference call is the limiting case — **variance set to none, because there was
->   never anything to vary.**
-> - **Enforced, not asserted.** The card is embedded in three surfaces (this file, CLAUDE.md §H,
->   `docs/bifrost.html`). `tools/check-docs.py` extracts all three between `bifrost-card` markers
+> - **Null effect, and that is the point.** It reads nothing, writes nothing, and runs no cargo —
+>   there is no `!` manifest to fire and no `#` to write to. This matters precisely *because*
+>   autocorrect inserts apostrophes unbidden: the character most likely to arrive by accident must
+>   have the most harmless standalone meaning available. A stray `'` costs you eleven characters.
+>   Fail-safe, in the same spirit as `*` being red by default.
+> - **§G is out of scope — a stated deviation** (CLAUDE.md §3 requires the statement). §G governs
+>   *inference*: lazy anchor → governed-warm body → concurrent vote. Returning a constant performs
+>   none. There is no `p` to measure, nothing to vote on, and no draw to govern — sampling a fixed
+>   string would be a category error, manufacturing variance where none is wanted. Note the
+>   symmetry: §G's point is that temperature is a variance dial you may lose to a vendor while the
+>   vote is the governor you own. This is the limiting case — **variance set to none, because
+>   there was never anything to vary.**
+> - **Enforced, not asserted.** The string is embedded in three surfaces (this file, CLAUDE.md §H,
+>   `docs/bifrost.html`). `tools/check-docs.py` extracts all three between `bifrost-sweep` markers
 >   and **fails if they differ by a byte**. Determinism across *calls* is worthless if the
 >   *sources* have drifted — so the invariant is tested, not promised. **CLAUDE.md §H is the
 >   canonical copy** (it is the one in context when the call is answered).
-
-<!-- bifrost-card:start -->
-
-> ```text
-> '   ignition     begins the Bifrost — optional; bare = this card
-> ~   continuity   lazy anchor: first token ASAP, coalesce in-flight
-> `   descriptor   qualifies the ~ requirement (shaded)
-> !   cargo        the manifest — what rides (not fired on loading)
-> @   source       read FROM
-> #   repo         write TO (two-way)
-> $   sanity       tollbooth — check against known-good
-> %   compliance   weigh station — the gateway onto the road
-> ^   cars         lanes; ^^^ = 3, each addressable with a sub-prompt
-> &   rotary       nested full sub-highway; also the sequential form
-> *   stop         red by default — cuts the road into Dispensations
-> ()  governance   release conditions; re-flag returns upstream
-> +   more / tighter      -   invert into a stress test      /   command lane
-> ```
-
-<!-- bifrost-card:end -->
 
 > **`!` cargo vs. `^` cars — the split.** These were one glyph ("Payloads (Cars)"), fusing
 > *what is carried* with *what carries it*. They are now separate, and the separation is
@@ -499,7 +484,8 @@ characters the soft tier would otherwise fight over; only a **free-standing** `'
 '
 ```
 
-Ignition with no road behind it ⇒ print the **schema card** (§1). Reads nothing, writes nothing,
+Returns the sweep — `~!@#$%^&*()` — and nothing else. Not a legend: the row itself, exactly what
+a laptop puts on screen when you hold `Shift` and slide down it. Reads nothing, writes nothing,
 fires no cargo. The degenerate case of the most-reachable key on a phone keyboard is also the
 safest thing a stray autocorrect can produce.
 
@@ -511,20 +497,27 @@ Newest first. Recorded so reviewers can trace intent; **git history of this file
 exact line-by-line diff.** This is a live design — earlier passes were deliberately
 superseded, not mistakes.
 
-- **The reference call is deterministic (current).** A bare `'` is a **lookup, not a
-  generation**: the card returns verbatim, same bytes every call, nothing before or after it.
-  The argument is the founder's — sliding a finger down the number row on a laptop is a
-  *hardware* act that yields `!@#$%^&*()` identically every time; `'` is the phone's substitute
-  for a gesture a phone cannot make, so it must inherit the hardware's determinism, or mobile
-  gets a worse Bifrost than the laptop. A reference that varies is not a reference. **§G is out
-  of scope, stated per §3** — it governs inference, and a constant involves none; sampling a
-  lookup table would be a category error. **Enforced:** `tools/check-docs.py` now extracts the
-  card from all three surfaces between `bifrost-card` markers and fails on a one-byte
-  difference, CLAUDE.md §H canonical. Determinism across calls is worthless if the sources drift.
-- **Bare `'` = the reference call.** Sending `'` alone prints the **schema card** — a
-  phone-shaped one-line-per-glyph backbone in Golden Rule order (§1). Ignition with no road
-  behind it, so the bridge shows you itself; the mobile affordance for "I can't skim a spec and
-  can't remember the glyph." It does **not** break the with-or-without invariant, which
+- **The reference call returns the sweep, not a legend (current).** Corrected: a bare `'`
+  returns the string **`~!@#$%^&*()`** and nothing else — the gesture's own output, exactly what
+  a laptop puts on screen when you hold `Shift` and slide down the row. An earlier pass had it
+  returning a thirteen-line glyph card; that was a *description* of the gesture where the founder
+  asked for the gesture. The meanings were already written down (§1's table, CLAUDE.md §H) and a
+  phone can read those — what a phone cannot do is **sweep**, so the call supplies the **order**,
+  and per §5 the order is the notation's meaning. Two absences are structural, not omissions:
+  `` ` `` cannot appear because `Shift` on that key *is* `~`, and `'` does not appear because
+  Ignition is the call, not a stop on the road. The sweep leads with staging `~` while §5's
+  Golden Rule stays `!@#$%^&*()` — same row, two readings.
+- **The reference call is deterministic.** A **lookup, not a generation**: same bytes every call,
+  every session, every model, nothing before or after it. The argument is the founder's — sliding
+  a finger down the row on a laptop is a *hardware* act, so the phone's substitute for that
+  gesture must inherit the hardware's determinism, or mobile gets a worse Bifrost than the
+  laptop. A keyboard does not vary its output to suit the conversation. **§G is out of scope,
+  stated per §3** — it governs inference, and returning a constant performs none. **Enforced:**
+  `tools/check-docs.py` extracts the string from all three surfaces between `bifrost-sweep`
+  markers and fails on a one-byte difference, CLAUDE.md §H canonical. Determinism across calls is
+  worthless if the sources drift.
+- **Bare `'` = the reference call.** Ignition with no road behind it, so the bridge shows you
+  itself; the mobile affordance for "I can't sweep a row on a phone." It does **not** break the with-or-without invariant, which
   quantifies over *non-empty* remainders (`' R` ≡ `R`) — strip the mark from a bare `'` and what
   is left is the empty message, never a Bifrost, so the degenerate slot was always free. Follows
   the existing bare-glyph precedent (bare `*`, bare `%`). **Null effect by design:** reads
