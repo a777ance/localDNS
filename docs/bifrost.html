@@ -264,19 +264,19 @@
           <div class="cap"><span class="g">`</span><span class="a">descriptor</span><span class="k">`</span></div>
         </div>
         <div class="group">
-          <div class="cap"><span class="g">!</span><span class="a">cars</span><span class="k">1</span></div>
-          <div class="cap"><span class="g">@</span><span class="a">signage</span><span class="k">2</span></div>
-          <div class="cap"><span class="g">#</span><span class="a">repo</span><span class="k">3</span></div>
+          <div class="cap"><span class="g">!</span><span class="a">cargo</span><span class="k">1</span></div>
+          <div class="cap"><span class="g">@</span><span class="a">source</span><span class="k">2</span></div>
+          <div class="cap"><span class="g">#</span><span class="a">destination</span><span class="k">3</span></div>
           <div class="cap"><span class="g">$</span><span class="a">sanity</span><span class="k">4</span></div>
         </div>
         <div class="group gate">
           <div class="cap"><span class="g">%</span><span class="a">compliance</span><span class="k">5</span></div>
         </div>
         <div class="group">
-          <div class="cap"><span class="g">^</span><span class="a">lanes</span><span class="k">6</span></div>
+          <div class="cap"><span class="g">^</span><span class="a">cars</span><span class="k">6</span></div>
           <div class="cap"><span class="g">&amp;</span><span class="a">rotary</span><span class="k">7</span></div>
-          <div class="cap"><span class="g">*</span><span class="a">light</span><span class="k">8</span></div>
-          <div class="cap"><span class="g">(&nbsp;)</span><span class="a">intersection</span><span class="k">9 0</span></div>
+          <div class="cap"><span class="g">*</span><span class="a">stop</span><span class="k">8</span></div>
+          <div class="cap"><span class="g">(&nbsp;)</span><span class="a">governance</span><span class="k">9 0</span></div>
         </div>
       </div>
       <div class="bridge"></div>
@@ -295,18 +295,21 @@
           <tbody>
             <tr><td class="glyph">~</td><td class="key">~</td><td><span class="phase stage">Staging</span></td><td class="arch">Continuity / Anchor</td><td>The requirement + the <b>continuity operator</b> (coalesce, carry-forward, interleave prior state; "stay in the schema") <b>and the immediate lazy anchor</b>. The only archetype with no slash command. See §2·The Anchor.</td></tr>
             <tr><td class="glyph">`</td><td class="key">`</td><td><span class="phase stage">Staging</span></td><td class="arch">Descriptor</td><td>Inline qualifier, renders shaded; <b>subordinate to <code>~</code></b> — hangs under the requirement (e.g. <code>`yellow, browning`</code>).</td></tr>
-            <tr><td class="glyph">!</td><td class="key">1</td><td><span class="phase">Preload</span></td><td class="arch">Payloads</td><td>The cars / payloads themselves. <em>(The <code>!</code> reads visually as a car.)</em></td></tr>
-            <tr><td class="glyph">@</td><td class="key">2</td><td><span class="phase">Preload</span></td><td class="arch">Signage</td><td>The signage / labelling on the road.</td></tr>
-            <tr><td class="glyph">#</td><td class="key">3</td><td><span class="phase">Preload</span></td><td class="arch">Repository</td><td>A junction that <b>is a repo</b> — the repository to work in or against.</td></tr>
+            <tr><td class="glyph">!</td><td class="key">1</td><td><span class="phase">Preload</span></td><td class="arch">Cargo</td><td>The <b>manifest</b> — <em>what</em> is carried. Cargo is <b>not executed on loading</b>; the road decides when each item acts.</td></tr>
+            <tr><td class="glyph">@</td><td class="key">2</td><td><span class="phase">Preload</span></td><td class="arch">Source</td><td>The <b>input address</b> — the document, catalog, or corpus this run reads <em>from</em>. (<code>@</code> natively means <em>at</em> — an address.)</td></tr>
+            <tr><td class="glyph">#</td><td class="key">3</td><td><span class="phase">Preload</span></td><td class="arch">Repository</td><td>The <b>output address</b> — a junction that <b>is a repo</b>: where work is pushed. Two-way; you read back from it as well.</td></tr>
             <tr><td class="glyph">$</td><td class="key">4</td><td><span class="phase">Preload</span></td><td class="arch">Sanity</td><td>The <b>sanity check</b> at the actual start — tollbooth, customs, security. Validates entry against the <b>known-good</b> baseline (house style).</td></tr>
             <tr><td class="glyph">%</td><td class="key">5</td><td><span class="phase gate">Gateway</span></td><td class="arch">Weigh Station</td><td>Pre-flight audit / calibration — <b>"are we compliant?"</b> The gateway onto the highway (first step of the narrow highway, 5–0).</td></tr>
-            <tr><td class="glyph">^</td><td class="key">6</td><td><span class="phase">Travel</span></td><td class="arch">Instantiators</td><td>Count of <code>^</code> = width of the highway (<code>^^^^</code> = 4 parallel lanes).</td></tr>
-            <tr><td class="glyph">&amp;</td><td class="key">7</td><td><span class="phase">Travel</span></td><td class="arch">Rotary</td><td>Turns off into a nested sub-loop that <b>runs the FULL highway process</b>, nested inside the main.</td></tr>
-            <tr><td class="glyph">*</td><td class="key">8</td><td><span class="phase">Travel</span></td><td class="arch">Traffic Light</td><td>An open-ended gate where highways intersect.</td></tr>
-            <tr><td class="glyph">(&nbsp;)</td><td class="key">9 / 0</td><td><span class="phase">Travel</span></td><td class="arch">Intersection</td><td>Bounds the external process the <code>*</code> light waits for.</td></tr>
+            <tr><td class="glyph">^</td><td class="key">6</td><td><span class="phase">Travel</span></td><td class="arch">Cars</td><td>The <b>vehicles</b>. Count of <code>^</code> = width of the highway (<code>^^^^</code> = 4 parallel lanes). Each <code>^</code> takes its own sub-prompt, making lanes <b>addressable</b> (<code>^ theme1 ^ theme2</code>).</td></tr>
+            <tr><td class="glyph">&amp;</td><td class="key">7</td><td><span class="phase">Travel</span></td><td class="arch">Rotary</td><td>Turns off into a nested sub-loop that <b>runs the FULL highway process</b>, nested inside the main. Also the <b>deterministic/sequential</b> form — commands under one <code>&amp;</code> run in order.</td></tr>
+            <tr><td class="glyph">*</td><td class="key">8</td><td><span class="phase">Travel</span></td><td class="arch">Stop Signal</td><td>A gate that is <b>red by default</b> — fail-closed. Nothing proceeds to the next road until governance clears it. Bare <code>*</code> = full stop, awaiting manual release.</td></tr>
+            <tr><td class="glyph">(&nbsp;)</td><td class="key">9 / 0</td><td><span class="phase">Travel</span></td><td class="arch">Governance</td><td>The <b>release conditions</b>. Everything inside must be satisfied (conjunction) before the <code>*</code> goes green.</td></tr>
           </tbody>
         </table>
       </div>
+      <p style="font-size:.9rem;color:var(--muted);margin-top:1rem"><b>Cargo vs. cars.</b> These were one glyph ("Payloads (Cars)"), fusing <em>what is carried</em> with <em>what carries it</em>. Split, the separation is load-bearing: because <code>!</code> is a manifest, an item at road position 1 does <b>not</b> fire at position 1 — it rides until the road lets it act. That is what makes it safe to declare an irreversible command (<code>/share</code>, <code>/deploy</code>) in a string whose gate sits far downstream (§5, <em>the one-way door</em>).</p>
+      <p style="font-size:.9rem;color:var(--muted)"><b>Cars from arity — inference yields to explicit.</b> With <b>no <code>^</code></b>, the <code>/how</code> arity under <code>!</code> instantiates cars 1:1 (<code>! /draft /trim</code> ≡ <code>! /draft /trim ^^</code>). With <b><code>^</code> present</b>, <code>^</code> sets the cars and <code>!</code>'s commands become the <b>per-car pipeline</b>. Explicit always wins — topology still comes from the author's keystrokes, never the orchestrator's judgment.</p>
+      <p style="font-size:.9rem;color:var(--muted)"><b>Keys 1–4 are a complete manifest:</b> <code>!</code> <em>what</em> · <code>@</code> <em>from where</em> · <code>#</code> <em>to where</em> · <code>$</code> <em>against what</em>. (This supersedes <code>@</code> as "signage," which never earned its slot; placement is a sub-prompt concern.)</p>
     </section>
 
     <section>
@@ -338,7 +341,7 @@
         <div class="gcell"><div class="glyphline">/how</div><div class="role">slash command(s)</div><div class="desc">HOW it is fulfilled</div></div>
         <div class="gcell"><div class="glyphline">sub-prompt</div><div class="role">plain language</div><div class="desc">the specifics</div></div>
       </div>
-      <p><code>~</code> is the exception — a plain-language requirement with no slash command; <code>`…`</code> is a shaded descriptor subordinate to it. Example slot: <code>@ /label top right corner</code> = the <em>signage</em> archetype, done via <code>/label</code>, placed "top right corner."</p>
+      <p><code>~</code> is the exception — a plain-language requirement with no slash command; <code>`…`</code> is a shaded descriptor subordinate to it. Example slot: <code>@ /fetch brand-kit.md</code> = the <em>source</em> archetype, done via <code>/fetch</code>, reading from "brand-kit.md."</p>
 
       <h3>Intensity — the thumb on the scale</h3>
       <div class="dials">
@@ -374,6 +377,13 @@
         <li><b>Friction.</b> Heavy payloads get caught left and must do reasoning work (drop into an <code>&amp;</code> rotary) to shed it; if the right lane is full, the car waits.</li>
         <li><b>The shoulder.</b> The <code>&gt;</code> reflector marks the off-ramp. Deadlocked lanes become emergency vehicles, abort merging, and eject onto the right shoulder into the wilderness.</li>
       </ul>
+
+      <h3 style="margin-top:2rem">Chunking — the Dispensation</h3>
+      <p>A <code>*</code> gate cuts the road into chunks. Inside a chunk you may run flat out; at the boundary everything stops until <code>(&nbsp;)</code> clears it. That is the whole bargain: <b><code>~</code> rushes the reasoning, <code>*</code> gates the effects.</b> You can afford to fire the first token blind precisely <em>because</em> the road has lights — the lazy anchor and the stop signal are one design, not a compromise between fast and careful.</p>
+      <p><b>A chunk is a Dispensation.</b> The term is borrowed from the <code>Chronikomicon</code> twelve-hour-clock principle, and the two structures are the same object: a period governed by its own internal logic (its <code>(&nbsp;)</code>), whose <b>duration is felt, not measured</b> (one chunk may be a whole book pass, another 220 words), where what is true inside one hour need not hold in the next (each gate stands alone), and which is <b>superseded when the hour turns</b> (the <code>*</code> boundary <em>is</em> the turn). So a Bifrost-compliant command <b>is</b> a Dispensation, and Dispensations <b>string together</b> — each hands off only through a gate it satisfied. That is the unit of composition: not the glyph, not the string, but the governed segment.</p>
+      <p><b>The one-way door.</b> In-flight correction works because tokens are cheap and revisable. An action whose effect <b>leaves the system</b> — share, publish, send, deploy, push — cannot be corrected in flight, because nothing is left to act on. So <b>any cargo whose effect is irreversible rides past a light.</b> Everything upstream of a light stays revisable, which is exactly what makes the lazy start affordable. This is not a caveat on <code>~</code>; it is <code>~</code>'s own logic — continuity is <em>safe</em> merging, where a speed mismatch <em>is</em> a collision, and a lack of <code>~</code> is merging blind. A one-way door is a hazard in the flow. <code>~</code> means you see it coming.</p>
+      <p><b>Three outcomes at a gate</b> — governance is not pass/fail: <b>satisfied</b> → green, the chunk releases · <b>re-flagged</b> → the car returns <em>upstream</em> for rework and comes round again (the <code>&amp;</code> rotary is the return path) · <b>unsatisfiable</b> → the car ejects to the shoulder rather than hanging the road.</p>
+      <p><b>The return path is the scale mechanism.</b> A <code>*</code> whose <code>(&nbsp;)</code> permits re-flagging is a <b>loop</b>: red until the condition holds, every failure routed back for another pass. A string therefore does not enumerate its work — it states a <em>terminal condition</em> and loops until the gate turns green. <b>Fixed notation, unbounded output:</b> the string does not get longer as the book does.</p>
     </section>
 
     <section>
@@ -386,6 +396,9 @@
         <div class="row"><span class="tag" style="background:var(--t-hi)">6–15 · Spaghetti</span><span class="desc">Computationally dense; heavy nested logic to resolve.</span></div>
         <div class="row"><span class="tag" style="background:var(--t-max)">&gt;15 · MASH</span><span class="desc">A keyboard-smash, not a road. Panic-abort: drop payloads, respond with human-centric intervention — not a dry syntax error.</span></div>
       </div>
+      <p style="margin-top:1.25rem"><b>Score per chunk, not across the string.</b> Split the input on <code>*</code> and compute <code>K</code> <b>within each chunk</b>; the string's turbulence is the <b>maximum</b> over its chunks.</p>
+      <p>This is required, not cosmetic. Scored end-to-end, a <em>correctly</em> chunked string is punished for being chunked: each added <code>* (&nbsp;)</code> boundary re-enters the travel tail, and every <code>9&nbsp;&rarr;&nbsp;8</code> step counts as an inversion. Two chapter-gates score <code>K&nbsp;=&nbsp;1</code>; ten score <code>9+8+…+1&nbsp;=&nbsp;45</code> — <b>triple the MASH threshold.</b> A perfectly orderly ten-chapter novel would panic-abort as a keyboard smash. The metric measures <b>disorder</b>, and chunking is <b>order</b>. Scored per chunk, that same string is <code>K&nbsp;=&nbsp;0</code> in every chunk and stays a Straightaway at fifty chapters.</p>
+      <p><b>Turbulence is shape, not logic.</b> <code>K&nbsp;=&nbsp;0</code> says the glyphs match the Golden Rule's order. It says nothing about whether the <em>dependencies</em> are sound — a string can be a flawless Straightaway and still gate a condition downstream of the thing it governs. Check both.</p>
     </section>
 
     <section>
@@ -393,12 +406,12 @@
 
       <div class="example">
         <p class="cap-label">1 · a rendered banana on a dashboard</p>
-        <pre>~ 800 by 600 image of a banana  <span class="dim">`yellow, brown`</span>  ! <span class="k">/render /usage /composition</span>  @ top right corner  # dashboard pre-built  $ the adjacent buttons on the dashboard  %</pre>
+        <pre>~ 800 by 600 image of a banana  <span class="dim">`yellow, brown`</span>  ! <span class="k">/render /usage /composition</span> top right corner  @ brand-kit.md  # dashboard pre-built  $ the adjacent buttons on the dashboard  %</pre>
         <ul class="clean">
           <li><code>~</code> — <b>Requirement</b> (no slash command): an 800×600 banana image.</li>
           <li><code>`yellow, brown`</code> — <b>Descriptor</b> (shaded), subordinate to <code>~</code>.</li>
-          <li><code>! /render /usage /composition</code> — <b>Payload</b>, fulfilled via those slash commands.</li>
-          <li><code>@ top right corner</code> — <b>Signage</b>: placement. &nbsp; <code>#</code> the pre-built dashboard repo.</li>
+          <li><code>! /render /usage /composition top right corner</code> — <b>Cargo</b>; placement is a sub-prompt concern. No <code>^</code>, so arity instantiates <b>three cars</b>.</li>
+          <li><code>@ brand-kit.md</code> — <b>Source</b>: read from. &nbsp; <code>#</code> — <b>destination</b>: the pre-built dashboard repo.</li>
           <li><code>$ …adjacent buttons…</code> — <b>Known-Good</b>: match house style. &nbsp; <code>%</code> — compliance check.</li>
         </ul>
       </div>
@@ -415,13 +428,41 @@
         <pre>~ ! 401k ruleset  <span style="color:var(--warn)">$-</span> needs to adhere to ERISA rules  <span style="color:var(--warn)">%--</span> unit testing for AI hallucination</pre>
         <p style="font-size:.9rem;color:var(--muted)">Same payload, but <code>$-</code> and <code>%--</code> deliberately inject a <em>chance of failure</em> — probe what happens if it violates ERISA, or (harder) fails the hallucination tests. Purposeful error, the way raising temperature manufactures variance.</p>
       </div>
+
+      <div class="example">
+        <p class="cap-label">4 · nested Dispensations at book scale</p>
+        <pre>~ Chronikon — continue the novel one Dispensation at a time
+  <span class="dim">`awe enacted not announced · embodied · committed to the cosmology · never morose`</span>
+  ! <span class="k">/write /edit /review</span>
+  @ shadow/mindmap/shadow/worldbuilding.md  @ shadow/mindmap/shadow/themes.md
+  @ shadow/principles/shadow/01-twelve-hour-clock.md
+  # Chronikomicon &rarr; shadow/manuscript/shadow/chapters/NN-title.md
+  $ access/CLAUDE.md "Chronikon voice" + the prose checklist
+  <span class="k">$+</span> 03-cosmological-core.md is SEALED — read freely, never propose edits
+  % scripture quoted verbatim from the reference layer, never paraphrased
+  ^ cycle-and-return  ^ authority-and-holiness  ^ memory-loss-and-renewal
+  &amp; <span class="k">/wordcount /progress</span>
+  * 220 words minimum this session (human says continue or stop)
+  * one Dispensation complete (human reviews and annotates; may re-flag for rewrite;
+    duration is FELT — a one-page hour at 6 is correct, not a failure)
+  * 12 chapters · 40,000 words · by 2026-11-30 (human approves each sequentially;
+    a re-flag returns that chapter upstream) ! <span class="k">/share /build</span></pre>
+        <ul class="clean">
+          <li><b>Three nested Dispensations</b> — session &rarr; chapter &rarr; book. The innermost is sized to the author's real working constraint, not the artifact's structure.</li>
+          <li><b><code>^</code> carries the parallel axis; gates carry the sequential one.</b> Themes are woven concurrently within a chapter; chapters are approved <em>sequentially</em>, so they are never lanes. Getting this backwards is the most common modelling error.</li>
+          <li><b><code>!</code> arity yields to explicit <code>^</code></b> — three commands, three named cars, and the commands become the per-lane pipeline rather than instantiating a fourth lane.</li>
+          <li><b>Governance that refuses a uniform metric.</b> The chapter gate deliberately sets no word floor: the source principle says duration is felt, not measured. A <code>(&nbsp;)</code> that contradicts its own <code>@</code> source is the failure mode to watch for.</li>
+          <li><b>The one-way door, made visible.</b> <code>/share /build</code> sits <em>past</em> the final gate rather than in the opening manifest. Both readings are legal — cargo is not executed on loading — but downstream placement is self-documenting for a string re-fed to a session with none of the surrounding conversation.</li>
+        </ul>
+      </div>
     </section>
 
     <section>
       <h2><span class="num">§8</span> Changelog &amp; lineage</h2>
       <p class="lede">Newest first. A live design — earlier passes were deliberately superseded, not mistakes. Git history of the source file is the exact line-by-line diff.</p>
       <div class="log">
-        <div class="entry now"><h4><code>~</code> sharpened to the lazy anchor</h4><p>Actual continuity, first token ASAP, mid-flight; laziness spectrum; the anti-Preload. The full "Anchor" essay (§2).</p></div>
+        <div class="entry now"><h4>Cargo/car split · I/O pair · governance · the Dispensation</h4><p>The largest pass since the archetype model. <code>!</code> "Payloads (Cars)" splits into <code>!</code> <b>cargo</b> (a manifest — not executed on loading) and <code>^</code> <b>cars</b> (vehicles; each takes a sub-prompt, so lanes are addressable). Arity instantiates cars only when no <code>^</code> is present — explicit always wins. <code>@</code> reassigned from "signage" to <b>source</b> (read from); <code>#</code> sharpened to <b>destination</b> (write to, two-way), making keys 1–4 a complete manifest. <code>*</code> is a <b>stop signal, red by default</b>; <code>(&nbsp;)</code> is <b>governance</b> — the conjunction of release conditions — with three outcomes: satisfied, re-flagged (return upstream), unsatisfiable (eject). Added chunking / the <b>one-way door</b> and named the chunk a <b>Dispensation</b>. Turbulence now scores <b>per chunk</b>: end-to-end, ten chapter-gates total <code>K=45</code> and a perfectly orderly novel would MASH panic-abort. Retired the "<code>!</code> reads visually as a car" rationale.</p></div>
+        <div class="entry"><h4><code>~</code> sharpened to the lazy anchor</h4><p>Actual continuity, first token ASAP, mid-flight; laziness spectrum; the anti-Preload. The full "Anchor" essay (§2).</p></div>
         <div class="entry"><h4>Intensity dials + schema continuity</h4><p><code>+</code>/repetition = more; <code>&minus;</code> inverts into a stress test; <code>~</code> = stay in-schema.</p></div>
         <div class="entry"><h4>Bifrost naming · gateway split · soft helpers</h4><p>Named the schema; broad vs narrow highway; the soft-helper tier; guardrail essences <code>~ $ %</code>.</p></div>
         <div class="entry"><h4>Archetype model</h4><p>Backbone reassigned (<code>!</code> cars, <code>@</code> signage, <code>#</code> repo, <code>$</code> sanity, <code>%</code> compliance); the archetype → <code>/how</code> → sub-prompt grammar.</p></div>
@@ -435,7 +476,7 @@
   </main>
 
   <footer>
-    <p>Bifrost · notation only, no dispatcher yet. Canonical source: <code>localDNS/04-user-services/ai-orchestration/highway-notation.md</code>. The guardrails — <code>~</code> continuity, <code>$</code> sanity, <code>%</code> compliance — carry meaning even through a keyboard-mash.</p>
+    <p>Bifrost · notation only, no dispatcher yet. Canonical source: <code>localDNS/04-user-services/ai-orchestration/highway-notation.md</code>. The guardrails — <code>~</code> continuity, <code>$</code> sanity, <code>%</code> compliance — carry meaning even through a keyboard-mash, and <code>*(&nbsp;)</code> <b>governance</b> repeats at every chunk boundary.</p>
   </footer>
 </div>
 
