@@ -73,6 +73,16 @@ warm cache after a restart. That is the ubiquinol-recycling-tocopherol move exac
 > LiteLLM router (`4040`) and Open WebUI (`3000`) as the interesting test cases, since
 > both are currently LAN-exposed and it is worth asking whether they need to be.
 
+> **Confirmed, 2026-08-06 — the claim caught a live one on first pass.** Writing this
+> entry turned up drift in `streaming-forward.conf`: its header described the Pi-hole →
+> Unbound hop as `172.17.0.1#5335`, the **Docker bridge gateway**, when host-networked
+> Pi-hole has reached Unbound on `127.0.0.1#5335` since the migration. That is precisely
+> the failure this pattern predicts — a carrier documented as living out in the cytosol
+> when it in fact lives in the membrane — and it is the same address whose real DNAT path
+> once silently broke VPN-peer DNS. Comment corrected. Worth noting *how* it survived:
+> `CLAUDE.md`, `network-context.md`, and `server.conf` all had it right, and the stale
+> value sat in the one file that is itself the decision point.
+
 ---
 
 ## 2. Ascorbyl palmitate — the wrapper is not the cargo
@@ -104,12 +114,13 @@ measure you were taking. Absorption looks fine. Nothing works.
 >
 > The `::/0` IPv6 black hole is the same shape again: handshake succeeds, pages hang.
 
-> **Opportunity.** Our verification block checks that mechanisms are *up*. It does not
-> check that payloads are *cleaved*. `sudo wg show` proves the tail crossed; it proves
-> nothing about the ascorbate. Candidate addition to `docs/DEPLOY-PROTOCOL.md`'s
-> verify-the-effect discipline: **for every wrapper, name the esterase and test it from
-> the far side** — e.g. from a peer, `dig @10.8.0.1 <a-known-blocked-domain>` must return
-> the block, not merely resolve.
+> **Opportunity — shipped 2026-08-06.** Our verification block checked that mechanisms
+> were *up*, never that payloads were *cleaved*. `sudo wg show` proves the tail crossed;
+> it proves nothing about the ascorbate. **The cleavage test** is now part of Phase 4 of
+> [`docs/DEPLOY-PROTOCOL.md`](../../DEPLOY-PROTOCOL.md) — for every wrapper, name the
+> thing that unwraps it and test from the far side — with the far-side `dig` added to
+> `CLAUDE.md` § 2. The general form to carry into any new wrapper: *what would this look
+> like if it arrived and nothing opened it?* Then check for exactly that.
 
 ---
 
@@ -154,12 +165,14 @@ closed doors.
 > justifying it. The claim holds today; it is worth re-running whenever a container is
 > added, because the count only ever drifts upward.
 
-> **Opportunity.** A **fusion register** — one table, in `CLAUDE.md` or
-> `cell-grammar.md`, listing every component that runs *as* the membrane rather than
-> behind it, with its justification. The reasons already exist, scattered across four
+> **Opportunity — shipped 2026-08-06.** The **fusion register** now lives in `CLAUDE.md`
+> section B: one table naming every component that runs *as* the membrane rather than
+> behind it, with its justification. The reasons already existed, scattered across four
 > compose files as comments; the register's value is not the reasons but the **count** in
 > one place, so that going from four to five is a visible event rather than a diff nobody
-> reads. This is the single most promotable idea in the entry.
+> reads. `tools/check-membrane.py` (FUSION) fails if the table and the compose files
+> disagree in *either* direction — an unregistered fusion, or a stale entry, since a
+> register nobody trusts is worse than none.
 
 ---
 
@@ -221,9 +234,19 @@ low — one is a tool, and the count should never casually rise.
 > `sudo wg show` should list only peers we can name; every unnamed peer counts toward CMC
 > and buys nothing.
 
-> **Opportunity.** Fold "identify or remove peers 10.8.0.4–.6" out of Known Issues and
-> into the regular verification block as a *count*, not a chore: the check is not "are
-> these three still there," it is "is the amphiphile count still the number we intend."
+> **Opportunity — shipped 2026-08-06.** "Identify or remove peers 10.8.0.4–.6" has moved
+> out of Known-Issues-as-chore and into `tools/check-membrane.py` (CMC) as a *count*: the
+> check is not "are these three still there," it is "is the amphiphile count still the
+> number we intend, and can we name every one of them." A declared budget of 4 live peers
+> sits in the script as a constant, so raising it is a deliberate act that shows up in a
+> diff rather than a device someone added on a Tuesday. `CLAUDE.md` § 2 now says the same
+> thing at `sudo wg show`.
+>
+> Note what the repo snapshot actually holds: **one** live `[Peer]` (the iPhone). The
+> other five are commented placeholders, because real keys never live in git. So the CMC
+> check passes here and cannot see the live box — the three unidentified peers exist on
+> the t630. The repo-side check is the ratchet; the box-side count still needs an SSH
+> session, and that is the honest limit of this control.
 
 ---
 

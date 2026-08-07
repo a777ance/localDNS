@@ -157,10 +157,29 @@ resolvers (`01-core-network/host-dns/host-dns.conf`), NOT its own Pi-hole. Host-
 `/etc/resolv.conf` can't carry Unbound's `:5335` — so the host points straight at
 `9.9.9.9`/`1.1.1.1` instead. See docs/architecture/network-context.md "Host resolver" for the root cause.
 
-**Uptime Kuma** runs with `network_mode: host` so it can reach Unbound at
-`127.0.0.1:5335` directly. No `ports:` mapping in the compose file. Pi-hole is
-host-networked for the same reason (and so it answers VPN peers over `wg0`), so
-both containers sit directly on the host network stack.
+**The fusion register — containers that run *as* the host network stack.**
+`network_mode: host` is not a container on the network; it *is* the network. Such a
+container does not cross the ingress/egress boundary — it merges with it, so nothing
+inspects it on the way in. Every entry below is deliberate and justified, and that is
+precisely why the register exists: the reasons were never in doubt, but the **count**
+was never in one place, so going from four to five would have been a diff nobody read.
+Listed Z→A per house style. Enforced by `tools/check-membrane.py` (FUSION), which fails
+if this table and the compose files disagree in either direction.
+
+<!-- fusion-register:start -->
+| Service | Compose file | Why it must be the host stack |
+| ------- | ------------ | ----------------------------- |
+| `uptime-kuma` | `03-monitoring/uptime-kuma/docker-compose.yml` | Reaches Unbound at `127.0.0.1:5335` directly to monitor it. No `ports:` mapping. |
+| `pihole` | `01-core-network/pihole/docker-compose.yml` | Binds `:53` and the UI on the host, reaches Unbound on loopback, and answers VPN peers over `wg0` — Docker DNAT in that path silently broke peer DNS. |
+| `open-webui` | `04-user-services/ai-orchestration/docker-compose.yml` | Talks to the router on `127.0.0.1:4040` without a bridge hop. |
+| `litellm` | `04-user-services/ai-orchestration/docker-compose.yml` | Same rationale as Pi-hole / Uptime Kuma: loopback reach, no DNAT in the path. |
+<!-- fusion-register:end -->
+
+**Adding a fifth is a decision, not a convenience.** The default is a bridge network: the
+container comes inside but stays wrapped in its own namespace, where the boundary still
+applies to it. Reach for `network_mode: host` only when a component genuinely needs
+loopback access to another host process or must answer on `wg0` — and add the row here in
+the same commit.
 
 ---
 
@@ -230,6 +249,7 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
 | `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths) | `python3 tools/check-docs.py` |
+| `tools/check-membrane.py` | run directly (enforce the four membrane invariants: no sensitive domain or plaintext hop on the forward-path; no LAN-only name or private address on a published surface; the fusion register matches the compose files; every WireGuard peer named and within budget) | `python3 tools/check-membrane.py` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
 
 **Drift to reconcile — documented for the live box but NOT in this repo snapshot.**
@@ -460,12 +480,39 @@ sudo unbound-control lookup chase.com              # should show: iterative dele
 docker ps                                          # pihole + uptime-kuma both Up
 systemctl is-active console ttyd-thinclient ttyd-laptop  # console + both web terminals active
 dig @127.0.0.1 -p 5335 console.home.lan +short     # 192.168.1.118 (high-seat name resolves)
-sudo wg show                                       # wg0 up, peers listed
+sudo wg show                                       # wg0 up; every peer listed must be one you can NAME (see CMC, below)
+dig @10.8.0.1 example.com +short                   # run FROM A PEER: the tunnel's payload arrives usable, not just the tunnel
 sudo ufw status verbose                            # 51820/udp Anywhere; all else LAN
 tc qdisc show dev enp1s0                           # cake bandwidth 85Mbit
 sudo iptables -t mangle -L POSTROUTING -v | grep DSCP  # EF mark on sport 53
 cat /sys/class/drm/card*/device/power_dpm_force_performance_level  # high
 ```
+
+**In the repo, before committing** — these need no box and gate a commit:
+
+```bash
+python3 tools/check-docs.py          # links + repo-path references across every doc
+python3 tools/check-membrane.py -v   # the four membrane invariants (below)
+```
+
+`check-membrane.py` mechanizes four rules that were previously enforced by whoever
+remembered to read this file:
+
+- **Aquaporin** — the fast channel carries bulk, never the credential. No sensitive
+  domain in `streaming-forward.conf`, and every forward-zone stays on DoT `:853` with a
+  validated cert name. A throughput-optimized channel that also carries the sensitive
+  thing leaks at *its own rate*, which is the fastest in the system.
+- **Leaflet** — no LAN-only `home.lan` name and no private address on any published,
+  customer-facing surface. An interior fact on the exterior face is itself the alarm;
+  nothing benign produces it.
+- **Fusion** — the fusion register in section B matches the compose files in both
+  directions.
+- **CMC** — every live WireGuard peer is one you can name, within a declared budget of 4.
+  An unnamed peer is an unguarded way through the boundary that buys nothing. *(This is
+  why the three unidentified live peers in Known Issues are a boundary question, not
+  housekeeping.)*
+
+Rationale for all four, with the disanalogies: `docs/architecture/microbiology/`.
 
 ---
 
@@ -526,6 +573,11 @@ stated reason.
   `cell-grammar.md` was cut from, and still open. Each entry must make a falsifiable
   claim about *this* box and log its own disanalogy; nothing there is deployed, and
   nothing there overrides this briefing or the live t630. Read its `README.md` first.
+- **tools/check-membrane.py** — enforces the four membrane invariants structurally
+  (aquaporin / leaflet / fusion / CMC — see [section 2](#2-verification)) so a violation
+  fails a commit instead of surviving until someone notices. Standard library only, no
+  box required. Each check is named for the finding in `docs/architecture/microbiology/`
+  that produced it, and every one has been negative-tested against a deliberate violation.
 - **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script.
 
 ---

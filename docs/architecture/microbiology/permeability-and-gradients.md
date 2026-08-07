@@ -57,12 +57,17 @@ through single-file.
 > membrane exists to hold**, and it does so at the fastest rate in the system, because
 > the channel was optimized for throughput.
 
-> **Opportunity.** The invariant is currently enforced by care. Aquaporin enforces it
-> *structurally* — the pore's geometry makes proton conduction impossible, not merely
-> discouraged. Candidate: a check in `tools/check-docs.py` or a small companion script
-> that reads `streaming-forward.conf` and fails on any forward-zone matching a
-> sensitivity denylist (banking, health, government, our own `home.lan`). Cheap, and it
-> converts a remembered rule into a structural one.
+> **Opportunity — shipped 2026-08-06.** The invariant was enforced by care. Aquaporin
+> enforces it *structurally* — the pore's geometry makes proton conduction impossible,
+> not merely discouraged. `tools/check-membrane.py` (AQUAPORIN) now reads
+> `streaming-forward.conf` and fails on any forward-zone matching a sensitivity denylist
+> (finance, health, government, personal comms, faith/family/employment, and our own
+> `home.lan`). It also enforces the *other* half of the pore: every forward-zone must
+> carry `forward-tls-upstream: yes`, sit on `:853`, and name a cert host — the plaintext
+> UDP/53 fan-out this path started as would now fail the build.
+>
+> The denylist is deliberately blunt, and the asymmetry is the point: a false positive
+> costs one conversation, a false negative hands Cloudflare a private lookup.
 
 ---
 
@@ -163,11 +168,19 @@ prospecting for.
 > inversions.** Enumerating "facts that live on exactly one face" is a small, finite
 > exercise, and each one is a free detector with essentially no false-positive surface.
 
-> **Opportunity.** A `docs/architecture/` note (or an Uptime Kuma monitor) enumerating the
-> one-face facts and how each would be observed if it inverted. Start with the `home.lan`
-> names, since `local-records.conf` already lists them and the invariant is already
-> written down — the detector is the missing half of a rule we have stated but cannot
-> currently verify.
+> **Opportunity — half shipped 2026-08-06.** `tools/check-membrane.py` (LEAFLET) now
+> enumerates the one-face facts automatically — it parses the seven `home.lan` names and
+> the t630's address straight out of `local-records.conf`, so the list cannot go stale —
+> and fails if any of them appears on a published, customer-facing surface (the statement
+> gallery HTML and client JSON) or in the forward-path.
+>
+> **The half that is not shipped, and it is the more interesting half.** This is a
+> *build-time* detector: it catches an interior fact leaking into an artifact we publish.
+> The runtime version — noticing a `home.lan` query arriving from the external face, or
+> `192.168.1.118` in an outbound payload — needs the box, and is the real PS-exposure
+> alarm. Candidate for the deploy queue: an Uptime Kuma monitor or an Unbound response-policy
+> check on the external interface. The build-time half is the cheap 80%; do not mistake
+> it for the alarm.
 
 > **Disanalogy.** PS exposure is *self-reported* — the dying cell raises its own flag, and
 > there is no adversary suppressing it. An intruder in our system has every incentive to

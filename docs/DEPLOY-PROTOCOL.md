@@ -112,6 +112,29 @@ assume it.
 3. **If any check fails, roll back now** (Phase 5, step 3) — don't leave a half-applied
    service running. Then fix in the repo and start over.
 
+**The cleavage test — for anything that wraps a payload.** The steps above prove a
+mechanism is *up*. For a wrapper — WireGuard, DoT, any tunnel or proxy — that is not the
+same as proving the payload arrived usable. A wrapper that crosses but is never unwrapped
+by something able to act on the contents is an unopened box counted as a delivery, and it
+reports green on every check you were running. This stack has already been bitten by it
+twice: VPN peers whose tunnel came up cleanly while their DNS never reached Pi-hole
+(Docker DNAT sat in the path for queries sourced from `wg0`), and the `::/0` IPv6 black
+hole (handshake succeeds, pages hang).
+
+So: **name the thing that unwraps it, and test from the far side.** `sudo wg show` proves
+the tunnel exists; it proves nothing about what came out of it.
+
+```bash
+# From a peer, not from the box — proves the tunnel's DNS is actually filtered:
+dig @10.8.0.1 <a-domain-you-know-is-blocked> +short    # expect the block, not an answer
+dig @10.8.0.1 example.com +short                        # expect normal resolution
+curl -s https://ifconfig.me                             # expect the home WAN IP, not the peer's ISP
+```
+
+The general form: *what would this look like if the wrapper arrived and nothing opened
+it?* — then check for exactly that. Background:
+[`microbiology/amphiphiles.md`](architecture/microbiology/amphiphiles.md) §2.
+
 ## Phase 3 — Back up, deploy, then validate before reload
 
 1. **Back up the live file, timestamped** (golden rule 4) — this is your one-command

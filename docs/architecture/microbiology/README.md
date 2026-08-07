@@ -78,8 +78,27 @@ Newest first (house style); within a date, Z → A.
 
 | Added | Entry | The claim it makes about *our* box |
 | ----- | ----- | ---------------------------------- |
-| 2026-08-06 | [`permeability-and-gradients.md`](permeability-and-gradients.md) — the permeability ladder, the gradient as a battery, leaflet asymmetry | The stack's real product is an **information gradient**, and it is currently spent on only one consumer. Leaflet asymmetry yields a concrete detection rule we do not yet run. |
+| 2026-08-06 | [`permeability-and-gradients.md`](permeability-and-gradients.md) — the permeability ladder, the gradient as a battery, leaflet asymmetry | The stack's real product is an **information gradient**, and it is currently spent on only one consumer. Leaflet asymmetry yields a concrete detection rule we did not run. |
 | 2026-08-06 | [`amphiphiles.md`](amphiphiles.md) — dual-soluble molecules: CoQ10, ascorbyl palmitate, liposomal glutathione, detergents | Four of this stack's containers have already **fused** with the membrane rather than crossed it; and our tunnels have a critical concentration past which the box stops being a boundary. |
+
+### What the collection has paid out so far
+
+The rule at the top of this file says an entry must predict something. Both seed entries
+did, same day they were written, so the ledger goes here:
+
+| Finding | Became |
+| ------- | ------ |
+| Aquaporin blocks protons or it shorts the gradient it serves | `tools/check-membrane.py` **AQUAPORIN** — sensitivity denylist + DoT-on-`:853` enforcement on `streaming-forward.conf` |
+| A carrier documented as living in the cytosol when it lives in the membrane (CoQ10) | Caught real drift: `streaming-forward.conf` still described the Pi-hole → Unbound hop as the Docker bridge `172.17.0.1#5335`. Corrected. |
+| A wrapper that arrives but is never unwrapped is an unopened box counted as a delivery (ascorbyl palmitate) | **The cleavage test** in `DEPLOY-PROTOCOL.md` Phase 4, + a far-side `dig` in `CLAUDE.md` § 2 |
+| Fusion is admission by resemblance, and the count drifts unwatched (liposome) | The **fusion register** in `CLAUDE.md` § B, enforced both directions by `check-membrane.py` **FUSION** |
+| An inner-leaflet fact on the outer face *is* the alarm (PS exposure) | `check-membrane.py` **LEAFLET** — build-time; the runtime alarm is still open |
+| Every amphiphile dissolves the membrane above its CMC (detergent) | `check-membrane.py` **CMC** — peers named, budget declared; reframes the unidentified-peer issue from chore to boundary question |
+
+Still open, and worth someone's attention: the **runtime** leaflet alarm (needs the box),
+and **symport** — the observation that we discharge our information gradient into exactly
+one consumer (the Statement) when the biology says a held gradient can power a second at
+near-zero marginal cost.
 
 ---
 
