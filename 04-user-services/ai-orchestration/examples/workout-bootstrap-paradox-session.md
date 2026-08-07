@@ -1,10 +1,18 @@
-# Reference session — `/workout` on "bootstrap paradox"
+# Reference sessions — `/workout` on "bootstrap paradox"
 
-A **verbatim transcript** of a live `/workout` run, kept as a **good example of how an
+**Two runs of the same prompt, newest-first**, kept as the **good example of how an
 in-harness Jury run should report itself** — including, and especially, how it states
 what it did *not* prove.
 
-## What this is a good example OF (read before copying it)
+| Run | What it is | Verdict | Standing |
+| --- | ---------- | ------- | -------- |
+| **Run 2 — 2026-08-07** | Menu-free reproduction; fixes Run 1's two honesty flags | `originlessness` **4/5** exact-match | Current reference |
+| **Run 1 — original** | First `/workout`; verbatim transcript incl. its own audit trail | `ORIGIN` **5/9** (from a forced menu) | Kept for the reporting standard, **not** the statistics |
+
+Run 1 is preserved unedited. Run 2 does not overturn it — it reproduces its substance
+under stricter elicitation and states the bound Run 1 could not.
+
+## What Run 1 is a good example OF (read before copying it)
 
 - **Honest in-harness telemetry.** The `/workout` keyless routine executed correctly:
   sized an open-ended prompt, forced a votable label, empanelled decorrelated jurors,
@@ -18,7 +26,7 @@ what it did *not* prove.
   and **not** a Dirichlet posterior. The 5→9 expansion was a heuristic branch on a 3–2
   split, not adaptive stopping math.
 
-## What this is NOT (do not cargo-cult it)
+## What Run 1 is NOT (do not cargo-cult it)
 
 This run was **uncalibrated**. Per §G of the root `CLAUDE.md` ("measure `p`, don't guess
 it"), a plurality only certifies quality once `p̂` is measured. The gold-standard epistemic
@@ -33,7 +41,91 @@ self-reporting*, not for statistical rigor.
 
 ---
 
-# Verbatim transcript
+# Run 2 — 2026-08-07 · menu-free reproduction
+
+**Prompt:** `~~~~~~~ bootstrap paradox` (Bifrost: pure `~`, maximum lazy anchor —
+continuity with the kept Run 1, no `#` destination, so nothing was written until asked).
+**Route:** `/workout` → keyless `cardio` path (`ANTHROPIC_API_KEY` absent from env,
+no `jury-claude/.env`). All jurors were **blocked from reading this repository**, so the
+Run 1 transcript stored here could not contaminate the draws.
+
+## Panel A — menu supplied (the reproduction)
+
+5 concurrent `juror` subagents; framings **plain · skeptic · restate · cross-check ·
+avoid-the-trap**; the same fixed label set Run 1 used (`ORIGIN` / `CIRCULAR-CAUSATION` /
+`INFORMATION` / `CONSISTENCY`), chosen so the tallies would be comparable.
+
+**Result: `ORIGIN` 5/5 — unanimous.** Run 1's modal answer reproduces, and more sharply
+(Run 1 needed a 5→9 expansion off a 3–2 split).
+
+Every juror independently ran the same elimination: circular causation is the
+*mechanism*, information is *what usually rides the loop*, consistency is the
+*neighbour's* problem (grandfather), and the missing first cause is the oddity itself.
+
+**Honesty flag raised on this panel — and this is the point of the run:** the option set
+was **inherited from Run 1**. Comparability was bought with a shared prior. Only the draws
+were decorrelated; the menu was not, so the unanimity is partly an artifact of the
+question. Hence Panel B.
+
+## Panel B — no menu (the fix)
+
+Same 5 framings, same blocking, one change: **each juror coins its own word.** No list,
+unbounded label space, tally by exact match on the free-form string.
+
+| Coined label | Votes | Jurors |
+| ------------ | ----- | ------ |
+| **`originlessness`** | **4** | plain, skeptic, restate, avoid-trap |
+| `origin-void` | 1 | cross-check |
+
+**4/5 exact-match agreement with nothing to copy from.** Two independent jurors reached
+for the identical coinage unprompted, and the fifth's `origin-void` is the same concept
+under a different morpheme. The convergence is **not** a menu artifact — that is now
+measured, not asserted.
+
+Substance, unanimous across both panels: the bootstrap paradox (a.k.a. *ontological
+paradox*) is a closed causal loop in which an object, text, or piece of information is
+carried backward in time and becomes its own cause. It is **fully self-consistent** —
+unlike the grandfather paradox, which is a genuine contradiction — yet the causal chain,
+traced backward, **never bottoms out in an act of creation**. Every juror applied the same
+removal test: insert one genuine act of authorship anywhere in the loop and the paradox
+evaporates into an ordinary time-travel errand.
+
+## The bound — `/diet`, run keyless (fixes Run 1's second flag)
+
+`python3 jury-claude/jury_claude.py diet` — 120 synthetic questions, ≤12 jurors, seed 7:
+
+```
+B. CORRELATION  (p=0.70, dispersed — raise rho; watch the jury collapse)
+rho=0.0   p̂=0.6958  voted=0.9917  Δ=+0.30  avg-jury=10.05  vote pays off
+rho=0.3   p̂=0.6868  voted=0.8917  Δ=+0.20  avg-jury=10.07  vote pays off
+rho=0.6   p̂=0.6937  voted=0.7167  Δ=+0.02  avg-jury=8.75   vote adds ~nothing
+rho=0.9   p̂=0.6833  voted=0.6833  Δ=+0.00  avg-jury=6.5    vote adds ~nothing
+```
+
+Read that against a unanimous panel and the bound writes itself:
+
+> **A near-unanimous tally is exactly what a *collapsed* jury produces.** At `rho=0.9`
+> the vote's lift is **Δ=+0.00** while `p̂` is unmoved — the panel agrees because the
+> draws are correlated, not because the answer is right. Five Claude jurors on a
+> well-known concept plausibly sit in that regime: a shared training prior is a
+> correlation source no amount of framing rotation removes.
+
+So what Run 2 certifies is narrow and stated on purpose:
+
+- **Certified:** the menu-free elicitation reproduces Run 1's substance at 4/5 exact match,
+  so Run 1's verdict does **not** depend on its supplied option set. That flag is closed.
+- **Not certified:** that the answer is correct *because* the panel agreed. Panels A and B
+  are keyless in-harness runs with **no measured `p̂`** — `/diet` characterizes a
+  *hypothesized* `p`/`rho`, it does not measure Claude's. Distinguishing a strong panel
+  from a collapsed one needs `/form` (`jury_claude.py … calibrate`) on a labelled set with
+  a real key. Until then, **treat the unanimity as unpriced.**
+
+Run 1's locked caveat therefore survives Run 2 intact, and is now sharper — the collapse
+regime it warned about has a number on it.
+
+---
+
+# Run 1 — original (uncalibrated) · verbatim transcript
 
 ## Turn 1 — open
 

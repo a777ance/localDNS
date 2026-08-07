@@ -367,6 +367,21 @@ making any single draw heavier.
   helps only when the correct answer is already *modal*; below that threshold it
   amplifies a wrong answer. Run `jury.py calibrate` to measure the real number on
   the task before trusting a vote.
+- **Unanimity is not a confidence signal.** A 5/5 tally is *ambiguous* between a
+  strong panel and a **collapsed** one: the synthetic study (`/diet`) shows that as
+  draws correlate (`rho` → 0.9) the vote's lift decays to **Δ=+0.00** while `p̂` sits
+  unmoved at ~0.68 — identical marginal accuracy, worthless vote. Correlated jurors
+  agree *because* they're correlated. Never read agreement as evidence of
+  correctness; only a measured `p̂` (and dispersion) can tell the two apart, which is
+  what `calibrate` is for. On a keyless in-harness run, say which of the two you
+  cannot rule out.
+- **Never hand jurors the answer menu.** A supplied option set is a *shared prior* —
+  it correlates the draws by construction and inflates agreement, exactly the Panel-B
+  collapse above. Have each juror coin its own answer and tally by exact match on the
+  free-form string; normalize only afterward, in the open. Reusing a previous run's
+  menu to make tallies "comparable" is the same error with a second run's authority
+  behind it. Force a fixed label set only when the question genuinely has one, and
+  record that you did.
 
 **Portability — the vote is the governor that survives vendor changes.** The
 per-token knobs live in the *vendor's* layer, and vendors are removing them: some
@@ -399,6 +414,13 @@ subagent (`.claude/agents/juror.md`) plus the `/cardio` command
 (`.claude/commands/cardio.md`) empanel a concurrent jury of Claude Code subagents
 and take a plurality — for one-off judgment calls where you'd otherwise consume a single
 warm draw.
+
+**The worked reference.** `04-user-services/ai-orchestration/examples/workout-bootstrap-paradox-session.md`
+keeps two runs of the same prompt, newest-first, as the standard for how an in-harness
+Jury run reports its own bounds: a **2026-08-07** menu-free reproduction (free-form labels,
+4/5 exact-match, bounded by the `/diet` collapse regime) above the original **uncalibrated**
+run whose two honesty flags it fixes. Read it before reporting any jury result — the point
+of the file is what it *declines* to certify.
 
 ---
 
