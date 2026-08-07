@@ -15,10 +15,12 @@
 # thing the next session inherits — the last point at which "did this earn its
 # tier?" can still be answered cheaply.
 #
-# Runs the repo's two static checks before any `git commit`:
-#   tools/check-docs.py        links + repo-path references resolve
+# Runs the repo's three static checks before any `git commit`:
+#   tools/check-docs.py        links + repo-path references resolve; the Bifrost
+#                              sweep string is byte-identical across its surfaces
 #   tools/check-provenance.py  provenance tags valid; no unstaged R-tier deploy
 #                              target; no R/A tag without a verify: route
+#   tools/check-doctrine.py    §G's stated sampler values match jury/jury.py
 #
 # FAILURE POLICY, deliberately asymmetric:
 #   * A check that FAILS blocks the commit (exit 2 — stderr goes back to the model).
@@ -56,7 +58,7 @@ print(d.get("tool_input", {}).get("command", ""))
 printf '%s' "$cmd" | grep -Eq '(^|[;&|[:space:]])git[[:space:]]+(-[^[:space:]]+[[:space:]]+)*commit([[:space:]]|$)' || exit 0
 
 fails=""
-for check in tools/check-docs.py tools/check-provenance.py; do
+for check in tools/check-docs.py tools/check-provenance.py tools/check-doctrine.py; do
     [ -f "$check" ] || continue
     if ! out="$(python3 "$check" 2>&1)"; then
         fails="${fails}

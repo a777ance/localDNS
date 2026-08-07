@@ -230,7 +230,9 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
 | `tools/check-provenance.py` | run directly (validate provenance tags; fail on an unstaged `R`-tier deploy target, an `R`/`A` tag with no `verify:` route, or a malformed claim; `--strict` also requires full deploy-target coverage) | `python3 tools/check-provenance.py` |
-| `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths) | `python3 tools/check-docs.py` |
+| `tools/check-doctrine.py` | run directly (asserts §G's stated sampler values match `jury/jury.py` — constructor defaults, CLI defaults, and the keys actually sent) | `python3 tools/check-doctrine.py` |
+| `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths; asserts the Bifrost sweep string is byte-identical across its three surfaces) | `python3 tools/check-docs.py` |
+| `.claude/hooks/gate.sh` | `PreToolUse(Bash)` hook — runs the three checks above before any `git commit` and blocks on failure (bypass: `touch .claude/.gate-off`) | wired in `.claude/settings.json` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
 
 **Drift to reconcile — documented for the live box but NOT in this repo snapshot.**
@@ -416,6 +418,31 @@ subagent (`.claude/agents/juror.md`) plus the `/cardio` command
 and take a plurality — for one-off judgment calls where you'd otherwise consume a single
 warm draw.
 
+**Where these clauses live — a clause stated only here governs nothing.** This briefing
+reaches a reader once, at read time; it is *not* in the read path of a run that edits the
+sampler, writes a new agent, or tunes the router. An invariant whose only residence is
+briefing prose therefore has an author and no **site**: the run's given-set omits it, and
+silence in the file the run *does* read is not a gap but an assignment — nothing to check,
+so nothing gets checked. Each clause is placed where the run that could break it will
+actually meet it:
+
+| Clause | Site |
+| ------ | ---- |
+| **Sampler values** — `temperature 1.1`, `top_p 0.9`, `top_k 40`, `max_tokens 8192`, penalties `0` | `jury/jury.py` **and** `tools/check-doctrine.py`, which fails if the two disagree |
+| Synthetic diversity must be answer-preserving & quality-matched | `.claude/commands/cardio.md` · `jury-claude/jury_claude.py` |
+| Measure `p̂`, don't guess it | `.claude/commands/form.md`, `.claude/commands/workout.calibrate.md` |
+| Never consume a single warm draw; the vote is the governor | `.claude/commands/cardio.md`, `strength.md`, `workout.md` · `.claude/agents/juror.md` — restated inline, not merely cited |
+| **Never hand jurors the answer menu** — free-form coinage, normalize after | `.claude/commands/cardio.md`, `workout.md` · `.claude/agents/juror.md` — restated inline |
+| **Unanimity is unpriced** — agreement is not confidence; name what is not certified | `.claude/commands/cardio.md`, `workout.md` — a mandatory bound line, not an optional caveat |
+| Lazy anchor — first token ASAP, low effort | `.claude/hooks/refeed.sh` (injected at `SessionStart`, so it enters every session's given-set) · `.claude/agents/juror.md` |
+
+The first row is the strongest form available: a clause that decides **mechanically** gets a
+static check, which holds no matter which file the run read and fails loudly instead of
+silently. The rest decide by judgment, so restatement in the command file is the site — cite
+`§G` *alongside* the restated rule, never *instead of* it, because a subagent's context is
+its own and a pointer it cannot follow assigns nothing. **When adding a §G clause, site it
+before treating it as landed.**
+
 **The worked reference.** `04-user-services/ai-orchestration/examples/workout-bootstrap-paradox-session.md`
 keeps two runs of the same prompt, newest-first, as the standard for how an in-harness
 Jury run reports its own bounds: a **2026-08-07** menu-free reproduction (free-form labels,
@@ -435,12 +462,37 @@ founder uses it. A keyboard-spatial notation: hold `Shift` and sweep the number 
 `!@#$%^&*()` left→right; each glyph is an *archetype* (a role) fulfilled by slash commands +
 a plain-language sub-prompt.
 
-- **Backbone:** `~` continuity/lazy-anchor · `` ` `` descriptor · `!` cargo (a *manifest*) ·
-  `@` source (read from) · `#` repo/destination (write to) · `$` sanity · `%` compliance ·
-  `^` cars/lanes · `&` rotary (also the sequential form) · `*` stop signal (red by default) ·
-  `()` governance (release conditions). Off-row `~`/`` ` `` stage; keys 1–4 **Preload** — a
-  complete manifest (*what · from where · to where · against what*); `%` (key 5) **gateway**;
-  keys 6–0 **Travel**.
+- **Backbone:** `'` ignition (begins the Bifrost) · `~` continuity/lazy-anchor · `` ` ``
+  descriptor · `!` cargo (a *manifest*) · `@` source (read from) · `#` repo/destination (write
+  to) · `$` sanity · `%` compliance · `^` cars/lanes · `&` rotary (also the sequential form) ·
+  `*` stop signal (red by default) · `()` governance (release conditions). Off-row
+  `'`/`~`/`` ` `` stage; keys 1–4 **Preload** — a complete manifest (*what · from where · to
+  where · against what*); `%` (key 5) **gateway**; keys 6–0 **Travel**.
+- **`'` is always the signal to begin the Bifrost** (founder's rule, 2026-08-07 — fixes a mobile
+  bug). Treat `'`, `'` (curly) and `′` as the same glyph, and treat **presence and absence as
+  the same string**: `' ~ !…` ≡ `~ !…`, `''` ≡ `'`. It marks *where* the Bifrost starts, never
+  *what* runs, so it takes no sub-prompt, no `/how`, no intensity dial, and scores `0`
+  turbulence. A letter-flanked `'` (`don't`, `founder's`) is prose in a sub-prompt, not an
+  ignition — only a free-standing `'` ignites. Never ask which apostrophe the phone chose.
+- **A bare `'` (the whole message) = the reference call. Return this string and NOTHING else:**
+
+  <!-- bifrost-sweep:start — canonical copy; tools/check-docs.py fails if the mirrors drift -->
+  ```text
+  ~!@#$%^&*()
+  ```
+  <!-- bifrost-sweep:end -->
+
+  It is **the sweep itself** — exactly what sliding your finger down the row on a laptop puts on
+  the screen. Not a legend, not a glossary, not a table: the row. So it is a **lookup, not a
+  generation** — same bytes every call, every session, every model. No preamble, no trailing
+  offer, no adaptation to the conversation. Answer *immediately*; it reads no file and fires no
+  cargo. **§G is out of scope, stated per §3:** §G governs *inference* and a constant involves
+  none — no `p` to measure, nothing to vote on, no draw to govern. Two details worth knowing:
+  `` ` `` is absent because `Shift` on that key **is** `~` (you cannot sweep it and shift it at
+  once), and this sweep leads with staging `~` while the **Golden Rule** used for turbulence
+  scoring stays `!@#$%^&*()` — staging glyphs are off-road. The glyph *meanings* live in the §H
+  backbone above and in the spec's §1 table; the reference call hands back the **order**, which
+  is the thing a phone cannot sweep for itself.
 - **`~` is the §G lazy anchor:** fire the first token ASAP (very low effort — the *model*
   stays high), and let continuity coalesce **mid-flight**; more `~` = lazier.
 - **`*` cuts the road into Dispensations.** Each chunk is bounded and self-governing; `()`
@@ -581,14 +633,17 @@ binding here:
 - **Verify the *effect*, not the command** — a failed `cp` + a clean restart silently reloads the old file; check `ss`/`dig` after every reload.
 - **Validate before reload, back up before overwrite** — `unbound-checkconf` (etc.) first; a timestamped copy makes rollback one command.
 - **git pull ≠ deploy** — it moves checkout files only; the running system is untouched until you apply a change (staged backlog: [docs/DEPLOY-QUEUE.md](docs/DEPLOY-QUEUE.md)).
-- **Push:** fast-forward when the branch is just `main` + your commits; retry with backoff; `tools/check-docs.py` green before committing docs.
+- **Push:** fast-forward when the branch is just `main` + your commits; retry with backoff; `tools/check-docs.py` green before committing docs, and `tools/check-doctrine.py` green before committing anything under `ai-orchestration/` or §G.
 
 **Never use the PR "watch" feature** — founder's standing instruction (2026-08-03).
 Do not subscribe to PR activity (no `subscribe_pr_activity`), and don't offer to watch,
 monitor, babysit, or autofix a PR — it's too expensive. When a PR is up, say so and
 stop; the founder drives it from there.
 
-**Conform to the LLM sampling doctrine** ([section G](#g-llm-sampling-doctrine--the-jury)).
+**Conform to the LLM sampling doctrine** ([section G](#g-llm-sampling-doctrine--the-jury)) —
+and when you *add* to it, **site the clause** where the run that could break it will read it
+(§G's "Where these clauses live"): a command/agent file for judgment clauses, a static check
+for mechanical ones. A clause that exists only in this briefing governs nothing.
 Any work that configures, prompts, or aggregates this stack's own models — router
 configs, orchestration, evals, agents — follows the doctrine by default: lazy anchor
 → governed-warm body → concurrent vote, with the invariants (match temperature with
@@ -619,7 +674,8 @@ stated reason.
 - **docs/architecture/cell-grammar.md** — supporting architecture notes
 - **docs/architecture/warrant-sites.md** — **where an invariant has to live to bind anything**: a run's warrant configuration (given-set · check obligation · confidence policy), why briefing prose and citations are not sites, the ranked site ladder, and the audit of which invariants in this repo are actually sited versus merely stated. Read it before writing a new rule anywhere.
 - **docs/provenance.html** — **the Provenance Ladder**: how a claim earns authority here (`M`/`O`/`D`/`R`/`A`), why transmission never promotes a tier, the four gates that check one before anything irreversible, the tag grammar, and the laundering catalogue. Published at <https://a777ance.github.io/localDNS/provenance.html>. Read it before citing a reconstructed config as fact or a plurality as a verdict — enforced by `tools/check-provenance.py`.
-- **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script.
+- **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script. It also enforces one cross-file invariant: the **Bifrost sweep string** (the fixed string a bare `'` returns, §H) must be **byte-identical** across all three surfaces carrying it — CLAUDE.md is canonical. A deterministic answer is only as good as the agreement of its sources.
+- **tools/check-doctrine.py** — asserts the **mechanically-decidable** clauses of §G against the code that implements them: the juror sampler's `temperature`/`top_p`/`top_k`/`max_tokens` defaults, the CLI defaults (the real entry point), and that the penalties are **actually sent** rather than inherited from a vendor default. Deliberately narrow — the posture clauses (lazy anchor, vote-as-governor, measure `p̂`) don't decide mechanically and are sited in `.claude/commands/` and `.claude/agents/juror.md` instead, so a green run is **not** a claim the doctrine was followed, only that the numbers still agree.
 
 ---
 

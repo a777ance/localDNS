@@ -136,7 +136,8 @@ class FireworksSampler:
     """One tuned juror config, called n-at-a-time over the OpenAI-compatible API."""
 
     def __init__(self, model, api_key, base_url=DEFAULT_BASE_URL, temperature=1.1,
-                 top_p=0.9, top_k=40, max_tokens=8192, system=None, timeout=180,
+                 top_p=0.9, top_k=40, max_tokens=8192, presence_penalty=0,
+                 frequency_penalty=0, system=None, timeout=180,
                  max_workers=8, retries=3):
         if not api_key:
             raise SystemExit("No API key. Set FIREWORKS_API_KEY (env or ./.env) "
@@ -144,6 +145,11 @@ class FireworksSampler:
         self.model, self.api_key, self.base_url = model, api_key, base_url.rstrip("/")
         self.temperature, self.top_p, self.top_k = temperature, top_p, top_k
         self.max_tokens, self.system = max_tokens, system
+        # §G pins these at 0 — penalties corrupt code and stack a second
+        # randomizer on the temperature. Held here explicitly rather than left to
+        # a vendor default, so the invariant has a site in the run and not only
+        # in the briefing. tools/check-doctrine.py asserts it.
+        self.presence_penalty, self.frequency_penalty = presence_penalty, frequency_penalty
         self.timeout, self.max_workers, self.retries = timeout, max_workers, retries
 
     def _one(self, prompt):
@@ -155,6 +161,8 @@ class FireworksSampler:
             "model": self.model, "messages": messages,
             "temperature": self.temperature, "top_p": self.top_p,
             "top_k": self.top_k, "max_tokens": self.max_tokens, "n": 1,
+            "presence_penalty": self.presence_penalty,
+            "frequency_penalty": self.frequency_penalty,
         }).encode()
         req = urllib.request.Request(
             self.base_url + "/chat/completions", data=body,

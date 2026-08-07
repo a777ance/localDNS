@@ -56,7 +56,7 @@ Where an invariant can live, strongest first. Migration upward is the repair.
 
 | Rank | Site | Binds because | Example here |
 | ---- | ---- | ------------- | ------------ |
-| 1 | **Mechanical check at the emission boundary** (hook, generator, CI) | The invariant decides without a reader | `.claude/hooks/gate.sh` blocks a commit failing `tools/check-provenance.py`; `docs/statements/tools/generate_client.py` gates each optional section on `cfg.get(...)`, so "How You Compare" **cannot** render without data |
+| 1 | **Mechanical check at the emission boundary** (hook, generator, CI) | The invariant decides without a reader | `.claude/hooks/gate.sh` blocks a commit failing `check-docs.py`, `check-provenance.py` or `check-doctrine.py`; `docs/statements/tools/generate_client.py` gates each optional section on `cfg.get(...)`, so "How You Compare" **cannot** render without data |
 | 2 | **Fail-closed structure** | The wrong state cannot start | `${LITELLM_MASTER_KEY:?…}` in both compose files — no unsealed secret, no container |
 | 3 | **Inlined text in the file that executes** (`.claude/commands/*.md`, `.claude/agents/*.md`, a script) | It is in premise position for that run | The menu prohibition and the mandatory bound line, written out in `cardio.md` / `workout.md` / `juror.md` |
 | 4 | **A citation to the briefing** | Nothing. Transfers the citation | The five §G references that lost to their own file's text |
@@ -77,6 +77,7 @@ State of the working tree, 2026-08-07. "Site" means rank 1–3 above.
 | Statement prints only measured figures | Portfolio conventions | `generate_client.py` conditional sections | ✅ **Sited** — the section is structurally unrenderable without data |
 | No secrets in git | Portfolio conventions | `${VAR:?}` in both composes · `.gitignore` · `.env.example` | ✅ **Sited** — fail-closed |
 | Docs links + repo paths resolve | § 4 | `tools/check-docs.py`, now gated at commit | ✅ **Sited** |
+| §G's sampler values match the code that sends them | § G | `tools/check-doctrine.py`, now gated at commit | ✅ **Sited** — landed independently on `main` the same day, same finding |
 | Provenance tags are valid and R-tier never reaches the box undiffed | § 3 · `docs/provenance.html` | `tools/check-provenance.py`, now gated at commit | ✅ **Sited** (2026-08-07) |
 | Never supply jurors an answer menu | § G | inlined in `cardio.md` / `workout.md` / `juror.md` | ✅ **Sited** (2026-08-07) |
 | A keyless plurality is unpriced — name the unknown | § G | inlined mandatory bound line | ✅ **Sited** (2026-08-07) |
@@ -108,4 +109,4 @@ mechanism at two scales, which is why the tiers do duty as marks:
 
 | Date | Change |
 | ---- | ------ |
-| 2026-08-07 | File created. Warrant configuration defined (given-set · check obligation · confidence policy); the site ladder; the working-tree audit; `.claude/hooks/gate.sh` added as a rank-1 site for the two static checks, exercised in both directions before landing. |
+| 2026-08-07 | File created. Warrant configuration defined (given-set · check obligation · confidence policy); the site ladder; the working-tree audit; `.claude/hooks/gate.sh` added as a rank-1 site for all three static checks, exercised in both directions before landing. Merged with `main`'s independent §G clause→site audit (`tools/check-doctrine.py`), which reached the same finding from the sampler side the same day. |

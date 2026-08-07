@@ -14,6 +14,11 @@ For every `*.md` file in the repo (recursively, excluding `.git`):
     slashed legacy path is stale drift. This is the tripwire that would have caught
     the 195 rotted `docs/` references the 2.0 migration left behind.
 
+Plus one cross-file invariant: the **Bifrost sweep string** — the fixed string a bare
+`'` returns — must be byte-identical in all three surfaces that carry it. That
+answer is specified as a lookup rather than a generation, so the sources have to
+agree or the promise is empty. See `check_bifrost_sweep` below.
+
 Heading anchors use GitHub's slug algorithm. Headings/links inside fenced code
 are ignored. External (`http(s)://`, `mailto:`) links are skipped. Absolute
 system paths (`/etc/…`) and cross-repo paths (first segment not a repo dir) are
@@ -28,6 +33,7 @@ Usage:
     python3 tools/check-docs.py
 """
 import glob
+import html
 import os
 import re
 import sys
@@ -182,6 +188,86 @@ def check(path):
     return problems
 
 
+# --- Bifrost sweep string: the three copies must be byte-identical -------------
+#
+# A bare `'` is the Bifrost reference call, and its answer is specified as a
+# LOOKUP, not a generation: the same bytes every call. That promise is only worth
+# anything if the sources agree, so the string is embedded between
+# `bifrost-sweep:start` / `:end` markers in each surface and compared here.
+# CLAUDE.md §H is canonical — it is the copy in context when the call is answered.
+SWEEP_MARK = re.compile(
+    r"bifrost-sweep:start\b.*?-->(.*?)<!--\s*bifrost-sweep:end", re.S
+)
+SWEEP_FILES = [
+    "CLAUDE.md",  # canonical — keep first
+    "04-user-services/ai-orchestration/highway-notation.md",
+    "docs/bifrost.html",
+]
+
+
+def normalize_sweep(raw, is_html):
+    """Reduce an embedded sweep block to its bare text lines.
+
+    Strips the container each surface wraps it in — Markdown fences, blockquote
+    `> ` prefixes, HTML tags/entities, and any common leading indent (CLAUDE.md
+    nests it inside a bullet). What survives is the string itself, so a real
+    wording drift fails while a re-indent does not.
+    """
+    if is_html:
+        # Take the <pre> body only: source indentation before the opening tag is
+        # outside the element (it never renders), so including it would flag a
+        # cosmetic re-indent of the HTML as a drift.
+        pre = re.search(r"<pre[^>]*>(.*?)</pre>", raw, re.S)
+        raw = pre.group(1) if pre else raw
+        raw = re.sub(r"<[^>]+>", "", raw)
+        raw = html.unescape(raw)
+    lines = []
+    for ln in raw.split("\n"):
+        ln = re.sub(r"^\s*>\s?", "", ln)          # blockquote prefix
+        if re.match(r"^\s*```", ln):              # fence open/close
+            continue
+        lines.append(ln.rstrip())
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    body = [ln for ln in lines if ln.strip()]
+    if body:
+        indent = min(len(ln) - len(ln.lstrip()) for ln in body)
+        lines = [ln[indent:] if ln.strip() else "" for ln in lines]
+    return "\n".join(lines)
+
+
+def check_bifrost_sweep():
+    sweeps, problems = {}, []
+    for rel in SWEEP_FILES:
+        p = os.path.join(ROOT, rel)
+        if not os.path.exists(p):
+            problems.append(f"{rel}: missing (expected to carry the Bifrost sweep)")
+            continue
+        m = SWEEP_MARK.search(open(p, encoding="utf-8").read())
+        if not m:
+            problems.append(f"{rel}: no bifrost-sweep:start/end block found")
+            continue
+        sweeps[rel] = normalize_sweep(m.group(1), rel.endswith(".html"))
+    if problems:
+        return problems
+    canon_name = SWEEP_FILES[0]
+    canon = sweeps[canon_name]
+    for rel, text in sweeps.items():
+        if rel == canon_name or text == canon:
+            continue
+        problems.append(f"{rel}: sweep string differs from {canon_name} (canonical)")
+        want, got = canon.split("\n"), text.split("\n")
+        for i in range(max(len(want), len(got))):
+            w = want[i] if i < len(want) else "<missing>"
+            g = got[i] if i < len(got) else "<missing>"
+            if w != g:
+                problems.append(f"    line {i + 1}: expected {w!r}")
+                problems.append(f"              found    {g!r}")
+    return problems
+
+
 def main():
     os.chdir(ROOT)
     md = sorted(
@@ -198,6 +284,15 @@ def main():
                 print(f"  - {p}")
         else:
             print(f"ok   {f}")
+    sweep_problems = check_bifrost_sweep()
+    if sweep_problems:
+        failed = True
+        print("FAIL Bifrost sweep string (bare `'` reference call)")
+        for p in sweep_problems:
+            print(f"  - {p}")
+    else:
+        print(f"ok   Bifrost sweep string identical across {len(SWEEP_FILES)} surfaces")
+
     if failed:
         print("\nDoc check FAILED")
         sys.exit(1)

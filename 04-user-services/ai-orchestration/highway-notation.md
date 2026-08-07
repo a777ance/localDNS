@@ -13,19 +13,21 @@ the canonical home.
 
 **In one sentence:** a keyboard-spatial way to *draw* a pipeline — hold `Shift` and sweep
 the number row `!@#$%^&*()` left→right — where each glyph is an **archetype** (a role)
-fulfilled by slash commands and a plain-language sub-prompt.
+fulfilled by slash commands and a plain-language sub-prompt. A `'` **begins** it
+(§1 — *Ignition*); the string means the same thing with or without one.
 
 ---
 
 ## 1. The backbone (`!@#$%^&*()`)
 
 The number row is the road — and **"highway" has two senses:** *broad* (the whole physical
-row) and *narrow* (keys **5–0**, the drivable road). Two **staging keys** sit off the left
-end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (key 5) is the
-**gateway on**; keys **6–0** are the open **Travel** road.
+row) and *narrow* (keys **5–0**, the drivable road). Three **staging keys** sit off the
+number row (`'`, `~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%`
+(key 5) is the **gateway on**; keys **6–0** are the open **Travel** road.
 
 | Key | Glyph | Phase | Archetype | Meaning |
 | :-- | :-- | :-- | :-- | :-- |
+| `'` | `'` | Staging | Ignition | The **start signal**: everything from here rightward is read as Bifrost. Carries no sub-prompt and no slash command. **Optional by construction — a string means the same thing with or without it.** A **bare `'`** (nothing after it) is the **reference call** — it returns the sweep, `~!@#$%^&*()`. See the note below. |
 | `~` | `~` | Staging | Continuity / Lazy Anchor | The plain-language **requirement**, the **continuity operator** (coalesce / carry-forward / interleave prior context/state; "stay in the Bifrost schema," loaded at session start), **and the immediate top-line lazy anchor** — see the note below. The **only archetype with no slash command**. Visual: a bridge. |
 | `` ` `` | `` ` `` | Staging | Descriptor | Inline qualifier, renders **shaded**; **subordinate to `~`** — it hangs under the requirement and describes it (e.g. `` `yellow, large, browning, bunch` ``). |
 | `1` | `!` | Preload | Cargo | The **manifest** — *what* is carried. Cargo is not executed on loading; the road decides when each item acts. |
@@ -37,6 +39,93 @@ end (`~`, `` ` ``); keys **1–4** are the **Preload** (stage everything); `%` (
 | `7` | `&` | Travel | Rotary (A777ance) | Turns off into a nested sub-loop that **runs the FULL highway process**, nested inside the main. Also the **deterministic/sequential** form — commands under one `&` run in order. |
 | `8` | `*` | Travel | Stop Signal | A gate that is **red by default** — fail-closed. Nothing proceeds to the next road until governance clears it. A **bare `*`** (no `()`) is a full stop awaiting **manual release** — ungoverned means human-released, not deadlocked. |
 | `9/0` | `()` | Travel | Governance | The **release conditions**. Everything inside must be satisfied (conjunction) before the `*` goes green. |
+
+> **`'` is Ignition — the mobile-safe opener.** Reported from a phone: the apostrophe is the
+> one character a mobile keyboard will not hold still. Smart punctuation silently swaps the
+> straight `'` (U+0027) for the curly `'` (U+2019), autocorrect inserts one unbidden, a
+> different keyboard drops it — and until now `'` sat in the **soft tier** (§3) where it meant
+> nothing in particular. So the same string typed on a phone and on a desktop differed in a
+> character with no defined meaning. **The rule that fixes it:** `'` is *always* the signal to
+> begin the Bifrost, and it is defined so that its presence and its absence are the **same
+> string**. The character the phone cannot stop producing now starts the road.
+>
+> - **With or without — identical.** `' ~ ! …` ≡ `~ ! …`. Ignition marks *where* the Bifrost
+>   begins; it never changes *what* runs. Nothing downstream may read it as an argument.
+> - **Form-agnostic.** `'` (U+0027), `'` (U+2019), `′` (U+2032) are one glyph. The schema must
+>   not notice which one the keyboard chose.
+> - **Idempotent, not a dial.** `''` ≡ `'`. Ignition is the one glyph immune to the `+` / `-`
+>   intensity dials (§2) — a mark whose absence is harmless cannot also carry weight when
+>   repeated.
+> - **Off-road for turbulence.** Like `~` and `` ` ``, `'` sits off the number row and scores
+>   `0` toward `K` (§5). A mobile-inserted apostrophe can never push a chunk toward MASH.
+> - **Contractions are not ignitions.** A `'` with a letter on **both** sides — `don't`,
+>   `founder's` — is prose inside a sub-prompt. Ignition is a `'` standing free: at the head of
+>   the string, or between slots. Without this carve-out every English sub-prompt would re-fire
+>   the schema.
+>
+> **Why this key.** The apostrophe is the punctuation a phone hands you most readily — it is on
+> the first symbol page and autocorrect volunteers it — while both existing staging glyphs,
+> `~` and `` ` ``, are buried behind the deeper symbols page. Ignition gives a thumb-typed
+> string a reachable opener, and spatially it already sits where an opener belongs: on the home
+> row, left of Enter — the last key before you send.
+
+> **A bare `'` is the reference call — it returns the sweep.** Send `'` and nothing else and the
+> answer is this string, and nothing else:
+
+<!-- bifrost-sweep:start -->
+
+> ```text
+> ~!@#$%^&*()
+> ```
+
+<!-- bifrost-sweep:end -->
+
+> **It is the gesture's own output, not a description of it.** On a laptop you hold `Shift` and
+> slide a finger down the row; that is what lands on the screen. A phone has no row to sweep, so
+> `'` **is** the mobile substitute for the gesture — and a substitute for a *hardware* act returns
+> what the hardware returns. Not a legend, not a glossary, not the §1 table: **the row**.
+>
+> - **Deterministic — a lookup, not a generation.** The same bytes every time, every session,
+>   every model. Nothing before it, nothing after it: no preamble, no trailing offer, no
+>   adaptation to the surrounding conversation. A keyboard does not vary its output to suit the
+>   conversation, and neither may this. Anything less hands the phone a worse Bifrost than the
+>   laptop, which is the exact inequality Ignition exists to remove.
+> - **It hands back the *order*, which is the part a phone cannot get for itself.** The glyph
+>   *meanings* are already written down — §1's table, CLAUDE.md §H — and a phone can read those.
+>   What a phone cannot do is *sweep*. So the reference call supplies the sequence, and the
+>   sequence is the notation's meaning (§5: turbulence is measured as distance from this order).
+> - **Two absences that are not omissions.** `` ` `` does not appear because `Shift` on that key
+>   **is** `~` — you cannot sweep the row and un-shift one key at once; the descriptor is the
+>   same key's unshifted face. And `'` itself does not appear, because Ignition is the *call*,
+>   not a stop on the road.
+> - **The sweep vs. the Golden Rule.** This string leads with staging `~`; the **Golden Rule**
+>   against which §5 scores turbulence stays `!@#$%^&*()`, because staging glyphs are off-road.
+>   Same row, two readings — the sweep is what the hand does, the Golden Rule is what the metric
+>   measures.
+> - **It does not break the with-or-without invariant.** That identity quantifies over
+>   *non-empty* remainders: `' R` ≡ `R` for any `R`. Strip the `'` from a bare `'` and what is
+>   left is the empty message — not a Bifrost at all — so the degenerate case was never bound by
+>   the identity. `''` ≡ `'` still holds: same string back.
+> - **Precedent — Bifrost already reads bare glyphs.** A bare `*` is a full stop awaiting manual
+>   release; a bare `%` is a compliance check with no sub-prompt (§6, Example 1). A bare glyph is
+>   the archetype with its slots empty, not a syntax error.
+> - **Null effect, and that is the point.** It reads nothing, writes nothing, and runs no cargo —
+>   there is no `!` manifest to fire and no `#` to write to. This matters precisely *because*
+>   autocorrect inserts apostrophes unbidden: the character most likely to arrive by accident must
+>   have the most harmless standalone meaning available. A stray `'` costs you eleven characters.
+>   Fail-safe, in the same spirit as `*` being red by default.
+> - **§G is out of scope — a stated deviation** (CLAUDE.md §3 requires the statement). §G governs
+>   *inference*: lazy anchor → governed-warm body → concurrent vote. Returning a constant performs
+>   none. There is no `p` to measure, nothing to vote on, and no draw to govern — sampling a fixed
+>   string would be a category error, manufacturing variance where none is wanted. Note the
+>   symmetry: §G's point is that temperature is a variance dial you may lose to a vendor while the
+>   vote is the governor you own. This is the limiting case — **variance set to none, because
+>   there was never anything to vary.**
+> - **Enforced, not asserted.** The string is embedded in three surfaces (this file, CLAUDE.md §H,
+>   `docs/bifrost.html`). `tools/check-docs.py` extracts all three between `bifrost-sweep` markers
+>   and **fails if they differ by a byte**. Determinism across *calls* is worthless if the
+>   *sources* have drifted — so the invariant is tested, not promised. **CLAUDE.md §H is the
+>   canonical copy** (it is the one in context when the call is answered).
 
 > **`!` cargo vs. `^` cars — the split.** These were one glyph ("Payloads (Cars)"), fusing
 > *what is carried* with *what carries it*. They are now separate, and the separation is
@@ -173,7 +262,7 @@ placed "top right corner."
 **`/` is real syntax** — the command lane. One or more `/how` slash commands fulfil an
 archetype and fill instantiated `^` slots (§2).
 
-**Everything in `< > ? { } [ ] " ' : ;` is soft** — *glow-in-the-dark road lines* and
+**Everything in `< > ? { } [ ] " : ;` is soft** — *glow-in-the-dark road lines* and
 **secondary signage** (the creative-writing punctuation), **not hard syntax.** They add
 visibility and disambiguate; drop them and the pipeline still means the same thing.
 
@@ -181,11 +270,18 @@ visibility and disambiguate; drop them and the pipeline still means the same thi
 | :-- | :-- |
 | `?` | Back-reference reflector — points back to a `!` (its referent). |
 | `< > { } [ ]` | Reflectors / visibility brackets — mark on-ramp/off-ramp edges, group hints. |
-| `" ' : ;` | Secondary signage — creative-writing punctuation: soft labels, pauses, quotes for clarity. |
+| `" : ;` | Secondary signage — creative-writing punctuation: soft labels, pauses, quotes for clarity. |
 
 **`( )` is not in this tier.** Round brackets look like the visibility brackets above but are
 **backbone** (keys 9/0) — they carry governance and are load-bearing. Dropping them changes
 what the string means; dropping a `[ ]` does not.
+
+**`'` is no longer in this tier either — it was promoted to Ignition (§1).** A glyph cannot be
+both "meaningless creative-writing punctuation" and "the signal to begin," and the soft reading
+is what made the mobile bug possible: an autocorrected apostrophe was undefined noise. Note the
+directions differ — a soft helper may be **dropped** without changing the meaning; `'` may be
+dropped **or added** without changing it. Ignition is the stricter promise, which is exactly why
+it survives a keyboard that edits you.
 
 Because this tier is soft, you can **mash the keyboard and still land a coherent loop** —
 the helpers wash out and the backbone, plus the three **guardrail essences** — `~`
@@ -266,6 +362,11 @@ $$K = \sum_{i < j} \mathbb{I}(v_i > v_j)$$
 - **Turbulence 1–5 — Scenic Route:** deliberate weaving (e.g. `%` audit after `^`); customized physics.
 - **Turbulence 6–15 — Spaghetti Junction:** computationally dense; heavy nested logic.
 - **Turbulence > 15 — MASH:** the input is a keyboard-smash, not a road (`(*&#Q$(*#$(*&%!@`). Panic-abort: drop payloads and respond with human-centric intervention, not a dry syntax error.
+
+**Staging glyphs are off-road.** `'`, `~` and `` ` `` hold no position in the Golden Rule, so
+they contribute nothing to `K` and cannot be inverted against anything. This matters most for
+`'`: an ignition mark a phone inserted on its own must never cost turbulence, or the mobile-safe
+opener would drag well-formed strings toward MASH.
 
 **Score per chunk, not across the string.** Split the input on `*` and compute `K` **within
 each chunk**; the string's turbulence is the **maximum** over its chunks.
@@ -360,6 +461,34 @@ What this example demonstrates that the earlier ones do not:
   but placing it downstream is self-documenting for a string meant to be re-fed to a session
   that has none of the surrounding conversation.
 
+**Example 5 — ignition, thumb-typed** (all four lines are the *same string*):
+
+```text
+' ~ tighten the statement intro  ! /draft /trim  @ docs/statements/  # localDNS  $ house style  %
+' ~ tighten the statement intro  ! /draft /trim  @ docs/statements/  # localDNS  $ house style  %
+~ tighten the statement intro  ! /draft /trim  @ docs/statements/  # localDNS  $ house style  %
+'' ~ tighten the statement intro  ! /draft /trim  @ docs/statements/  # localDNS  $ house style  %
+```
+
+Line 1 is typed with a straight `'`; line 2 is what a phone's smart punctuation actually sent
+(curly `'`); line 3 is the same string with the keyboard having dropped the mark entirely; line
+4 doubled it. **All four parse identically** — that invariance *is* the rule, not a tolerance
+around it. The founder should never have to look at which apostrophe their phone chose.
+
+Note also that `docs/statements/` and a sub-prompt like `the founder's intro` both contain
+characters the soft tier would otherwise fight over; only a **free-standing** `'` ignites.
+
+**Example 6 — the reference call** (the whole message is one character):
+
+```text
+'
+```
+
+Returns the sweep — `~!@#$%^&*()` — and nothing else. Not a legend: the row itself, exactly what
+a laptop puts on screen when you hold `Shift` and slide down it. Reads nothing, writes nothing,
+fires no cargo. The degenerate case of the most-reachable key on a phone keyboard is also the
+safest thing a stray autocorrect can produce.
+
 ---
 
 ## 7. Changelog & superseded passes
@@ -368,7 +497,44 @@ Newest first. Recorded so reviewers can trace intent; **git history of this file
 exact line-by-line diff.** This is a live design — earlier passes were deliberately
 superseded, not mistakes.
 
-- **Cargo/car split, I/O pair, governance & the Dispensation (current).** The biggest pass
+- **The reference call returns the sweep, not a legend (current).** Corrected: a bare `'`
+  returns the string **`~!@#$%^&*()`** and nothing else — the gesture's own output, exactly what
+  a laptop puts on screen when you hold `Shift` and slide down the row. An earlier pass had it
+  returning a thirteen-line glyph card; that was a *description* of the gesture where the founder
+  asked for the gesture. The meanings were already written down (§1's table, CLAUDE.md §H) and a
+  phone can read those — what a phone cannot do is **sweep**, so the call supplies the **order**,
+  and per §5 the order is the notation's meaning. Two absences are structural, not omissions:
+  `` ` `` cannot appear because `Shift` on that key *is* `~`, and `'` does not appear because
+  Ignition is the call, not a stop on the road. The sweep leads with staging `~` while §5's
+  Golden Rule stays `!@#$%^&*()` — same row, two readings.
+- **The reference call is deterministic.** A **lookup, not a generation**: same bytes every call,
+  every session, every model, nothing before or after it. The argument is the founder's — sliding
+  a finger down the row on a laptop is a *hardware* act, so the phone's substitute for that
+  gesture must inherit the hardware's determinism, or mobile gets a worse Bifrost than the
+  laptop. A keyboard does not vary its output to suit the conversation. **§G is out of scope,
+  stated per §3** — it governs inference, and returning a constant performs none. **Enforced:**
+  `tools/check-docs.py` extracts the string from all three surfaces between `bifrost-sweep`
+  markers and fails on a one-byte difference, CLAUDE.md §H canonical. Determinism across calls is
+  worthless if the sources drift.
+- **Bare `'` = the reference call.** Ignition with no road behind it, so the bridge shows you
+  itself; the mobile affordance for "I can't sweep a row on a phone." It does **not** break the with-or-without invariant, which
+  quantifies over *non-empty* remainders (`' R` ≡ `R`) — strip the mark from a bare `'` and what
+  is left is the empty message, never a Bifrost, so the degenerate slot was always free. Follows
+  the existing bare-glyph precedent (bare `*`, bare `%`). **Null effect by design:** reads
+  nothing, writes nothing, fires no cargo — the character autocorrect inserts unbidden gets the
+  most harmless standalone meaning available.
+- **`'` promoted to Ignition — the mobile fix.** Founder-reported bug from a phone:
+  the apostrophe is the one character a mobile keyboard will not hold still (smart punctuation
+  swaps `'` for `'`, autocorrect inserts one unbidden, another keyboard drops it), and `'` sat in
+  the **soft tier** where it meant nothing in particular — so the same string differed between
+  phone and desktop in an undefined character. New rule: **`'` is always the signal to begin the
+  Bifrost**, defined so that presence and absence are the *same string* (`' ~ !…` ≡ `~ !…`),
+  form-agnostic across `'`/`'`/`′`, idempotent (`''` ≡ `'`, immune to the `+`/`-` dials), and
+  scoring `0` toward turbulence — with a carve-out that a letter-flanked `'` (`don't`) is prose,
+  not an ignition. Removed `'` from the §3 soft tier (now `" : ;`); noted the promotion is the
+  *stricter* promise (a soft helper may be dropped without changing meaning; `'` may be dropped
+  **or added**). Added §5 "staging glyphs are off-road" and Example 5.
+- **Cargo/car split, I/O pair, governance & the Dispensation.** The biggest pass
   since the archetype model. `!` "Payloads (Cars)" split into **`!` cargo** (a *manifest* — not
   executed on loading) and **`^` cars** (the vehicles; each now takes a sub-prompt, so lanes are
   **addressable**). `!`'s `/how` arity instantiates cars **only when no `^` is present** —
