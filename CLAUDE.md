@@ -538,6 +538,20 @@ repetition alone. Ask where it entered from *outside* the loop; if the answer is
 earlier copy of itself", it has no origin and you are cargo-culting a bootstrap
 paradox. Worked case: `04-user-services/ai-orchestration/examples/workout-bootstrap-paradox-session.md`.
 
+**An invariant needs a site, not an author.** This briefing is read once, by the
+operator, at read time — it is outside the read path of every subsequent run, so an
+invariant that lives *only here* assigns nothing to a run's given-set and will be
+re-broken by a run following its own file faithfully. **A citation is not a site:**
+`.claude/commands/cardio.md` cited § G five times while its own text defined the
+confidence scale § G forbids, and the text won. And **silence is an assignment** — with
+no confidence policy stated, a run reports closed by default, so the unknown state has
+to be made mandatory, not merely permitted. Migration upward is the repair: mechanical
+check → fail-closed structure → inlined text in the file that executes. Ranked sites,
+the working-tree audit, and what is still unsited: `docs/architecture/warrant-sites.md`.
+Rank-1 site for the repo's static checks: `.claude/hooks/gate.sh` (PreToolUse — blocks a
+commit that fails `tools/check-docs.py` or `tools/check-provenance.py`; bypass with
+`touch .claude/.gate-off`, which puts the invariant back to having no site).
+
 **The Provenance Ladder governs that check** — the full grammar, gates, and failure
 catalogue live in `docs/provenance.html` (published at
 <https://a777ance.github.io/localDNS/provenance.html>). The short form, which is
@@ -603,6 +617,7 @@ stated reason.
 - **docs/architecture/network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
 - **docs/architecture/cell-grammar.md** — supporting architecture notes
+- **docs/architecture/warrant-sites.md** — **where an invariant has to live to bind anything**: a run's warrant configuration (given-set · check obligation · confidence policy), why briefing prose and citations are not sites, the ranked site ladder, and the audit of which invariants in this repo are actually sited versus merely stated. Read it before writing a new rule anywhere.
 - **docs/provenance.html** — **the Provenance Ladder**: how a claim earns authority here (`M`/`O`/`D`/`R`/`A`), why transmission never promotes a tier, the four gates that check one before anything irreversible, the tag grammar, and the laundering catalogue. Published at <https://a777ance.github.io/localDNS/provenance.html>. Read it before citing a reconstructed config as fact or a plurality as a verdict — enforced by `tools/check-provenance.py`.
 - **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script.
 

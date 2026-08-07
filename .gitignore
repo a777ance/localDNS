@@ -28,3 +28,4 @@ Thumbs.db
 # Python bytecode
 __pycache__/
 *.pyc
+.claude/.gate-off
