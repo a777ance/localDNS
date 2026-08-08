@@ -20,9 +20,10 @@ WHAT IS SYNCED
 --------------
     bifrost             the command schema (canonical: ai-orchestration/briefing-block.md)
     branch-policy       Yggdrasil / Well of Mimir (ai-orchestration/branch-policy-block.md)
+    proxy-doctrine      what actually refuses vs. only asks (ai-orchestration/proxy-block.md)
     session-visibility  the sibling-session grant (ai-orchestration/session-visibility-block.md)
 
-All three are portfolio-wide by declaration, and each failed differently. Bifrost DRIFTED —
+All are portfolio-wide by declaration, and they failed differently. Bifrost DRIFTED —
 nine briefings kept describing a schema without Ignition. Branch policy was ABSENT from
 eight of ten, and absence is worse: a session reading a briefing that says nothing about
 branching invents an answer, and the invented answer cut 337 stale branches. Silence is an
@@ -114,6 +115,16 @@ BLOCKS = [
         heading="## Branch policy — Yggdrasil and the Well of Mimir",
         # No legacy unmarked form exists: the predecessor rule was a bullet inside a
         # repo-specific list, not a block, and is retired by hand in the same commit.
+        legacy_start="\x00no-legacy\x00",
+        legacy_end="\x00no-legacy\x00",
+    ),
+    Block(
+        name="proxy-doctrine",
+        canonical=REPO_ROOT / "04-user-services/ai-orchestration/proxy-block.md",
+        marker="proxy-doctrine",
+        heading="## Proxies — what actually refuses, and what only asks",
+        # No legacy unmarked form: the doctrine is new (2026-08-08), so there is no
+        # hand-written predecessor for --write to adopt.
         legacy_start="\x00no-legacy\x00",
         legacy_end="\x00no-legacy\x00",
     ),
