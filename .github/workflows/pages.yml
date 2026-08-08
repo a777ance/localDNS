@@ -21,10 +21,27 @@ name: Publish both tiers (Well of Mimir + Yggdrasil) to Pages
 # ONE-TIME SETUP (repo Settings → Pages → Build and deployment → Source: "GitHub
 # Actions"). After that this publishes on every qualifying push, or by hand from Actions.
 
+# WHY THE TRIGGER IS `main`-ONLY, AND WHAT TO CHANGE TO WIDEN IT
+#
+# Both tiers publish from a single run — the job checks out `main` AND `Yggdrasil` by
+# ref — so a run triggered from `main` refreshes /yggdrasil/ too. What a `main`-only
+# trigger costs is *automatic* refresh when Yggdrasil alone moves.
+#
+# It is not a preference. The `github-pages` environment carries a deployment-branch
+# policy, and a run from a branch it does not list is rejected BEFORE any step executes
+# (no runner assigned, no logs, ~1s failure — observed on run 31253812598). A trigger
+# that cannot deploy does not publish anything; it just paints every push red.
+#
+# To publish on a Yggdrasil push:
+#   1. Settings -> Environments -> github-pages -> Deployment branches:
+#      add `Yggdrasil` to the selected list.
+#   2. Add "Yggdrasil" back to the `branches:` list below.
+# Until then, refresh the working tier on demand with `workflow_dispatch` from `main`,
+# which re-reads Yggdrasil's current content.
 on:
   workflow_dispatch:
   push:
-    branches: ["main", "Yggdrasil"]
+    branches: ["main"]
     paths:
       - "docs/statements/**"
       - "docs/bifrost.html"
@@ -101,6 +118,17 @@ jobs:
       - name: Stamp the tier toggle onto every page
         run: |
           set -euo pipefail
+          # The tooling comes from the TRIGGERING ref, which may predate this script
+          # (main does, until Yggdrasil is drawn into the Well). Fail closed and say why:
+          # publishing the working tier with no tier banner is the provenance laundering
+          # the banner exists to prevent, so "publish unstamped" is not an option.
+          if [ ! -f tools/pages-toggle.py ]; then
+            echo "::error::tools/pages-toggle.py is missing from the triggering ref." \
+                 "Publishing two tiers without the tier banner would let a working draft" \
+                 "be read as vetted doctrine. Merge Yggdrasil into main, or dispatch this" \
+                 "workflow from a ref that carries the script."
+            exit 1
+          fi
           # Yggdrasil first: stamping Mimir skips the nested tree, so order is not
           # load-bearing, but doing the inner tree first keeps the counterpart
           # existence checks reading a fully-populated site.
