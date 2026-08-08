@@ -87,6 +87,22 @@ is doing, and cannot be told. The repo is the only channel, so a claim is a comm
 **Before starting substantial work, append a line here and push it.** It costs one commit
 and it is the only thing standing between three Norns and §5.
 
+**Look before you claim — one command:**
+
+```bash
+python3 tools/weave.py     # the eye, the claims, and the queue, side by side
+```
+
+It shows whether another Norn has moved the tip since you last looked, what is already
+claimed, and the dispatch queue (`docs/ai-cto/context.md` — "Default next actions"). It
+deliberately does **not** match queue items to claims: a fuzzy matcher that reported
+"unclaimed" for work already in flight would cause the very failure this table prevents.
+Read both columns and judge.
+
+**Take work from the queue, not from intuition.** A spawn prompt should name the lane and
+the queue item, and state what is already done — so a fresh Norn's first act is not to
+rebuild something it cannot see.
+
 | When (UTC) | Session | Lane | Claim |
 | --- | --- | --- | --- |
 | 2026-08-08 15:0x | `01Bu1wcD` | Urðr → Verðandi | doom drawer built + pushed (all 10); branch cap; proxy register; force-push guard portfolio-wide |
