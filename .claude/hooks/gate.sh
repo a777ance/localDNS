@@ -36,6 +36,17 @@
 #                              blocked 403 from here) and is reported, not failed; anything
 #                              else over cap fails. A repo whose remote is unreachable is
 #                              skipped and named, never silently passed.
+#   tools/check-tiers.py       refuses a commit made on `main`, the vetted tier, which moves
+#                              only through an approved PR (ADR-008). The mechanical half of
+#                              "push to Yggdrasil, never to main" — and session-fixable,
+#                              which is the bar for blocking: the run switches branch and
+#                              proceeds. The tier GAP it also reports is deliberately
+#                              non-blocking, since only the founder can clear that one and a
+#                              gate that wedges the repo gets bypassed.
+#
+# The last two are the same lesson at two scales: check-branch-cap counts the branches
+# that accumulate, check-tiers measures the gap that accumulates INSIDE one of them. A
+# cap alone would be satisfied by one branch that never merges.
 #
 # FAILURE POLICY, deliberately asymmetric:
 #   * A check that FAILS blocks the commit (exit 2 — stderr goes back to the model).
@@ -74,7 +85,7 @@ printf '%s' "$cmd" | grep -Eq '(^|[;&|[:space:]])git[[:space:]]+(-[^[:space:]]+[
 
 fails=""
 for check in tools/check-docs.py tools/check-provenance.py tools/check-doctrine.py \
-             tools/sync-briefings.py tools/check-branch-cap.py; do
+             tools/sync-briefings.py tools/check-branch-cap.py tools/check-tiers.py; do
     [ -f "$check" ] || continue
     if ! out="$(python3 "$check" 2>&1)"; then
         fails="${fails}

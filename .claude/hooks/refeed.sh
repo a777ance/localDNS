@@ -58,12 +58,24 @@ fi
 
 # --- 2. REFEED — LAZY ANCHOR FIRST, then the manifest (CLAUDE.md reloads itself) --
 rev="$(git log -1 --format='%h %ci' -- CLAUDE.md 2>/dev/null || echo unknown)"
+
+# --- TIER STATUS -----------------------------------------------------------
+# A fresh session clones the DEFAULT branch (`main`, the vetted tier), so anything
+# written on Yggdrasil — including the rule saying to write on Yggdrasil — is invisible
+# here until it is merged. That is the one fact a session cannot derive from the briefing
+# it just read, because a stale briefing does not know it is stale. So it is stated at
+# SessionStart, where it enters the given-set instead of waiting to be discovered.
+tier_note="$(python3 tools/check-tiers.py --quiet 2>/dev/null | tr '\n' ' ' | sed 's/  */ /g')"
+[ -z "$tier_note" ] && tier_note="tier status unavailable"
 read -r -d '' ctx <<EOF || true
 LAZY ANCHOR (§G, low reasoning) — FIRE THIS FIRST, before anything else. Reasoning effort stays low; the first move is a cheap, honest reflex, not an effortful pre-committed plan. Do the top unblocked item in docs/ai-cto/context.md § "Default next actions": read that short block and DO IT NOW. Don't re-derive the queue, don't stall asking "what next?", and don't open with a big read-everything phase — that effortful preamble is exactly the anchor §G forbids. Bias to action over narrating options. Keep momentum: the moment an item ships as a coherent, verified, pushed change, tick it, promote the next unblocked item, and start it in the same turn — chain, don't yield. Cheap reflex, brakes ON — not a licence to bulldoze: the founder naming a priority always wins, and anything irreversible or outward-facing (deletes, force-pushes, external sends, real customer data) still gets a confirm first.
 
 Then, as the work demands it (NOT as a blocking preamble), keep the session LOSSLESS by loading the rest of the SEED — the four-file briefing set the whole working world regenerates from: README.md, docs/ai-cto/context.md, docs/architecture/network-context.md. With the on-disk CLAUDE.md @ $rev (already loaded by Claude Code) these four ARE the seed; don't summarize them back — just load and continue. Full protocol: docs/architecture/clear-refeed-protocol.md.
 
 REFEED status (auto, source=$src): $sync_note.
+
+TIER status: $tier_note
+You are reading ONE tier of two. \`Yggdrasil\` is the working branch — commit and push there, never to \`main\`, which is the Well of Mimir and moves only through a PR the founder approves (ADR-008). If the line above says the vetted tier does not yet carry the branch policy, then this briefing may itself be the stale copy: check before treating its branching advice as current, because a stale briefing does not know it is stale.
 EOF
 
 # Emit as SessionStart additionalContext (JSON-escape the string).
