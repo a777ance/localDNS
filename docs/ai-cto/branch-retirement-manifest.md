@@ -13,9 +13,9 @@ checkout is not `M`.
 number below was produced by running the tools, not read off an earlier document. Deletion is the
 founder's call and is **not** taken here; nothing in this pass deleted a ref.
 
-**Status: approve §2 only — §3 has grown.** Most stale refs are filed in a
+**Status: approve §2 only — §3 has grown.** All stale refs are now filed in a
 `doom-drawer/2026-08-08` octopus commit in their own repo. Two groups are **not** safe to delete
-and are held back below: **3 refs are unfiled** (deleting them orphans 17 commits), and **14 refs
+and are held back below: **1 ref is unfiled because it is LIVE work** (§3a-bis), and **14 refs
 carry an open pull request** (deleting one closes its PR and discards proposed work). A blanket
 "delete all 338" is not the right approval.
 
@@ -34,9 +34,9 @@ carry an open pull request** (deleting one closes its PR and discards proposed w
 
 | Measure | Count |
 | ------- | ----- |
-| `claude/*` refs across ten repos (per `git ls-remote`) | **338** |
-| …proven reachable from their repo's drawer | **335** |
-| …**unfiled** (would orphan history if deleted) | **3** |
+| `claude/*` refs across ten repos (per `git ls-remote`, 15:3x) | **339** |
+| …proven reachable from their repo's drawer | **338** |
+| …**unfiled** — all now filed except one **live** branch (§3a-bis) | **1** |
 | …**filed but carrying an open PR** (deleting closes the PR) | **14** |
 | …whose tip object could not be resolved | **0** |
 | Superseded `archive/claude-sessions-*` labels, same commit as the drawer | 10 |
@@ -46,18 +46,27 @@ carry an open pull request** (deleting one closes its PR and discards proposed w
 Re-measured 2026-08-08, per repo, iterating `git ls-remote --heads origin` and testing each tip
 with `merge-base --is-ancestor <tip> <drawer>` after fetching the drawer fresh:
 
+Before the §3a fix — three refs in `DESIGN-…` unreachable from its drawer:
+
 ```
 DESIGN-Full-Workflow-Integration-end-to-end-   claude=229  filed=226  UNFILED=3
-localDNS  claude=49 filed=49  ·  MARKETING 13/13  ·  claude-code-homelab 13/13
-customers 8/8  ·  Azure-lab 9/9  ·  Chronikomicon 7/7
-Home-Sovereign-Full-Field-Guide 4/4  ·  Marketing-Strategy-1 3/3  ·  PRICING-MODELS 3/3
+```
+
+After advancing that drawer (`f3aa273 → 22569bc`, fast-forward), and re-measured across all ten:
+
+```
+DESIGN-Full-Workflow-Integration-end-to-end-   claude=229  filed=229  UNFILED=0
+localDNS   claude=50  filed=49  UNFILED=1  ← claude/loki-norn-promotion-e9e8vf, LIVE (§3a-bis)
+MARKETING 13/13 · claude-code-homelab 13/13 · customers 8/8 · Azure-lab 9/9
+Chronikomicon 7/7 · Home-Sovereign 4/4 · Marketing-Strategy-1 3/3 · PRICING-MODELS 3/3
 ```
 
 **The script itself is safe** — `retire-stale-branches.sh` re-tests reachability at run time and
-`kept=$((kept+1)); continue`s on any unfiled ref, then warns. So running it will *not* orphan the
-three. What was unsafe was this document telling the founder there was nothing to hold back. The
-script protects history; it knows nothing about open pull requests, which is why §3 now carries
-them.
+`kept=$((kept+1)); continue`s on any unfiled ref, then warns. It would not have orphaned the
+three. What was unsafe was this document telling the founder there was nothing to hold back: the
+script protects history, but the document is what gets approved. And the script knows nothing
+about open pull requests — a PR is not a git fact — which is why §3b exists and why no amount of
+reachability testing would have produced it.
 
 ---
 
@@ -72,8 +81,8 @@ Z→A ordering does not apply.)
 
 | # | Repo | Refs now | `claude/*` filed | Drawer commit | After |
 | - | ---- | -------- | ---------------- | ------------- | ----- |
-| 1 | `DESIGN-Full-Workflow-Integration-end-to-end-` | 233 | 229 | `f3aa2734` | 3 |
-| 2 | `localDNS` | 55 | 49 | `ba1ecd3b` | 5 |
+| 1 | `DESIGN-Full-Workflow-Integration-end-to-end-` | 233 | 229 | `22569bca` (was `f3aa2734`, advanced §3a) | 3 |
+| 2 | `localDNS` | 56 | 49 | `ba1ecd3b` | 6 — incl. the live branch in §3a-bis |
 | 3 | `MARKETING` | 17 | 13 | `b2c18532` | 3 |
 | 4 | `claude-code-homelab` | 17 | 13 | `dfe5716b` | 3 |
 | 5 | `Azure-lab` | 13 | 9 | `2762fb10` | 3 |
@@ -94,19 +103,42 @@ inferred from the parent list.
 
 ## 3. Needs review — do NOT bulk-delete
 
-### 3a. Unfiled — deleting these orphans history
+### 3a. Unfiled — RESOLVED 2026-08-08
 
-Three `claude/*` refs in `DESIGN-…` are **not** reachable from that repo's drawer (`f3aa2734`).
-Re-verified against `git ls-remote` tips, not a local checkout:
+Three `claude/*` refs in `DESIGN-…` were not reachable from that repo's drawer, carrying **17
+commits that existed on no other ref**:
 
-| Ref | Tip | Commits not in drawer | Commits not in `main` | Last commit |
-| --- | --- | --------------------- | --------------------- | ----------- |
-| `claude/exciting-mccarthy-bq9R0` | `d6fc46b6` | **9** | 9 | 2026-06-05 Adopt A777ance house style: Gill Sans MT + reverse-ordering |
-| `claude/ai-cto-architecture-MZ2NF` | `a4e5dde` | **7** | 11 | 2026-06-04 NARF: schedule at 08:00 UTC |
-| `claude/nifty-carson-Je7aG` | `84955bf` | **1** | 5 | 2026-06-04 Add PLUGINS.md: per-repo plugin guidance |
+| Ref | Tip | Commits that were at risk |
+| --- | --- | ------------------------- |
+| `claude/exciting-mccarthy-bq9R0` | `d6fc46b` | 9 |
+| `claude/ai-cto-architecture-MZ2NF` | `a4e5dde` | 7 |
+| `claude/nifty-carson-Je7aG` | `84955bf` | 1 |
 
-**17 commits exist only on these three refs.** File them into the drawer (re-run the archive step
-against a clone that has fetched them) *before* any deletion pass, or exclude them explicitly.
+**Filed, not excluded.** An exclusion list is a promise someone has to honour at deletion time; a
+drawer entry is a site. `doom-drawer/2026-08-08` in `DESIGN-…` was advanced `f3aa273 → 22569bc`,
+an octopus commit whose **first parent is the previous drawer** — so the update is a
+**fast-forward, not a force**, nothing previously filed became unfiled, and the tree is unchanged
+(a drawer is a reachability device, not a merge of content). Re-verified after the push:
+`claude=229 filed=229 UNFILED=0`.
+
+### 3a-bis. The ref list ages while you read it
+
+**A new `claude/*` branch appeared in `localDNS` during this verification pass** —
+`claude/loki-norn-promotion-e9e8vf`, pushed 15:33, one commit ahead of `Yggdrasil`. It is **live
+work by an active session, not a stale ref**: it is unfiled *because it is current*, and it must
+not be filed as retired or deleted.
+
+This is the standing condition, not an anomaly. Sessions are still **assigned** a `claude/*`
+branch by the harness at creation, regardless of the branch policy telling them to push to
+`Yggdrasil` — so the population keeps growing while any snapshot of it goes stale. Two
+consequences for whoever runs the deletion:
+
+- **Never delete from this document's ref list.** Run `retire-stale-branches.sh`, which
+  re-enumerates and re-tests reachability at run time. The list below is evidence for a decision,
+  never the input to a `git push --delete`.
+- **Age the candidates.** A ref whose tip is newer than the drawer is probably a live session, not
+  a stale branch. Reachability alone cannot tell those apart, and the difference is somebody's
+  in-flight work.
 
 ### 3b. Open pull requests — deleting these discards proposed work
 
