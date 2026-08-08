@@ -30,6 +30,12 @@
 #                              portfolio self-contradictory. Siblings not checked out
 #                              are skipped, so a green run here is not proof the whole
 #                              portfolio is synced — only the part this session can see.
+#   tools/check-branch-cap.py  no repo carries more than 9 branches. A `claude/*` ref whose
+#                              tip is already reachable from an `archive/*` branch counts as
+#                              PENDING (history preserved, only the deletion outstanding —
+#                              blocked 403 from here) and is reported, not failed; anything
+#                              else over cap fails. A repo whose remote is unreachable is
+#                              skipped and named, never silently passed.
 #
 # FAILURE POLICY, deliberately asymmetric:
 #   * A check that FAILS blocks the commit (exit 2 — stderr goes back to the model).
@@ -68,7 +74,7 @@ printf '%s' "$cmd" | grep -Eq '(^|[;&|[:space:]])git[[:space:]]+(-[^[:space:]]+[
 
 fails=""
 for check in tools/check-docs.py tools/check-provenance.py tools/check-doctrine.py \
-             tools/sync-briefings.py; do
+             tools/sync-briefings.py tools/check-branch-cap.py; do
     [ -f "$check" ] || continue
     if ! out="$(python3 "$check" 2>&1)"; then
         fails="${fails}
