@@ -1,4 +1,16 @@
 {
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Code_Remote__list_sessions",
+      "mcp__Claude_Code_Remote__get_session",
+      "mcp__Claude_Code_Remote__create_session",
+      "mcp__Claude_Code_Remote__list_environments",
+      "mcp__claude-code-remote__list_sessions",
+      "mcp__claude-code-remote__get_session",
+      "mcp__claude-code-remote__create_session",
+      "mcp__claude-code-remote__list_environments"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {

@@ -18,14 +18,22 @@ refuses a commit that would ship drift.
 
 WHAT IS SYNCED
 --------------
-    bifrost        the command schema (canonical: ai-orchestration/briefing-block.md)
-    branch-policy  Yggdrasil / Well of Mimir (canonical: ai-orchestration/branch-policy-block.md)
+    bifrost             the command schema (canonical: ai-orchestration/briefing-block.md)
+    branch-policy       Yggdrasil / Well of Mimir (ai-orchestration/branch-policy-block.md)
+    proxy-doctrine      what actually refuses vs. only asks (ai-orchestration/proxy-block.md)
+    session-visibility  the sibling-session grant (ai-orchestration/session-visibility-block.md)
 
-Both are portfolio-wide by declaration, and both failed the same way before they were
-generated — bifrost by drifting, branch policy by being *absent* from eight of ten
-briefings. Absence is the more dangerous failure: a session reading a briefing that says
-nothing about branching invents an answer, and the invented answer cut 337 stale branches.
-Silence is an assignment, so every briefing states the rule.
+All are portfolio-wide by declaration, and they failed differently. Bifrost DRIFTED —
+nine briefings kept describing a schema without Ignition. Branch policy was ABSENT from
+eight of ten, and absence is worse: a session reading a briefing that says nothing about
+branching invents an answer, and the invented answer cut 337 stale branches. Silence is an
+assignment, so every briefing states the rule.
+
+Session visibility fails a third way, and it is the reason `check_session_grant` exists: the
+block is *true prose about somewhere else*. A briefing cannot pre-approve a tool call — the
+permission prompt never reads CLAUDE.md — so the sentence "this is granted" is only true if
+`.claude/settings.json` carries it. Stating it without checking would make the briefing
+confidently wrong, which is worse than silent.
 
 USAGE
 -----
@@ -49,6 +57,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import json
 import pathlib
 import re
 import sys
@@ -116,6 +125,14 @@ BLOCKS = [
         heading="## Proxies — what actually refuses, and what only asks",
         # No legacy unmarked form: the doctrine is new (2026-08-08), so there is no
         # hand-written predecessor for --write to adopt.
+        legacy_start="\x00no-legacy\x00",
+        legacy_end="\x00no-legacy\x00",
+    ),
+    Block(
+        name="session-visibility",
+        canonical=REPO_ROOT / "04-user-services/ai-orchestration/session-visibility-block.md",
+        marker="session-visibility",
+        heading="## Session visibility — every session may see its siblings",
         legacy_start="\x00no-legacy\x00",
         legacy_end="\x00no-legacy\x00",
     ),
@@ -251,6 +268,41 @@ def check_policy(targets: list[pathlib.Path]) -> list[str]:
     return problems
 
 
+def check_session_grant(targets: list[pathlib.Path]) -> list[str]:
+    """The session-visibility block *claims* the grant lives in `.claude/settings.json`.
+
+    A briefing cannot pre-approve a tool call — the permission prompt does not read
+    CLAUDE.md — so that sentence is only true if the settings file actually carries it.
+    Left unchecked it is the exact failure this repo keeps finding: a rule with an author
+    and no site, believed because it is written down. So the claim is verified against the
+    file that decides.
+    """
+    required = {f"mcp__{s}__{t}"
+                for s in ("Claude_Code_Remote", "claude-code-remote")
+                for t in ("list_sessions", "get_session", "create_session")}
+    problems = []
+    for repo in [REPO_ROOT, *[t.parent for t in targets]]:
+        settings = repo / ".claude" / "settings.json"
+        if not settings.exists():
+            problems.append(f"{repo.name}: no .claude/settings.json to carry the session grant")
+            continue
+        try:
+            allow = set(json.loads(settings.read_text(encoding="utf-8"))
+                        .get("permissions", {}).get("allow", []))
+        except (json.JSONDecodeError, OSError) as exc:
+            problems.append(f"{repo.name}/.claude/settings.json unreadable: {exc}")
+            continue
+        # Either server spelling satisfies a given tool; only a tool missing under BOTH
+        # spellings is a real gap.
+        for tool in ("list_sessions", "get_session", "create_session"):
+            if not any(f"mcp__{s}__{tool}" in allow
+                       for s in ("Claude_Code_Remote", "claude-code-remote")):
+                problems.append(
+                    f"{repo.name}/.claude/settings.json does not grant {tool} — the "
+                    f"session-visibility block says it does")
+    return problems
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--write", action="store_true", help="render the blocks (default: check only)")
@@ -298,6 +350,8 @@ def main() -> int:
                 for p in check_backbone(bodies["bifrost"])]
     if any(b.name == "branch-policy" for b in blocks):
         problems += [f"[branch-policy] {p}" for p in check_policy(targets)]
+    if any(b.name == "session-visibility" for b in blocks):
+        problems += [f"[session-visibility] {p}" for p in check_session_grant(targets)]
 
     for name in wrote:
         print(f"sync {name}")

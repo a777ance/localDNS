@@ -69,6 +69,7 @@ especially the customer-facing **Statements** it owns under `docs/statements/`.
 - [3. Working philosophy](#3-working-philosophy)
 - [4. Further reading](#4-further-reading)
 - [5. AI CTO state](#5-ai-cto-state)
+- [6. Session visibility](#6-session-visibility--every-session-may-see-its-siblings)
 
 ---
 
@@ -771,6 +772,7 @@ stated reason.
 - **docs/architecture/network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
 - **docs/architecture/cell-grammar.md** — supporting architecture notes
+- **docs/architecture/norns.md** — **three sessions, one branch, one eye.** Concurrent sessions now weave `Yggdrasil` at once. The eye is the branch tip: one session holds it (`fetch`), adds, and hands it back (`push`); a non-fast-forward rejection is the eye being handed back before you finished looking, not an error. Never `--force` — that does not pass the eye, it puts out the other Norn's. Carries the three lanes (**Urðr** the record · **Verðandi** work in flight · **Skuld** the debt), the claims table you append to **before** starting substantial work, and the failure mode that git cannot catch: **duplicate assignment**. Sessions cannot message each other — `ListAgents` is empty and the CCR server exposes `create_session` with no `send_message` — so the repo is the only channel, and a claim is a commit. Read §4 and `git log origin/Yggdrasil` before spawning another Norn or starting a large piece of work.
 - **docs/architecture/proxies.md** — **Heimdall: the proxy register.** Every intermediary that stands in a path and can refuse what crosses it — the agent git proxy, the egress proxy, `gate.sh`, UFW, WireGuard, Pi-hole, Unbound, the vault, the LLM router, ttyd — with seven questions answered for each (what it mediates, who holds the authority, what it can refuse, whether refusal is legible, bypassable, fail-open/closed, and **scoped by verb or by effect**). It separates **enforced** (an intermediary refuses) from **declared** (the caller is asked to comply) from **ambient** (in the path, refuses nothing) — because a declared boundary written in the language of an enforced one buys the confidence of a control without the behaviour of one, and this repo had three of those. Proxy-scoping is the rung **above** `warrant-sites.md`'s ladder: a check sits in a run's given-set and is bypassed by a run that never invokes it, while a proxy sits in the run's world. Read it before adding any intermediary, and before trusting one you did not verify. Law 1 is the one that bit us: **scope by reversibility, not by verb** — the agent proxy blocks `--delete` and permits `--force`, which orphans commits just as well.
 - **docs/architecture/warrant-sites.md** — **where an invariant has to live to bind anything**: a run's warrant configuration (given-set · check obligation · confidence policy), why briefing prose and citations are not sites, the ranked site ladder, and the audit of which invariants in this repo are actually sited versus merely stated. Read it before writing a new rule anywhere.
 - **docs/provenance.html** — **the Provenance Ladder**: how a claim earns authority here (`M`/`O`/`D`/`R`/`A`), why transmission never promotes a tier, the four gates that check one before anything irreversible, the tag grammar, and the laundering catalogue. Published at <https://a777ance.github.io/localDNS/provenance.html>. Read it before citing a reconstructed config as fact or a plurality as a verdict — enforced by `tools/check-provenance.py`.
@@ -789,3 +791,39 @@ queue — the ordered default next moves (P1 ship chain + repo-hygiene) so a fre
 session doesn't re-derive them. Start there when the founder hasn't named a priority.
 The portfolio hub (cross-repo roadmap, decisions log, tech debt) lives in
 `DESIGN-Full-Workflow-Integration-end-to-end-/docs/ai-cto/portfolio.md`.
+
+---
+
+## 6. Session visibility — every session may see its siblings
+
+**Every session may list, inspect, and spawn sibling sessions without asking** — founder's
+standing instruction (2026-08-08). The siblings carry the condensed form of this rule as a
+generated block (`04-user-services/ai-orchestration/session-visibility-block.md`); this is
+the long form, and the two must not contradict each other.
+
+**The grant is not here.** A briefing cannot pre-approve a tool call — the permission
+prompt never reads `CLAUDE.md` — so this section is *doctrine about somewhere else*. The
+site is `.claude/settings.json` → `permissions.allow`, in every repo:
+`list_sessions`, `get_session`, `create_session`, `list_environments`. Both server
+spellings (`Claude_Code_Remote` and `claude-code-remote`) are listed, because an entry
+naming a tool absent from a given session is inert while a missing spelling costs a
+prompt. `tools/sync-briefings.py` verifies the claim against the file that decides, so a
+briefing that *says* the grant exists cannot outlive the grant itself.
+
+- **Why granted, not merely permitted.** Work runs in parallel here — this repo has had
+  three sessions on `Yggdrasil` at once. A session that cannot see its siblings re-derives
+  what they already know, edits the file they are editing, and finds out at push time.
+  Two `gate.sh` conflicts inside a single turn is the cost, measured. Visibility is what
+  turns concurrent sessions from a race into a weave; taxing it with a prompt taxes the
+  one behaviour that keeps them apart.
+- **Read the room before taking a lane.** Listing sessions is the cheap first move before
+  touching a shared surface — briefings, hooks, `tools/`, the canonical blocks. Prefer an
+  empty lane; when you must share one, fetch and merge before every push.
+- **Spawning is cheap; colliding is not.** Hand a spawned sibling a *lane* and a
+  do-not-touch list, not just a task. A cold session cannot infer which files are contended.
+- **Deliberately NOT granted:** `interrupt_session`, `archive_session`, `unarchive_session`
+  still prompt. They reach into another session's running state and can destroy work in
+  flight; seeing a sibling is not reaching into one.
+- **The grant widens nothing else.** A permission denied in your session is denied for the
+  portfolio — never route a blocked action through a sibling. That launders the founder's
+  decision, and the decision is the point.
