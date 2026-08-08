@@ -132,7 +132,7 @@ BLOCKS = [
         name="session-visibility",
         canonical=REPO_ROOT / "04-user-services/ai-orchestration/session-visibility-block.md",
         marker="session-visibility",
-        heading="## Session visibility — every session may see its siblings",
+        heading="## Session tooling — siblings, triggers, and repos",
         legacy_start="\x00no-legacy\x00",
         legacy_end="\x00no-legacy\x00",
     ),
@@ -277,9 +277,17 @@ def check_session_grant(targets: list[pathlib.Path]) -> list[str]:
     and no site, believed because it is written down. So the claim is verified against the
     file that decides.
     """
-    required = {f"mcp__{s}__{t}"
-                for s in ("Claude_Code_Remote", "claude-code-remote")
-                for t in ("list_sessions", "get_session", "create_session")}
+    # Every tool the block claims is granted. Widening the block without widening this
+    # list would let the briefing promise access nothing verifies — the exact failure this
+    # check exists to prevent, reintroduced by a later edit.
+    required = ("list_sessions", "get_session", "create_session", "list_environments",
+                "list_triggers", "create_trigger", "update_trigger", "send_later",
+                "add_repo", "list_repos", "register_repo_root",
+                "set_session_title", "set_session_tags")
+    # The block also promises these are NOT pre-approved. A grant that quietly appears is
+    # as much a briefing/settings disagreement as one that quietly vanishes.
+    withheld = ("delete_trigger", "fire_trigger", "interrupt_session",
+                "archive_session", "unarchive_session")
     problems = []
     for repo in [REPO_ROOT, *[t.parent for t in targets]]:
         settings = repo / ".claude" / "settings.json"
@@ -294,12 +302,18 @@ def check_session_grant(targets: list[pathlib.Path]) -> list[str]:
             continue
         # Either server spelling satisfies a given tool; only a tool missing under BOTH
         # spellings is a real gap.
-        for tool in ("list_sessions", "get_session", "create_session"):
+        for tool in required:
             if not any(f"mcp__{s}__{tool}" in allow
                        for s in ("Claude_Code_Remote", "claude-code-remote")):
                 problems.append(
                     f"{repo.name}/.claude/settings.json does not grant {tool} — the "
-                    f"session-visibility block says it does")
+                    f"session-tooling block says it does")
+        for tool in withheld:
+            if any(f"mcp__{s}__{tool}" in allow
+                   for s in ("Claude_Code_Remote", "claude-code-remote")):
+                problems.append(
+                    f"{repo.name}/.claude/settings.json GRANTS {tool} — the "
+                    f"session-tooling block says it is deliberately withheld")
     return problems
 
 

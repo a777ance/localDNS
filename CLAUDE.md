@@ -69,7 +69,7 @@ especially the customer-facing **Statements** it owns under `docs/statements/`.
 - [3. Working philosophy](#3-working-philosophy)
 - [4. Further reading](#4-further-reading)
 - [5. AI CTO state](#5-ai-cto-state)
-- [6. Session visibility](#6-session-visibility--every-session-may-see-its-siblings)
+- [6. Session tooling](#6-session-tooling--siblings-triggers-and-repos)
 
 ---
 
@@ -794,17 +794,21 @@ The portfolio hub (cross-repo roadmap, decisions log, tech debt) lives in
 
 ---
 
-## 6. Session visibility — every session may see its siblings
+## 6. Session tooling — siblings, triggers, and repos
 
-**Every session may list, inspect, and spawn sibling sessions without asking** — founder's
-standing instruction (2026-08-08). The siblings carry the condensed form of this rule as a
-generated block (`04-user-services/ai-orchestration/session-visibility-block.md`); this is
-the long form, and the two must not contradict each other.
+**Every session may see its siblings, schedule its own follow-ups, and attach the repos it
+needs — without asking** (founder's standing instruction, 2026-08-08). The siblings carry the
+condensed form as a generated block
+(`04-user-services/ai-orchestration/session-visibility-block.md`); this is the long form, and
+the two must not contradict each other.
 
 **The grant is not here.** A briefing cannot pre-approve a tool call — the permission
 prompt never reads `CLAUDE.md` — so this section is *doctrine about somewhere else*. The
-site is `.claude/settings.json` → `permissions.allow`, in every repo:
-`list_sessions`, `get_session`, `create_session`, `list_environments`. Both server
+site is `.claude/settings.json` → `permissions.allow`, in every repo: the session tools
+(`list_sessions`, `get_session`, `create_session`, `list_environments`), the scheduling tools
+(`list_triggers`, `create_trigger`, `update_trigger`, `send_later`), the repo tools
+(`add_repo`, `list_repos`, `register_repo_root`), and self-labelling (`set_session_title`,
+`set_session_tags`). Both server
 spellings (`Claude_Code_Remote` and `claude-code-remote`) are listed, because an entry
 naming a tool absent from a given session is inert while a missing spelling costs a
 prompt. `tools/sync-briefings.py` verifies the claim against the file that decides, so a
@@ -821,9 +825,18 @@ briefing that *says* the grant exists cannot outlive the grant itself.
   empty lane; when you must share one, fetch and merge before every push.
 - **Spawning is cheap; colliding is not.** Hand a spawned sibling a *lane* and a
   do-not-touch list, not just a task. A cold session cannot infer which files are contended.
-- **Deliberately NOT granted:** `interrupt_session`, `archive_session`, `unarchive_session`
-  still prompt. They reach into another session's running state and can destroy work in
-  flight; seeing a sibling is not reaching into one.
+- **Deliberately NOT granted:** `delete_trigger`, `fire_trigger`, `interrupt_session`,
+  `archive_session`, `unarchive_session` still prompt. Each destroys something or fires an
+  effect *now*. Creating a routine is additive and visible; deleting the founder's routine,
+  or firing one early, is neither. Seeing a sibling is not reaching into one.
+- **Triggers act when nobody is watching — the one grant here that does.** Everything else
+  happens in-turn, in view. So a trigger inherits the one-way door (§H) rather than escaping
+  it: it may prepare, report, and check, but it may not be the thing that performs an
+  irreversible outward-facing action. Publish, deploy, send, delete, merge to `main` wait for
+  the founder at the `*` gate, whatever the cron says. `sync-briefings.py` also fails the
+  commit if a withheld tool quietly appears in an allow-list — a grant that shows up
+  unannounced is the same briefing/settings disagreement as one that vanishes.
 - **The grant widens nothing else.** A permission denied in your session is denied for the
-  portfolio — never route a blocked action through a sibling. That launders the founder's
-  decision, and the decision is the point.
+  portfolio — never route a blocked action through a sibling, and never schedule a trigger to
+  do later what you were refused now. Both launder the founder's decision, and the decision
+  is the point.
