@@ -1,24 +1,54 @@
-name: Publish statement gallery + Bifrost + Provenance + field guides to Pages
+name: Publish both tiers (Well of Mimir + Yggdrasil) to Pages
 
-# Makes the statement mockups (and the Bifrost notation page) openable by anyone
-# at a first-party URL. GitHub serves .html files as source code, not rendered
-# pages — so to "open" them in a browser we publish an assembled site as GitHub
-# Pages. The statement gallery index lands at the site root
-# (https://<owner>.github.io/<repo>/) and the Bifrost page at /bifrost.html.
+# GitHub serves .html as source, not as a rendered page, so the statement mockups, the
+# Bifrost page, Provenance and the field guides are published as an assembled Pages site
+# at a first-party URL.
 #
-# ONE-TIME SETUP (repo Settings → Pages → Build and deployment → Source:
-# "GitHub Actions"). After that, this workflow publishes on every push that
-# touches the statements, and can be run by hand from the Actions tab.
+# TWO TIERS, ONE SITE. A repo gets exactly one Pages deployment, but the portfolio has
+# two branches worth reading:
+#
+#     /                 Well of Mimir — built from `main`, vetted knowledge
+#     /yggdrasil/       Yggdrasil     — built from `Yggdrasil`, work in flight
+#
+# Both are live at once and every page carries a banner naming its tier and linking to
+# its counterpart (tools/pages-toggle.py). Publishing an un-vetted draft with no marker
+# would let a reader take working text for doctrine — the provenance laundering
+# docs/provenance.html exists to prevent, since transmission never promotes.
+#
+# Whichever branch triggers the run, BOTH trees are rebuilt from their own refs, so the
+# other tier is never clobbered by a push to one of them.
+#
+# ONE-TIME SETUP (repo Settings → Pages → Build and deployment → Source: "GitHub
+# Actions"). After that this publishes on every qualifying push, or by hand from Actions.
 
+# WHY THE TRIGGER IS `main`-ONLY, AND WHAT TO CHANGE TO WIDEN IT
+#
+# Both tiers publish from a single run — the job checks out `main` AND `Yggdrasil` by
+# ref — so a run triggered from `main` refreshes /yggdrasil/ too. What a `main`-only
+# trigger costs is *automatic* refresh when Yggdrasil alone moves.
+#
+# It is not a preference. The `github-pages` environment carries a deployment-branch
+# policy, and a run from a branch it does not list is rejected BEFORE any step executes
+# (no runner assigned, no logs, ~1s failure — observed on run 31253812598). A trigger
+# that cannot deploy does not publish anything; it just paints every push red.
+#
+# To publish on a Yggdrasil push:
+#   1. Settings -> Environments -> github-pages -> Deployment branches:
+#      add `Yggdrasil` to the selected list.
+#   2. Add "Yggdrasil" back to the `branches:` list below.
+# Until then, refresh the working tier on demand with `workflow_dispatch` from `main`,
+# which re-reads Yggdrasil's current content.
 on:
   workflow_dispatch:
   push:
-    branches: ["main", "claude/meta-audit-priorities-MzByf", "claude/inspiring-fermi-FIdYr"]
+    branches: ["main"]
     paths:
       - "docs/statements/**"
       - "docs/bifrost.html"
       - "docs/firefox-hardening.html"
       - "docs/provenance.html"
+      - "docs/hlidskjalf.html"
+      - "tools/pages-toggle.py"
       - ".github/workflows/pages.yml"
 
 permissions:
@@ -37,27 +67,75 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # The triggering ref supplies the build tooling (pages-toggle.py).
       - uses: actions/checkout@v4
-      # Optional: regenerate the HTML from data/ so the published site is always
-      # in sync with the generators. Safe to run — segno is the only dependency.
+
+      # Each tier's *content* comes from its own branch, never from the trigger's.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trees/mimir
+      - uses: actions/checkout@v4
+        with:
+          ref: Yggdrasil
+          path: trees/yggdrasil
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Regenerate statements
+
+      - name: Regenerate statements in both trees
         run: |
           python -m pip install --quiet segno
-          cd docs/statements
-          python tools/generate_client.py
-          python tools/generate_operator.py
+          for tier in mimir yggdrasil; do
+            d="trees/$tier/docs/statements"
+            [ -d "$d" ] || { echo "note: $tier has no docs/statements — skipping"; continue; }
+            ( cd "$d" \
+              && python tools/generate_client.py \
+              && python tools/generate_operator.py )
+          done
+
       - uses: actions/configure-pages@v5
-      - name: Assemble the Pages site (statement gallery at root + Bifrost)
+
+      - name: Assemble both tiers into one site
         run: |
+          set -euo pipefail
           rm -rf _site
           mkdir -p _site
-          cp -a docs/statements/. _site/
-          if [ -f docs/bifrost.html ]; then cp docs/bifrost.html _site/bifrost.html; fi
-          if [ -f docs/firefox-hardening.html ]; then cp docs/firefox-hardening.html _site/firefox-hardening.html; fi
-          if [ -f docs/provenance.html ]; then cp docs/provenance.html _site/provenance.html; fi
+
+          # Mimir at the root, Yggdrasil one level down.
+          copy_tier() {
+            src="$1"; dest="$2"
+            mkdir -p "$dest"
+            [ -d "$src/docs/statements" ] && cp -a "$src/docs/statements/." "$dest/"
+            for f in bifrost firefox-hardening provenance edda hlidskjalf; do
+              [ -f "$src/docs/$f.html" ] && cp "$src/docs/$f.html" "$dest/$f.html"
+            done
+            return 0
+          }
+          copy_tier trees/mimir _site
+          copy_tier trees/yggdrasil _site/yggdrasil
+
+      - name: Stamp the tier toggle onto every page
+        run: |
+          set -euo pipefail
+          # The tooling comes from the TRIGGERING ref, which may predate this script
+          # (main does, until Yggdrasil is drawn into the Well). Fail closed and say why:
+          # publishing the working tier with no tier banner is the provenance laundering
+          # the banner exists to prevent, so "publish unstamped" is not an option.
+          if [ ! -f tools/pages-toggle.py ]; then
+            echo "::error::tools/pages-toggle.py is missing from the triggering ref." \
+                 "Publishing two tiers without the tier banner would let a working draft" \
+                 "be read as vetted doctrine. Merge Yggdrasil into main, or dispatch this" \
+                 "workflow from a ref that carries the script."
+            exit 1
+          fi
+          # Yggdrasil first: stamping Mimir skips the nested tree, so order is not
+          # load-bearing, but doing the inner tree first keeps the counterpart
+          # existence checks reading a fully-populated site.
+          python3 tools/pages-toggle.py --root _site/yggdrasil --tier yggdrasil --site-root _site
+          python3 tools/pages-toggle.py --root _site --tier mimir
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hlidskjalf — the high seat</title>
+<style>
+  body{font-family:'Gill Sans MT', 'Gill Sans', Calibri, 'Trebuchet MS', sans-serif;margin:0;background:#f7f5f0;color:#1c1a17;line-height:1.55}
+  header{background:#1f2733;color:#f2ede2;padding:2.2rem 1.4rem 1.6rem}
+  header h1{margin:0 0 .3rem;font-size:1.9rem;letter-spacing:.02em}
+  header p{margin:.2rem 0;opacity:.85;max-width:60rem}
+  main{max-width:60rem;margin:0 auto;padding:1.2rem 1.4rem 3rem}
+  h2{border-bottom:2px solid #1f2733;padding-bottom:.25rem;margin-top:2.2rem}
+  article{background:#fff;border:1px solid #d9d2c4;border-left:6px solid #8a5a1b;
+          border-radius:6px;padding: .9rem 1.1rem;margin:1rem 0}
+  article h3{margin:.1rem 0 .5rem}
+  .meta{font-size:.9em;opacity:.8}
+  table{border-collapse:collapse;width:100%;font-size:.95em}
+  th,td{border:1px solid #d9d2c4;padding:.45rem .6rem;text-align:left}
+  th{background:#ece7db}
+  code{background:#ece7db;padding:.05rem .3rem;border-radius:3px}
+  footer{max-width:60rem;margin:0 auto;padding:0 1.4rem 2rem;font-size:.85em;opacity:.75}
+</style></head><body>
+<header>
+  <h1>Hlidskjalf — the high seat</h1>
+  <p>The seat sees; the hand stays the founder's. Generated 2026-08-08 16:00 UTC by
+  <code>tools/hlidskjalf.py</code> — the eye is in the well, and it takes no action.</p>
+</header>
+<main>
+  <h2>The decisions — ranked by what each unblocks</h2>
+  <article><h3>1. Draw Yggdrasil into the Well — 10 repo(s) ahead of main</h3><p><b>Why now</b> — 10 of them have a `main` whose briefing never mentions Yggdrasil, so every fresh clone reads doctrine that predates the branch policy — and a stale briefing does not know it is stale.</p><p><b>The action</b> — Approve the open Yggdrasil→main pull requests. Open Yggdrasil→main PRs awaiting you: Azure-lab #2, Chronikomicon #6, DESIGN-Full-Workflow-Integration-end-to-end- #4, Home-Sovereign-Full-Field-Guide #2, MARKETING #3, Marketing-Strategy-1 #2, PRICING-MODELS---ALL-THREE #2, claude-code-homelab #3, customers #2, localDNS #29.</p><p class='meta'><b>Unblocks:</b> The tier gap, the gate scripts, the two-tier Pages site, and every doctrine block land where fresh sessions actually read them.<br><b>Source:</b> M · rev-list over freshly fetched origin refs, per repo</p></article><article><h3>2. Decide the 14 open PRs riding retired-class branches</h3><p><b>Why now</b> — A branch with an open PR is pending review, not stale. Deleting its head closes the PR and records &#x27;closed&#x27; — indistinguishable from &#x27;rejected&#x27; six months later. Retirement is blocked behind these.</p><p><b>The action</b> — Merge or deliberately close each: Azure-lab #1 (Adopt the design-surface convention in the h…); Chronikomicon #5 (Adopt the design-surface convention in the h…); DESIGN-Full-Workflow-Integration-end-to-end- #3 (Point stage 00 at the design system, and cor…); Home-Sovereign-Full-Field-Guide #1 (Adopt the design-surface convention in the h…); MARKETING #1 (Add Master Amounts Calculator and pricing co…); MARKETING #2 (Adopt the design-surface convention in the h…); +8 more in the retirement manifest §3b. Branches involved: claude/amwins-ai-governance-vu5tk4, claude/design-workflow-integration-y8yxx7, claude/homelab-microbiology-metaphors-18cl3d, claude/master-amounts-calculator-okqphz, claude/settings-alignment-dh8eua.</p><p class='meta'><b>Unblocks:</b> The 321-ref deletion pass (branch-retirement-manifest §2).<br><b>Source:</b> O · pr-snapshot.json, 2026-08-08T15:55:00Z</p></article><article><h3>3. Run the retirement — 339 claude/* refs still standing</h3><p><b>Why now</b> — Every repo&#x27;s drawer is pushed; deletion is lossless by construction and re-verified at run time by the script itself. A session cannot run it: ref deletion is HTTP 403 through the agent proxy — this one is physically yours.</p><p><b>The action</b> — From a machine with normal git credentials: `./tools/retire-stale-branches.sh --dry-run`, read it, then run it without the flag. It re-tests reachability itself and keeps anything unfiled — never delete from a document&#x27;s list, including this one.</p><p class='meta'><b>Unblocks:</b> Branch cap PENDING notices in every repo; a legible ref namespace.<br><b>Source:</b> M · ls-remote per repo (drawer refs present in 10/10)</p></article>
+  <h2>The realms (Z→A)</h2>
+  <table><tr><th>Repo</th><th>Ygg vs main</th><th>policy on main</th>
+  <th>claude/* refs</th><th>drawer</th><th>oldest unmerged</th></tr>
+  <tr><td>PRICING-MODELS---ALL-THREE</td><td>+9</td><td>NO — pre-policy</td><td>3</td><td><code>428de717</code></td><td>2026-08-08</td></tr><tr><td>Marketing-Strategy-1</td><td>+9</td><td>NO — pre-policy</td><td>3</td><td><code>c7be6a3a</code></td><td>2026-08-08</td></tr><tr><td>MARKETING</td><td>+9</td><td>NO — pre-policy</td><td>13</td><td><code>b2c18532</code></td><td>2026-08-08</td></tr><tr><td>localDNS</td><td>+29</td><td>NO — pre-policy</td><td>50</td><td><code>ba1ecd3b</code></td><td>2026-08-08</td></tr><tr><td>Home-Sovereign-Full-Field-Guide</td><td>+9</td><td>NO — pre-policy</td><td>4</td><td><code>54fe3fda</code></td><td>2026-08-08</td></tr><tr><td>DESIGN-Full-Workflow-Integration-end-to-end-</td><td>+9</td><td>NO — pre-policy</td><td>229</td><td><code>22569bca</code></td><td>2026-08-08</td></tr><tr><td>customers</td><td>+10</td><td>NO — pre-policy</td><td>8</td><td><code>c367a958</code></td><td>2026-08-08</td></tr><tr><td>claude-code-homelab</td><td>+9</td><td>NO — pre-policy</td><td>13</td><td><code>dfe5716b</code></td><td>2026-08-08</td></tr><tr><td>Chronikomicon</td><td>+9</td><td>NO — pre-policy</td><td>7</td><td><code>23422fdc</code></td><td>2026-08-08</td></tr><tr><td>Azure-lab</td><td>+9</td><td>NO — pre-policy</td><td>9</td><td><code>2762fb10</code></td><td>2026-08-08</td></tr></table>
+  <p class='meta'>PR snapshot: 24 open PRs · captured 2026-08-08T15:55:00Z (0.1h old). The ref list ages while you read it; so does this.</p>
+</main>
+<footer>Provenance M for git figures (ls-remote / rev-list, re-measured each run) ·
+O for PR rows (snapshot, capture time shown). Companion pages:
+<a href="provenance.html">the Provenance Ladder</a> · <a href="bifrost.html">Bifrost</a> ·
+<a href="edda.html">the Edda</a>.</footer>
+</body></html>

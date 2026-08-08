@@ -69,6 +69,7 @@ especially the customer-facing **Statements** it owns under `docs/statements/`.
 - [3. Working philosophy](#3-working-philosophy)
 - [4. Further reading](#4-further-reading)
 - [5. AI CTO state](#5-ai-cto-state)
+- [6. Session tooling](#6-session-tooling--siblings-triggers-and-repos)
 
 ---
 
@@ -233,8 +234,11 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `tools/check-doctrine.py` | run directly (asserts §G's stated sampler values match `jury/jury.py` — constructor defaults, CLI defaults, and the keys actually sent) | `python3 tools/check-doctrine.py` |
 | `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths; asserts the Bifrost sweep string **and** the expansion template are byte-identical across their three surfaces and that the template reduces to the sweep; **and** that spec §1, `docs/bifrost.html`, and CLAUDE.md §H assign every glyph the same role) | `python3 tools/check-docs.py` |
 | `04-user-services/ai-orchestration/briefing-block.md` | canonical source for the Bifrost section in **every** sibling repo's `CLAUDE.md` — edit here, never in the rendered copies | `python3 tools/sync-briefings.py --write` |
-| `tools/sync-briefings.py` | run directly (renders the canonical briefing block into every sibling repo's `CLAUDE.md`; bare/`--check` reports drift, `--write` fixes it; also asserts the condensed block and §H agree on glyph roles) | `python3 tools/sync-briefings.py --write` |
-| `.claude/hooks/gate.sh` | `PreToolUse(Bash)` hook — runs the four checks above before any `git commit` and blocks on failure (bypass: `touch .claude/.gate-off`) | wired in `.claude/settings.json` |
+| `04-user-services/ai-orchestration/branch-policy-block.md` | canonical source for the branch-policy section (`Yggdrasil` / Well of Mimir) in **every** sibling repo's `CLAUDE.md` — edit here, never in the rendered copies | `python3 tools/sync-briefings.py --write` |
+| `tools/sync-briefings.py` | run directly (renders both canonical blocks — Bifrost and branch policy — into every sibling repo's `CLAUDE.md`; bare/`--check` reports drift, `--write` fixes it; also asserts the condensed block and §H agree on glyph roles, and trips on the retired push-to-`main` directive) | `python3 tools/sync-briefings.py --write` |
+| `tools/check-branch-cap.py` | run directly (no repo carries more than **9** branches; a `claude/*` ref already reachable from an `archive/*` branch counts as PENDING deletion and reports rather than fails; unreachable remotes are skipped and named) | `python3 tools/check-branch-cap.py` |
+| `tools/hlidskjalf.py` | run directly — **the high seat**: one board over every repo (tier gaps, drawers, `claude/*` counts, PR snapshot, claimed lanes) with a **ranked queue of founder-only decisions**. Sight, no hands: it never pushes, merges, deletes, or schedules. `--write` renders `docs/ai-cto/hlidskjalf-board.md` + `docs/hlidskjalf.html` (published to Pages) | `python3 tools/hlidskjalf.py --write` |
+| `.claude/hooks/gate.sh` | `PreToolUse(Bash)` hook — runs the five checks above before any `git commit` and blocks on failure (bypass: `touch .claude/.gate-off`) | wired in `.claude/settings.json` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
 
 **Drift to reconcile — documented for the live box but NOT in this repo snapshot.**
@@ -609,12 +613,46 @@ cat /sys/class/drm/card*/device/power_dpm_force_performance_level  # high
 
 ## 3. Working philosophy
 
-Every commit to `main` must leave README.md able to reproduce a working system on
-clean Ubuntu 24.04.
+Every commit that reaches `main` must leave README.md able to reproduce a working system
+on clean Ubuntu 24.04. That is the condition for entering the Well (below) — on
+Yggdrasil it is the target, at the Well gate it is binding.
 
-**Push to `main`, no branches** — founder's standing instruction (2026-06-05). Don't
-open PRs or park work on feature branches for these repos; land each change as a
-coherent, deployable commit straight on `main`.
+**Yggdrasil and the Well of Mimir** — founder's standing instruction (2026-08-08),
+superseding "push to `main`, no branches" (2026-06-05).
+
+- **`Yggdrasil` is the one standing working branch. Always push there, never to `main`.**
+  One super-branch for the whole portfolio, in every repo — no per-session branches. The
+  branch-per-session habit is what produced 337 stale `claude/*` branches, 226 of them
+  carrying commits that exist nowhere else.
+- **`main` is the Well of Mimir** — vetted knowledge. It moves only by a PR that the
+  founder approves. No cadence, no auto-merge: the Well fills when the founder decides it
+  does. This is the Bifrost one-way door (§H) at portfolio scale — `main` is the outermost
+  `*`, and no inner gate may release past it.
+- **The spring is the founder, and it is out of scope for the machine.** An analog signal
+  nothing here can sample or verify against. Yggdrasil and the Well are channels, not
+  sources; every file in this repo is *transmission*, and transmission never promotes
+  (Provenance Ladder, below). A green check proves transcripts agree with **each other** —
+  never that they agree with the founder. Only asking closes that gap.
+- **Never overwrite doctrine.** Pull with `--ff-only` and nothing else — a fast-forward
+  can only add commits, where a merge, rebase, or reset can silently rewrite founder-
+  authored text. A session transcribes doctrine; it does not author it.
+- **The tree is bigger than GitHub.** Yggdrasil spans the interacting systems — the
+  t630 stack, the LiteLLM router, the NotebookLM bridge, Stripe, Setmore, the CRM — and
+  GitHub is one root-well it drinks from. That is why the seed flows well→tree at
+  `SessionStart` and tree→well at the PR gate.
+- **Never more than 9 branches in a repo** — founder's standing instruction (2026-08-08),
+  enforced by `tools/check-branch-cap.py` at the commit gate. With `main`, `Yggdrasil` and
+  the drawer, a healthy repo sits at 3–5; nine is headroom, not a target.
+- **The doom drawer — "Didn't Organize, Only Moved."** Retire a branch by **putting it in
+  the drawer first**: `doom-drawer/<date>`, an octopus commit whose parents are the stale
+  tips, keeps every orphaned commit reachable from one ref, after which deleting the
+  branches loses nothing. It is the ADHD filing trick applied to refs, and the name states
+  the honest limit — the drawer is *findable*, not *sorted*. That is the point: sorting is
+  what makes people throw things away, and 226 of the original 338 branches held commits
+  that existed nowhere else. **Never delete a `claude/*` branch that is not reachable from
+  a `doom-drawer/*` (or legacy `archive/*`) ref.** Open the drawer with
+  `git log --oneline doom-drawer/* --not origin/Yggdrasil`; take something back out with
+  `git branch <name> <sha>`.
 
 **RCPS — how work gets done here** (adopted 2026-08-07). The acronym carries **two
 readings, and both are required, interleaved**:
@@ -685,7 +723,18 @@ binding here:
 - **Verify the *effect*, not the command** — a failed `cp` + a clean restart silently reloads the old file; check `ss`/`dig` after every reload.
 - **Validate before reload, back up before overwrite** — `unbound-checkconf` (etc.) first; a timestamped copy makes rollback one command.
 - **git pull ≠ deploy** — it moves checkout files only; the running system is untouched until you apply a change (staged backlog: [docs/DEPLOY-QUEUE.md](docs/DEPLOY-QUEUE.md)).
-- **Push:** fast-forward when the branch is just `main` + your commits; retry with backoff; `tools/check-docs.py` green before committing docs, and `tools/check-doctrine.py` green before committing anything under `ai-orchestration/` or §G.
+- **Push:** always `git push -u origin Yggdrasil` — never to `main`, which moves only through an approved PR. Fast-forward when the branch is just `Yggdrasil` + your commits; retry with backoff; `tools/check-docs.py` green before committing docs, and `tools/check-doctrine.py` green before committing anything under `ai-orchestration/` or §G.
+
+**Know which boundaries actually refuse** — the proxy register, `docs/architecture/proxies.md`
+(adopted 2026-08-08). A proxy is anything that sits in a path, sees what crosses it, and can
+refuse it: the agent git proxy, `$HTTPS_PROXY`, `gate.sh`, UFW, WireGuard, Pi-hole, the sops
+vault, the LLM router. It is the strongest form of a site — a run cannot ignore it by not
+reading it. Three rules bind here: **scope by reversibility, not by verb** (the agent proxy
+blocks `--delete` but permits `--force`, and both orphan commits — so the force-push guard in
+`gate.sh` is the site for that effect); **a refusal must be legible**, or a control becomes a
+debugging expense; and **never write a declared boundary in the language of an enforced one** —
+Bifrost's `@`/`#` mount table is honoured by a compliant run and by nothing else, which is fine
+until it is taught as a guarantee. Register a new intermediary before relying on it.
 
 **Never use the PR "watch" feature** — founder's standing instruction (2026-08-03).
 Do not subscribe to PR activity (no `subscribe_pr_activity`), and don't offer to watch,
@@ -716,7 +765,7 @@ stated reason.
   this briefing; when it disagrees with the live box, the box wins.
 - **docs/DEPLOY-PROTOCOL.md** — the **how** of deploying: the repeatable per-change procedure for landing one committed change on the live t630 safely (sync the checkout → diff → back up → validate → reload → verify the *effect*). Read it before `cp`-ing anything onto the box. Linked from README; the DEPLOY-QUEUE stages assume it.
 - **docs/DEPLOY-QUEUE.md** — the **what** of deploying: staging runbook of everything reconstructed/fixed in the repo but not yet on the live t630, in dependency order with copy-paste commands + per-stage verification. Work it once SSH to `192.168.1.118` is available. Linked from README.
-- **docs/architecture/clear-refeed-protocol.md** — the sync → clear → refeed ritual: how to wipe a stale session and re-seed the latest CLAUDE.md losslessly. With the `SessionStart` hook (`.claude/hooks/refeed.sh`) installed, bare `/clear` runs the whole thing end-to-end (fires the §G lazy anchor first, then loads the seed); the `.claude/commands/reseed.md` slash command (`/reseed`) handles the no-clear refresh — it pulls the current seed `--ff-only` on `main` before regenerating, so it never rebuilds a stale world. **The seed** = the four-file briefing set (CLAUDE.md + README + `docs/ai-cto/context.md` + `docs/architecture/network-context.md`).
+- **docs/architecture/clear-refeed-protocol.md** — the sync → clear → refeed ritual: how to wipe a stale session and re-seed the latest CLAUDE.md losslessly. With the `SessionStart` hook (`.claude/hooks/refeed.sh`) installed, bare `/clear` runs the whole thing end-to-end (fires the §G lazy anchor first, then loads the seed); the `.claude/commands/reseed.md` slash command (`/reseed`) handles the no-clear refresh — it pulls the current seed `--ff-only` on **the branch you are on** (normally `Yggdrasil`, never `main`) before regenerating, so it never rebuilds a stale world and never pulls the older vetted tier over newer doctrine. **The seed** = the four-file briefing set (CLAUDE.md + README + `docs/ai-cto/context.md` + `docs/architecture/network-context.md`).
 - **docs/architecture/INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
 - **docs/architecture/SKILLS.md** — skills demonstrated by the stack, each mapped to proving artifacts
 - **PLUGINS.md** — which Claude Code Directory plugins apply to this config repo (short
@@ -724,10 +773,14 @@ stated reason.
 - **docs/architecture/network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
 - **docs/architecture/cell-grammar.md** — supporting architecture notes
+- **tools/hlidskjalf.py** + **docs/hlidskjalf.html** — **Hlidskjalf, the high seat.** The Norns weave; the seat *sees*. One generated board over all ten realms — tier gaps, drawers, `claude/*` counts, the PR snapshot (`docs/ai-cto/pr-snapshot.json`, O-tier, capture time printed because the ref list ages while you read it), claimed lanes — and a **ranked queue of the decisions only the founder can make**, each with the exact action, what it unblocks, and where its numbers came from. Deliberately handless: it never pushes, merges, deletes, fires, or schedules — today's near-misses were confident sight failures, and confident-and-wrong is exactly what autonomy amplifies. The eye is in the well; the hand stays the founder's. Board: `docs/ai-cto/hlidskjalf-board.md` · rendered page published to Pages at /hlidskjalf.html.
+- **docs/architecture/norns.md** — **three sessions, one branch, one eye.** Concurrent sessions now weave `Yggdrasil` at once. The eye is the branch tip: one session holds it (`fetch`), adds, and hands it back (`push`); a non-fast-forward rejection is the eye being handed back before you finished looking, not an error. Never `--force` — that does not pass the eye, it puts out the other Norn's. Carries the three lanes (**Urðr** the record · **Verðandi** work in flight · **Skuld** the debt), the claims table you append to **before** starting substantial work, and the failure mode that git cannot catch: **duplicate assignment**. Sessions cannot message each other — `ListAgents` is empty and the CCR server exposes `create_session` with no `send_message` — so the repo is the only channel, and a claim is a commit. Read §4 and `git log origin/Yggdrasil` before spawning another Norn or starting a large piece of work.
+- **docs/architecture/proxies.md** — **Heimdall: the proxy register.** Every intermediary that stands in a path and can refuse what crosses it — the agent git proxy, the egress proxy, `gate.sh`, UFW, WireGuard, Pi-hole, Unbound, the vault, the LLM router, ttyd — with seven questions answered for each (what it mediates, who holds the authority, what it can refuse, whether refusal is legible, bypassable, fail-open/closed, and **scoped by verb or by effect**). It separates **enforced** (an intermediary refuses) from **declared** (the caller is asked to comply) from **ambient** (in the path, refuses nothing) — because a declared boundary written in the language of an enforced one buys the confidence of a control without the behaviour of one, and this repo had three of those. Proxy-scoping is the rung **above** `warrant-sites.md`'s ladder: a check sits in a run's given-set and is bypassed by a run that never invokes it, while a proxy sits in the run's world. Read it before adding any intermediary, and before trusting one you did not verify. Law 1 is the one that bit us: **scope by reversibility, not by verb** — the agent proxy blocks `--delete` and permits `--force`, which orphans commits just as well.
 - **docs/architecture/warrant-sites.md** — **where an invariant has to live to bind anything**: a run's warrant configuration (given-set · check obligation · confidence policy), why briefing prose and citations are not sites, the ranked site ladder, and the audit of which invariants in this repo are actually sited versus merely stated. Read it before writing a new rule anywhere.
 - **docs/provenance.html** — **the Provenance Ladder**: how a claim earns authority here (`M`/`O`/`D`/`R`/`A`), why transmission never promotes a tier, the four gates that check one before anything irreversible, the tag grammar, and the laundering catalogue. Published at <https://a777ance.github.io/localDNS/provenance.html>. Read it before citing a reconstructed config as fact or a plurality as a verdict — enforced by `tools/check-provenance.py`.
 - **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script. It also enforces one cross-file invariant: the **Bifrost sweep string** (the fixed string a bare `'` returns, §H) must be **byte-identical** across all three surfaces carrying it — CLAUDE.md is canonical. The **expansion template** (what a bare `` `seed` `` fills in) is held to the same standard and one more: byte-identical across the same three surfaces, *and* it must reduce to the sweep once its `(fill in)` slots and whitespace are struck — the derived clause that stops three agreeing copies of a *wrong* skeleton. A deterministic answer is only as good as the agreement of its sources. It also enforces the companion invariant: the **glyph roles** must match across spec §1, the rendered page, and §H. The sweep proves the surfaces agree on the glyphs' *order*; this proves they agree on what the glyphs *mean* — the half that actually decided wrong, when `@` read "signage" on the page for a full pass after the spec had reassigned it to "source". Deliberately narrow: it compares the first word of each archetype, so a role **reassignment** fails while the presentational differences the surfaces are entitled to ("Sanity / Tollbooth" vs "Sanity") pass. A check that failed on phrasing would be switched off, and an off check is worse than a narrow one.
-- **tools/sync-briefings.py** + **`04-user-services/ai-orchestration/briefing-block.md`** — **the parallel-session check.** Bifrost is active in every repo, so a dozen `CLAUDE.md` files carry the schema and are required to agree — but git only conflicts on the *same* file, and these are *different* files with an agreement obligation. Two sessions can each run green, each push cleanly, and still leave the portfolio self-contradictory; that is exactly how nine briefings kept describing a schema without `'` after Ignition landed here. So the copies stop being copies: `briefing-block.md` is canonical, the script renders it, and the gate blocks a commit that would ship drift. Rendered blocks are build output — **never hand-edit them.** Siblings not checked out are skipped and named, so green never silently means "checked nothing."
+- **tools/sync-briefings.py** + **`04-user-services/ai-orchestration/briefing-block.md`** — **the parallel-session check.** Bifrost is active in every repo, so a dozen `CLAUDE.md` files carry the schema and are required to agree — but git only conflicts on the *same* file, and these are *different* files with an agreement obligation. Two sessions can each run green, each push cleanly, and still leave the portfolio self-contradictory; that is exactly how nine briefings kept describing a schema without `'` after Ignition landed here. So the copies stop being copies: `briefing-block.md` is canonical, the script renders it, and the gate blocks a commit that would ship drift. Rendered blocks are build output — **never hand-edit them.** Siblings not checked out are skipped and named, so green never silently means "checked nothing." The script carries a **registry** of canonical blocks, not one hardcoded block: `branch-policy-block.md` (§3's `Yggdrasil` / Well-of-Mimir rule) rides the same machinery, because it failed the same way in the more dangerous direction — not drifting, but **missing** from eight of ten briefings, where silence assigned "cut a new branch" 337 times. A narrow tripwire also fails any briefing still carrying the retired **"Push to `main`, no branches"** directive, so the supersession cannot be half-applied.
+- **tools/check-branch-cap.py** + **tools/retire-stale-branches.sh** — **the branch cap and the one-time cleanup it followed.** The branch-per-session habit produced **338** stale `claude/*` refs across ten repos; **226 held commits that existed nowhere else**, so bulk deletion would have destroyed work. The repair was to make deletion *provably* lossless first: one octopus commit per repo whose parents are every stale tip, pushed as **`doom-drawer/2026-08-08`** — "Didn't Organize, Only Moved", the ADHD filing trick applied to refs — after which every orphaned commit stays reachable from a single ref. The name states the honest limit: the drawer is *findable*, not *sorted*, and that is deliberate, because sorting is the step at which things get thrown away. `retire-stale-branches.sh` then deletes the 338 and the superseded `archive/*` label (run it by hand — deletion returns HTTP 403 from the agent environment, so a session cannot do it; the drawer itself is kept). `check-branch-cap.py` is the site that stops the habit returning: over 9 branches fails at the commit gate, except for refs already in a drawer, which report as PENDING so the cap can be enforced before the cleanup has run. Open the drawer with `git log --oneline doom-drawer/* --not origin/Yggdrasil`; take something back out with `git branch <name> <sha>`.
 - **tools/check-doctrine.py** — asserts the **mechanically-decidable** clauses of §G against the code that implements them: the juror sampler's `temperature`/`top_p`/`top_k`/`max_tokens` defaults, the CLI defaults (the real entry point), and that the penalties are **actually sent** rather than inherited from a vendor default. Deliberately narrow — the posture clauses (lazy anchor, vote-as-governor, measure `p̂`) don't decide mechanically and are sited in `.claude/commands/` and `.claude/agents/juror.md` instead, so a green run is **not** a claim the doctrine was followed, only that the numbers still agree.
 
 ---
@@ -740,3 +793,52 @@ queue — the ordered default next moves (P1 ship chain + repo-hygiene) so a fre
 session doesn't re-derive them. Start there when the founder hasn't named a priority.
 The portfolio hub (cross-repo roadmap, decisions log, tech debt) lives in
 `DESIGN-Full-Workflow-Integration-end-to-end-/docs/ai-cto/portfolio.md`.
+
+---
+
+## 6. Session tooling — siblings, triggers, and repos
+
+**Every session may see its siblings, schedule its own follow-ups, and attach the repos it
+needs — without asking** (founder's standing instruction, 2026-08-08). The siblings carry the
+condensed form as a generated block
+(`04-user-services/ai-orchestration/session-visibility-block.md`); this is the long form, and
+the two must not contradict each other.
+
+**The grant is not here.** A briefing cannot pre-approve a tool call — the permission
+prompt never reads `CLAUDE.md` — so this section is *doctrine about somewhere else*. The
+site is `.claude/settings.json` → `permissions.allow`, in every repo: the session tools
+(`list_sessions`, `get_session`, `create_session`, `list_environments`), the scheduling tools
+(`list_triggers`, `create_trigger`, `update_trigger`, `send_later`), the repo tools
+(`add_repo`, `list_repos`, `register_repo_root`), and self-labelling (`set_session_title`,
+`set_session_tags`). Both server
+spellings (`Claude_Code_Remote` and `claude-code-remote`) are listed, because an entry
+naming a tool absent from a given session is inert while a missing spelling costs a
+prompt. `tools/sync-briefings.py` verifies the claim against the file that decides, so a
+briefing that *says* the grant exists cannot outlive the grant itself.
+
+- **Why granted, not merely permitted.** Work runs in parallel here — this repo has had
+  three sessions on `Yggdrasil` at once. A session that cannot see its siblings re-derives
+  what they already know, edits the file they are editing, and finds out at push time.
+  Two `gate.sh` conflicts inside a single turn is the cost, measured. Visibility is what
+  turns concurrent sessions from a race into a weave; taxing it with a prompt taxes the
+  one behaviour that keeps them apart.
+- **Read the room before taking a lane.** Listing sessions is the cheap first move before
+  touching a shared surface — briefings, hooks, `tools/`, the canonical blocks. Prefer an
+  empty lane; when you must share one, fetch and merge before every push.
+- **Spawning is cheap; colliding is not.** Hand a spawned sibling a *lane* and a
+  do-not-touch list, not just a task. A cold session cannot infer which files are contended.
+- **Deliberately NOT granted:** `delete_trigger`, `fire_trigger`, `interrupt_session`,
+  `archive_session`, `unarchive_session` still prompt. Each destroys something or fires an
+  effect *now*. Creating a routine is additive and visible; deleting the founder's routine,
+  or firing one early, is neither. Seeing a sibling is not reaching into one.
+- **Triggers act when nobody is watching — the one grant here that does.** Everything else
+  happens in-turn, in view. So a trigger inherits the one-way door (§H) rather than escaping
+  it: it may prepare, report, and check, but it may not be the thing that performs an
+  irreversible outward-facing action. Publish, deploy, send, delete, merge to `main` wait for
+  the founder at the `*` gate, whatever the cron says. `sync-briefings.py` also fails the
+  commit if a withheld tool quietly appears in an allow-list — a grant that shows up
+  unannounced is the same briefing/settings disagreement as one that vanishes.
+- **The grant widens nothing else.** A permission denied in your session is denied for the
+  portfolio — never route a blocked action through a sibling, and never schedule a trigger to
+  do later what you were refused now. Both launder the founder's decision, and the decision
+  is the point.

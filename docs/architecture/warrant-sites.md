@@ -56,7 +56,7 @@ Where an invariant can live, strongest first. Migration upward is the repair.
 
 | Rank | Site | Binds because | Example here |
 | ---- | ---- | ------------- | ------------ |
-| 1 | **Mechanical check at the emission boundary** (hook, generator, CI) | The invariant decides without a reader | `.claude/hooks/gate.sh` blocks a commit failing `check-docs.py`, `check-provenance.py` or `check-doctrine.py`; `docs/statements/tools/generate_client.py` gates each optional section on `cfg.get(...)`, so "How You Compare" **cannot** render without data |
+| 1 | **Mechanical check at the emission boundary** (hook, generator, CI) | The invariant decides without a reader | `.claude/hooks/gate.sh` blocks a commit failing `check-docs.py`, `check-provenance.py`, `check-doctrine.py` or `sync-briefings.py`; `docs/statements/tools/generate_client.py` gates each optional section on `cfg.get(...)`, so "How You Compare" **cannot** render without data |
 | 2 | **Fail-closed structure** | The wrong state cannot start | `${LITELLM_MASTER_KEY:?…}` in both compose files — no unsealed secret, no container |
 | 3 | **Inlined text in the file that executes** (`.claude/commands/*.md`, `.claude/agents/*.md`, a script) | It is in premise position for that run | The menu prohibition and the mandatory bound line, written out in `cardio.md` / `workout.md` / `juror.md` |
 | 4 | **A citation to the briefing** | Nothing. Transfers the citation | The five §G references that lost to their own file's text |
@@ -81,6 +81,7 @@ State of the working tree, 2026-08-07. "Site" means rank 1–3 above.
 | Provenance tags are valid and R-tier never reaches the box undiffed | § 3 · `docs/provenance.html` | `tools/check-provenance.py`, now gated at commit | ✅ **Sited** (2026-08-07) |
 | Never supply jurors an answer menu | § G | inlined in `cardio.md` / `workout.md` / `juror.md` | ✅ **Sited** (2026-08-07) |
 | A keyless plurality is unpriced — name the unknown | § G | inlined mandatory bound line | ✅ **Sited** (2026-08-07) |
+| Push to `Yggdrasil`, never to `main` | § 3 · branch-policy block | `tools/sync-briefings.py` renders the block into all ten briefings and trips on the retired directive; gated at commit | ✅ **Sited** (2026-08-08) — the failure mode was *absence*: eight of ten briefings said nothing, and silence assigned "cut a new branch" |
 | Measure `p`, don't guess it | § G | cited by the jury commands; `calibrate` exists but nothing requires it | ⚠️ **Cited only** — decides mechanically only when a labelled set exists |
 | RCPS — root-cause and record, interleaved | § 3 | none | ❌ **Unsited** — operator practice |
 | Never add sensitive domains to the forward path | § B | none | ❌ **Unsited** — *and mechanically checkable*: a checker could diff `streaming-forward.conf`'s zone list against a sensitivity denylist. Highest-value open repair |
@@ -109,4 +110,5 @@ mechanism at two scales, which is why the tiers do duty as marks:
 
 | Date | Change |
 | ---- | ------ |
+| 2026-08-08 | Branch policy (`Yggdrasil` / Well of Mimir) given a rank-1 site. `tools/sync-briefings.py` generalized from one canonical block to a registry, so the policy is *generated* into all ten briefings rather than copied, and a narrow tripwire fails the commit if any briefing still carries the retired **"Push to `main`, no branches"** directive. Exercised in both directions before landing. Records the class of failure the file did not yet name: an invariant can be unsited by **absence** as well as by drift — eight of ten briefings stated no branch rule at all, and a session reading silence invents one. |
 | 2026-08-07 | File created. Warrant configuration defined (given-set · check obligation · confidence policy); the site ladder; the working-tree audit; `.claude/hooks/gate.sh` added as a rank-1 site for all three static checks, exercised in both directions before landing. Merged with `main`'s independent §G clause→site audit (`tools/check-doctrine.py`), which reached the same finding from the sampler side the same day. |

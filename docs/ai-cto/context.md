@@ -13,6 +13,15 @@ Rationale lives in CLAUDE.md § F / § C and the open-items table below; don't r
 it here. Override only when the founder names a different priority. When an item
 ships, tick it and promote the next.
 
+> **This queue is the dispatch source, and it does not record who is working.** Multiple
+> sessions weave `Yggdrasil` at once and cannot see each other, so an item that looks
+> unfinished here may already be in flight — that is exactly how a Norn got spawned onto
+> the doom drawer minutes after it was finished (`docs/architecture/norns.md` §5).
+> **Run `python3 tools/weave.py` first**: it shows who moved the eye, the claims table,
+> and this queue side by side. Then write your claim in `norns.md` §4 **before** the work.
+> Claims are a *declared* boundary (`docs/architecture/proxies.md` §3) — nothing refuses a
+> session that skips them, which is precisely why the step has to be this cheap.
+
 **Do this (SSH to t630 `192.168.1.118` available):** everything now stages through
 `docs/DEPLOY-QUEUE.md` — work it top-to-bottom by stage number.
 

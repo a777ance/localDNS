@@ -1,0 +1,71 @@
+{
+  "_comment": "Open-PR snapshot for tools/hlidskjalf.py. O-tier: captured via the GitHub MCP API by a session that can reach it (the agent proxy blocks most REST paths). The ref list ages while you read it; so does this — the board prints its age. Refresh by re-listing open PRs per repo and rewriting this file.",
+  "captured": "2026-08-08T15:55:00Z",
+  "via": "GitHub MCP, session_01DQFfkkSUPXDTgKizj6RfpF (per-repo list_pull_requests, state=open)",
+  "repos": {
+    "localDNS": {
+      "open_prs": [
+        {"number": 29, "head": "Yggdrasil", "title": "Yggdrasil → main: put the branch policy where sessions actually read it"},
+        {"number": 26, "head": "claude/homelab-microbiology-metaphors-18cl3d", "title": "Add microbiology collection: cell biology metaphors for stack design"},
+        {"number": 25, "head": "claude/design-workflow-integration-y8yxx7", "title": "Add the design system and the Claude Design bridge"},
+        {"number": 20, "head": "claude/settings-alignment-dh8eua", "title": "The Jury: adaptive self-consistency for the stack's own models (§G)"},
+        {"number": 17, "head": "claude/amwins-ai-governance-vu5tk4", "title": "docs: add AI governance blueprint as a generated Pages page (masked)"}
+      ]
+    },
+    "DESIGN-Full-Workflow-Integration-end-to-end-": {
+      "open_prs": [
+        {"number": 4, "head": "Yggdrasil", "title": "Yggdrasil → main: ADR-008 (branching) + the generated branch-policy block"},
+        {"number": 3, "head": "claude/design-workflow-integration-y8yxx7", "title": "Point stage 00 at the design system, and correct the brand kit's palette"}
+      ]
+    },
+    "MARKETING": {
+      "open_prs": [
+        {"number": 3, "head": "Yggdrasil", "title": "Yggdrasil → main: adopt the branch policy"},
+        {"number": 2, "head": "claude/design-workflow-integration-y8yxx7", "title": "Adopt the design-surface convention in the house style"},
+        {"number": 1, "head": "claude/master-amounts-calculator-okqphz", "title": "Add Master Amounts Calculator and pricing comparables doc"}
+      ]
+    },
+    "customers": {
+      "open_prs": [
+        {"number": 2, "head": "Yggdrasil", "title": "Yggdrasil → main: branch policy, stated once"},
+        {"number": 1, "head": "claude/design-workflow-integration-y8yxx7", "title": "Adopt the design-surface convention in the house style"}
+      ]
+    },
+    "Azure-lab": {
+      "open_prs": [
+        {"number": 2, "head": "Yggdrasil", "title": "Yggdrasil → main: branch policy; next free ADR is 009"},
+        {"number": 1, "head": "claude/design-workflow-integration-y8yxx7", "title": "Adopt the design-surface convention in the house style"}
+      ]
+    },
+    "Chronikomicon": {
+      "open_prs": [
+        {"number": 6, "head": "Yggdrasil", "title": "Yggdrasil → main: adopt the branch policy"},
+        {"number": 5, "head": "claude/design-workflow-integration-y8yxx7", "title": "Adopt the design-surface convention in the house style"}
+      ]
+    },
+    "Home-Sovereign-Full-Field-Guide": {
+      "open_prs": [
+        {"number": 2, "head": "Yggdrasil", "title": "Yggdrasil → main: adopt the branch policy"},
+        {"number": 1, "head": "claude/design-workflow-integration-y8yxx7", "title": "Adopt the design-surface convention in the house style"}
+      ]
+    },
+    "Marketing-Strategy-1": {
+      "open_prs": [
+        {"number": 2, "head": "Yggdrasil", "title": "Yggdrasil → main: adopt the branch policy"},
+        {"number": 1, "head": "claude/design-workflow-integration-y8yxx7", "title": "Adopt the design-surface convention in the house style"}
+      ]
+    },
+    "PRICING-MODELS---ALL-THREE": {
+      "open_prs": [
+        {"number": 2, "head": "Yggdrasil", "title": "Yggdrasil → main: adopt the branch policy"},
+        {"number": 1, "head": "claude/design-workflow-integration-y8yxx7", "title": "Adopt the design-surface convention in the house style"}
+      ]
+    },
+    "claude-code-homelab": {
+      "open_prs": [
+        {"number": 3, "head": "Yggdrasil", "title": "Yggdrasil → main: adopt the branch policy"},
+        {"number": 2, "head": "claude/design-workflow-integration-y8yxx7", "title": "Adopt the design-surface convention in the house style"}
+      ]
+    }
+  }
+}
