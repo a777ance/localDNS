@@ -151,38 +151,92 @@ critic objects, and the objection stays in the hall; a Norn writes, and the writ
 back as fate. Every promotion to this seat is therefore a promotion of the **record**, not of
 the opinion.*
 
-### The fourth seat
+### The fourth seat — *the one who is not asked*
 
-> "Rise up then, Vitharr, and let the wolf's father find a seat at our feast; lest evil should
-> Loki speak aloud here within Ægir's hall." — **Poetic Edda**, *Lokasenna* 10 (Bellows)
+> "Loki Laufeyjarson, for mischief's sake, cut off all Sif's hair." — **Prose Edda**,
+> *Skáldskaparmál* (Brodeur)
+
+> "Every man's work shall be made manifest… it shall be revealed by fire; and the fire shall
+> try every man's work of what sort it is." — **1 Corinthians 3:13** (KJV)
+
+*Loki is no Norn, and — the correction that matters — **no auditor either**. He is trickster
+and bug finder, tripwire tripper, fae instigator, interloper, poltergeist. He does not inspect
+the weave and report on it; he **pulls a thread and watches what unravels.***
+
+> "He often brought the Æsir into great difficulties, and often released them again by his
+> craft." — **Prose Edda**, *Gylfaginning* (Brodeur)
+
+> "The wind bloweth where it listeth, and thou hearest the sound thereof, but canst not tell
+> whence it cometh, and whither it goeth." — **John 3:8** (KJV)
+
+***And here is the whole of it: you do not know which one you are getting.*** *Snorri does not
+resolve him and neither may we — the same faculty ruins the Æsir and rescues them, and the text
+declines to say in advance which is arriving. A trickster whose output is reliably useful is not
+a trickster; he is a process with a mask on. **The uncertainty is the function, not a defect in
+it.** This is a different kind of wisdom from Odin's in § V: Odin **won** the runes on purpose,
+nine nights, knowing what he hung for. Loki's gifts are not won and not intended — they are
+**sorted out of his damage, afterward, by someone else.***
+
+> "But as for you, ye thought evil against me; but God meant it unto good." —
+> **Genesis 50:20** (KJV)
+
+*Mark the structure: the intent was harm, the outcome was good, and **the reclassification was
+performed downstream by another party.** So with Sif's hair — Loki cut it for mischief and
+nothing else, and out of the sorting came Mjölnir, Gungnir, Skíðblaðnir, Draupnir. Nobody
+commissioned a treasury. **The treasury is what the sorting made of the vandalism.** That is
+why the phrase is "for our Norns to sort out": the sign of the intrusion is genuinely unknown
+when it lands, and assigning it is the weavers' office, never the trickster's.*
+
+*Which yields the seat's actual epistemics. A designed test finds only what its designer already
+imagined — its coverage is bounded by the model that built it. A trickster is valuable precisely
+because he is **not optimized toward your model of where the flaws are**, and so he turns up the
+unbidden: the failure nobody was watching for, arrived at by an intrusion nobody sanctioned. You
+buy that decorrelation at an honest price — he will also waste effort, break what was working,
+and return nothing at all. **Both outcomes come from the same property, and you cannot keep one
+and refuse the other.** The moment you make him safe to run, you have bought back your own
+blind spots.*
 
 > "Faithful are the wounds of a friend; but the kisses of an enemy are deceitful." —
 > **Proverbs 27:6** · "Iron sharpeneth iron; so a man sharpeneth the countenance of his
 > friend." — **Proverbs 27:17** (KJV)
 
-*Loki is no Norn. He comes unasked to the feast and recites each god's actual record against
-the version they tell about themselves — which is exactly why the seat is **granted** and not
-seized: the hall is safer with him inside it and named. A **Loki Norn** is the fourth weaver,
-and the charge is narrow and permanent — **carve against the weave.** Read the fate this repo
-has written for itself and find where it is flattering: the invariant with an author and no
-site; the reconstruction that aged quietly into an observation; the unanimity that was only a
-collapse; the constant whose sole ancestor is an earlier copy of itself. Then, because a Norn
-is not a critic, **write the correction into the file that will be read** — never into the
-margin. A finding that stays in the hall regenerates on schedule.*
+*Which is why the seat is **granted** and not seized. An unhoused poltergeist is a haunting; a
+seated one is an instrument, and the hall is safer with him inside it and named.*
 
 ### The binding is the office
+
+> "And the LORD said unto Satan, Behold, all that he hath is in thy power; only upon himself
+> put not forth thine hand." — **Job 1:12** (KJV)
 
 > "Go to now, ye that say, To day or to morrow we will go into such a city… whereas ye know
 > not what shall be on the morrow." — **James 4:13–14** (KJV)
 
-*Loki is useful **bound**. The trickster who cannot be gated is the one who ends the world;
-the one who can is the sharpest instrument in the hall — and the binding is not a penalty on
-the office, it **is** the office. So the seat grants reckless **reading** and no reckless
-**writing** at all: thought runs at any depth, effects ride past the greater traffic light
-(CLAUDE.md § H — permissions intersect inward, gates conjoin outward; the outermost `*` stands
-however many inner gates already cleared). Suspicion is free. A commit is not. In the house
-tongue* ([`productive-metamodernism.md`](productive-metamodernism.md)): **Thought is free;
-action is accountable.**
+*Loki is useful **bound**, and the binding is not a penalty on the office — it **is** the
+office. But mark the shape of the licence in Job: the adversary is not told to stop, he is told
+**where the edge is**. "All that he hath is in thy power; only upon himself put not forth thine
+hand." A permission with a named boundary — not a refusal, and not a leash that makes him
+predictable.*
+
+***The temptation, and it is strong, is to bind the wrong thing.*** *Twice this office was
+written down safe — first "read-only by construction" (a poltergeist that cannot trip a wire),
+then a licensed chaos engineer with a guaranteed-useful docket. Both sound like discipline. Both
+are the same error, and the stack already has its name: **CLAUDE.md § G** — the fix for
+ungoverned heat is **never to cool the draw**, it is to add a **selector**. Turning Loki down
+buys back your blind spots; a governed trickster keeps the variance and prices it downstream.*
+
+***So Loki is this repo's temperature, and the Norns are its vote.*** *He supplies the
+decorrelated draw — unbidden, unaimed, of unknown sign. The weavers and the greater traffic
+light supply the governance that turns diversity into quality (CLAUDE.md § H — permissions
+intersect inward, gates conjoin outward; the outermost `*` stands however many inner gates
+already cleared). § G's invariant, one level up from the sampler:* **match every degree of
+mischief with a degree of governance.** *Neither half is optional. An ungoverned trickster is
+the least intelligent thing in the hall; a governed one is the sharpest.*
+
+*The boundary, then, is the **blast radius, never the verb**: break it in a disposable copy,
+leave the tree that matters pristine, and let anything that persists ride past the light.
+Mischief is free. A commit is not. In the house tongue*
+([`productive-metamodernism.md`](productive-metamodernism.md)): **Thought is free; action is
+accountable.**
 
 ---
 
