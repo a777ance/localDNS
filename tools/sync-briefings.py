@@ -123,7 +123,22 @@ def render(text: str, block: str) -> str:
 
 
 def pairs(line: str) -> dict[str, str]:
-    return {g.strip(): role for g, role in PAIR_RE.findall(line)}
+    """Glyph -> role from a Backbone line, first occurrence winning.
+
+    Two parsing hazards, both of which silently *weaken* the check rather than break
+    it — the dangerous direction:
+      * The descriptor glyph is written ``` `` ` `` ```; no backtick-delimited pattern
+        survives it, so it is swapped for a sentinel and back.
+      * Each glyph is named once to assign its role and may be named again in the
+        trailing aside ("Off-row `'`/`~`/`` ` `` stage"). Last-wins reads the aside as
+        the role.
+    """
+    line = line.replace("`` ` ``", "`\x00GRAVE\x00`")
+    out: dict[str, str] = {}
+    for g, role in PAIR_RE.findall(line):
+        g = "`" if "\x00GRAVE\x00" in g else g.strip()
+        out.setdefault(g, role)
+    return out
 
 
 def check_backbone(block: str) -> list[str]:

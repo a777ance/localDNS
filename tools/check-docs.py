@@ -310,6 +310,140 @@ def check_bifrost_sweep():
     return problems
 
 
+# --- Bifrost glyph roles: the surfaces must assign the same meanings ----------
+#
+# The §1 glyph table exists three times — as a markdown table in the spec, as an
+# HTML table on the published page, and abbreviated in the CLAUDE.md §H backbone
+# line. The sweep check above proves the copies agree on the glyphs' ORDER; this
+# proves they agree on what the glyphs MEAN, which is the part that actually
+# decided wrong: `@` read "signage" on the page for a full pass after the spec had
+# reassigned it to "source", and nothing noticed, because no check compared them.
+#
+# Deliberately narrow: it compares the FIRST word of each archetype, lowercased.
+# That catches a role REASSIGNMENT (`source`→`signage`, `cargo`→`payloads`,
+# `cars`→`instantiators`) while tolerating the presentational differences the
+# surfaces are entitled to — the spec says "Sanity / Tollbooth" where the page says
+# "Sanity", and neither is wrong. A check that failed on phrasing would be turned
+# off within a week, and an off check is worse than a narrow one.
+GLYPH_HTML = re.compile(
+    r'<td class="glyph">(.*?)</td>.*?<td class="arch">(.*?)</td>', re.S
+)
+# Presentational synonyms — the same role under two house names, not two roles.
+# Keep this map SMALL and explicit; every entry is a place drift could hide.
+ROLE_ALIAS = {"repo": "repository", "compliance": "weigh"}
+
+GLYPH_SURFACES = [
+    "04-user-services/ai-orchestration/highway-notation.md",  # canonical
+    "docs/bifrost.html",
+]
+
+
+# Inline prose writes the descriptor glyph as ``` `` ` `` ``` — a backtick fenced by
+# double backticks. No "grab what's between backticks" pattern survives that, so it is
+# swapped for a sentinel before parsing and swapped back after. Without this the glyph
+# is not compared anywhere, which reads as a pass.
+GRAVE = "\x00GRAVE\x00"
+
+
+def degrave(line):
+    return line.replace("`` ` ``", f"`{GRAVE}`")
+
+
+def norm_glyph(g):
+    g = re.sub(r"<[^>]+>", "", g).replace("&nbsp;", "").replace("&amp;", "&")
+    if GRAVE in g:
+        return "`"
+    # The descriptor glyph IS a backtick, so it is written `` ` `` in markdown and
+    # would vanish under a blanket backtick strip — dropping the row silently, which
+    # is the one outcome a drift check must never produce.
+    if g.strip() and not g.strip("` \t"):
+        return "`"
+    return g.replace("`", "").strip()
+
+
+def md_glyph_table(text):
+    """Parse §1's table only.
+
+    Scoped to the section because §3's soft-helper table is also a pipe table, with a
+    different shape — a looser matcher happily reads its rows as glyph definitions. The
+    §1 table is the five-column one: key | glyph | phase | archetype | meaning.
+    """
+    start = text.find("## 1. The backbone")
+    if start < 0:
+        return {}
+    end = text.find("\n## ", start + 1)
+    section = text[start: end if end > 0 else len(text)]
+
+    table = {}
+    for line in section.splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 5:
+            continue
+        glyph, archetype = norm_glyph(cells[1]), norm_role(cells[3])
+        if not glyph or not archetype or archetype in ("archetype", "---", ":--"):
+            continue
+        table[glyph] = archetype
+    return table
+
+
+def norm_role(r):
+    r = re.sub(r"<[^>]+>", "", r).strip().lower()
+    first = re.split(r"[\s/(]+", r)[0] if r else ""
+    return ROLE_ALIAS.get(first, first)
+
+
+def check_glyph_roles():
+    problems, tables = [], {}
+
+    src = os.path.join(ROOT, GLYPH_SURFACES[0])
+    if not os.path.exists(src):
+        return [f"{GLYPH_SURFACES[0]}: missing (expected to carry the §1 glyph table)"]
+    tables[GLYPH_SURFACES[0]] = md_glyph_table(open(src, encoding="utf-8").read())
+
+    page = os.path.join(ROOT, GLYPH_SURFACES[1])
+    if os.path.exists(page):
+        tables[GLYPH_SURFACES[1]] = {
+            norm_glyph(g): norm_role(a)
+            for g, a in GLYPH_HTML.findall(open(page, encoding="utf-8").read())
+        }
+
+    # CLAUDE.md §H states the same assignments inline, abbreviated.
+    brief = os.path.join(ROOT, "CLAUDE.md")
+    if os.path.exists(brief):
+        m = re.search(r"- \*\*Backbone:\*\*(.*?)(?=\n- \*\*)", open(brief, encoding="utf-8").read(), re.S)
+        if m:
+            # FIRST occurrence wins. The backbone line names each glyph once to assign
+            # its role, then may name it again in a trailing aside ("Off-row `'`/`~`/
+            # `` ` `` stage; keys 1-4 Preload ..."). Last-wins reads that aside as the
+            # role and reports drift that is not there.
+            brief = {}
+            for g, role in re.findall(
+                r"`{1,2}([^`]+)`{1,2}\s+([a-z][a-z/-]*)", degrave(m.group(1))
+            ):
+                brief.setdefault(norm_glyph(g), norm_role(role))
+            tables["CLAUDE.md §H"] = brief
+
+    canon_name = GLYPH_SURFACES[0]
+    canon = tables.get(canon_name, {})
+    if len(canon) < 8:
+        return [f"{canon_name}: parsed only {len(canon)} glyph rows — the §1 table shape changed"]
+
+    for name, table in tables.items():
+        if name == canon_name:
+            continue
+        for glyph in sorted(set(canon) & set(table)):
+            if canon[glyph] != table[glyph]:
+                problems.append(
+                    f"glyph {glyph!r}: {canon_name} says {canon[glyph]!r}, "
+                    f"{name} says {table[glyph]!r}"
+                )
+        for glyph in sorted(set(canon) - set(table)):
+            problems.append(f"glyph {glyph!r}: defined in {canon_name}, absent from {name}")
+    return problems
+
+
 def main():
     os.chdir(ROOT)
     md = sorted(
@@ -337,6 +471,15 @@ def main():
             f"ok   Bifrost sweep + expansion template identical across "
             f"{len(SWEEP_FILES)} surfaces, and template reduces to the sweep"
         )
+
+    glyph_problems = check_glyph_roles()
+    if glyph_problems:
+        failed = True
+        print("FAIL Bifrost glyph roles disagree across surfaces")
+        for p in glyph_problems:
+            print(f"  - {p}")
+    else:
+        print("ok   Bifrost glyph roles agree across spec, page, and CLAUDE.md §H")
 
     if failed:
         print("\nDoc check FAILED")
