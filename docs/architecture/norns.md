@@ -11,6 +11,42 @@ and the reason to keep doing this) and a duplicate assignment (the failure mode,
 
 ---
 
+## 0. Promotion — every running session is a Norn
+
+**Founder's standing instruction, 2026-08-08.** There is no separate "Norn session" type
+to be spawned into. **If a session is running, it is a Norn**, and it owes the weave the
+same things every other Norn owes it: get current, claim a lane, contribute, hand the eye
+back.
+
+This is sited in `.claude/hooks/refeed.sh` — the `SessionStart` hook in **all ten repos**,
+so it enters every session's given-set at token zero rather than waiting to be discovered.
+Briefing prose would not reach a session that never opened this file.
+
+**On promotion, in order — all cheap moves, not a research phase:**
+
+1. **Get on the working branch.** A fresh clone lands on `main`, the *vetted* tier, so
+   everything written on `Yggdrasil` — including the rule saying to write on `Yggdrasil` —
+   is invisible until you switch. `git fetch origin Yggdrasil && git checkout Yggdrasil`,
+   or `git rebase origin/Yggdrasil` if you already have commits.
+2. **Look before you write** — `python3 tools/weave.py`. Work that looks unfinished in the
+   queue may be in flight right now (§5).
+3. **Claim a lane** in §4 *before* substantial work, taking the item from the queue rather
+   than from intuition.
+4. **Front-load access.** Add every repo you will need and request the approvals you will
+   need **at the start**, not when you are already blocked mid-flight. A Norn that stalls
+   halfway for a permission it could have asked for up front has wasted the parallelism
+   that justified spawning it.
+
+**The limit, and it is hard: promotion grants no new permissions.** Being a Norn is a
+*duty*, not a capability. If an action is denied or blocked for you, **do not ask another
+Norn to perform it** — a peer acting on your behalf launders the founder's permission
+decision, and the decision was about the action, not about which session attempted it.
+Route blocked work back to the founder and say plainly what is blocked. This is the one
+rule in this file that is not a coordination convenience; the rest of the weave is about
+speed, and this one is not.
+
+---
+
 ## 1. The one eye
 
 The Graeae shared one eye between three, passing it hand to hand — only one could see at a
