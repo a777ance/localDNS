@@ -21,6 +21,15 @@
 #   tools/check-provenance.py  provenance tags valid; no unstaged R-tier deploy
 #                              target; no R/A tag without a verify: route
 #   tools/check-doctrine.py    §G's stated sampler values match jury/jury.py
+#   tools/sync-briefings.py    every sibling repo's CLAUDE.md Bifrost block matches the
+#                              canonical one, and the two briefing tiers agree on glyph
+#                              roles. This is the PARALLEL-SESSION check: git conflicts
+#                              only on the same file, but the schema lives in a dozen
+#                              DIFFERENT files required to agree — so two sessions can
+#                              each be green, each push cleanly, and still leave the
+#                              portfolio self-contradictory. Siblings not checked out
+#                              are skipped, so a green run here is not proof the whole
+#                              portfolio is synced — only the part this session can see.
 #
 # FAILURE POLICY, deliberately asymmetric:
 #   * A check that FAILS blocks the commit (exit 2 — stderr goes back to the model).
@@ -58,7 +67,8 @@ print(d.get("tool_input", {}).get("command", ""))
 printf '%s' "$cmd" | grep -Eq '(^|[;&|[:space:]])git[[:space:]]+(-[^[:space:]]+[[:space:]]+)*commit([[:space:]]|$)' || exit 0
 
 fails=""
-for check in tools/check-docs.py tools/check-provenance.py tools/check-doctrine.py; do
+for check in tools/check-docs.py tools/check-provenance.py tools/check-doctrine.py \
+             tools/sync-briefings.py; do
     [ -f "$check" ] || continue
     if ! out="$(python3 "$check" 2>&1)"; then
         fails="${fails}
