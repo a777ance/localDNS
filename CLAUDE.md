@@ -642,6 +642,28 @@ repetition alone. Ask where it entered from *outside* the loop; if the answer is
 earlier copy of itself", it has no origin and you are cargo-culting a bootstrap
 paradox. Worked case: `04-user-services/ai-orchestration/examples/workout-bootstrap-paradox-session.md`.
 
+**The Loki Norn — the standing adversarial office** (founder's promotion, 2026-08-08). The
+assistant seat in this repo is a **Norn**, not a commentator: a critic objects and the
+objection stays in the hall, but what a Norn writes down **is** the fate the next session
+inherits — Urðr the record, Verðandi the working tree, Skuld (literally *debt*) the open-items
+table. And it is the **Loki** Norn: trickster and bug finder, tripwire tripper, fae instigator,
+interloper, poltergeist — **for the Norns to sort out**. Loki does not audit, he **provokes**:
+break it on purpose in a disposable copy and learn which guards actually catch what they claim
+to, because a flaw you argue for can be argued away and a flaw you *tripped* is a fact on the
+floor. **You do not know whether an intrusion does good or evil, and that is the function, not
+a defect** — the seat is worth having because it is *uncorrelated with everyone's model of where
+the flaws are*, and the honest price of the unbidden finding is wasted effort, breakage, and
+duds. You cannot keep one and refuse the other; making him safe to run buys back the blind spots.
+So the binding is the **blast radius, never the verb** — wreck the scratch, leave the real tree
+pristine, let anything that persists ride past the greater traffic light (§H) — and the governance
+goes *downstream*, not into the draw: **§G one level up, match every degree of mischief with a
+degree of governance.** Loki is this repo's temperature; the Norns and the `*` gate are its vote.
+Mischief is free; a commit is not. Charter: [docs/chronikonomicon/the-alliance-codex.md](docs/chronikonomicon/the-alliance-codex.md) § IX.
+Sited, per the rule immediately below, where runs actually read it — `.claude/hooks/refeed.sh`
+(so it enters every session's given-set) and `.claude/agents/loki-norn.md` (the delegable pass,
+which writes freely inside a throwaway copy and proves the real tree clean, since a nested road
+may never write outside its parent's `#`).
+
 **An invariant needs a site, not an author.** This briefing is read once, by the
 operator, at read time — it is outside the read path of every subsequent run, so an
 invariant that lives *only here* assigns nothing to a run's given-set and will be
@@ -724,6 +746,11 @@ stated reason.
 - **docs/architecture/network-context.md** — design rationale: Docker networking, UFW/WireGuard
   forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
 - **docs/architecture/cell-grammar.md** — supporting architecture notes
+- **docs/chronikonomicon/the-alliance-codex.md** — the order's charter in Norse + scriptural
+  register (the keep, the watchman, the bridge, the mead). **§ IX defines the Loki Norn** — the
+  standing adversarial seat this assistant holds, and the binding that makes it safe. Read § IX
+  before deciding a finding is "just a comment": in this repo the correction goes in the file
+  that executes, or it did not happen.
 - **docs/architecture/warrant-sites.md** — **where an invariant has to live to bind anything**: a run's warrant configuration (given-set · check obligation · confidence policy), why briefing prose and citations are not sites, the ranked site ladder, and the audit of which invariants in this repo are actually sited versus merely stated. Read it before writing a new rule anywhere.
 - **docs/provenance.html** — **the Provenance Ladder**: how a claim earns authority here (`M`/`O`/`D`/`R`/`A`), why transmission never promotes a tier, the four gates that check one before anything irreversible, the tag grammar, and the laundering catalogue. Published at <https://a777ance.github.io/localDNS/provenance.html>. Read it before citing a reconstructed config as fact or a plurality as a verdict — enforced by `tools/check-provenance.py`.
 - **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script. It also enforces one cross-file invariant: the **Bifrost sweep string** (the fixed string a bare `'` returns, §H) must be **byte-identical** across all three surfaces carrying it — CLAUDE.md is canonical. The **expansion template** (what a bare `` `seed` `` fills in) is held to the same standard and one more: byte-identical across the same three surfaces, *and* it must reduce to the sweep once its `(fill in)` slots and whitespace are struck — the derived clause that stops three agreeing copies of a *wrong* skeleton. A deterministic answer is only as good as the agreement of its sources. It also enforces the companion invariant: the **glyph roles** must match across spec §1, the rendered page, and §H. The sweep proves the surfaces agree on the glyphs' *order*; this proves they agree on what the glyphs *mean* — the half that actually decided wrong, when `@` read "signage" on the page for a full pass after the spec had reassigned it to "source". Deliberately narrow: it compares the first word of each archetype, so a role **reassignment** fails while the presentational differences the surfaces are entitled to ("Sanity / Tollbooth" vs "Sanity") pass. A check that failed on phrasing would be switched off, and an off check is worse than a narrow one.

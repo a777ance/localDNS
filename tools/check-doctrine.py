@@ -138,6 +138,28 @@ def sampler_facts():
     return ctor, sent, cli
 
 
+def docstring_flags():
+    """Pull `--flag value` pairs out of jury.py's own module docstring.
+
+    Found by tripping the wire, 2026-08-08: the constructor, CLI and payload were
+    all guarded, but the *usage example* in the docstring was not — so `--top-p`
+    could be edited to 0.75 there and every check stayed green. A reader who
+    copy-pastes the documented invocation is running the sampler the docs
+    describe, not the one §G specifies, and the copy-paste is the likelier entry
+    point than the default. The doc is an entry point, so it is a site.
+    """
+    try:
+        doc = ast.get_docstring(ast.parse(open(SAMPLER, encoding="utf-8").read())) or ""
+    except Exception:
+        return {}
+    found = {}
+    for flag, val in re.findall(r"--([a-z][a-z-]*)\s+(-?[0-9.]+)\b", doc):
+        v = num(val)
+        if v is not None:
+            found[flag.replace("-", "_")] = v
+    return found
+
+
 def check():
     problems = []
     stated, prob = doctrine_values()
@@ -148,6 +170,7 @@ def check():
         return problems + [f"{SAMPLER}: missing"]
 
     ctor, sent, cli = sampler_facts()
+    doc = docstring_flags()
 
     for key, want in sorted(stated.items()):
         got = ctor.get(key)
@@ -169,6 +192,13 @@ def check():
             problems.append(
                 f"jury.py CLI `--{key.replace('_', '-')}` default = {cli[key]}, "
                 f"but CLAUDE.md §G states {want}")
+        # The docstring's usage example is what a reader copy-pastes; a drifted
+        # value there overrides every default that agrees.
+        if key in doc and doc[key] != want:
+            problems.append(
+                f"jury.py docstring usage example `--{key.replace('_', '-')} "
+                f"{doc[key]}`, but CLAUDE.md §G states {want} — a reader "
+                f"copy-pasting the documented invocation would not be running §G")
 
     for key in PENALTY_KEYS:
         if stated.get(key) not in (0, 0.0):
@@ -187,7 +217,7 @@ def main():
         print("\nDoctrine check FAILED")
         sys.exit(1)
     print("ok   CLAUDE.md §G sampler values match jury.py "
-          "(defaults, CLI, and the sent payload)")
+          "(defaults, CLI, the sent payload, and the docstring's usage example)")
     print("\nNote: only the mechanically-decidable clauses are checked. The "
           "posture clauses\n(lazy anchor, vote-as-governor, measure `p`) are "
           "sited in .claude/commands/ and\n.claude/agents/juror.md — a green "
