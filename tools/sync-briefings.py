@@ -109,6 +109,16 @@ BLOCKS = [
         legacy_start="\x00no-legacy\x00",
         legacy_end="\x00no-legacy\x00",
     ),
+    Block(
+        name="proxy-doctrine",
+        canonical=REPO_ROOT / "04-user-services/ai-orchestration/proxy-block.md",
+        marker="proxy-doctrine",
+        heading="## Proxies — what actually refuses, and what only asks",
+        # No legacy unmarked form: the doctrine is new (2026-08-08), so there is no
+        # hand-written predecessor for --write to adopt.
+        legacy_start="\x00no-legacy\x00",
+        legacy_end="\x00no-legacy\x00",
+    ),
 ]
 
 BACKBONE_RE = re.compile(r"- \*\*Backbone:\*\*(.*?)(?=\n- \*\*|\n\n)", re.S)
