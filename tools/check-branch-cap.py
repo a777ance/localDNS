@@ -32,6 +32,18 @@ Remote state is the real state, but a commit must not depend on the network. If 
 remote cannot be reached, that repo is SKIPPED and named — a green run never silently
 means "checked nothing."
 
+PENDING is only observable if the drawer commit is HELD LOCALLY
+---------------------------------------------------------------
+Reachability is tested against objects in the local clone, and holding the remote ref is
+not the same as holding the commit. A `--single-branch` clone, a shallow clone, or a
+checkout made before the drawer was pushed has the ref and not the object — so every
+filed branch scored as unfiled, the repo reported "0 in the doom drawer", and the check
+FAILED a repo that was fully archived. That false FAIL is worse than a miss: it wedges
+the commit gate, and a gate that fails wrongly gets bypassed, which returns the invariant
+to having no site. So the drawer commit is now FETCHED before it is trusted (the step
+`retire-stale-branches.sh` always took). If it still cannot be obtained, the repo is
+reported UNVERIFIED and named — never silently scored as "nothing is filed."
+
 USAGE
 -----
     python3 tools/check-branch-cap.py             # check every sibling repo
@@ -84,6 +96,31 @@ def remote_branches(repo: pathlib.Path) -> dict[str, str] | None:
     return branches
 
 
+def have_commit(repo: pathlib.Path, sha: str) -> bool:
+    return subprocess.run(("git", "-C", str(repo), "cat-file", "-e", sha + "^{commit}"),
+                          capture_output=True).returncode == 0
+
+
+def ensure_commit(repo: pathlib.Path, sha: str) -> bool:
+    """Make `sha` available locally, fetching it if this clone lacks the object.
+
+    A clone that never fetched the drawer -- `--single-branch`, shallow, or simply
+    made before the drawer was pushed -- holds the remote ref but not the commit.
+    Without this, `reachable()` scored every already-filed branch as unfiled, so the
+    check reported "0 in the doom drawer" and failed a repo that was fully archived.
+    `retire-stale-branches.sh` has always fetched before verifying; this is the same
+    step, and it is what makes the PENDING state observable rather than theoretical.
+    """
+    if have_commit(repo, sha):
+        return True
+    try:
+        subprocess.run(("git", "-C", str(repo), "fetch", "--quiet", "origin", sha),
+                       capture_output=True, timeout=60)
+    except (subprocess.TimeoutExpired, OSError):
+        return False
+    return have_commit(repo, sha)
+
+
 def reachable(repo: pathlib.Path, tip: str, anchors: list[str]) -> bool:
     """True if `tip` is contained in any anchor commit we hold locally."""
     for a in anchors:
@@ -107,7 +144,7 @@ def main() -> int:
                     default=pathlib.Path(__file__).resolve().parent.parent.parent)
     args = ap.parse_args()
 
-    failures, pending_repos, skipped, ok = [], [], [], []
+    failures, pending_repos, skipped, unverified, ok = [], [], [], [], []
 
     for repo in discover(args.root):
         branches = remote_branches(repo)
@@ -118,11 +155,21 @@ def main() -> int:
             ok.append(f"{repo.name} ({len(branches)})")
             continue
 
-        anchors = [sha for name, sha in branches.items()
-                   if name.startswith(DRAWER_PREFIXES)]
-        anchors = [a for a in anchors
-                   if subprocess.run(("git", "-C", str(repo), "cat-file", "-e", a + "^{commit}"),
-                                     capture_output=True).returncode == 0]
+        drawer_refs = [sha for name, sha in branches.items()
+                       if name.startswith(DRAWER_PREFIXES)]
+        anchors = [a for a in drawer_refs if ensure_commit(repo, a)]
+
+        if drawer_refs and not anchors:
+            # The drawer is on the remote but its commit could not be made available
+            # locally, so reachability is untestable. Counting the filed branches as
+            # NEW here is the false FAIL this check shipped with -- it wedges the
+            # commit gate on a repo that is already fully archived, and a gate that
+            # fails wrongly gets bypassed, which puts the invariant back to having no
+            # site. Report it unverified and name it; never guess "nothing is filed".
+            unverified.append(
+                f"{repo.name}: {len(branches)} branches — drawer present on the remote but "
+                f"not fetchable; reachability NOT checked")
+            continue
 
         pending = sum(1 for name, sha in branches.items()
                       if name.startswith(SESSION_PREFIX) and reachable(repo, sha, anchors))
@@ -141,6 +188,8 @@ def main() -> int:
         print(f"ok      {line}")
     for line in pending_repos:
         print(f"PENDING {line}")
+    for line in unverified:
+        print(f"UNVERIF {line}")
     for name in skipped:
         print(f"skip    {name} (remote unreachable — NOT checked)")
 
@@ -155,8 +204,12 @@ def main() -> int:
     if pending_repos:
         print("\nPending deletions are in the doom drawer (Didn't Organize, Only Moved) — "
               "retiring them clears this notice. Nothing is lost; the drawer is kept.")
-    print(f"\nBranch cap {args.cap}: OK"
-          + (f" ({len(skipped)} repo(s) skipped)" if skipped else ""))
+    notes = []
+    if skipped:
+        notes.append(f"{len(skipped)} repo(s) skipped")
+    if unverified:
+        notes.append(f"{len(unverified)} repo(s) unverified")
+    print(f"\nBranch cap {args.cap}: OK" + (f" ({', '.join(notes)})" if notes else ""))
     return 0
 
 
