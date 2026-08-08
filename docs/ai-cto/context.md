@@ -2,7 +2,7 @@
 
 Read alongside the portfolio hub: `DESIGN-Full-Workflow-Integration-end-to-end-/docs/ai-cto/portfolio.md`.
 
-**Last updated:** 2026-08-03
+**Last updated:** 2026-08-08
 
 ---
 
@@ -13,22 +13,39 @@ Rationale lives in CLAUDE.md § F / § C and the open-items table below; don't r
 it here. Override only when the founder names a different priority. When an item
 ships, tick it and promote the next.
 
-**Do this (SSH to t630 `192.168.1.118` available):** everything now stages through
-`docs/DEPLOY-QUEUE.md` — work it top-to-bottom by stage number.
+**First, test the branch — don't assume it.** Run
+`ping -c1 -W2 192.168.1.118` before picking a list. Cloud/web sessions run in an
+isolated container with **no route to the LAN**, so the box-side branch is
+unreachable there no matter what the queue says. (`provenance: M · ping from a
+Claude Code web session, 2026-08-08 · verify: re-run the ping`.)
+
+**If the t630 answers** — everything stages through `docs/DEPLOY-QUEUE.md`; work it
+top-to-bottom by stage number.
 
 1. Deploy the nftables volume populator → run CLAUDE.md § F end to end (DEPLOY-QUEUE Stage 10).
 2. Test the Statement PWA install (commit `6134824`) on iOS + Android.
 3. Generate the first real Statement — measured numbers only (honesty invariant).
-
-**Else (no SSH):** the repo-drift snapshots are **done** — `local-records.conf`, the
-sops+age vault tooling, `04-user-services/console/`, and the LiteLLM front door of
-`04-user-services/ai-orchestration/` are all in the repo now (reconstructed from docs;
-`tools/check-docs.py` guards against re-drift). What's left needs the box:
-
-1. Snapshot the Odin supervisor `04-user-services/ai-orchestration/langgraph-router/`
+4. Snapshot the Odin supervisor `04-user-services/ai-orchestration/langgraph-router/`
    FROM the live box — don't fabricate it (DEPLOY-QUEUE Stage 12).
-2. Seal the real secrets into `vault/*.env.sops` (needs an age key + real values).
-3. Verify every reconstructed config against the live box before trusting it.
+5. Verify every reconstructed config against the live box before trusting it
+   (`local-records.conf`, `console/`, the `ai-orchestration/` front door, the Pi-hole
+   v6 compose, `host-dns.conf`) — they were rebuilt from docs, not read off the box.
+6. Seal the real secrets into `vault/*.env.sops` (needs an age key + real values).
+
+**If it does not** — the repo-drift snapshots are **done** (`local-records.conf`, the
+sops+age vault tooling, `04-user-services/console/`, and the LiteLLM front door are all
+in the repo; `tools/check-docs.py` guards against re-drift). Box-side work is blocked,
+so take repo-side work that stands on its own:
+
+1. Extend provenance coverage — `python3 tools/check-provenance.py --strict` reports
+   **2/53** deploy targets tagged. Tag only files whose origin this repo can actually
+   establish (git history, a reconstruction commit, authored-here); leave the rest
+   untagged, which already reads as `R`. **Never guess `O`** — a wrong tag is a
+   promotion, the one move the ladder forbids.
+2. Keep the four checks green (`check-docs`, `check-provenance`, `check-doctrine`,
+   `sync-briefings`) and fix what they catch at the generator, not the symptom.
+3. If none of the above has work left, **say the queue is empty and ask** — do not
+   invent box-side facts to fill it.
 
 P2/P3 items (physical access, later deploy cycles) — see the open-items table.
 
