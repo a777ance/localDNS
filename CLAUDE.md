@@ -463,11 +463,19 @@ founder uses it. A keyboard-spatial notation: hold `Shift` and sweep the number 
 a plain-language sub-prompt.
 
 - **Backbone:** `'` ignition (begins the Bifrost) · `~` continuity/lazy-anchor · `` ` ``
-  descriptor · `!` cargo (a *manifest*) · `@` source (read from) · `#` repo/destination (write
-  to) · `$` sanity · `%` compliance · `^` cars/lanes · `&` rotary (also the sequential form) ·
-  `*` stop signal (red by default) · `()` governance (release conditions). Off-row
+  descriptor (and, bare, the *expansion call*) · `!` cargo (a *manifest*) · `@` source —
+  **read-only** · `#` repo/destination — **write-allowed** · `$` sanity · `%` compliance ·
+  `^` cars/lanes · `&` rotary — the **rabbit trail**, a nested Bifrost (also the sequential
+  form) · `*` stop signal (red by default) · `()` governance (release conditions). Off-row
   `'`/`~`/`` ` `` stage; keys 1–4 **Preload** — a complete manifest (*what · from where · to
   where · against what*); `%` (key 5) **gateway**; keys 6–0 **Travel**.
+- **`@`/`#` are a permission pair, not a pair of arrows** (founder's rule, 2026-08-08). `@` is
+  **read-only** — everything under it may be read and must not be written. `#` is
+  **write-allowed** — what this run may create, modify, or overwrite (still two-way; you read
+  back from it). **They may overlap:** `@` alone = read-only, `#` alone = writable, both =
+  read-write. Two slots, three states, one **mount table**. This keeps `@` reading and `#`
+  writing, so every string already written stays valid — it only *adds* the guardrail, and gives
+  the one-way door a question with an answer: *is every write in this chunk inside `#`?*
 - **`'` is always the signal to begin the Bifrost** (founder's rule, 2026-08-07 — fixes a mobile
   bug). Treat `'`, `'` (curly) and `′` as the same glyph, and treat **presence and absence as
   the same string**: `' ~ !…` ≡ `~ !…`, `''` ≡ `'`. It marks *where* the Bifrost starts, never
@@ -493,6 +501,48 @@ a plain-language sub-prompt.
   scoring stays `!@#$%^&*()` — staging glyphs are off-road. The glyph *meanings* live in the §H
   backbone above and in the spec's §1 table; the reference call hands back the **order**, which
   is the thing a phone cannot sweep for itself.
+- **A bare descriptor — `` `…` `` with no backbone glyph in the message — is the *expansion
+  call*.** The backticked text is a **seed**, and the answer is one complete, schema-compliant
+  line with **every backbone slot filled in**, for the founder to read, parse and tweak. Fill
+  this skeleton:
+
+  <!-- bifrost-template:start — canonical copy; tools/check-docs.py fails if the mirrors drift -->
+  ```text
+  ~ (fill in) ! (fill in) @ (fill in) # (fill in) $ (fill in) % (fill in) ^ (fill in) & (fill in) * (fill in) ( (fill in) )
+  ```
+  <!-- bifrost-template:end -->
+
+  **The skeleton is the sweep, spaced** — strike the `(fill in)` slots and the whitespace and
+  `~!@#$%^&*()` remains; `tools/check-docs.py` asserts that identity, so template and sweep can
+  never drift. `'` hands back the **order**; `` `seed` `` hands back the order **with the slots
+  filled**. Rules: echo the seed back on the `` ` `` line (so the founder sees what was *read*);
+  fill **every** slot, never drop one (a complete draft is edited *down* — an omitted slot is a
+  silent decision); emit in Golden Rule order, so `K = 0` by construction; **`*` comes back RED,
+  always** — an expansion is a *proposal*, nothing ran and no `#` was touched; and **collapse
+  it** — where the surface renders HTML (chat, GitHub Markdown, the page) ship it inside a
+  `<details>` whose `<summary>` is the `~` requirement line, plain fenced block otherwise. With
+  a backbone glyph present, `` ` `` is the ordinary descriptor — unchanged. An empty descriptor
+  returns the sweep. **§G applies in full here** (unlike the bare `'`, which returns a constant):
+  an expansion *composes*, so lazy anchor → governed-warm body → selector — with the deviation
+  stated per §3, the selector is the **human at the `*` gate**, not a jury. Want the vote anyway?
+  Put it in the cargo: `! /cardio`.
+- **`` ` `` and `&` are the same operation — nesting, at two positions** (founder's rule,
+  2026-08-08). `&` is the **rabbit trail**: a digression you *come back from*, opening another
+  full Bifrost inside this one. `` ` `` nests at staging, `&` nests on the road —
+  `` `seed` `` ≡ `& seed` hoisted to position zero, which is why a bare descriptor can generate
+  a line at all. So **expansion is recursive by construction** (any `&` in an expanded line is
+  itself a seed), and `&`'s "sequential" reading is just nesting seen from the parent's frame.
+  Turbulence still treats them differently and correctly: `` ` `` is staging and scores `0`;
+  `&` holds position 7 and scores.
+- **The greater traffic light is always the last bulwark** (founder's rule, 2026-08-08). Every
+  nest **adds** a light; none removes one. An inner `*` going green releases its chunk **into
+  its parent**, never into the world — only the outermost `*` stands between a `!` and an effect
+  that cannot be recalled, and it stands no matter how many inner gates already cleared.
+  Governance is a conjunction down the whole chain, so an inner gate can never be more
+  permissive than the one above it. Stated as a pair: **permissions intersect inward, gates
+  conjoin outward** — a nested road may never write outside its parent's `#`, nor release past
+  its parent's `*`. That is what lets `~` stay reckless at any depth: **nesting multiplies the
+  reasoning, never the exposure.**
 - **`~` is the §G lazy anchor:** fire the first token ASAP (very low effort — the *model*
   stays high), and let continuity coalesce **mid-flight**; more `~` = lazier.
 - **`*` cuts the road into Dispensations.** Each chunk is bounded and self-governing; `()`

@@ -195,14 +195,27 @@ def check(path):
 # anything if the sources agree, so the string is embedded between
 # `bifrost-sweep:start` / `:end` markers in each surface and compared here.
 # CLAUDE.md §H is canonical — it is the copy in context when the call is answered.
-SWEEP_MARK = re.compile(
-    r"bifrost-sweep:start\b.*?-->(.*?)<!--\s*bifrost-sweep:end", re.S
-)
+#
+# The EXPANSION call (a bare `` `seed` ``) carries the same kind of promise: its
+# fill-in skeleton is the sweep with the slots spaced open. So beyond agreeing
+# with each other, the template copies must agree with the *sweep*: strip the
+# `(fill in)` placeholders and all whitespace and what remains has to BE the
+# sweep. That is the one clause of the expansion call that decides mechanically,
+# so it gets a static check instead of a sentence in a briefing (CLAUDE.md §G,
+# "where these clauses live" — a clause with an author and no site governs
+# nothing).
+def mark_re(name):
+    return re.compile(rf"{name}:start\b.*?-->(.*?)<!--\s*{name}:end", re.S)
+
+
+SWEEP_MARK = mark_re("bifrost-sweep")
+TEMPLATE_MARK = mark_re("bifrost-template")
 SWEEP_FILES = [
     "CLAUDE.md",  # canonical — keep first
     "04-user-services/ai-orchestration/highway-notation.md",
     "docs/bifrost.html",
 ]
+TEMPLATE_FILES = list(SWEEP_FILES)
 
 
 def normalize_sweep(raw, is_html):
@@ -238,26 +251,27 @@ def normalize_sweep(raw, is_html):
     return "\n".join(lines)
 
 
-def check_bifrost_sweep():
-    sweeps, problems = {}, []
-    for rel in SWEEP_FILES:
+def check_marked(mark, files, what):
+    """Extract one marked block from each surface; all must match the first."""
+    texts, problems = {}, []
+    for rel in files:
         p = os.path.join(ROOT, rel)
         if not os.path.exists(p):
-            problems.append(f"{rel}: missing (expected to carry the Bifrost sweep)")
+            problems.append(f"{rel}: missing (expected to carry the Bifrost {what})")
             continue
-        m = SWEEP_MARK.search(open(p, encoding="utf-8").read())
+        m = mark.search(open(p, encoding="utf-8").read())
         if not m:
-            problems.append(f"{rel}: no bifrost-sweep:start/end block found")
+            problems.append(f"{rel}: no {what} start/end block found")
             continue
-        sweeps[rel] = normalize_sweep(m.group(1), rel.endswith(".html"))
+        texts[rel] = normalize_sweep(m.group(1), rel.endswith(".html"))
     if problems:
-        return problems
-    canon_name = SWEEP_FILES[0]
-    canon = sweeps[canon_name]
-    for rel, text in sweeps.items():
+        return texts, problems
+    canon_name = files[0]
+    canon = texts[canon_name]
+    for rel, text in texts.items():
         if rel == canon_name or text == canon:
             continue
-        problems.append(f"{rel}: sweep string differs from {canon_name} (canonical)")
+        problems.append(f"{rel}: {what} differs from {canon_name} (canonical)")
         want, got = canon.split("\n"), text.split("\n")
         for i in range(max(len(want), len(got))):
             w = want[i] if i < len(want) else "<missing>"
@@ -265,6 +279,34 @@ def check_bifrost_sweep():
             if w != g:
                 problems.append(f"    line {i + 1}: expected {w!r}")
                 problems.append(f"              found    {g!r}")
+    return texts, problems
+
+
+def check_bifrost_sweep():
+    """Both fixed strings agree across surfaces — and with each other.
+
+    The sweep is what a bare `'` returns; the template is what a bare
+    `` `seed` `` fills in. The second is the first with its slots spaced open,
+    so the derived assertion below is the real invariant: strip the `(fill in)`
+    placeholders and every scrap of whitespace from the template and what is
+    left must BE the sweep. Without it the two could drift apart while each
+    stayed internally consistent — three agreeing copies of a wrong skeleton.
+    """
+    problems = []
+    sweeps, p = check_marked(SWEEP_MARK, SWEEP_FILES, "sweep string")
+    problems += p
+    templates, p = check_marked(TEMPLATE_MARK, TEMPLATE_FILES, "expansion template")
+    problems += p
+
+    canon_sweep = sweeps.get(SWEEP_FILES[0])
+    canon_tmpl = templates.get(TEMPLATE_FILES[0])
+    if canon_sweep and canon_tmpl:
+        skeleton = "".join(canon_tmpl.replace("(fill in)", "").split())
+        if skeleton != canon_sweep.strip():
+            problems.append(
+                "expansion template is not the sweep, spaced: template reduces to "
+                f"{skeleton!r}, sweep is {canon_sweep.strip()!r}"
+            )
     return problems
 
 
@@ -287,11 +329,14 @@ def main():
     sweep_problems = check_bifrost_sweep()
     if sweep_problems:
         failed = True
-        print("FAIL Bifrost sweep string (bare `'` reference call)")
+        print("FAIL Bifrost fixed strings (reference call + expansion template)")
         for p in sweep_problems:
             print(f"  - {p}")
     else:
-        print(f"ok   Bifrost sweep string identical across {len(SWEEP_FILES)} surfaces")
+        print(
+            f"ok   Bifrost sweep + expansion template identical across "
+            f"{len(SWEEP_FILES)} surfaces, and template reduces to the sweep"
+        )
 
     if failed:
         print("\nDoc check FAILED")

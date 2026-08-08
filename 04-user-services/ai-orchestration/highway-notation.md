@@ -29,14 +29,14 @@ number row (`'`, `~`, `` ` ``); keys **1–4** are the **Preload** (stage everyt
 | :-- | :-- | :-- | :-- | :-- |
 | `'` | `'` | Staging | Ignition | The **start signal**: everything from here rightward is read as Bifrost. Carries no sub-prompt and no slash command. **Optional by construction — a string means the same thing with or without it.** A **bare `'`** (nothing after it) is the **reference call** — it returns the sweep, `~!@#$%^&*()`. See the note below. |
 | `~` | `~` | Staging | Continuity / Lazy Anchor | The plain-language **requirement**, the **continuity operator** (coalesce / carry-forward / interleave prior context/state; "stay in the Bifrost schema," loaded at session start), **and the immediate top-line lazy anchor** — see the note below. The **only archetype with no slash command**. Visual: a bridge. |
-| `` ` `` | `` ` `` | Staging | Descriptor | Inline qualifier, renders **shaded**; **subordinate to `~`** — it hangs under the requirement and describes it (e.g. `` `yellow, large, browning, bunch` ``). |
+| `` ` `` | `` ` `` | Staging | Descriptor | Inline qualifier, renders **shaded**; **subordinate to `~`** — it hangs under the requirement and describes it (e.g. `` `yellow, large, browning, bunch` ``). A **bare descriptor** — backticked text with no backbone glyph anywhere in the message — is the **expansion call**: it has no requirement to qualify, so it generates one. See the note below. |
 | `1` | `!` | Preload | Cargo | The **manifest** — *what* is carried. Cargo is not executed on loading; the road decides when each item acts. |
-| `2` | `@` | Preload | Source (read from) | The **input address** — the document, catalog, or corpus this run reads *from*. (`@` natively means *at* — an address.) |
-| `3` | `#` | Preload | Repository (write to) | The **output address** — a junction that **is a repo**: where work is pushed. Two-way: you read back from it as well. |
+| `2` | `@` | Preload | Source — **read-only** | The **input address** *and a permission*: what this run may read, and **may not write**. (`@` natively means *at* — an address.) A path that appears only here is read-only; writing to it is out of bounds. |
+| `3` | `#` | Preload | Repository — **write-allowed** | The **output address** *and the write permission*: what this run may create, modify, or overwrite. A junction that **is a repo**. Two-way — you read back from it as well. |
 | `4` | `$` | Preload | Sanity / Tollbooth | The **sanity check** at the actual start — tollbooth, customs, security. Validates entry against the **known-good** baseline (house style / point of comparison). |
 | `5` | `%` | Gateway | Weigh Station | Immediate pre-flight audit / calibration — **"are we compliant?"** The gateway *onto* the highway (first step of the narrow highway, 5–0). |
 | `6` | `^` | Travel | Cars | The **vehicles**. Count of `^` = width of the highway (`^^^^` = 4 parallel lanes). Each `^` takes its own sub-prompt, making lanes **addressable** (`^ theme1 ^ theme2`). |
-| `7` | `&` | Travel | Rotary (A777ance) | Turns off into a nested sub-loop that **runs the FULL highway process**, nested inside the main. Also the **deterministic/sequential** form — commands under one `&` run in order. |
+| `7` | `&` | Travel | Rotary (A777ance) — **the rabbit trail** | Turns off into a nested sub-loop that **runs the FULL highway process**, nested inside the main — it **opens another Bifrost inside this one**. Also the **deterministic/sequential** form — commands under one `&` run in order. **Same operation as `` ` ``**, at a different position: see the note below. |
 | `8` | `*` | Travel | Stop Signal | A gate that is **red by default** — fail-closed. Nothing proceeds to the next road until governance clears it. A **bare `*`** (no `()`) is a full stop awaiting **manual release** — ungoverned means human-released, not deadlocked. |
 | `9/0` | `()` | Travel | Governance | The **release conditions**. Everything inside must be satisfied (conjunction) before the `*` goes green. |
 
@@ -127,6 +127,112 @@ number row (`'`, `~`, `` ` ``); keys **1–4** are the **Preload** (stage everyt
 >   *sources* have drifted — so the invariant is tested, not promised. **CLAUDE.md §H is the
 >   canonical copy** (it is the one in context when the call is answered).
 
+> **A backticked seed is the expansion call — `` `…` `` returns a filled-in line.** Put
+> anything inside a descriptor pair, send nothing else, and Bifrost hands back one complete,
+> schema-compliant line with **every backbone slot filled** — its best-effort manifest for that
+> seed, written to be read, parsed, and tweaked by a human. The skeleton it fills:
+
+<!-- bifrost-template:start -->
+
+> ```text
+> ~ (fill in) ! (fill in) @ (fill in) # (fill in) $ (fill in) % (fill in) ^ (fill in) & (fill in) * (fill in) ( (fill in) )
+> ```
+
+<!-- bifrost-template:end -->
+
+> **That skeleton *is* the sweep, spaced.** Strike the `(fill in)` slots and the spaces and
+> `~!@#$%^&*()` is what remains — the reference call's own string, now with room to write in.
+> `tools/check-docs.py` asserts exactly that, so the template can never drift from the sweep it
+> spaces out. The two calls are one gesture at two zoom levels: `'` hands back the **order**;
+> `` `seed` `` hands back the order **with the slots filled**.
+>
+> **`*` and `()` are two slots, not one.** The skeleton spaces them apart on purpose: `*` takes
+> its own sub-prompt — *what this light is for* — while `()` holds *what turns it green*. A bare
+> `*` with no `()` is already legal (§1: a full stop awaiting manual release), so collapsing the
+> two would hide the difference between a gate that has conditions and a gate that is waiting on
+> a human. Eleven slots, filled left to right.
+>
+> - **Descriptor or expansion — the bare-glyph rule decides, and nothing existing changes.**
+>   With a backbone glyph present anywhere in the message, `` `…` `` is the descriptor it has
+>   always been: shaded, subordinate to `~`, hanging under the requirement. With **no** backbone
+>   present, the descriptor has no requirement to hang under — so rather than qualify one, it
+>   **generates** one. Same precedent as bare `*`, bare `%`, and bare `'`: a bare glyph is the
+>   archetype with its slots empty, not a syntax error.
+> - **Fill every slot; never drop one.** A slot with no obvious content still gets the best
+>   available answer. The point is a *complete* draft the founder edits **down** — an omitted
+>   slot is a decision made silently, a filled slot they delete is a decision made in the open.
+> - **The seed comes back as the descriptor.** It is echoed on the `` ` `` line of the output,
+>   so the founder can see what was *read* before judging what was written.
+> - **`K = 0` by construction.** The expansion emits in Golden Rule order, so an expansion is
+>   always a Straightaway (§5). Turbulence in the seed is not inherited — weaving is a thing the
+>   founder does afterward, deliberately, which is what makes it a Scenic Route and not noise.
+> - **`*` comes back RED, every time.** The expansion is a **proposal**: a manifest, and per §1
+>   cargo is not executed on loading. Nothing ran, nothing was written, no `#` was touched. This
+>   is the one-way door (§4) doing its job — precisely what makes it safe to draft an
+>   irreversible `!` up front.
+> - **`@`/`#` make the review worth doing.** Because those slots are now a permission pair
+>   (above), an expansion is not merely a plan — it is a **declared write-set**. The founder
+>   reads one line and knows what the run may overwrite before a wheel turns. A proposal you
+>   cannot audit is a proposal you have to trust; this one you can check.
+> - **Collapsible, because it exists to be edited.** Where the surface renders HTML — chat,
+>   GitHub Markdown, this page — the line ships inside a `<details>` whose `<summary>` is the
+>   `~` requirement: the reader sees the one-line intent, expands for the manifest, rewrites any
+>   slot in place, and sends it back. Where HTML does not render, a plain fenced block. The fold
+>   is not decoration — a nine-slot line is unreadable on the phone this schema was fixed for.
+> - **A generation, not a lookup — the exact inverse of the reference call, and §G applies in
+>   full.** A bare `'` returns a constant, which is why §G is out of scope *there*. An expansion
+>   **composes**, so the doctrine binds: lazy anchor (`~` — the first token leaves before the
+>   line is planned), governed-warm body, and a selector. **Stated deviation on the selector**
+>   (CLAUDE.md §3 requires the statement): the governor here is not a jury but the **human at
+>   the `*` gate** — a stronger selector than a plurality, and the reason the vote is skipped
+>   rather than forgotten. When you want the vote anyway, put it in the cargo (`! /cardio`) and
+>   the expansion carries its own panel.
+> - **An empty descriptor returns the sweep.** No seed, nothing to fill — it degrades to the
+>   reference call rather than inventing a requirement out of nothing.
+
+> **`` ` `` and `&` are the same operation — nesting, at two positions** (founder's rule,
+> 2026-08-08). `&` was already defined as the rotary that "runs the FULL highway process,
+> nested inside the main." The expansion call does the identical thing from the other end of
+> the row: it takes a plain-language seed and opens **another Bifrost inside this one**. So
+> they are not cousins, they are one operator:
+>
+> - **`&` is the rabbit trail** (founder's gloss) — and the word carries the property that
+>   matters: a rabbit trail is a digression **you come back from**. It may run as deep and as
+>   long as it likes, but it never exits the property; it rejoins the main road upstream of the
+>   outer light. A detour replaces the route, a rabbit trail suspends it. `&` is the second.
+> - **`` ` `` nests at staging; `&` nests on the road.** `` `seed` `` ≡ `& seed` hoisted to
+>   position zero. Whatever the rotary does to a slot mid-line, the descriptor does to the whole
+>   message. That is why a *bare* descriptor can generate a line at all — nesting with no parent
+>   road to nest inside must produce the road.
+> - **Expansion is therefore recursive, by construction.** Any `&` in an expanded line is itself
+>   a seed you can expand, to any depth. This is §4's "fixed notation, unbounded output" reached
+>   from the other direction: the re-flag path grows a string *in time*, nesting grows it *in
+>   depth*.
+> - **Nesting *is* sequencing, seen from outside.** `&`'s second reading — commands under one
+>   `&` run in order — is not a separate meaning. From the parent's frame a nested road is one
+>   ordered step it waits on; from inside, that step is a whole highway. Same structure, two
+>   frames.
+> - **Turbulence treats them differently, and correctly.** `` ` `` is staging, so it scores `0`
+>   toward `K` (§5); `&` holds position 7 on the Golden Rule and scores. Identical semantics,
+>   different metric standing — because `K` measures *road shape*, and only one of the two is on
+>   the road.
+>
+> **The greater traffic light is always the last bulwark** (founder's rule, 2026-08-08) — the
+> invariant that makes unbounded nesting safe:
+>
+> - **Every nest adds a light; no nest ever removes one.** An inner `*` going green releases its
+>   chunk **into its parent**, never into the world.
+> - **Only the outermost `*` is load-bearing against reality.** It is the last thing between a
+>   `!` and an effect that cannot be recalled, and it stands regardless of how many inner gates
+>   already cleared. A child cannot vouch for its parent.
+> - **Governance is a conjunction down the whole chain.** An effect must clear *every* light
+>   from its own depth outward — so an inner gate can never be more permissive than the one
+>   above it, and no amount of recursion can dilute the outer promise.
+> - **Permissions intersect inward; gates conjoin outward.** A nested road may never write
+>   outside its parent's `#`, and may never release past its parent's `*`. Those two sentences
+>   are the whole safety story of the schema, and they are what let `~` stay reckless at any
+>   depth: **nesting multiplies the reasoning, never the exposure.**
+
 > **`!` cargo vs. `^` cars — the split.** These were one glyph ("Payloads (Cars)"), fusing
 > *what is carried* with *what carries it*. They are now separate, and the separation is
 > load-bearing: because `!` is a **manifest**, an item sitting in the `!` slot at road
@@ -146,6 +252,29 @@ number row (`'`, `~`, `` ` ``); keys **1–4** are the **Preload** (stage everyt
 > `#` as destination, the Preload declares the whole job before a wheel turns:
 > `!` *what* · `@` *from where* · `#` *to where* · `$` *against what*. (This supersedes `@`
 > as "signage," which never earned its slot; placement/labelling is a sub-prompt concern.)
+>
+> **`@`/`#` is a permission pair, not a pair of arrows — the mount table** (founder's rule,
+> 2026-08-08). Read as directions, the pair only *described* a run and could not be violated.
+> Read as **permissions**, it states what a run may **not** do, which is a thing a gate can
+> check:
+>
+> - **`@` is read-only.** Everything under `@` may be read and must not be written. A path
+>   listed only in `@` is out of bounds for any write — fail-closed, in the same spirit as `*`
+>   being red by default.
+> - **`#` is write-allowed.** What the run may create, modify, or overwrite. Still two-way: a
+>   `#` is also readable, which is why the old "destination" reading was never wrong, only
+>   incomplete.
+> - **They may overlap, and the overlap is the point.** The same path may appear under both —
+>   `@ x  # x` means *read it, and you may write it*. `@` alone = read-only; `#` alone =
+>   writable. Two slots, three states, one **mount table**: `@` read-only, `#` read-write.
+> - **It breaks nothing already written.** An in-flight proposal to *swap* the two (`@`
+>   destination, `#` source) was dropped for exactly this reason: it would have inverted every
+>   string in this file. The permission reading keeps `@` reading and `#` writing and only
+>   **adds** the guardrail, so every existing string stays valid and simply becomes checkable.
+> - **This is where the one-way door (§4) gets its teeth.** "Irreversible cargo rides past a
+>   light" is a posture until something says *which* paths an effect may touch. `#` is that
+>   list; `@` is its complement. A gate can now ask a question with an answer: *is every write
+>   in this chunk inside `#`?*
 
 > **`~` is the lazy anchor, fired ASAP — the sharp innovation.** `~` does **not** mean
 > *reason about* continuity (an effortful, pre-committed thinking block — the kind §G warns
@@ -489,6 +618,52 @@ a laptop puts on screen when you hold `Shift` and slide down it. Reads nothing, 
 fires no cargo. The degenerate case of the most-reachable key on a phone keyboard is also the
 safest thing a stray autocorrect can produce.
 
+**Example 7 — the expansion call** (the whole message is a backticked seed):
+
+```text
+`bootstrap paradox`
+```
+
+Returns one filled-in line — every slot written, `*` still red, folded under its `~`:
+
+```text
+~ trace each kept artifact to an origin OUTSIDE its own lineage; where the answer is
+  "an earlier copy of itself", mark it and cut the loop
+  `bootstrap paradox`
+  ! /audit /trace /retag /record
+  @ 04-user-services/ai-orchestration/examples/workout-bootstrap-paradox-session.md
+  @ docs/provenance.html  @ docs/architecture/warrant-sites.md  @ CLAUDE.md §3
+  # docs/architecture/warrant-sites.md  # provenance tags, in place
+  $ python3 tools/check-provenance.py --strict comes back green
+  % transmission never promotes — a copy, a quote, a reformat or a plurality is not fresh
+    contact; five descendants of one ancestor are one source
+  ^ inherited-constants  ^ inherited-transcripts  ^ inherited-agreement
+  & per lane: name the artifact → where did it enter from outside? → retag or cut → re-run $
+  * each lane recorded before the next opens (a re-flag returns upstream via &)
+  * (nothing tagged O/M whose only warrant is an earlier copy · every R/A carries a verify:
+     route · check-provenance green · RCPS: recorded, committed, pushed)
+```
+
+What this example demonstrates that the earlier ones do not:
+
+- **A seed, not a string, is the input.** Two words in a descriptor; a nine-slot manifest back.
+  The founder's job shifts from *composing* the line to *editing* it — the cheaper job, and the
+  one a human is better at.
+- **`@` and `#` as permissions, and they overlap.** `CLAUDE.md` §3 and the worked-case transcript
+  are `@`-only: read them, never rewrite them — which is exactly the point when the subject is
+  inherited authority. `docs/architecture/warrant-sites.md` sits under **both**, because the
+  audit table is what this run is *for*. Read the two slots together and you have the run's
+  write-set before a wheel turns.
+- **`&` as a rabbit trail, not a fourth lane.** The per-artifact interrogation is a nested road
+  each lane goes down and returns from — not parallel to the three `^` lanes but *inside* each
+  of them. Modelling it as a lane is the same error Example 4 warns about, from the other side.
+- **The last bulwark, visible.** Two lights: a per-lane recording gate and the outer `()`. The
+  inner one going green moves work into the outer chunk, never out of the repo — and the outer
+  one still has to clear before anything is pushed.
+- **It is a proposal, and it reads like one.** `*` is red, nothing was written, and every slot is
+  legible enough to argue with. The expansion's value is not that it is right — it is that being
+  wrong is now *cheap to see*.
+
 ---
 
 ## 7. Changelog & superseded passes
@@ -497,7 +672,32 @@ Newest first. Recorded so reviewers can trace intent; **git history of this file
 exact line-by-line diff.** This is a live design — earlier passes were deliberately
 superseded, not mistakes.
 
-- **The reference call returns the sweep, not a legend (current).** Corrected: a bare `'`
+- **The expansion call · `@`/`#` as permissions · `&` ≡ `` ` `` · the last bulwark (current).**
+  Four founder rules from one session (2026-08-08), and they turn out to be one design.
+  **(1) The expansion call:** a **bare descriptor** — backticked text with no backbone glyph in
+  the message — is a *seed*, and the answer is one complete line with **every slot filled**,
+  collapsed under its `~` so a human can read, parse and tweak it. The skeleton is the sweep,
+  spaced (`~ (fill in) ! (fill in) …`), and `tools/check-docs.py` now asserts that identity
+  between `bifrost-template` markers so the two can never drift. `'` hands back the **order**;
+  `` `seed` `` hands back the order **with the slots filled** — one gesture at two zoom levels.
+  Unlike the reference call it is a **generation**, so §G applies in full, with a stated
+  deviation on the selector: the governor is the **human at the `*` gate**, not a jury.
+  **(2) `@`/`#` are a permission pair, not a pair of arrows** — `@` **read-only**, `#`
+  **write-allowed**, and they may **overlap** (`@` alone = read-only; both = read-write). An
+  in-flight proposal to *swap* the two was dropped because it would have inverted every string
+  ever written; the permission reading keeps `@` reading and `#` writing and only **adds** the
+  guardrail — so nothing breaks and the one-way door finally has a checkable question (*is every
+  write in this chunk inside `#`?*). **(3) `&` is the same operation as `` ` ``** — nesting, at
+  two positions: `` ` `` nests at staging, `&` nests on the road, `` `seed` `` ≡ `& seed`
+  hoisted to position zero. So expansion is **recursive by construction**, and `&`'s sequential
+  reading is just nesting seen from the parent's frame. `&`'s plain-language name is the
+  **rabbit trail** — a digression you come back from. **(4) The greater traffic light is always
+  the last bulwark:** every nest *adds* a light and none removes one; an inner `*` releases into
+  its parent, never into the world; governance is a conjunction down the whole chain. Stated as
+  a pair: **permissions intersect inward, gates conjoin outward** — which is what lets `~` stay
+  reckless at any depth, because nesting multiplies the reasoning, never the exposure. Added
+  Example 7.
+- **The reference call returns the sweep, not a legend.** Corrected: a bare `'`
   returns the string **`~!@#$%^&*()`** and nothing else — the gesture's own output, exactly what
   a laptop puts on screen when you hold `Shift` and slide down the row. An earlier pass had it
   returning a thirteen-line glyph card; that was a *description* of the gesture where the founder
