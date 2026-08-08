@@ -609,12 +609,33 @@ cat /sys/class/drm/card*/device/power_dpm_force_performance_level  # high
 
 ## 3. Working philosophy
 
-Every commit to `main` must leave README.md able to reproduce a working system on
-clean Ubuntu 24.04.
+Every commit that reaches `main` must leave README.md able to reproduce a working system
+on clean Ubuntu 24.04. That is the condition for entering the Well (below) — on
+Yggdrasil it is the target, at the Well gate it is binding.
 
-**Push to `main`, no branches** — founder's standing instruction (2026-06-05). Don't
-open PRs or park work on feature branches for these repos; land each change as a
-coherent, deployable commit straight on `main`.
+**Yggdrasil and the Well of Mimir** — founder's standing instruction (2026-08-08),
+superseding "push to `main`, no branches" (2026-06-05).
+
+- **`Yggdrasil` is the one standing working branch. Always push there, never to `main`.**
+  One super-branch for the whole portfolio, in every repo — no per-session branches. The
+  branch-per-session habit is what produced 337 stale `claude/*` branches, 226 of them
+  carrying commits that exist nowhere else.
+- **`main` is the Well of Mimir** — vetted knowledge. It moves only by a PR that the
+  founder approves. No cadence, no auto-merge: the Well fills when the founder decides it
+  does. This is the Bifrost one-way door (§H) at portfolio scale — `main` is the outermost
+  `*`, and no inner gate may release past it.
+- **The spring is the founder, and it is out of scope for the machine.** An analog signal
+  nothing here can sample or verify against. Yggdrasil and the Well are channels, not
+  sources; every file in this repo is *transmission*, and transmission never promotes
+  (Provenance Ladder, below). A green check proves transcripts agree with **each other** —
+  never that they agree with the founder. Only asking closes that gap.
+- **Never overwrite doctrine.** Pull with `--ff-only` and nothing else — a fast-forward
+  can only add commits, where a merge, rebase, or reset can silently rewrite founder-
+  authored text. A session transcribes doctrine; it does not author it.
+- **The tree is bigger than GitHub.** Yggdrasil spans the interacting systems — the
+  t630 stack, the LiteLLM router, the NotebookLM bridge, Stripe, Setmore, the CRM — and
+  GitHub is one root-well it drinks from. That is why the seed flows well→tree at
+  `SessionStart` and tree→well at the PR gate.
 
 **RCPS — how work gets done here** (adopted 2026-08-07). The acronym carries **two
 readings, and both are required, interleaved**:
@@ -685,7 +706,7 @@ binding here:
 - **Verify the *effect*, not the command** — a failed `cp` + a clean restart silently reloads the old file; check `ss`/`dig` after every reload.
 - **Validate before reload, back up before overwrite** — `unbound-checkconf` (etc.) first; a timestamped copy makes rollback one command.
 - **git pull ≠ deploy** — it moves checkout files only; the running system is untouched until you apply a change (staged backlog: [docs/DEPLOY-QUEUE.md](docs/DEPLOY-QUEUE.md)).
-- **Push:** fast-forward when the branch is just `main` + your commits; retry with backoff; `tools/check-docs.py` green before committing docs, and `tools/check-doctrine.py` green before committing anything under `ai-orchestration/` or §G.
+- **Push:** always `git push -u origin Yggdrasil` — never to `main`, which moves only through an approved PR. Fast-forward when the branch is just `Yggdrasil` + your commits; retry with backoff; `tools/check-docs.py` green before committing docs, and `tools/check-doctrine.py` green before committing anything under `ai-orchestration/` or §G.
 
 **Never use the PR "watch" feature** — founder's standing instruction (2026-08-03).
 Do not subscribe to PR activity (no `subscribe_pr_activity`), and don't offer to watch,
@@ -716,7 +737,7 @@ stated reason.
   this briefing; when it disagrees with the live box, the box wins.
 - **docs/DEPLOY-PROTOCOL.md** — the **how** of deploying: the repeatable per-change procedure for landing one committed change on the live t630 safely (sync the checkout → diff → back up → validate → reload → verify the *effect*). Read it before `cp`-ing anything onto the box. Linked from README; the DEPLOY-QUEUE stages assume it.
 - **docs/DEPLOY-QUEUE.md** — the **what** of deploying: staging runbook of everything reconstructed/fixed in the repo but not yet on the live t630, in dependency order with copy-paste commands + per-stage verification. Work it once SSH to `192.168.1.118` is available. Linked from README.
-- **docs/architecture/clear-refeed-protocol.md** — the sync → clear → refeed ritual: how to wipe a stale session and re-seed the latest CLAUDE.md losslessly. With the `SessionStart` hook (`.claude/hooks/refeed.sh`) installed, bare `/clear` runs the whole thing end-to-end (fires the §G lazy anchor first, then loads the seed); the `.claude/commands/reseed.md` slash command (`/reseed`) handles the no-clear refresh — it pulls the current seed `--ff-only` on `main` before regenerating, so it never rebuilds a stale world. **The seed** = the four-file briefing set (CLAUDE.md + README + `docs/ai-cto/context.md` + `docs/architecture/network-context.md`).
+- **docs/architecture/clear-refeed-protocol.md** — the sync → clear → refeed ritual: how to wipe a stale session and re-seed the latest CLAUDE.md losslessly. With the `SessionStart` hook (`.claude/hooks/refeed.sh`) installed, bare `/clear` runs the whole thing end-to-end (fires the §G lazy anchor first, then loads the seed); the `.claude/commands/reseed.md` slash command (`/reseed`) handles the no-clear refresh — it pulls the current seed `--ff-only` on **the branch you are on** (normally `Yggdrasil`, never `main`) before regenerating, so it never rebuilds a stale world and never pulls the older vetted tier over newer doctrine. **The seed** = the four-file briefing set (CLAUDE.md + README + `docs/ai-cto/context.md` + `docs/architecture/network-context.md`).
 - **docs/architecture/INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
 - **docs/architecture/SKILLS.md** — skills demonstrated by the stack, each mapped to proving artifacts
 - **PLUGINS.md** — which Claude Code Directory plugins apply to this config repo (short
