@@ -1,17 +1,32 @@
 # Branch retirement manifest — founder approval queue
 
-provenance: M · `tools/check-branch-cap.py` + `tools/retire-stale-branches.sh --dry-run` over all
-ten repos checked out at the portfolio root · 2026-08-08 · verify: re-run both commands from a
-root holding all ten full clones
+provenance: M · per-repo `git ls-remote --heads origin` for the ref list, `merge-base
+--is-ancestor <tip> <drawer>` for each tip after a fresh drawer fetch, and the GitHub API for open
+PRs · 2026-08-08 · verify: re-run those three from any clone — the results do not depend on what
+the clone has fetched, which is exactly why they replaced the earlier
+`retire-stale-branches.sh --dry-run` figures. That dry-run enumerates **local** refs, so it
+under-reported by three branches the DESIGN clone had never fetched, and reported
+`kept(unfiled)=0` when the true answer was 3. A measurement that varies with the observer's
+checkout is not `M`.
 
 **What this is.** The one-pass approval sheet for retiring the 338 stale `claude/*` refs. Every
 number below was produced by running the tools, not read off an earlier document. Deletion is the
 founder's call and is **not** taken here; nothing in this pass deleted a ref.
 
-**Status: ready to approve.** All 338 stale refs are already filed in a `doom-drawer/2026-08-08`
-octopus commit in their own repo, and each tip was individually re-verified reachable from it.
-There is no unfiled branch anywhere in the portfolio, so no history depends on a `claude/*` ref
-surviving.
+**Status: approve §2 only — §3 has grown.** Most stale refs are filed in a
+`doom-drawer/2026-08-08` octopus commit in their own repo. Two groups are **not** safe to delete
+and are held back below: **3 refs are unfiled** (deleting them orphans 17 commits), and **14 refs
+carry an open pull request** (deleting one closes its PR and discards proposed work). A blanket
+"delete all 338" is not the right approval.
+
+> **Amendment, 2026-08-08 15:2x — an earlier revision of this file said "unfiled = 0" and "there
+> is no unfiled branch anywhere in the portfolio." Both were wrong**, and wrong in the dangerous
+> direction: they invited a blanket approval. The dry-run that produced them enumerates **local**
+> refs, and the DESIGN clone it ran against had never fetched three `claude/*` branches — so they
+> were not counted as kept, they were *invisible*. This is the same stale-clone class of bug that
+> `check-branch-cap.py` was fixed for one commit earlier; the fix did not reach the retirement
+> script's ref enumeration. Numbers below are re-measured over `git ls-remote` — the remote's own
+> ref list — not over any local checkout.
 
 ---
 
@@ -19,23 +34,30 @@ surviving.
 
 | Measure | Count |
 | ------- | ----- |
-| `claude/*` refs across ten repos | **338** |
-| …proven reachable from their repo's drawer | **338** |
-| …unfiled (would lose history if deleted) | **0** |
+| `claude/*` refs across ten repos (per `git ls-remote`) | **338** |
+| …proven reachable from their repo's drawer | **335** |
+| …**unfiled** (would orphan history if deleted) | **3** |
+| …**filed but carrying an open PR** (deleting closes the PR) | **14** |
 | …whose tip object could not be resolved | **0** |
 | Superseded `archive/claude-sessions-*` labels, same commit as the drawer | 10 |
-| **Total refs safe to delete** | **348** |
-| Refs remaining portfolio-wide afterwards | 34 |
+| **Refs safe to delete now** | **321 + 10 labels = 331** |
+| Refs held back for review (§3) | **17** |
 
-Verification command and its actual output:
+Re-measured 2026-08-08, per repo, iterating `git ls-remote --heads origin` and testing each tip
+with `merge-base --is-ancestor <tip> <drawer>` after fetching the drawer fresh:
 
 ```
-$ ./tools/retire-stale-branches.sh --dry-run
-deleted=338  kept(unfiled)=0  failed=0
+DESIGN-Full-Workflow-Integration-end-to-end-   claude=229  filed=226  UNFILED=3
+localDNS  claude=49 filed=49  ·  MARKETING 13/13  ·  claude-code-homelab 13/13
+customers 8/8  ·  Azure-lab 9/9  ·  Chronikomicon 7/7
+Home-Sovereign-Full-Field-Guide 4/4  ·  Marketing-Strategy-1 3/3  ·  PRICING-MODELS 3/3
 ```
 
-`kept(unfiled)=0` is the load-bearing number: the script only counts a branch as deletable after
-testing `merge-base --is-ancestor <tip> <drawer>` at run time, and it reported nothing held back.
+**The script itself is safe** — `retire-stale-branches.sh` re-tests reachability at run time and
+`kept=$((kept+1)); continue`s on any unfiled ref, then warns. So running it will *not* orphan the
+three. What was unsafe was this document telling the founder there was nothing to hold back. The
+script protects history; it knows nothing about open pull requests, which is why §3 now carries
+them.
 
 ---
 
@@ -72,13 +94,48 @@ inferred from the parent list.
 
 ## 3. Needs review — do NOT bulk-delete
 
+### 3a. Unfiled — deleting these orphans history
+
+Three `claude/*` refs in `DESIGN-…` are **not** reachable from that repo's drawer (`f3aa2734`).
+Re-verified against `git ls-remote` tips, not a local checkout:
+
+| Ref | Tip | Commits not in drawer | Commits not in `main` | Last commit |
+| --- | --- | --------------------- | --------------------- | ----------- |
+| `claude/exciting-mccarthy-bq9R0` | `d6fc46b6` | **9** | 9 | 2026-06-05 Adopt A777ance house style: Gill Sans MT + reverse-ordering |
+| `claude/ai-cto-architecture-MZ2NF` | `a4e5dde` | **7** | 11 | 2026-06-04 NARF: schedule at 08:00 UTC |
+| `claude/nifty-carson-Je7aG` | `84955bf` | **1** | 5 | 2026-06-04 Add PLUGINS.md: per-repo plugin guidance |
+
+**17 commits exist only on these three refs.** File them into the drawer (re-run the archive step
+against a clone that has fetched them) *before* any deletion pass, or exclude them explicitly.
+
+### 3b. Open pull requests — deleting these discards proposed work
+
+A branch with an open PR is not stale, it is **pending review**: deleting the head branch closes
+the PR. `retire-stale-branches.sh` cannot see this — it tests git reachability, and a PR is not a
+git fact. Verified via the GitHub API, 2026-08-08: **14 open PRs across all ten repos**, on five
+distinct branch names.
+
+| Branch | Open PRs | Note |
+| ------ | -------- | ---- |
+| `claude/design-workflow-integration-y8yxx7` | **10** — one in *every* repo (localDNS #25, DESIGN #3, MARKETING #2, claude-code-homelab #2, Azure-lab #1, customers #1, Chronikomicon #5, Home-Sovereign #1, Marketing-Strategy-1 #1, PRICING-MODELS #1) | A coordinated portfolio-wide design-surface change. Deleting the branch closes all ten at once. |
+| `claude/homelab-microbiology-metaphors-18cl3d` | localDNS #26 | Microbiology collection |
+| `claude/amwins-ai-governance-vu5tk4` | localDNS #17 | AI governance blueprint page |
+| `claude/settings-alignment-dh8eua` | localDNS #20 | The Jury (§G) — likely superseded; confirm before closing |
+| `claude/master-amounts-calculator-okqphz` | MARKETING #1 | Master amounts calculator |
+
+**Decide the PR first, then the branch.** Merge it, or close it deliberately — either way the
+decision is recorded. Deleting the branch makes the decision silently, and records it as
+"closed", which is indistinguishable from "rejected" six months later.
+
+### 3c. Unique non-`claude/*` history
+
 | Ref | Repo | Why it is held back |
 | --- | ---- | ------------------- |
 | `archive/main-pre-consolidation` (`b6675cfb`) | `localDNS` | **Unique history.** Verified *not* reachable from the drawer, from `main`, or from `Yggdrasil`. Deleting it orphans the pre-consolidation snapshot. It is not a `claude/*` ref, so `retire-stale-branches.sh` will not touch it — its legacy-label cleanup globs `archive/claude-sessions-*` only. Keep, or promote to its own drawer before any decision. |
 
-Nothing else is held back. The other ten `archive/claude-sessions-2026-08-08` labels were each
-confirmed to point at **the identical commit** as that repo's `doom-drawer/2026-08-08`, so
-retiring the label loses nothing — a claim the script asserted and this pass measured.
+The ten `archive/claude-sessions-2026-08-08` labels were each confirmed to point at **the
+identical commit** as that repo's `doom-drawer/2026-08-08`, so retiring the label loses nothing —
+a claim the script asserted and this pass measured.
 
 ---
 
