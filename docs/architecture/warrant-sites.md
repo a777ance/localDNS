@@ -82,6 +82,7 @@ State of the working tree, 2026-08-07. "Site" means rank 1–3 above.
 | Never supply jurors an answer menu | § G | inlined in `cardio.md` / `workout.md` / `juror.md` | ✅ **Sited** (2026-08-07) |
 | A keyless plurality is unpriced — name the unknown | § G | inlined mandatory bound line | ✅ **Sited** (2026-08-07) |
 | Measure `p`, don't guess it | § G | cited by the jury commands; `calibrate` exists but nothing requires it | ⚠️ **Cited only** — decides mechanically only when a labelled set exists |
+| The adversarial pass on inherited authority (the **Loki Norn** office) | § 3 · codex § IX | `.claude/hooks/refeed.sh` (enters every session's given-set) · `.claude/agents/loki-norn.md` (inlined, read-only by construction) | ✅ **Sited** (2026-08-08) — rank 3. The *finding* binds; the *fix* still needs a human at the `*` gate, which is the intended asymmetry |
 | RCPS — root-cause and record, interleaved | § 3 | none | ❌ **Unsited** — operator practice |
 | Never add sensitive domains to the forward path | § B | none | ❌ **Unsited** — *and mechanically checkable*: a checker could diff `streaming-forward.conf`'s zone list against a sensitivity denylist. Highest-value open repair |
 | Box is the source of truth — diff before overwrite | § 3 · DEPLOY-PROTOCOL | none | ❌ **Unsited** — needs SSH; the commit gate cannot see the box |
@@ -109,4 +110,5 @@ mechanism at two scales, which is why the tiers do duty as marks:
 
 | Date | Change |
 | ---- | ------ |
+| 2026-08-08 | The **Loki Norn** office adopted (founder's promotion) and sited on landing rather than stated: charter in codex § IX, injected posture in `.claude/hooks/refeed.sh`, delegable read-only pass in `.claude/agents/loki-norn.md`, operator copy in CLAUDE.md § 3. Its first carving is on the codex itself — the Edda and KJV quotations were recalled, not transcribed, so the file now carries an `R` tag with a verify route instead of reading as sourced. A promotion recorded only in chat is the exact failure this file names. |
 | 2026-08-07 | File created. Warrant configuration defined (given-set · check obligation · confidence policy); the site ladder; the working-tree audit; `.claude/hooks/gate.sh` added as a rank-1 site for all three static checks, exercised in both directions before landing. Merged with `main`'s independent §G clause→site audit (`tools/check-doctrine.py`), which reached the same finding from the sampler side the same day. |
