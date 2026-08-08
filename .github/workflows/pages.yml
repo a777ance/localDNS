@@ -47,6 +47,7 @@ on:
       - "docs/bifrost.html"
       - "docs/firefox-hardening.html"
       - "docs/provenance.html"
+      - "docs/hlidskjalf.html"
       - "tools/pages-toggle.py"
       - ".github/workflows/pages.yml"
 
@@ -107,7 +108,7 @@ jobs:
             src="$1"; dest="$2"
             mkdir -p "$dest"
             [ -d "$src/docs/statements" ] && cp -a "$src/docs/statements/." "$dest/"
-            for f in bifrost firefox-hardening provenance edda; do
+            for f in bifrost firefox-hardening provenance edda hlidskjalf; do
               [ -f "$src/docs/$f.html" ] && cp "$src/docs/$f.html" "$dest/$f.html"
             done
             return 0
