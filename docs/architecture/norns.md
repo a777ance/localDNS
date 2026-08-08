@@ -123,11 +123,41 @@ is doing, and cannot be told. The repo is the only channel, so a claim is a comm
 **Before starting substantial work, append a line here and push it.** It costs one commit
 and it is the only thing standing between three Norns and §5.
 
-**Look before you claim — one command:**
+**The claim is a LICENCE, and git enforces it.** Not a note in a table — a table would
+conflict on every claim, which trains people to skip the step. One file per claim under
+`docs/weave/claims/`, named from the item: two Norns claiming *different* work touch different paths
+and never conflict; two claiming the *same* work collide on one path, and **exactly one
+push fast-forwards.** That push *is* the licence. The loser re-reads, finds the item held,
+and is refused. Once-and-only-once falls out of git's serialisation rather than from a
+convention anyone can skip.
 
 ```bash
-python3 tools/weave.py     # the eye, the claims, and the queue, side by side
+python3 tools/weave.py                                   # the eye, the licences, the queue
+python3 tools/weave.py --claim "<item>" --lane skuld     # take the licence
+python3 tools/weave.py --release "<item>"                # give it back
 ```
+
+A claim is **refused while the tree is dirty** — deliberately. The rule is *claim before
+the work*, and a dirty tree means the work already started. A release is refused unless
+you hold it.
+
+**Why licensing and not redundancy alone.** Many polymerases transcribe one gene at once,
+and thousands of replication origins fire in parallel — parallelism is how life works. But
+transcription is safe at that scale because the template is **read-only**: no polymerase
+writes back to the DNA. That is Bifrost's `@`. Norns write, which is `#`. For the case
+where the template *is* written, evolution does not rely on redundancy — it **licenses
+each origin once per cell cycle and destroys the licence when it fires**, because
+re-replication produces amplification and instability rather than tolerable waste. Norn 3
+was a re-fired origin. So: redundancy for the *reasoning* (two independent derivations
+that agree mean something, §G), licensing for the *writing*.
+
+**Redundancy and rework are separated by one test: did anything compare the copies?** Two
+sessions independently deriving the same invariant, compared and agreeing, is redundancy —
+the agreement carries information because the derivations were decorrelated. The same work
+done twice with nothing comparing them is rework. Redundant transcripts are cheap because
+they are *non-heritable*; a bad mRNA is degraded and the genome is untouched. Commits are
+heritable — they become the next session's given-set — which is what the commit gate is
+for.
 
 It shows whether another Norn has moved the tip since you last looked, what is already
 claimed, and the dispatch queue (`docs/ai-cto/context.md` — "Default next actions"). It

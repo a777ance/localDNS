@@ -107,7 +107,9 @@ def read_claim(path: pathlib.Path) -> dict[str, str]:
 def all_claims() -> list[tuple[str, dict[str, str]]]:
     if not CLAIMS.is_dir():
         return []
-    return sorted(((p.stem, read_claim(p)) for p in CLAIMS.glob("*.md")),
+    # README.md documents the directory; it is not a licence.
+    return sorted(((p.stem, read_claim(p)) for p in CLAIMS.glob("*.md")
+                   if p.name != "README.md"),
                   key=lambda kv: kv[1].get("claimed", ""), reverse=True)
 
 
