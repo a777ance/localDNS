@@ -2,10 +2,15 @@
 # Retire every stale claude/* branch across the A777ance portfolio.
 #
 # SAFE BY CONSTRUCTION: every commit that existed only on one of these branches is
-# already reachable from archive/claude-sessions-2026-08-08 in the same repo, pushed
-# 2026-08-08. Deleting them loses no history.
+# already reachable from doom-drawer/2026-08-08 in the same repo, pushed 2026-08-08.
+# Deleting them loses no history.
 #
-#   inspect : git log --oneline archive/claude-sessions-2026-08-08 --not origin/Yggdrasil
+# THE DOOM DRAWER — "Didn't Organize, Only Moved". The ADHD filing trick applied to git
+# refs: one drawer you can stuff things into without sorting them, exactly so nothing has
+# to be thrown out to get the desk clear. The drawer is KEPT. This script empties the
+# desk around it.
+#
+#   inspect : git log --oneline doom-drawer/2026-08-08 --not origin/Yggdrasil
 #   restore : git branch <name> <sha>
 #
 # Generated because branch deletion is blocked (HTTP 403) from the agent environment.
@@ -379,5 +384,17 @@ git push origin --delete 'claude/session-5r2xlc' || FAIL=1
 git push origin --delete 'claude/settings-alignment-dh8eua' || FAIL=1
 git push origin --delete 'claude/vigilant-curie-McPcX' || FAIL=1
 git push origin --delete 'claude/zip-handoff-mechanism-rnl3mo' || FAIL=1
+
+# The drawer's old name. Same commit as doom-drawer/2026-08-08, so removing this
+# label loses nothing — the drawer itself stays.
+echo '=== retiring the superseded archive/ label ==='
+for r in Azure-lab Chronikomicon DESIGN-Full-Workflow-Integration-end-to-end- \
+         Home-Sovereign-Full-Field-Guide MARKETING Marketing-Strategy-1 \
+         PRICING-MODELS---ALL-THREE claude-code-homelab customers localDNS; do
+  ( cd ~/"$r" 2>/dev/null || exit 0
+    git push origin --delete archive/claude-sessions-2026-08-08 2>/dev/null \
+      && echo "  $r: old label removed" \
+      || echo "  $r: no old label (fine)" )
+done
 
 exit $FAIL

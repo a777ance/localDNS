@@ -16,15 +16,15 @@ A cap that fails the moment it is written cannot be committed: the gate would bl
 very commit adding it. Worse, a check that is switched off (or bypassed forever) is back
 to having no site. So the overage is split:
 
-  * PENDING — a `claude/*` branch whose tip is already reachable from an `archive/*`
-    branch in the same repo. Its history is preserved; only the ref deletion is
-    outstanding, and deletion is blocked (HTTP 403) from the agent environment. Reported
-    loudly, does NOT fail.
+  * PENDING — a `claude/*` branch whose tip is already reachable from a `doom-drawer/*`
+    (or legacy `archive/*`) branch in the same repo. Its history is preserved; only the
+    ref deletion is outstanding, and deletion is blocked (HTTP 403) from the agent
+    environment. Reported loudly, does NOT fail.
   * NEW — anything else over the cap. Fails.
 
-So retiring the archived refs makes the warning disappear on its own, while a fresh
-session branch trips the gate the day it appears. The pending state is a stated debt with
-a name, not silence — and silence is an assignment.
+So emptying the desk around the drawer makes the warning disappear on its own, while a
+fresh session branch trips the gate the day it appears. The pending state is a stated debt
+with a name, not silence — and silence is an assignment.
 
 NETWORK POLICY
 --------------
@@ -52,7 +52,14 @@ import subprocess
 import sys
 
 DEFAULT_CAP = 9
-ARCHIVE_PREFIX = "archive/"
+
+# The DOOM DRAWER — "Didn't Organize, Only Moved". The ADHD filing trick, applied to
+# refs: one drawer you can stuff things into without sorting them, precisely so nothing
+# has to be thrown away to get the desk clear. A branch whose tip is reachable from here
+# is *kept*, not tidied — which is the whole reason deleting the ref is safe.
+# `archive/` stays recognised: it is the older name for the same idea, and localDNS
+# carries a pre-existing `archive/main-pre-consolidation`.
+DRAWER_PREFIXES = ("doom-drawer/", "archive/")
 SESSION_PREFIX = "claude/"
 
 
@@ -111,7 +118,8 @@ def main() -> int:
             ok.append(f"{repo.name} ({len(branches)})")
             continue
 
-        anchors = [sha for name, sha in branches.items() if name.startswith(ARCHIVE_PREFIX)]
+        anchors = [sha for name, sha in branches.items()
+                   if name.startswith(DRAWER_PREFIXES)]
         anchors = [a for a in anchors
                    if subprocess.run(("git", "-C", str(repo), "cat-file", "-e", a + "^{commit}"),
                                      capture_output=True).returncode == 0]
@@ -123,11 +131,11 @@ def main() -> int:
         if effective > args.cap or (args.strict and pending):
             failures.append(
                 f"{repo.name}: {len(branches)} branches, cap {args.cap} "
-                f"({pending} pending deletion, {effective} effective)")
+                f"({pending} in the doom drawer, {effective} effective)")
         else:
             pending_repos.append(
-                f"{repo.name}: {len(branches)} branches — {pending} archived and awaiting "
-                f"deletion, {effective} effective (within cap)")
+                f"{repo.name}: {len(branches)} branches — {pending} in the doom drawer, awaiting "
+                f"deletion; {effective} effective (within cap)")
 
     for line in ok:
         print(f"ok      {line}")
@@ -141,12 +149,12 @@ def main() -> int:
         for f in failures:
             print(f"  {f}")
         print("\nRetire stale refs, or archive them first so no history is lost:")
-        print("  git log --oneline archive/claude-sessions-* --not origin/Yggdrasil")
+        print("  git log --oneline doom-drawer/* --not origin/Yggdrasil")
         return 1
 
     if pending_repos:
-        print(f"\nPending deletions are preserved in archive/* — retiring them clears this "
-              f"notice. Nothing is lost by deleting them.")
+        print("\nPending deletions are in the doom drawer (Didn't Organize, Only Moved) — "
+              "retiring them clears this notice. Nothing is lost; the drawer is kept.")
     print(f"\nBranch cap {args.cap}: OK"
           + (f" ({len(skipped)} repo(s) skipped)" if skipped else ""))
     return 0
