@@ -67,6 +67,71 @@ if d.get("tool_name") != "Bash":
 print(d.get("tool_input", {}).get("command", ""))
 ' 2>/dev/null)" || exit 0
 
+# ── Force-push guard (docs/architecture/proxies.md, Law 1 + gap audit) ─────────────
+# "Never force-push Yggdrasil or main" (CLAUDE.md §3) was enforced by NOTHING. The agent
+# git proxy blocks `--delete` but PERMITS `--force` — proven 2026-08-08 by a successful
+# forced update. Both orphan commits; only one was refused. That is a verb-scoped control
+# guarding an effect-shaped risk, so the effect gets its own site here.
+#
+# Scoped by EFFECT, not verb: every spelling that can rewrite a protected ref —
+# --force, -f, --force-with-lease, and the `+refspec` form — against Yggdrasil or main.
+# A force-push to any OTHER branch is left alone; this guards founder-authored history,
+# not every rewrite.
+# Quoted text is DATA, not a command: a commit message that discusses force-pushing must
+# not trip this. Strip quoted spans first, then scan. A compound `git commit -m '…' &&
+# git push --force origin main` still matches, because only the message is quoted.
+scan="$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")"
+
+if printf '%s' "$scan" | grep -Eq '(^|[;&|[:space:]])git([[:space:]]+-[^[:space:]]+)*[[:space:]]+push([[:space:]]|$)'; then
+    forced=0
+    printf '%s' "$scan" | grep -Eq '[[:space:]](--force([[:space:]]|=|$)|--force-with-lease|-f([[:space:]]|$))' && forced=1
+    printf '%s' "$scan" | grep -Eq '[[:space:]]\+[A-Za-z0-9_./-]*(HEAD|Yggdrasil|main)' && forced=1
+
+    if [ "$forced" = 1 ]; then
+        # Count non-flag arguments after `push`: <remote> [refspec...]. A refspec means
+        # the target is EXPLICIT, so the current branch is irrelevant — `--force origin
+        # tmp/scratch` from Yggdrasil must pass. Only when no refspec is given does the
+        # push default to the current branch. Over-blocking is not the safe direction:
+        # a gate that refuses legitimate work is a gate people switch off.
+        args="$(printf '%s' "$scan" \
+                | sed -E 's/.*git([[:space:]]+-[^[:space:]]+)*[[:space:]]+push//' \
+                | tr ' ' '\n' | grep -v '^-' | grep -v '^$' | tr '\n' ' ')"
+        argc="$(printf '%s' "$args" | wc -w)"
+
+        if [ "$argc" -ge 2 ]; then
+            # Explicit refspec — block only if it names a protected branch.
+            target="$(printf '%s' "$args" | tr ' ' '\n' | tail -n +2 \
+                      | grep -oE '(Yggdrasil|main)' | head -1)"
+        else
+            # No refspec: the push targets the current branch.
+            case "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" in
+                Yggdrasil|main) target="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" ;;
+                *) target="" ;;
+            esac
+        fi
+        if [ -n "$target" ]; then
+            cat >&2 <<EOF
+COMMIT GATE — blocked. Force-push to \`$target\` refuses here.
+
+A fast-forward can only ADD commits. A forced update REWRITES the ref, orphaning
+whatever it passed over — including founder-authored doctrine this session never read.
+"A session transcribes doctrine; it does not author it." (CLAUDE.md §3)
+
+The environment will NOT stop you: the agent git proxy blocks --delete but permits
+--force (docs/architecture/proxies.md, gap audit). This hook is the only thing standing
+here, which is exactly why it does not have a soft mode.
+
+If the push was rejected as non-fast-forward, reconcile instead:
+    git fetch origin $target
+    git rebase origin/$target       # rewrites YOUR commits, never theirs
+    # then push normally — no force
+Expect company on Yggdrasil; another session may have pushed while you worked.
+EOF
+            exit 2
+        fi
+    fi
+fi
+
 # Only gate real commits. `git commit` appearing inside a quoted string (a commit
 # MESSAGE that talks about committing, say) is matched too — over-triggering costs
 # two seconds; under-triggering costs the invariant.
