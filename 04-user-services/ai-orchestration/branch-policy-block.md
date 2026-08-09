@@ -45,10 +45,13 @@ rises rung by rung and the dross stays below.
   must pass through it, and it is the only branch with access to `main`.* Cherry-pick from
   the doom boxes into Yggdrasil once you are satisfied.
 - **`main` — the Well of Mimir** — vetted knowledge; the stable final repo. It moves only
-  by a pull request the founder approves, cherry-picked up from Yggdrasil. No cadence, no
-  auto-merge: the Well fills when the founder decides it does. This is the Bifrost one-way
-  door at portfolio scale — `main` is the outermost `*`, and no inner gate may release past
-  it. **`main` means "exists on the stable final repo," never "live."**
+  by a pull request the founder approves, and **that PR is always a cherry-pick from
+  Yggdrasil — a strategic, contingent selection of specific commits, never a merge of the
+  whole branch.** The promotion is a branch cut from `main` carrying only the chosen cream;
+  the tip of Yggdrasil is never offered wholesale. No cadence, no auto-merge: the Well fills
+  when the founder decides it does, one deliberate commit at a time. This is the Bifrost
+  one-way door at portfolio scale — `main` is the outermost `*`, and no inner gate may
+  release past it. **`main` means "exists on the stable final repo," never "live."**
 - **Valhalla** — *deployed, for real, on the box.* Not a branch: the state a change reaches
   only when it actually runs. `main` is the final ref; **Valhalla is the final reality.**
 
@@ -73,6 +76,7 @@ rises rung by rung and the dross stays below.
 
 **Push:** feature work goes to your own feature branch or straight into a doom box; you may
 force-push a feature branch you own, **never a rail** (`main`, `Yggdrasil`, `doombox/*`).
-Promote upward only by cherry-pick. Only Yggdrasil is offered to `main`, and only through
-the founder's approved PR. Retry with backoff on network failure.
+Promote upward only by cherry-pick. Only Yggdrasil reaches `main`, and only through the
+founder's approved **cherry-pick** PR — specific chosen commits on a `main`-based branch,
+never the whole Yggdrasil branch merged in. Retry with backoff on network failure.
 <!-- branch-policy:end -->
