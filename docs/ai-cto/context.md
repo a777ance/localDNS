@@ -8,6 +8,12 @@ Read alongside the portfolio hub: `DESIGN-Full-Workflow-Integration-end-to-end-/
 
 ## Default next actions
 
+**The standing rotation lives in [`docs/REMEDIATION-BOARD.md`](../REMEDIATION-BOARD.md)** —
+six tracks with current state, adopted 2026-08-09. Read it before picking work; it is the
+site of record for what is open, what is blocked, and what a track's state actually is.
+When a track's state changes, change it *there*, in the same commit as the work. The queue
+below is the short form.
+
 Pre-computed session-start queue — don't re-derive it. Do the top unblocked item.
 Rationale lives in CLAUDE.md § F / § C and the open-items table below; don't restate
 it here. Override only when the founder names a different priority. When an item

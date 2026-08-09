@@ -1,0 +1,232 @@
+<!-- provenance: D · Codex audit of this repo (2026-08-09) + the first live drift audit against the t630 (2026-08-09) + this session's fixes · 2026-08-09 -->
+
+# Remediation Board — the standing track rotation
+
+Six tracks that close the gap between "well-documented" and "operationally closed."
+Adopted 2026-08-09 from an outside audit of this repo, extended with what the first
+live drift audit actually found.
+
+**Why this file exists.** The board was agreed in a session, and a plan that lives only
+in a session transcript has an author and no **site** — the next session's given-set
+omits it, so it governs nothing (`docs/architecture/warrant-sites.md`). This is the site.
+The session-start queue in `docs/ai-cto/context.md` points here; when a track's state
+changes, change it **here**, in the same commit as the work.
+
+**The thesis the board serves:** *stop expanding the canopy; finish the trunk.* The
+appliance's promise is "this box protects and explains your home network." Until it can
+produce one honest, measured, client-ready Statement, everything above that — AI
+orchestration, console surfaces, operator portfolios — is optional scaffolding.
+
+---
+
+## How to work this board
+
+Each session, take the **first unblocked item** in this order. Skip any track the
+founder doesn't want that day and cycle to the next; this is a rotation, not a queue.
+
+1. **SSH to the t630 available** → Track 1 (drift) and Track 4 (exposure verification).
+2. **No SSH, repo work possible** → improve checks, docs, and scripts so the next live
+   session is nearly mechanical.
+3. **Measurement layer ready** → Track 3, then confirm Statements no longer read sample
+   category data.
+4. **Product validation ready** → Track 5.
+5. **Core closed** → Track 6.
+
+**Two standing rules that outrank the rotation.** The live t630 is the source of truth —
+reconcile drift *into* the repo before deploying over it (`docs/DEPLOY-PROTOCOL.md`).
+And never print a figure the box did not measure; omit the section instead.
+
+---
+
+## Status at a glance
+
+| # | Track | State | Blocked by |
+| - | ----- | ----- | ---------- |
+| 1 | Repo/live drift closure | **In progress** — first audit run 2026-08-09 | — |
+| 2 | Snapshot live-only assets | Not started | needs the box |
+| 3 | Measured data plumbing | **Cleared to deploy** | — |
+| 4 | Security & exposure verification | **Open — one urgent item** | — |
+| 5 | First real measured Statement | Blocked | Track 3 · Kuma API key |
+| 6 | AI/console platform hardening | Deferred by design | Tracks 3–5 |
+
+---
+
+## Contents (reverse-block order)
+
+- [Track 6 — AI/console platform hardening](#track-6--aiconsole-platform-hardening)
+- [Track 5 — First real measured Statement](#track-5--first-real-measured-statement)
+- [Track 4 — Security and exposure verification](#track-4--security-and-exposure-verification)
+- [Track 3 — Measured data plumbing](#track-3--measured-data-plumbing)
+- [Track 2 — Snapshot live-only assets](#track-2--snapshot-live-only-assets)
+- [Track 1 — Repo/live drift closure](#track-1--repolive-drift-closure)
+- [Where this came from — the audit findings](#where-this-came-from--the-audit-findings)
+- [Session log](#session-log)
+
+Per house style the blocks read newest-first (Track 6 at the top, Track 1 at the
+bottom), but **the numbers are authoritative** — they encode priority and dependency.
+Follow the numbers, not the page order, and never renumber.
+
+---
+
+## Track 6 — AI/console platform hardening
+
+**Goal:** keep advanced operator tooling useful without letting it outrun the base
+appliance.
+
+- [ ] Verify the LiteLLM router and Open WebUI are deployed and reachable.
+- [ ] Verify the console launcher ("high seat") and both ttyd terminals.
+- [ ] Define the web-shell posture explicitly: auth model, lockout/rate-limiting, TLS
+      (`ttyd -S`), session logging + retention, no default credentials.
+- [ ] Deploy the Odin supervisor **only after** the gateway is stable.
+
+> **Open question raised by the 2026-08-09 drift audit.** `CLAUDE.md`'s topology table
+> lists console (8088), ttyd (7681/7682) and the LLM router (4040/3000) as **live
+> services**, but none of their config files were found at the documented paths on the
+> box. Either the audit's path list is wrong or the briefing overstates the live system.
+> **Resolve this before anything else in this track** — it is a bigger finding than any
+> single diff, and it decides whether the briefing itself needs correcting.
+
+---
+
+## Track 5 — First real measured Statement
+
+**Goal:** one client-grade artifact built from real box measurements.
+
+- [ ] Build from real Pi-hole / Uptime Kuma / WireGuard / nftables data.
+- [ ] **Omit** unsupported sections rather than inventing them — the "How You Compare"
+      neighbour benchmark has no cohort, and by-category volume is only real once
+      Track 3 lands.
+- [ ] Test the Statement PWA install on iOS and Android.
+- [ ] Generate one household Statement.
+- [ ] Document the repeatable monthly process.
+
+**Hard dependency:** the Uptime Kuma API key (Track 3). Without it `uptime` and
+`latency_ms` are `null`, and those are two of the four figures a Statement prints.
+
+---
+
+## Track 4 — Security and exposure verification
+
+**Goal:** prove the box exposes only what it should. Re-run after **every**
+deploy-affecting change; this track never closes.
+
+- [ ] **URGENT — rotate the Pi-hole admin/API credential.** The live
+      `~/pihole/docker-compose.yml` carries it hardcoded in cleartext, in a file that is
+      not root-owned, and the 2026-08-09 drift audit copied it to a laptop in the clear.
+      Treat it as burned: set `PIHOLE_WEBPASSWORD` in `~/pihole/.env`, deploy the
+      repo's env-sourced compose (`01-core-network/pihole/docker-compose.yml`,
+      DEPLOY-QUEUE Stage 4), restart, and destroy the local audit copy.
+- [ ] Verify WAN reaches **only** WireGuard (51820/udp).
+- [ ] Verify console + ttyd are LAN + WG only, never port-forwarded.
+- [ ] Verify the Pi-hole UI is not WAN-exposed.
+- [ ] Verify DNS answers for both LAN and WireGuard clients.
+- [ ] Verify no sensitive domains sit on the Cloudflare forward path.
+- [ ] Verify no secrets are in git.
+
+---
+
+## Track 3 — Measured data plumbing
+
+**Goal:** unlock real, honest Network Activity Statements. This is the highest-value
+product unlock on the board.
+
+- [x] Fix double-counting — a category hit now `return`s instead of also falling through
+      into `c_other` (`docs/statements/tools/collect/nftables-accounting.nft`).
+- [x] Build the deploy fast path (`tools/deploy-volume-layer.sh`).
+- [x] Install cron in **root's** crontab with logging to `/var/log/a777ance/` — every
+      source the jobs read is root-only, so a login-user install fails silently while the
+      counters decay behind a still-measured-looking Statement (CLAUDE.md § F).
+- [x] Plumb the Uptime Kuma API key through `/etc/a777ance/collect.env`.
+- [ ] **Run the deploy.** Cleared: it touches only `docs/statements/tools/collect/`, a new
+      `inet a777acct` table, and root's crontab — no drifted file is in its path.
+- [ ] Mint the Kuma API key (*Settings → API Keys*) and fill in `KUMA_KEY`.
+- [ ] Confirm `volume.by_category` is populated and non-zero after one refresh cycle.
+- [ ] Check `/var/log/a777ance/` after the first scheduled run — silence there is the
+      only early warning that a job is failing.
+
+---
+
+## Track 2 — Snapshot live-only assets
+
+**Goal:** stop important system state from living only on the box. While these are
+missing, the repo is a partial memory, not a recovery artifact.
+
+- [ ] Snapshot the Odin supervisor from the live box —
+      `04-user-services/ai-orchestration/langgraph-router/`. **Snapshot it, don't
+      fabricate it from lore.**
+- [ ] Snapshot the orchestration blueprint.
+- [ ] Seal the real secrets into the `vault/` directory as `*.env.sops` (needs an age key
+      plus real values; the tooling is already checked in).
+- [ ] Retire the missing-asset allowances in `tools/check-docs.py` once each lands.
+
+---
+
+## Track 1 — Repo/live drift closure
+
+**Goal:** make the repo trustworthy as the rollback target.
+
+- [x] Build the read-only drift audit (`tools/t630-drift-audit.sh`).
+- [x] Fix the sudo TTY-scoping bug that made every root-owned file report unreadable.
+- [x] First live audit run (2026-08-09): 2 match · 3 comment-only · 2 repo-ahead ·
+      1 real defect · 7 absent.
+- [x] Reconcile `cap_add: SYS_NICE` back from the box into the repo.
+- [ ] **Fix the audit's core blind spot:** it reports one `differs` and cannot separate
+      *the box has something the repo lost* (reconcile backward) from *the repo has
+      something the box has not received* (a staged deploy). Those demand opposite
+      actions, and two of five diffs were the second kind.
+- [ ] **Fix the audit's secret leak:** it copies live files verbatim to the operator's
+      laptop, credentials included. Redact or refuse known-secret-bearing paths.
+- [ ] Resolve the 7 `absent on box` rows — see the open question in Track 6.
+- [ ] Decide the `dnsmasq_data:/etc/dnsmasq.d` mount: repo-only, and under v6 that path
+      is legacy, so an empty named volume there can mask image-provided files.
+- [ ] Remove stale "reconstructed — verify against the box" warnings once each file is
+      confirmed, so the remaining warnings keep meaning something.
+
+---
+
+## Where this came from — the audit findings
+
+The seven exposures the tracks exist to close:
+
+1. **The repo is not a complete rollback target** — Odin and the sealed vault files live
+   only on the box. → Track 2
+2. **Too much is reconstructed, not verified** — rebuilt from documentation rather than
+   read off the box. → Track 1
+3. **The product milestone is blocked by measurement, not UI** — the answer is data
+   plumbing, not more front-end polish. → Track 3
+4. **Scope-pressure risk** — the canopy is outrunning the trunk. → Track 6 deferral
+5. **The deploy order is cognitively inverted** for outside operators — reverse-block
+   presentation against execute-by-stage-number. Fine for the founder and for agents
+   trained on the house style; reconsider if this becomes operator documentation.
+6. **Pi-hole v6 config unverified** — `FTLCONF_webserver_port` and the v6 volume layout
+   were reconstructed. → **Confirmed** by the 2026-08-09 audit.
+7. **Web terminals are high-consequence** — browser-reachable shells raise the security
+   bar. → Track 4 / Track 6
+
+What was going **right** and should not be disturbed: the service-boundary repo layout;
+Unbound (not Pi-hole) owning DNS policy; host networking for Pi-hole justified rather
+than cargo-culted; the public/private data boundary; the honesty-of-the-kept-document
+rule; a staged deploy queue instead of vague next steps; and a WireGuard-only WAN door.
+
+---
+
+## Session log
+
+Newest first.
+
+### 2026-08-09 — board adopted; Tracks 1 and 3 opened
+
+- Landed the Track 1 + Track 3 fast-path helpers on `main` after the original commit was
+  lost in transit between environments.
+- Fixed two **silent** helper failures before first use: `sudo -n` TTY scoping (would
+  have reported false catastrophic drift) and login-user cron with `/dev/null` output
+  (would have let the nft sets age out while counters decayed behind a Statement that
+  still looked measured).
+- First live drift audit against the t630. Read: 3 of 5 diffs were comment-only; 2 were
+  the repo deliberately ahead (staged Stages 2 and 4); 1 was a genuine repo defect.
+- Reconciled `cap_add: SYS_NICE` from the box into the repo (`provenance: O`).
+- Discovered from a live run — not from reading files — that Uptime Kuma's `/metrics` is
+  authenticated and `--kuma-key` defaults to empty, so uptime and latency were never
+  going to be measured. Plumbed through `/etc/a777ance/collect.env`.
+- Found a hardcoded Pi-hole credential on the live box. Rotation is the urgent item in
+  Track 4.
