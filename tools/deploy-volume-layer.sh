@@ -63,6 +63,16 @@ sudo nft -j list counters table inet a777acct >/tmp/a777ance-counters.json
 sudo install -d -m 755 /var/lib/a777ance
 sudo install -d -m 755 /var/log/a777ance
 
+# Optional secret for the nightly collector. Uptime Kuma's /metrics is authenticated;
+# with no key collect_stats.py gets 401 and uptime/latency stay null forever. Created
+# empty + 0600 so the cron line can source it unconditionally; fill in on the box.
+if ! sudo test -e /etc/a777ance/collect.env; then
+  sudo install -d -m 755 /etc/a777ance
+  printf '# KUMA_KEY=CHANGE_ME   # Uptime Kuma > Settings > API Keys\nKUMA_KEY=\n' \
+    | sudo tee /etc/a777ance/collect.env >/dev/null
+  sudo chmod 600 /etc/a777ance/collect.env
+fi
+
 # --- cron into ROOT's crontab: every data source these jobs touch is root-only
 tmpcron="$(mktemp)"
 sudo crontab -l 2>/dev/null | sed '/# A777ANCE-VOLUME-LAYER-BEGIN/,/# A777ANCE-VOLUME-LAYER-END/d' > "$tmpcron" || true
@@ -70,8 +80,9 @@ sudo crontab -l 2>/dev/null | sed '/# A777ANCE-VOLUME-LAYER-BEGIN/,/# A777ANCE-V
   echo '# A777ANCE-VOLUME-LAYER-BEGIN'
   echo '# Refresh category IP-sets every 6h; CDN IPs rotate and set elements time out at 24h.'
   printf '3 */6 * * * /usr/bin/python3 %q/populate_sets.py --apply >>/var/log/a777ance/populate-sets.log 2>&1\n' "$remote_dir"
-  echo '# Collect the running month measured stats nightly.'
-  printf '30 0 * * * /usr/bin/python3 %q/collect_stats.py --out /var/lib/a777ance/$(date +\%%Y-\%%m).stats.json >>/var/log/a777ance/collect-stats.log 2>&1\n' "$remote_dir"
+  echo '# Collect the running month measured stats nightly. Sources /etc/a777ance/collect.env'
+  echo '# if present (KUMA_KEY); without it Kuma /metrics 401s and uptime/latency stay null.'
+  printf '30 0 * * * . /etc/a777ance/collect.env 2>/dev/null; /usr/bin/python3 %q/collect_stats.py --kuma-key "$KUMA_KEY" --out /var/lib/a777ance/$(date +\%%Y-\%%m).stats.json >>/var/log/a777ance/collect-stats.log 2>&1\n' "$remote_dir"
   echo '# A777ANCE-VOLUME-LAYER-END'
 } >> "$tmpcron"
 sudo crontab "$tmpcron"

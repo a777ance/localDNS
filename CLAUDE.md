@@ -298,6 +298,14 @@ the honesty rule failing closed in the wrong direction, so the failure has to be
 loud: `tail /var/log/a777ance/*.log` after the first scheduled run.
 `tools/deploy-volume-layer.sh` installs it this way for you.
 
+**Uptime Kuma's `/metrics` is authenticated** — `collect_stats.py --kuma-key` defaults
+to empty, so an unkeyed run gets `HTTP 401` and `uptime`/`latency_ms` come back `null`
+no matter which user runs it. That is two of the four figures a Statement prints. The
+key lives in `/etc/a777ance/collect.env` (`chmod 600`, git-ignored by living off-repo,
+created empty by the deploy helper); mint one in Kuma under *Settings → API Keys* and
+fill it in, or the uptime figure has to be **omitted** from the Statement rather than
+guessed.
+
 ---
 
 ## D. Unbound config
