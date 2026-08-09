@@ -17,6 +17,28 @@ The moment SSH access to `192.168.1.118` is available, work this list top-to-bot
 
 ---
 
+## Operator fast paths for Track 1 + Track 3
+
+These helper scripts are wrappers around the manual stages below; they do not replace
+the source-of-truth rules. Run them from a Linux laptop checkout when you have SSH to
+the t630.
+
+- **Track 1 drift audit (read-only):**
+  ```bash
+  T630_HOST=USER@192.168.1.118 tools/t630-drift-audit.sh
+  ```
+  This writes timestamped diffs under `.audit/t630-drift/`. It uses `sudo -n` for
+  root-owned files, so run `ssh -t USER@192.168.1.118 sudo -v` first if your sudo
+  ticket is not already warm. If any file differs, reconcile toward the live box,
+  commit, push, then re-sync before deploying.
+- **Track 3 volume layer deploy:**
+  ```bash
+  T630_HOST=USER@192.168.1.118 T630_USER=USER tools/deploy-volume-layer.sh
+  ```
+  This copies `docs/statements/tools/collect/`, validates and loads the nftables
+  ruleset, applies `populate_sets.py`, installs tagged cron entries, and prints
+  the accounting table for verification.
+
 ## How to read this list
 
 - **Execute in STAGE-NUMBER order — Stage 0 first, Stage 12 last.** Per house

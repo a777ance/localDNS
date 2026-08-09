@@ -29,3 +29,5 @@ Thumbs.db
 __pycache__/
 *.pyc
 .claude/.gate-off
+# Local audit artifacts from laptop-to-t630 drift checks
+.audit/

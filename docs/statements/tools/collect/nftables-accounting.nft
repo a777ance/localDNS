@@ -52,22 +52,25 @@ table inet a777acct {
     chain account {
         type filter hook forward priority -150; policy accept;
 
-        ip daddr @cat_streaming    counter name c_streaming
-        ip saddr @cat_streaming    counter name c_streaming
-        ip daddr @cat_social       counter name c_social
-        ip saddr @cat_social       counter name c_social
-        ip daddr @cat_cloud        counter name c_cloud
-        ip saddr @cat_cloud        counter name c_cloud
-        ip daddr @cat_conferencing counter name c_conferencing
-        ip saddr @cat_conferencing counter name c_conferencing
-        ip daddr @cat_gaming       counter name c_gaming
-        ip saddr @cat_gaming       counter name c_gaming
-        ip daddr @cat_iot          counter name c_iot
-        ip saddr @cat_iot          counter name c_iot
-        ip daddr @cat_saas         counter name c_saas
-        ip saddr @cat_saas         counter name c_saas
-        ip daddr @cat_shopping     counter name c_shopping
-        ip saddr @cat_shopping     counter name c_shopping
+        # `return` after a category hit so known traffic does not also fall
+        # through into `c_other`. Without this, a LAN client downloading from a
+        # categorized destination would increment both that category and Other.
+        ip daddr @cat_streaming    counter name c_streaming return
+        ip saddr @cat_streaming    counter name c_streaming return
+        ip daddr @cat_social       counter name c_social return
+        ip saddr @cat_social       counter name c_social return
+        ip daddr @cat_cloud        counter name c_cloud return
+        ip saddr @cat_cloud        counter name c_cloud return
+        ip daddr @cat_conferencing counter name c_conferencing return
+        ip saddr @cat_conferencing counter name c_conferencing return
+        ip daddr @cat_gaming       counter name c_gaming return
+        ip saddr @cat_gaming       counter name c_gaming return
+        ip daddr @cat_iot          counter name c_iot return
+        ip saddr @cat_iot          counter name c_iot return
+        ip daddr @cat_saas         counter name c_saas return
+        ip saddr @cat_saas         counter name c_saas return
+        ip daddr @cat_shopping     counter name c_shopping return
+        ip saddr @cat_shopping     counter name c_shopping return
 
         # Uncategorised traffic on the LAN/WG forward path -> "Other".
         # (Refine the match to your subnets; 192.168.1.0/24 + 10.8.0.0/24.)
