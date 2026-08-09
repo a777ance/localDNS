@@ -236,7 +236,9 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `04-user-services/ai-orchestration/briefing-block.md` | canonical source for the Bifrost section in **every** sibling repo's `CLAUDE.md` — edit here, never in the rendered copies | `python3 tools/sync-briefings.py --write` |
 | `04-user-services/ai-orchestration/branch-policy-block.md` | canonical source for the branch-policy section (`Yggdrasil` / Well of Mimir) in **every** sibling repo's `CLAUDE.md` — edit here, never in the rendered copies | `python3 tools/sync-briefings.py --write` |
 | `tools/sync-briefings.py` | run directly (renders both canonical blocks — Bifrost and branch policy — into every sibling repo's `CLAUDE.md`; bare/`--check` reports drift, `--write` fixes it; also asserts the condensed block and §H agree on glyph roles, and trips on the retired push-to-`main` directive) | `python3 tools/sync-briefings.py --write` |
-| `tools/check-branch-cap.py` | run directly (no repo carries more than **9** branches; a `claude/*` ref already reachable from an `archive/*` branch counts as PENDING deletion and reports rather than fails; unreachable remotes are skipped and named) | `python3 tools/check-branch-cap.py` |
+| `tools/check-branch-cap.py` | run directly (no repo carries more than **9** *feature* branches; the rails — `main`, `Yggdrasil`, `doombox/*` — are exempt; a `claude/*` ref already reachable from a drawer counts as PENDING deletion and reports rather than fails; unreachable remotes are skipped and named) | `python3 tools/check-branch-cap.py` |
+| `tools/check-promotion.py` | run directly or in CI — **the top-gate lock**: refuses any PR into `main` that is a full-branch merge (head is a rail, or the Yggdrasil tip is an ancestor of the head), so `main` moves only by a `promote/*` cherry-pick | `python3 tools/check-promotion.py --head <branch> --base main` |
+| `.github/workflows/promotion-guard.yml` | GitHub Actions — runs `check-promotion.py` as the `promotion-guard` check on every PR to `main`. Active once on `main`; mark it **Required** in branch protection to make the lock binding | — |
 | `tools/hlidskjalf.py` | run directly — **the high seat**: one board over every repo (tier gaps, drawers, `claude/*` counts, PR snapshot, claimed lanes) with a **ranked queue of founder-only decisions**. Sight, no hands: it never pushes, merges, deletes, or schedules. `--write` renders `docs/ai-cto/hlidskjalf-board.md` + `docs/hlidskjalf.html` (published to Pages) | `python3 tools/hlidskjalf.py --write` |
 | `.claude/hooks/gate.sh` | `PreToolUse(Bash)` hook — runs the five checks above before any `git commit` and blocks on failure (bypass: `touch .claude/.gate-off`) | wired in `.claude/settings.json` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
@@ -680,7 +682,12 @@ stays below.
 force-push a feature branch you own, **never a rail** (`main`, `Yggdrasil`, `doombox/*`).
 Promote upward only by cherry-pick. Only Yggdrasil reaches `main`, and only through the
 founder's approved **cherry-pick** PR — specific chosen commits on a `main`-based branch,
-never the whole Yggdrasil branch merged in.
+never the whole Yggdrasil branch merged in. **The lock is mechanical:**
+`tools/check-promotion.py` runs as the `promotion-guard` workflow on every PR to `main` and
+*refuses* the forbidden shape — a rail as head (e.g. a `Yggdrasil → main` PR), or the
+Yggdrasil tip reachable from the head (a whole-branch merge in disguise). Promotions ride a
+`promote/*` branch cut from `main`. Marking `promotion-guard` **Required** in `main`'s
+branch protection is the founder admin toggle that turns the report into a binding refusal.
 
 **RCPS — how work gets done here** (adopted 2026-08-07). The acronym carries **two
 readings, and both are required, interleaved**:

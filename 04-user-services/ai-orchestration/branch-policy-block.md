@@ -79,4 +79,11 @@ force-push a feature branch you own, **never a rail** (`main`, `Yggdrasil`, `doo
 Promote upward only by cherry-pick. Only Yggdrasil reaches `main`, and only through the
 founder's approved **cherry-pick** PR — specific chosen commits on a `main`-based branch,
 never the whole Yggdrasil branch merged in. Retry with backoff on network failure.
+
+**The lock is mechanical, not advisory.** A full-branch merge into `main` is *refused* by
+`tools/check-promotion.py`, run as the `promotion-guard` check on every PR to `main`: it
+fails if the head is a rail (e.g. `Yggdrasil`) or if the Yggdrasil tip is an ancestor of
+the head (a whole-branch merge in disguise). Promotions ride a `promote/*` branch cut from
+`main`. To make the refusal binding rather than merely reported, the check must be marked
+**Required** in `main`'s branch protection — the one admin toggle behind the lock.
 <!-- branch-policy:end -->
