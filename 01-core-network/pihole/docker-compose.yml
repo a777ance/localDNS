@@ -57,8 +57,18 @@ services:
       # Admin/API password — sourced from ~/pihole/.env, NEVER in git. Fail closed:
       # `docker compose up` errors if PIHOLE_WEBPASSWORD is unset (vault sealed).
       FTLCONF_webserver_api_password: "${PIHOLE_WEBPASSWORD:?set PIHOLE_WEBPASSWORD in ~/pihole/.env (unseal the sops+age vault first)}"
+    # provenance: O · read off the live t630 by tools/t630-drift-audit.sh · 2026-08-09
+    # Present on the box and previously missing here. FTL uses SYS_NICE to set its own
+    # scheduling priority; without it FTL warns and runs at default niceness. A rollback
+    # target that silently drops a capability the live box holds is not a rollback target.
+    cap_add:
+      - SYS_NICE
     volumes:
       - pihole_data:/etc/pihole
+      # NOT on the live box (drift audit, 2026-08-09) — repo-only addition. Under v6
+      # dnsmasq config moved into /etc/pihole/pihole.toml, so /etc/dnsmasq.d is legacy
+      # and mounting an empty named volume over it can mask image-provided files.
+      # VERIFY before deploying this line; drop it if the box does not want it.
       - dnsmasq_data:/etc/dnsmasq.d
 
 volumes:
