@@ -275,16 +275,28 @@ python3 ~/a777ance/collect/populate_sets.py | head
 sudo python3 ~/a777ance/collect/populate_sets.py --apply
 sudo nft -j list counters table inet a777acct   # should show non-zero bytes within minutes
 
-# 5. Add to cron (crontab -e)
+# 5. Add to ROOT's cron (sudo crontab -e) — see the note below on why root
+sudo install -d -m 755 /var/log/a777ance
 # refresh IP sets every 6h (CDN IPs rotate; elements time out in 24h)
-3 */6 * * *  sudo /usr/bin/python3 /home/USER/a777ance/collect/populate_sets.py --apply >/dev/null 2>&1
+3 */6 * * *  /usr/bin/python3 /home/USER/a777ance/collect/populate_sets.py --apply >>/var/log/a777ance/populate-sets.log 2>&1
 # collect monthly stats nightly
 30 0 * * *   /usr/bin/python3 /home/USER/a777ance/collect/collect_stats.py \
-             --out /var/lib/a777ance/$(date +\%Y-\%m).stats.json
+             --out /var/lib/a777ance/$(date +\%Y-\%m).stats.json >>/var/log/a777ance/collect-stats.log 2>&1
 ```
 
 Replace `USER` with the actual username on the t630. After the cron runs once,
 verify with: `sudo nft -j list counters table inet a777acct`
+
+**Both jobs belong in `sudo crontab -e` (root's), not the login user's, and they log
+to a file rather than `/dev/null`.** Every source they touch is root-only:
+`populate_sets.py --apply` programs the nft sets, and `collect_stats.py` reads
+`/etc/pihole/pihole-FTL.db`, runs `nft -j list counters` and `wg show`, and writes
+`/var/lib/a777ance`. Installed as the login user, both fail **silently** — the IP sets
+stop refreshing, their 24h element timeout ages them out, and the counters decay
+toward zero while the statement pipeline keeps reading them as measured fact. That is
+the honesty rule failing closed in the wrong direction, so the failure has to be
+loud: `tail /var/log/a777ance/*.log` after the first scheduled run.
+`tools/deploy-volume-layer.sh` installs it this way for you.
 
 ---
 

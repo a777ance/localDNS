@@ -27,17 +27,23 @@ the t630.
   ```bash
   T630_HOST=USER@192.168.1.118 tools/t630-drift-audit.sh
   ```
-  This writes timestamped diffs under `.audit/t630-drift/`. It uses `sudo -n` for
-  root-owned files, so run `ssh -t USER@192.168.1.118 sudo -v` first if your sudo
-  ticket is not already warm. If any file differs, reconcile toward the live box,
-  commit, push, then re-sync before deploying.
+  This writes timestamped diffs under `.audit/t630-drift/`. **Sudo prompts once**,
+  interactively — the script stages every live file in a single `ssh -t` session and
+  then streams the staging dir back over one plain connection. Don't pre-warm with
+  `sudo -v` and expect it to carry: Ubuntu's sudo is `timestamp_type=tty`, so a
+  ticket from one session is invisible to the TTY-less connections that follow, and
+  every root-owned file would report unreadable. If any file differs, reconcile
+  toward the live box, commit, push, then re-sync before deploying.
 - **Track 3 volume layer deploy:**
   ```bash
   T630_HOST=USER@192.168.1.118 T630_USER=USER tools/deploy-volume-layer.sh
   ```
   This copies `docs/statements/tools/collect/`, validates and loads the nftables
-  ruleset, applies `populate_sets.py`, installs tagged cron entries, and prints
-  the accounting table for verification.
+  ruleset, applies `populate_sets.py`, installs cron entries **in root's crontab**,
+  and prints the accounting table for verification. Sudo prompts once. Root's
+  crontab is not a detail: every source the jobs read is root-only, so a login-user
+  install fails silently and lets the counters decay while still looking measured
+  (CLAUDE.md § F). Jobs log to `/var/log/a777ance/` — check it after the first run.
 
 ## How to read this list
 
