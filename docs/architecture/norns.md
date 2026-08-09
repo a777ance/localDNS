@@ -179,6 +179,78 @@ Newest-first per house style once this table grows.
 
 ---
 
+## 4b. The protocol — races, and how each one resolves
+
+Five ways two Norns can collide. Four are solved; the fifth is stated as unsolved rather
+than papered over. **Every resolution here is a real mechanism, not a request** — except
+where it says otherwise, in which case that is the finding.
+
+| # | Race | Resolves by | Cost you accept |
+| --- | --- | --- | --- |
+| 1 | Two Norns push the branch at once | Git refuses the second (non-fast-forward). Fetch, **rebase yours onto theirs**, push. | A rebase per collision. Never `--force`: that does not pass the eye, it puts out the other Norn's. |
+| 2 | Two Norns claim the same work | One file per claim; exactly one push fast-forwards. **That push is the licence.** | None. This is free — git already serialises it. |
+| 3 | A holder ends while holding a licence | **The lease.** Stale = older than the lease **and** silent within the lease window. Then `--take` with a reason. | A dead holder blocks for at most one lease (default 4h). |
+| 4 | Work needs to move between live Norns | **`--hand ITEM --to <session>`** — a push hand-off. The holder consents by definition, so no liveness test is needed. | The receiver is not asked. A hand-off is a gift, and the giver had the right to give it. |
+| 5 | Two Norns edit the *same generated block* | **Unsolved.** Both regenerate `CLAUDE.md`, both conflict. Resolution is manual: take the remote file, re-run the generator, never hand-merge build output. | Nine conflicts in one round, observed 2026-08-08. Lanes reduce it; nothing prevents it. |
+
+### Why push and pull are not symmetric
+
+This is the load-bearing asymmetry, and getting it wrong would hollow out the whole system.
+
+- **Push (`--hand`) is always safe.** The holder is giving away something it holds. No
+  liveness test, no lease, no permission beyond holding it.
+- **Pull (`--take`) is refused while the holder is alive.** If a Norn could take live work
+  from a working Norn, every licence would be advisory — a suggestion, not a lock — and we
+  would be back to duplicate assignment with extra ceremony. So `--take` requires an
+  expired lease **and** silence, and records who took it, from whom, and why.
+
+### How liveness is decided — by evidence, not by asking
+
+There is no API to ask "is that session alive?" But **every commit carries a
+`Claude-Session:` trailer**, so git alone answers *"has this holder done anything lately?"*
+`--norns` lists who has been weaving, derived from trailers only. **A holder that appears
+there is alive by evidence, and its licence cannot be taken.**
+
+The silence window is the **lease**, not "since the claim" — a distinction that is easy to
+get wrong and was got wrong in the first implementation. Checking since-claim lets a single
+commit keep a licence alive forever: a Norn that claimed, pushed once and ended would never
+age out, and the lock would outlive it, which is the exact bug the lease exists to remove.
+Caught in testing, where a 19-hour-dead licence reported as alive. **A long, quiet job
+keeps its licence with `--renew`** — a heartbeat inside the window.
+
+### Pros and cons, stated plainly
+
+**What this buys.** No duplicate assignment on licensed work. A dead holder blocks for one
+lease instead of forever. Work moves between Norns without the founder arbitrating. Every
+break is answerable after the fact — who took what, from whom, why.
+
+**What it costs, and what can still go wrong.**
+
+- **A licence is still a *declared* boundary.** It refuses a second *claimant*; it does not
+  refuse a Norn that never runs `weave.py` at all. Nothing makes claiming mandatory
+  (`docs/architecture/proxies.md` §3 — declared, not enforced).
+- **A quiet-but-live holder can lose its licence** if it works for over a lease without
+  committing or renewing. The activity test makes this unlikely, not impossible. Renew.
+- **The lease is a guess.** Four hours suits sessions that commit every few minutes. A
+  slower rhythm wants `--lease` raised, and nobody has measured the right number.
+- **Clock skew is unhandled.** Timestamps are written by whichever machine claimed. A badly
+  wrong clock would mis-age a licence.
+- **Race 5 remains open.** Concurrent regeneration of the same generated block conflicts
+  every time, and no licence prevents it — the licence covers *work*, not *files*.
+
+### The order of operations
+
+1. `python3 tools/weave.py` — look. Who holds the eye, what is licensed, what is queued.
+2. `--norns` before spawning or taking — who is demonstrably alive.
+3. `--claim "<item>" --lane <urdr|verdandi|skuld>` — **before** the work. A dirty tree is
+   refused, because a dirty tree means the work already started.
+4. Work. `--renew` if it runs long and quiet.
+5. `--release` when done — or `--hand --to` if another Norn should carry it.
+6. Found a licence held by a Norn that has gone? `--take` with a reason. If it refuses,
+   the holder is alive: leave it.
+
+---
+
 ## 5. The failure mode is duplicate assignment, not collision
 
 Git catches collisions. **Nothing catches two Norns being given the same thread.**
