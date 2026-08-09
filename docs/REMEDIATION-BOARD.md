@@ -116,6 +116,14 @@ deploy-affecting change; this track never closes.
       Treat it as burned: set `PIHOLE_WEBPASSWORD` in `~/pihole/.env`, deploy the
       repo's env-sourced compose (`01-core-network/pihole/docker-compose.yml`,
       DEPLOY-QUEUE Stage 4), restart, and destroy the local audit copy.
+- [ ] **URGENT — disk pressure on the eMMC.** FTL reported `92% is used (12.9GB used,
+      13.9GB total)` on 2026-08-09, i.e. ~1GB free on the 16GB eMMC. This is an
+      availability *and* an honesty risk: when the disk fills, FTL stops writing its
+      long-term DB, and the query counts a Statement is built from silently stop being
+      complete — the failure looks like a quiet month, not an outage. Diagnose
+      (`docker system df`, `du -xh`, FTL DB size, journal size), reclaim, then decide a
+      standing retention policy. Note the nightly collector writes to `/var/lib/a777ance`
+      and `/var/log/a777ance` on the same filesystem.
 - [ ] Verify WAN reaches **only** WireGuard (51820/udp).
 - [ ] Verify console + ttyd are LAN + WG only, never port-forwarded.
 - [ ] Verify the Pi-hole UI is not WAN-exposed.
@@ -177,8 +185,11 @@ missing, the repo is a partial memory, not a recovery artifact.
 - [ ] **Fix the audit's secret leak:** it copies live files verbatim to the operator's
       laptop, credentials included. Redact or refuse known-secret-bearing paths.
 - [ ] Resolve the 7 `absent on box` rows — see the open question in Track 6.
-- [ ] Decide the `dnsmasq_data:/etc/dnsmasq.d` mount: repo-only, and under v6 that path
-      is legacy, so an empty named volume there can mask image-provided files.
+- [x] Decide the `dnsmasq_data:/etc/dnsmasq.d` mount. **Resolved 2026-08-09:** deployed
+      and observed — the directory is empty inside the container and DNS resolves
+      normally, so it masks nothing (v6 really did move config into `pihole.toml`).
+      Harmless but useless, and it makes FTL emit a duplicate disk-shortage warning for
+      that mount. Recommend dropping the line; not a risk either way.
 - [ ] Remove stale "reconstructed — verify against the box" warnings once each file is
       confirmed, so the remaining warnings keep meaning something.
 
@@ -213,6 +224,22 @@ rule; a staged deploy queue instead of vague next steps; and a WireGuard-only WA
 ## Session log
 
 Newest first.
+
+### 2026-08-09 — Pi-hole credential rotated; disk pressure found
+
+- Rotated the Pi-hole credential onto `~/pihole/.env` (`0600`) and deployed the
+  env-sourced compose (Stage 4). The rotation is proven by construction: the compose
+  uses `${PIHOLE_WEBPASSWORD:?…}`, which fails closed, so the container could not have
+  started without reading the file. DNS verified answering and blocking after restart.
+- `cap_add: SYS_NICE` was still absent post-deploy — the operator's checkout predated
+  the fix, so the pre-fix file was the one copied. FTL's own
+  `CAP_SYS_NICE required` warning caught it. Pull, re-copy, re-up.
+- **Found the eMMC at 92% full (~1GB free)** — not visible from any file in the repo;
+  it surfaced only from FTL's startup log on a live restart. Now the urgent item in
+  Track 4.
+- FTL also warns `CAP_SYS_TIME required, NTP client not available` — low priority, but
+  decide whether the compose should grant it or the briefing should say it is declined
+  on purpose.
 
 ### 2026-08-09 — board adopted; Tracks 1 and 3 opened
 
