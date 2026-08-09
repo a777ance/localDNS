@@ -617,42 +617,66 @@ Every commit that reaches `main` must leave README.md able to reproduce a workin
 on clean Ubuntu 24.04. That is the condition for entering the Well (below) — on
 Yggdrasil it is the target, at the Well gate it is binding.
 
-**Yggdrasil and the Well of Mimir** — founder's standing instruction (2026-08-08),
-superseding "push to `main`, no branches" (2026-06-05).
+**The cream rises — promote by cherry-pick, one rung at a time** — founder's standing
+instruction (2026-08-09), superseding "one standing working branch, no per-session
+branches" (2026-08-08), which itself superseded "push to `main`, no branches" (2026-06-05).
+The promotion ladder is a *filter*: every step up is a **cherry-pick — an act of selection,
+never a bulk merge.** Merge moves everything; cherry-pick skims only the cream. Nothing
+floats up by default; it has to be *chosen* up, so quality rises rung by rung and the dross
+stays below.
 
-- **`Yggdrasil` is the one standing working branch. Always push there, never to `main`.**
-  One super-branch for the whole portfolio, in every repo — no per-session branches. The
-  branch-per-session habit is what produced 337 stale `claude/*` branches, 226 of them
-  carrying commits that exist nowhere else.
-- **`main` is the Well of Mimir** — vetted knowledge. It moves only by a PR that the
-  founder approves. No cadence, no auto-merge: the Well fills when the founder decides it
-  does. This is the Bifrost one-way door (§H) at portfolio scale — `main` is the outermost
-  `*`, and no inner gate may release past it.
+**The ladder (raw → real):**
+
+- **Feature branches** — many, cheap, per-session or per-topic. Where raw work happens.
+  Multi-branch is legitimate again; it just never promotes by merge, and it is capped
+  (below).
+- **Doombox 1 (`doombox/1-messy`) — the messy box.** Cherry-pick here the work you do not
+  yet know what to do with. It inherits the doom drawer's role: *"Didn't Organize, Only
+  Moved"* — the ADHD filing trick applied to refs, *findable* not *sorted*, precisely so
+  nothing has to be thrown away. The dated `doom-drawer/*` (and legacy `archive/*`) refs
+  fold into this box. Retire a spent feature branch by filing its tips here, then delete the
+  ref — history stays reachable, so the deletion loses nothing (226 of the original 338
+  `claude/*` branches held commits that existed nowhere else — that is why we file, never
+  discard). Open it with `git log --oneline doombox/1-messy --not origin/Yggdrasil`; take
+  something back out with `git branch <name> <sha>`.
+- **Doombox 2 (`doombox/2-draft-main`) — the draft main / pseudo-main.** Cherry-pick here
+  what is shaping up: the staging draft of what `main` will become.
+- **`Yggdrasil` — the exalted second standing branch; the hyperspace.** *Everything must
+  pass through it, and it is the only branch with access to `main`.* Cherry-pick from the
+  doom boxes into Yggdrasil once you are satisfied.
+- **`main` — the Well of Mimir** — vetted knowledge; the stable final repo. It moves only
+  by a PR that the founder approves, cherry-picked up from Yggdrasil. No cadence, no
+  auto-merge: the Well fills when the founder decides it does. This is the Bifrost one-way
+  door (§H) at portfolio scale — `main` is the outermost `*`, and no inner gate may release
+  past it. **`main` means "exists on the stable final repo," never "live."**
+- **Valhalla** — *deployed, for real, on the box.* Not a branch: the state a change reaches
+  only when it actually runs. `main` is the final ref; Valhalla is the final reality.
+
+**Standing rules:**
+
 - **The spring is the founder, and it is out of scope for the machine.** An analog signal
-  nothing here can sample or verify against. Yggdrasil and the Well are channels, not
-  sources; every file in this repo is *transmission*, and transmission never promotes
-  (Provenance Ladder, below). A green check proves transcripts agree with **each other** —
-  never that they agree with the founder. Only asking closes that gap.
+  nothing here can sample or verify against. Every rung is a channel, not a source; every
+  file in this repo is *transmission*, and transmission never promotes (Provenance Ladder,
+  below). A green check proves transcripts agree with **each other** — never that they
+  agree with the founder. Only asking closes that gap.
 - **Never overwrite doctrine.** Pull with `--ff-only` and nothing else — a fast-forward
   can only add commits, where a merge, rebase, or reset can silently rewrite founder-
   authored text. A session transcribes doctrine; it does not author it.
+- **No more than 9 *feature* branches in a repo** — founder's standing instruction
+  (2026-08-09, revising the 2026-08-08 cap), enforced by `tools/check-branch-cap.py` at the
+  commit gate. The rails — `main`, `Yggdrasil`, `doombox/*` — are promotion infrastructure
+  and are exempt. The cap is what keeps re-legitimized branches from becoming the
+  337-branch sprawl again: branches are safe because they are *capped*, *promoted by
+  selection*, and *retired losslessly into Doombox 1*.
 - **The tree is bigger than GitHub.** Yggdrasil spans the interacting systems — the
   t630 stack, the LiteLLM router, the NotebookLM bridge, Stripe, Setmore, the CRM — and
   GitHub is one root-well it drinks from. That is why the seed flows well→tree at
   `SessionStart` and tree→well at the PR gate.
-- **Never more than 9 branches in a repo** — founder's standing instruction (2026-08-08),
-  enforced by `tools/check-branch-cap.py` at the commit gate. With `main`, `Yggdrasil` and
-  the drawer, a healthy repo sits at 3–5; nine is headroom, not a target.
-- **The doom drawer — "Didn't Organize, Only Moved."** Retire a branch by **putting it in
-  the drawer first**: `doom-drawer/<date>`, an octopus commit whose parents are the stale
-  tips, keeps every orphaned commit reachable from one ref, after which deleting the
-  branches loses nothing. It is the ADHD filing trick applied to refs, and the name states
-  the honest limit — the drawer is *findable*, not *sorted*. That is the point: sorting is
-  what makes people throw things away, and 226 of the original 338 branches held commits
-  that existed nowhere else. **Never delete a `claude/*` branch that is not reachable from
-  a `doom-drawer/*` (or legacy `archive/*`) ref.** Open the drawer with
-  `git log --oneline doom-drawer/* --not origin/Yggdrasil`; take something back out with
-  `git branch <name> <sha>`.
+
+**Push:** feature work goes to your own feature branch or straight into a doom box; you may
+force-push a feature branch you own, **never a rail** (`main`, `Yggdrasil`, `doombox/*`).
+Promote upward only by cherry-pick. Only Yggdrasil is offered to `main`, and only through
+the founder's approved PR.
 
 **RCPS — how work gets done here** (adopted 2026-08-07). The acronym carries **two
 readings, and both are required, interleaved**:

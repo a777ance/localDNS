@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Enforce the branch cap: no A777ance repo carries more than 9 branches.
+"""Enforce the branch cap: no A777ance repo carries more than 9 *feature* branches.
+
+The rails — `main`, `Yggdrasil`, and every `doombox/*` — are promotion infrastructure
+(the "cream rises" ladder, founder's standing instruction 2026-08-09) and do not count
+against the cap. Only feature branches (everything else, e.g. `claude/*` and topic
+branches) are capped.
 
 WHY THIS EXISTS (docs/architecture/warrant-sites.md)
 ----------------------------------------------------
@@ -69,10 +74,24 @@ DEFAULT_CAP = 9
 # refs: one drawer you can stuff things into without sorting them, precisely so nothing
 # has to be thrown away to get the desk clear. A branch whose tip is reachable from here
 # is *kept*, not tidied — which is the whole reason deleting the ref is safe.
-# `archive/` stays recognised: it is the older name for the same idea, and localDNS
-# carries a pre-existing `archive/main-pre-consolidation`.
-DRAWER_PREFIXES = ("doom-drawer/", "archive/")
+# `doombox/1-messy` is the standing home for this (2026-08-09); `doom-drawer/` and the
+# older `archive/` are the same idea under their earlier names and stay recognised
+# (localDNS carries a pre-existing `archive/main-pre-consolidation`).
+DRAWER_PREFIXES = ("doombox/1-messy", "doom-drawer/", "archive/")
 SESSION_PREFIX = "claude/"
+
+# The RAILS — promotion infrastructure, not work. The cap counts *feature* branches only
+# (founder's standing instruction 2026-08-09, "the cream rises"): the ladder's fixed rungs
+# — `main` (the Well of Mimir), `Yggdrasil` (the hyperspace), and every `doombox/*` — are
+# exempt, because they are the machinery that keeps feature branches from sprawling, not
+# the sprawl itself. Capping them would punish the repo for having the ladder it is
+# required to have.
+RAIL_EXACT = frozenset({"main", "Yggdrasil"})
+RAIL_PREFIXES = ("doombox/",)
+
+
+def is_rail(name: str) -> bool:
+    return name in RAIL_EXACT or name.startswith(RAIL_PREFIXES)
 
 
 def git(repo: pathlib.Path, *args: str, timeout: int = 30) -> str | None:
@@ -151,8 +170,11 @@ def main() -> int:
         if branches is None:
             skipped.append(repo.name)
             continue
-        if len(branches) <= args.cap:
-            ok.append(f"{repo.name} ({len(branches)})")
+
+        # The cap counts feature branches only; the rails are exempt (see RAIL_* above).
+        feature = {name: sha for name, sha in branches.items() if not is_rail(name)}
+        if len(feature) <= args.cap:
+            ok.append(f"{repo.name} ({len(feature)} feature / {len(branches)} total)")
             continue
 
         drawer_refs = [sha for name, sha in branches.items()
@@ -167,22 +189,22 @@ def main() -> int:
             # fails wrongly gets bypassed, which puts the invariant back to having no
             # site. Report it unverified and name it; never guess "nothing is filed".
             unverified.append(
-                f"{repo.name}: {len(branches)} branches — drawer present on the remote but "
-                f"not fetchable; reachability NOT checked")
+                f"{repo.name}: {len(feature)} feature branches — drawer present on the remote "
+                f"but not fetchable; reachability NOT checked")
             continue
 
-        pending = sum(1 for name, sha in branches.items()
+        pending = sum(1 for name, sha in feature.items()
                       if name.startswith(SESSION_PREFIX) and reachable(repo, sha, anchors))
-        effective = len(branches) - pending
+        effective = len(feature) - pending
 
         if effective > args.cap or (args.strict and pending):
             failures.append(
-                f"{repo.name}: {len(branches)} branches, cap {args.cap} "
+                f"{repo.name}: {len(feature)} feature branches, cap {args.cap} "
                 f"({pending} in the doom drawer, {effective} effective)")
         else:
             pending_repos.append(
-                f"{repo.name}: {len(branches)} branches — {pending} in the doom drawer, awaiting "
-                f"deletion; {effective} effective (within cap)")
+                f"{repo.name}: {len(feature)} feature branches — {pending} in the doom drawer, "
+                f"awaiting deletion; {effective} effective (within cap)")
 
     for line in ok:
         print(f"ok      {line}")

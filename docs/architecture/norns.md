@@ -9,6 +9,18 @@ thread — because they **cannot talk to each other**, and the repo is the only 
 both of its characteristic outcomes: independent convergence on the same invariant (good,
 and the reason to keep doing this) and a duplicate assignment (the failure mode, §5).
 
+**Refined 2026-08-09 — the eye is a rail, not a leash.** With multi-branch work
+re-legitimized (the "cream rises" ladder — §3 of `CLAUDE.md`), a Norn no longer has to
+weave directly on the shared tip for every keystroke. **The single passed "eye" governs
+the rails only — `Yggdrasil` and above.** Below them, each Norn may cut its own **feature
+branch** and work without contending for the tip at all; it re-enters the weave only when
+it *promotes* — cherry-picking the cream up into a doom box and, once satisfied, into
+Yggdrasil. So contention moves off raw work and onto promotion: hold the eye (fetch), add
+your cherry-pick, hand it back (push); a non-fast-forward rejection on Yggdrasil is still
+the eye being handed back before you finished, never an error, and `--force` on a rail
+still puts out another Norn's eye. Duplicate assignment (§5) remains the failure git cannot
+catch — claim the lane before you branch, not only before you push.
+
 ---
 
 ## 0. Promotion — every running session is a Norn
