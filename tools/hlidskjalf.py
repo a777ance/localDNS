@@ -148,25 +148,49 @@ def decide(realms: list[dict], snap: dict | None) -> list[dict]:
     """
     d: list[dict] = []
 
+    # Is the top gate locked to cherry-pick-only promotion? If so, a whole-branch
+    # `Yggdrasil → main` PR is FORBIDDEN, not merely unfashionable — and any such PR still
+    # open is dead shape that must be closed, never approved. The seat learned this the hard
+    # way: it shipped recommending exactly the merge the lock refuses, because doctrine moved
+    # under it overnight. An instrument that cannot notice its own advice went stale is the
+    # failure it was built to catch.
+    locked = (LOCALDNS / "tools/check-promotion.py").exists()
+    rails = {"Yggdrasil", "main"}
+
     gap = [r for r in realms if not r.get("unreachable") and r.get("ahead", 0) > 0]
     dark = [r for r in gap if not r["policy_on_main"]]
-    if gap:
-        pr_hint = ""
-        if snap:
-            wells = [f"{name} #{p['number']}" for name, rp in snap.get("repos", {}).items()
-                     for p in rp.get("open_prs", []) if p.get("head") == "Yggdrasil"]
-            if wells:
-                pr_hint = " Open Yggdrasil→main PRs awaiting you: " + ", ".join(sorted(wells)) + "."
+    dead_shape = []
+    if snap:
+        dead_shape = [f"{name} #{p['number']}" for name, rp in snap.get("repos", {}).items()
+                      for p in rp.get("open_prs", [])
+                      if p.get("head") in rails or str(p.get("head", "")).startswith("doombox/")]
+
+    if gap and locked:
+        d.append({
+            "title": f"Promote the cream by cherry-pick — {len(gap)} repo(s) ahead of main",
+            "why": (f"{len(dark)} repo(s) have a `main` whose briefing never mentions the "
+                    f"ladder, so every fresh clone reads superseded doctrine and a stale "
+                    f"briefing cannot tell that it is stale. But `main` moves ONLY by "
+                    f"cherry-pick now: `tools/check-promotion.py` refuses a rail as head, so "
+                    f"a whole-branch merge cannot land even if approved."),
+            "action": ("Per repo: `git checkout -b promote/<topic> origin/main`, "
+                       "`git cherry-pick <the chosen commits>`, push that branch, PR it into "
+                       "`main`. Choose the cream — a promotion is a selection, not a transfer."
+                       + (f" FIRST CLOSE the {len(dead_shape)} open whole-branch PRs, which "
+                          f"the guard now refuses: {', '.join(sorted(dead_shape))}."
+                          if dead_shape else "")),
+            "unblocks": ("The gate scripts, the two-tier Pages site, Hlidskjalf itself, and "
+                         "every doctrine block reaching the tier fresh sessions clone."),
+            "source": "M · rev-list per repo + tools/check-promotion.py (verified: a rail "
+                      "head exits 1)",
+        })
+    elif gap:
         d.append({
             "title": f"Draw Yggdrasil into the Well — {len(gap)} repo(s) ahead of main",
-            "why": (f"{len(dark)} of them have a `main` whose briefing never mentions "
-                    f"Yggdrasil, so every fresh clone reads doctrine that predates the branch "
-                    f"policy — and a stale briefing does not know it is stale."
-                    if dark else
-                    "The working tier carries verified work the vetted tier lacks."),
-            "action": "Approve the open Yggdrasil→main pull requests." + pr_hint,
-            "unblocks": ("The tier gap, the gate scripts, the two-tier Pages site, and every "
-                         "doctrine block land where fresh sessions actually read them."),
+            "why": ("The working tier carries verified work the vetted tier lacks; "
+                    f"{len(dark)} main(s) still read pre-policy doctrine."),
+            "action": "Approve the open Yggdrasil→main pull requests.",
+            "unblocks": "Doctrine lands where fresh sessions actually read it.",
             "source": "M · rev-list over freshly fetched origin refs, per repo",
         })
 
