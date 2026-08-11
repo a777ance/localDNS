@@ -203,7 +203,7 @@ where it says otherwise, in which case that is the finding.
 | 2 | Two Norns claim the same work | One file per claim; exactly one push fast-forwards. **That push is the licence.** | None. This is free — git already serialises it. |
 | 3 | A holder ends while holding a licence | **The lease.** Stale = older than the lease **and** silent within the lease window. Then `--take` with a reason. | A dead holder blocks for at most one lease (default 4h). |
 | 4 | Work needs to move between live Norns | **`--hand ITEM --to <session>`** — a push hand-off. The holder consents by definition, so no liveness test is needed. | The receiver is not asked. A hand-off is a gift, and the giver had the right to give it. |
-| 5 | Two Norns edit the *same generated block* | **Unsolved.** Both regenerate `CLAUDE.md`, both conflict. Resolution is manual: take the remote file, re-run the generator, never hand-merge build output. | Nine conflicts in one round, observed 2026-08-08. Lanes reduce it; nothing prevents it. |
+| 5 | Two Norns edit the *same generated block* | **`tools/resolve-generated.py`** — regenerate, never hand-merge build output. It strips the generated regions from base/ours/theirs and compares the remaining prose: if only one side changed prose it keeps that side, if neither did it takes either, and if **both** changed prose it **refuses** and hands the file to a human. | Still needs invoking; it is not a merge driver. It automates only the provably-determined case and stops where a guess would be needed. |
 
 ### Why push and pull are not symmetric
 
@@ -247,8 +247,16 @@ break is answerable after the fact — who took what, from whom, why.
   slower rhythm wants `--lease` raised, and nobody has measured the right number.
 - **Clock skew is unhandled.** Timestamps are written by whichever machine claimed. A badly
   wrong clock would mis-age a licence.
-- **Race 5 remains open.** Concurrent regeneration of the same generated block conflicts
-  every time, and no licence prevents it — the licence covers *work*, not *files*.
+- **Race 5 is resolved, not prevented.** Concurrent regeneration still conflicts every
+  time — no licence stops it, because a licence covers *work*, not *files*.
+  `resolve-generated.py` makes the repair deterministic instead of manual, and **refuses
+  when prose changed on both sides** rather than guessing. It is deliberately *not* a git
+  merge driver: a driver that is subtly wrong loses content with nobody watching, and this
+  fires rarely enough that an explicit, inspectable step is the better trade.
+- **Running the resolver re-renders every sibling**, because the generator does. That is
+  usually a feature — it catches renders that were never pushed — but it means a conflict
+  repair can produce changes in repos you were not looking at. Check `git status` across
+  the portfolio afterwards.
 
 ### The order of operations
 
