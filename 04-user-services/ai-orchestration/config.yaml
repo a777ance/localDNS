@@ -31,11 +31,13 @@ model_list:
       model: ollama/nomic-embed-text
       api_base: http://127.0.0.1:11434
 
-  # --- Rented GPU tier (on-demand pod over Tailscale) ---
+  # --- Rented GPU tier (on-demand RunPod pod over Tailscale — see REMEDIATION-BOARD.md
+  # Track 6 "Exception (2026-08-16)" for why this jumped the deferral, and
+  # runpod-idle-stop.sh for the spin-down safety net) ---
   - model_name: cloud-gpu-reason       # full R1 on a rented GPU; heavy chain-of-thought
     litellm_params:
       model: ollama/deepseek-r1:70b
-      api_base: http://TAILSCALE_GPU_HOST:11434   # CHANGE_ME — the pod's Tailscale addr
+      api_base: http://TAILSCALE_GPU_HOST:11434   # CHANGE_ME — the RunPod pod's Tailscale addr
 
   # --- Cloud tier (Anthropic; overflow / failover). Pin to current model IDs. ---
   - model_name: cloud-overflow

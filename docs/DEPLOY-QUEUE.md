@@ -171,6 +171,23 @@ docker compose up -d
 - [ ] Verify: `curl -s http://127.0.0.1:4040/v1/models -H "Authorization: Bearer $LITELLM_MASTER_KEY"`
   lists the tiers; `chat.home.lan:3000` loads (first account = admin, from a trusted device).
 
+**Rented GPU tier (`cloud-gpu-reason`) — RunPod, per REMEDIATION-BOARD.md Track 6
+"Exception (2026-08-16)".** Not started: no pod has been rented yet.
+
+```bash
+# On RunPod: rent a pod, install Tailscale on it, `ollama serve` + `ollama pull deepseek-r1:70b`.
+$EDITOR ~/llm-router/config.yaml   # pin cloud-gpu-reason.api_base to the pod's Tailscale host
+cp <repo>/04-user-services/ai-orchestration/runpod-idle-stop.sh ~/llm-router/
+chmod +x ~/llm-router/runpod-idle-stop.sh
+# set RUNPOD_API_KEY, RUNPOD_POD_ID, TAILSCALE_GPU_HOST in ~/llm-router/.env
+crontab -e   # add: */5 * * * * /home/USER/llm-router/runpod-idle-stop.sh
+```
+
+- [ ] Verify: `tailscale ping <pod-host>` from the t630; a chat request against
+  `cloud-gpu-reason` reaches the pod (check LiteLLM logs for the routed backend).
+- [ ] Verify the idle-stop job actually stops the pod after an idle window — check the
+  RunPod dashboard, not just that the cron job ran.
+
 ## Stage 7 — Console (high-seat launcher + ttyd terminals)
 
 🆕 Depends on: Stage 1 (`/etc/a777ance/ttyd.env`), Stage 3 (names), Stage 5 (ports).

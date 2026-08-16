@@ -47,7 +47,7 @@ And never print a figure the box did not measure; omit the section instead.
 | 3 | Measured data plumbing | **Cleared to deploy** | — |
 | 4 | Security & exposure verification | **Open — one urgent item** | — |
 | 5 | First real measured Statement | Blocked | Track 3 · Kuma API key |
-| 6 | AI/console platform hardening | Deferred by design | Tracks 3–5 |
+| 6 | AI/console platform hardening | Deferred by design — **exception:** GPU-rental tier (2026-08-16) | Tracks 3–5 |
 
 ---
 
@@ -72,6 +72,17 @@ Follow the numbers, not the page order, and never renumber.
 
 **Goal:** keep advanced operator tooling useful without letting it outrun the base
 appliance.
+
+> **Exception (2026-08-16, founder-approved).** The `cloud-gpu-reason` tier in
+> `04-user-services/ai-orchestration/config.yaml` — a rented GPU pod reached over
+> Tailscale — moves ahead of Tracks 3–5, a deliberate carve-out from this track's
+> deferral. Scope is narrow: pick a provider (RunPod, chosen over Lightning AI
+> Studios for this because the design wants a persistent Ollama endpoint reachable
+> by hostname, not a notebook session — see `04-user-services/ai-orchestration/README.md`
+> "Offload heavy reasoning to a rented GPU"), pin the pod's Tailscale host in
+> `config.yaml`, and land an idle-stop safety net so a forgotten pod doesn't drain the
+> prepaid balance. **Everything else in this track — the console/ttyd hardening and the
+> Odin supervisor deploy — still waits on Tracks 3–5**, per the checklist below.
 
 - [ ] Verify the LiteLLM router and Open WebUI are deployed and reachable.
 - [ ] Verify the console launcher ("high seat") and both ttyd terminals.
@@ -224,6 +235,23 @@ rule; a staged deploy queue instead of vague next steps; and a WireGuard-only WA
 ## Session log
 
 Newest first.
+
+### 2026-08-16 — GPU-rental tier carved out of Track 6's deferral
+
+- Founder approved wiring the `cloud-gpu-reason` tier (rented GPU pod over Tailscale)
+  ahead of Tracks 3–5, as a deliberate exception — recorded here per RCPS so the next
+  session doesn't re-litigate the ordering (Root Cause Problem Solving; Record ·
+  Commit · Push · Sync — CLAUDE.md §3).
+- Provider: RunPod, chosen over Lightning AI Studios because the config wants a
+  long-lived Ollama endpoint reachable by hostname, not an interactive notebook
+  session. Lightning AI Studios stays the recommended tool for a one-off test-drive
+  of a big model; RunPod is for the real integration.
+- Landed: RunPod named explicitly in `config.yaml` / `README.md` / `.env.example`
+  comments, and a `runpod-idle-stop.sh` safety-net script (cron-driven) that stops
+  the pod after a configurable idle window — the mechanical enforcement of "always
+  hit stop," sited as a script rather than left as advice in a briefing.
+- Still placeholder: `TAILSCALE_GPU_HOST` and the RunPod API key/pod ID — no real
+  pod has been rented yet. Pin these once one exists (`docs/DEPLOY-QUEUE.md` Stage 8).
 
 ### 2026-08-09 — Pi-hole credential rotated; disk pressure found
 

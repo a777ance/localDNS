@@ -50,6 +50,33 @@ then spills to the Anthropic cloud tier (`cloud-overflow` / `cloud-explore` /
 `cloud-code` / `cloud-vision`) when the pod is off. **Never run deepseek-r1:7b+ on
 the t630 CPU** — its long chain-of-thought pins every core for minutes.
 
+## Offload heavy reasoning to a rented GPU
+
+`cloud-gpu-reason` wants a long-lived Ollama server reachable by hostname over
+Tailscale, not an interactive notebook session — that shape decides the provider:
+
+- **Evaluating whether this is worth it at all?** Test-drive on
+  [Lightning AI Studios](https://lightning.ai) first — free CPU tier, flip to an
+  A10G/A100 only when running something heavy, zero repo changes involved. It's a
+  browser IDE, not a standing endpoint, so it's the wrong shape for step 2 below.
+- **Wiring it into the router for real:** [RunPod](https://runpod.io) — rent a pod,
+  install Tailscale on it, run `ollama serve` + `ollama pull deepseek-r1:70b`, then
+  pin the pod's Tailscale hostname into `config.yaml`'s `cloud-gpu-reason.api_base`
+  (replacing `TAILSCALE_GPU_HOST`). RunPod's persistent-container model fits "the
+  router health-checks and routes to this like any other backend"; a notebook
+  session doesn't.
+- **The Golden Rule, enforced mechanically:** a rented pod left running drains the
+  prepaid balance whether or not anyone remembers to stop it. `runpod-idle-stop.sh`
+  (cron, every 5 min) polls the pod's GPU utilization over Tailscale/SSH and stops
+  it via the RunPod API after a few consecutive idle checks — see the script header
+  for install steps and the `.env.example` vars it needs (`RUNPOD_API_KEY`,
+  `RUNPOD_POD_ID`).
+
+This is a deliberate exception to Track 6's usual "AI hardening waits on the core
+Statement product" deferral — see `docs/REMEDIATION-BOARD.md` Track 6
+"Exception (2026-08-16)" for the recorded reasoning. No pod has been rented yet;
+`TAILSCALE_GPU_HOST` and the RunPod credentials stay `CHANGE_ME` until one exists.
+
 ## Deploy
 
 ```bash
