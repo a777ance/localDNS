@@ -130,6 +130,36 @@ not a solved one**: nothing in the current stack stops a sensitive prompt
 from silently falling through to a rented GPU when the local model times out
 or errors.
 
+## Three paths for the unserved "heavy + sensitive" quadrant
+
+`provenance: A · not costed — economics not yet worth pinning down · 2026-08-16 ·
+verify: none of these three options has been priced or trialed`
+
+High level only — no path here has a settled dollar figure yet, and this repo's
+honesty rule (§ "Portfolio conventions") means none should be printed as a real
+number until it is. Three ways to actually close the gap named above:
+
+1. **Commodity rental (what this doc otherwise costs out)** — cheap
+   ($2–70/mo depending on usage, see scenarios above), but the host has
+   hypervisor/physical access to plaintext VRAM. Fine for the non-sensitive
+   heavy-reasoning quadrant; not a fix for the sensitive one.
+2. **Confidential-computing rental (NVIDIA H100 Hopper CC mode + AMD
+   SEV-SNP/Intel TDX)** — memory stays encrypted even from the host, with
+   remote attestation to verify it. The real answer to "keep the sensitive
+   data private on rented hardware," but it's a separate, thinner-availability
+   SKU than the commodity listings priced above, adds compute overhead, and
+   isn't wired into Ollama/LiteLLM today — would need real integration work,
+   not just a `config.yaml` endpoint swap.
+3. **Buy owned local hardware** — a GPU the household actually controls
+   removes the third-party trust question entirely, at the cost of a one-time
+   capital spend instead of an hourly meter, and it's still bound by
+   whatever card is bought (no elastic scaling to a bigger model on demand).
+
+No recommendation yet — this is a placeholder for a future costed comparison,
+not a decision. Revisit once it's clear how much "heavy + sensitive" reasoning
+the household actually needs on a recurring basis; that volume is what would
+make path 2 or 3 worth pricing for real.
+
 ## Open item
 
 `config.yaml`'s `TAILSCALE_GPU_HOST` is still a `CHANGE_ME` placeholder — no
