@@ -89,6 +89,47 @@ here — re-quote at that point) would likely beat marketplace on-demand.
    pages at deploy time and replace this table's numbers with **`O`**-tier
    (observed) figures once a real pod has actually run.
 
+## The reasoning/sensitivity dilemma
+
+`config.yaml`'s fallback chain (`local-reason` → `cloud-gpu-reason` →
+`cloud-overflow`) reads as a **capability ladder** — climb it when the local
+model is too weak. It is easy to mistake that for a **privacy ladder** too,
+because `cloud-gpu-reason` sounds like it's still "yours." It isn't: it's
+rented hardware, and the host (on a marketplace like Vast.ai, a stranger with
+physical/hypervisor access) can see everything that transits the pod — see
+the "data exposure" discussion this doc's chat history covers. So climbing the
+ladder trades reasoning power for privacy, every step up.
+
+That trade collides with how reasoning depth and sensitivity actually
+distribute in practice — **they are not correlated, and if anything run
+opposite:**
+
+| | Sensitive | Non-sensitive |
+| --- | --- | --- |
+| **Low reasoning** | Stays on **local-reason**, even if the answer is worse. Falling through to `cloud-gpu-reason`/`cloud-overflow` here buys no capability and just hands a trivial-effort query to a third party for nothing. | `local-fast` handles it. No third party needed. |
+| **High reasoning** | **The unserved quadrant.** Deep personal reasoning — tax situations, medical symptoms, legal disputes, relationship conflicts — is exactly where you want both depth *and* privacy, and today's ladder has no private option at that depth. | The real, narrower use case for `cloud-gpu-reason`/`cloud-overflow`: abstract/technical heavy work with no personal stakes — debugging code, math proofs, general research synthesis. |
+
+**The dilemma, stated plainly:** the queries that most justify paying for
+heavy reasoning are disproportionately the sensitive ones, and the ladder's
+only heavy-reasoning tiers are both third-party hardware. There is no
+configuration of this stack that gets you deep reasoning *and* privacy at the
+same time — that combination requires **owned** local compute (a GPU the
+household actually controls), which is a hardware purchase, not a routing
+change.
+
+**Routing rule adopted from this** (sited in `config.yaml` next to
+`router_settings`, not only here — a rule stated only in this doc governs
+nothing per CLAUDE.md's "a clause needs a site"): sensitivity is classified
+*before* the fallback chain ever runs, and a sensitive query never crosses
+onto `cloud-gpu-reason` or `cloud-overflow` regardless of how much reasoning
+it needs. The LiteLLM fallback map alone cannot make that call — it has no
+concept of sensitivity, only of tier failure — so today the caller (or a
+future privacy gate, in the spirit of the Odin/Heimdall design referenced in
+`docs/ai-cto/context.md`) has to enforce it manually. **This is an open gap,
+not a solved one**: nothing in the current stack stops a sensitive prompt
+from silently falling through to a rented GPU when the local model times out
+or errors.
+
 ## Open item
 
 `config.yaml`'s `TAILSCALE_GPU_HOST` is still a `CHANGE_ME` placeholder — no

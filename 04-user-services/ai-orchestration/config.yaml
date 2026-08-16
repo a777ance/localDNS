@@ -57,6 +57,22 @@ model_list:
 
 # The reasoning ladder: light work stays local; heavy work climbs to the GPU pod,
 # then spills to the cloud tier when the pod is off / unreachable.
+#
+# ROUTING RULE — reasoning depth and sensitivity are NOT correlated; don't let this
+# fallback chain imply they are (see docs/architecture/gpu-rental-options.md
+# "The reasoning/sensitivity dilemma"):
+#   - Sensitive query, however deep the reasoning need -> stays on local-reason.
+#     Never fall through to cloud-gpu-reason or cloud-overflow for a sensitive
+#     query, even if the local answer is worse. cloud-gpu-reason is RENTED
+#     hardware (host has hypervisor/physical access) -- not private just because
+#     it's "your" reasoning tier by name.
+#   - cloud-gpu-reason / cloud-overflow are for non-sensitive, abstract/technical
+#     heavy reasoning only (code, math, general research) -- not a general escape
+#     valve for "local model too weak."
+# This fallback map does not enforce that distinction -- it's a capability ladder,
+# not a privacy gate. The caller (or a future Heimdall-style gate, see Odin lore
+# in docs/ai-cto/context.md) must classify sensitivity BEFORE routing; this file
+# alone cannot tell a sensitive prompt from a non-sensitive one.
 router_settings:
   fallbacks:
     - local-reason: ["cloud-gpu-reason", "cloud-overflow"]
