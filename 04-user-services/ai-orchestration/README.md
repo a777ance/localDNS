@@ -49,6 +49,10 @@ reasoning climbs to a rented GPU pod over Tailscale (`cloud-gpu-reason` = full R
 then spills to the Anthropic cloud tier (`cloud-overflow` / `cloud-explore` /
 `cloud-code` / `cloud-vision`) when the pod is off. **Never run deepseek-r1:7b+ on
 the t630 CPU** — its long chain-of-thought pins every core for minutes.
+Provider choice + cost prediction for that rented pod:
+[`docs/architecture/gpu-rental-options.md`](../../docs/architecture/gpu-rental-options.md)
+(asserted/reconstructed pricing — no pod rented yet, `TAILSCALE_GPU_HOST` in
+`config.yaml` is still `CHANGE_ME`).
 
 ## Deploy
 
