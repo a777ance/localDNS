@@ -1,0 +1,17 @@
+{
+  "name": "localDNS",
+  "install": "python3 -m pip install --break-system-packages --quiet segno",
+  "terminals": [
+    {
+      "name": "statement-gallery",
+      "command": "cd docs/statements && python3 -m http.server 8000 --bind 0.0.0.0",
+      "description": "Serves the Network Activity Statement gallery (the docs/statements/ Pages site) at http://localhost:8000 for local preview of generated client/operator statements."
+    }
+  ],
+  "ports": [
+    {
+      "name": "statement-gallery",
+      "port": 8000
+    }
+  ]
+}
