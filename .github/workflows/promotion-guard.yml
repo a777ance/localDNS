@@ -1,0 +1,39 @@
+# The top-gate lock. `main` moves only by a cherry-pick promotion from Yggdrasil —
+# never a full-branch merge (CLAUDE.md §3, "the cream rises"). This workflow is the site
+# that refuses the forbidden shape; tools/check-promotion.py holds the logic.
+#
+# For `pull_request` events, GitHub runs the workflow file from the BASE branch, so this
+# guard only takes effect once it is on `main`. Until then it is inert — which is why it
+# must ride in the first cherry-pick promotion. To make it a hard LOCK rather than a
+# report, mark the "promotion-guard" check **Required** in main's branch protection
+# (Settings -> Branches). That admin toggle is the founder's; the mechanism is here.
+name: promotion-guard
+
+on:
+  pull_request:
+    branches: [ main ]
+
+# Least privilege: the guard only reads history.
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch the rails the check reasons about
+        run: |
+          git fetch --no-tags origin "+refs/heads/Yggdrasil:refs/remotes/origin/Yggdrasil" || true
+          # Make the PR head resolvable as origin/<head_ref> for the NO-WHOLE-BRANCH test.
+          git fetch --no-tags origin "+refs/heads/${{ github.head_ref }}:refs/remotes/origin/${{ github.head_ref }}" || true
+
+      - name: Refuse a full-branch merge into main
+        run: |
+          python3 tools/check-promotion.py \
+            --head "${{ github.head_ref }}" \
+            --base "${{ github.base_ref }}"
