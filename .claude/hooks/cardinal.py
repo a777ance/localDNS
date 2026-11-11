@@ -14,17 +14,21 @@ from pathlib import Path
 
 ROOT = Path(os.environ.get("CLAUDE_PROJECT_DIR") or Path(__file__).resolve().parents[2])
 READ_ONLY = re.compile(
-    r"^\s*(ls|cat|head|tail|grep|rg|find|wc|diff|stat|file|which|command|echo|pwd|date|env|"
+    r"^\s*(ls|cat|head|tail|grep|rg|find|wc|diff|stat|file|which|command|echo|printf|sort|uniq|cut|tr|test|true|pwd|date|env|"
     r"git\s+(status|log|diff|show|branch|fetch|remote|rev-parse)|python3?\s+tools/check-)\b")
 
 
 def classify_bash(cmd: str) -> str:
+    own = re.search(r"tools/matrix\.py\s+((?:observe|orient|decide|act)\.[\w-]+)", cmd)
+    if own and "<<" not in cmd:  # a here-document may only quote a Matrix call, not make one
+        return own.group(1)  # a Matrix call names its own cardinal
     if re.search(r"\bgit\s+(commit|push|merge)\b", cmd):
         return "act.ship"
     if re.search(r"tools/check-[\w-]+\.py", cmd) and not re.search(r"\bgit\s+(add|commit)\b|>\s*\S", cmd):
         return "decide.gate"
     # every segment of a compound command must be read-only to count as observe
-    parts = [p for p in re.split(r"&&|\|\||;|\|", cmd) if p.strip()]
+    parts = [re.sub(r"^\s*(do|then|else)\s+", "", p) for p in re.split(r"&&|\|\||;|\||\n", cmd) if p.strip()]
+    parts = [p for p in parts if not re.match(r"^\s*(for|while|if|done|fi)\b", p)]  # shell control words
     if parts and all(READ_ONLY.match(p) or p.strip().startswith("cd ") for p in parts) and ">" not in cmd:
         return "observe.read"
     return "act.write"

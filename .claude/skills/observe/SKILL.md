@@ -21,6 +21,7 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 - `observe.measure` — measured p-hat: `/form`, `/workout.calibrate`.
 - `observe.verify` — launch the app and see the change working: `/run`.
 - `observe.research` — multi-source research into a report: `/deep-research`.
+- `observe.status` — branch, changed files, Matrix mode, leases, and open stalls in one call.
 
 Loop: **fast**. Observe and Orient run on the fast loop; Decide and Act on the slow loop.
 

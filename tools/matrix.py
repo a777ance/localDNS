@@ -4,10 +4,13 @@
     python3 tools/matrix.py observe.read  PATH [START [END]]
     python3 tools/matrix.py observe.find  GLOB
     python3 tools/matrix.py observe.search PATTERN [PATH]
+    python3 tools/matrix.py observe.status            (branch, changed files, mode, leases, stalls)
     python3 tools/matrix.py orient.ground
     python3 tools/matrix.py decide.gate
+    python3 tools/matrix.py decide.open               (founder decisions still OPEN)
     python3 tools/matrix.py act.write PATH            (content on stdin; keeps a .bak)
     python3 tools/matrix.py act.edit  PATH OLD NEW    (OLD must occur exactly once)
+    python3 tools/matrix.py act.ship "MESSAGE" FILE... [--push]   (gates first, then commit)
     python3 tools/matrix.py orient.stall              (open stall incidents, with the stack)
     python3 tools/matrix.py act.resolve ID "CAUSE" "FIX"   (close one; logs to docs/ai-cto/stalls.md)
     python3 tools/matrix.py list
@@ -144,7 +147,63 @@ def act_resolve(sid, cause, fix):
     print(f"resolved {sid}; logged in docs/ai-cto/stalls.md")
 
 
-METHODS = {"orient.stall": orient_stall, "act.resolve": act_resolve,
+def _git(*a):
+    return subprocess.run(["git", *a], capture_output=True, text=True, cwd=ROOT)
+
+
+def observe_status():
+    cfg = json.loads((ROOT / ".claude/cardinal-map.json").read_text(encoding="utf-8"))
+    off = (ROOT / ".claude/.matrix-off").exists()
+    print(f"branch:  {_git('branch', '--show-current').stdout.strip() or '(none)'}")
+    print(f"mode:    {cfg.get('mode')}{' (kill switch ON: forced to name)' if off else ''}")
+    changed = _git("status", "--short").stdout.strip()
+    print("changed: " + (changed.replace(chr(10), chr(10) + "         ") if changed else "nothing"))
+    leases = sorted(f.name for f in (ROOT / ".claude/.matrix-lease").glob("*"))
+    stalls = sorted(f.stem for f in (ROOT / ".claude/.matrix-stalls").glob("*.json"))
+    print(f"leases:  {', '.join(leases) or 'none'}")
+    print(f"stalls:  {', '.join(stalls) or 'none'}")
+
+
+def decide_open():
+    text = (ROOT / "docs/ai-cto/blocked.md").read_text(encoding="utf-8")
+    rows = re.findall(r"^- \*\*(DEC-\d{3}) · (.*?) · OPEN\*\*", text, re.MULTILINE)
+    for dec, question in rows:
+        print(f"{dec} · {question}")
+    if not rows:
+        print("no open decisions")
+
+
+def act_ship(message, *rest):
+    push = "--push" in rest
+    files = [f for f in rest if f != "--push"]
+    if not files:
+        sys.exit("FAILED: name the files to ship. Nothing is staged implicitly.")
+    for check in sorted((ROOT / "tools").glob("check-*.py")):
+        r = subprocess.run([sys.executable, str(check)], capture_output=True, text=True, cwd=ROOT)
+        if r.returncode:
+            sys.exit(f"FAILED: gate {check.name} is red; nothing committed.\n" + (r.stdout + r.stderr)[-600:])
+    for f in files:
+        inside(f)
+    r = _git("add", "--", *files)
+    if r.returncode:
+        sys.exit("FAILED: git add: " + r.stderr.strip())
+    r = _git("commit", "-q", "-m", message)
+    if r.returncode:
+        sys.exit("FAILED: git commit: " + (r.stdout + r.stderr).strip())
+    print("committed " + _git("log", "--oneline", "-1").stdout.strip())
+    if push:
+        branch = _git("branch", "--show-current").stdout.strip()
+        for wait in (0, 2, 4, 8, 16):
+            time.sleep(wait)
+            r = _git("push", "-u", "origin", branch)
+            if r.returncode == 0:
+                print(f"pushed to origin/{branch}")
+                return
+        sys.exit("FAILED: git push after 5 tries: " + r.stderr.strip()[-300:])
+
+
+METHODS = {"observe.status": observe_status, "decide.open": decide_open, "act.ship": act_ship,
+           "orient.stall": orient_stall, "act.resolve": act_resolve,
            "observe.read": observe_read, "observe.find": observe_find, "observe.search": observe_search,
            "orient.ground": orient_ground, "decide.gate": decide_gate,
            "act.write": act_write, "act.edit": act_edit}
@@ -184,7 +243,8 @@ def main():
         os._exit(124)
 
     signal.signal(signal.SIGALRM, on_timeout)
-    signal.alarm(cap)
+    if name != "act.ship":  # shipping retries a push with backoff; every other method is capped
+        signal.alarm(cap)
     try:
         if os.environ.get("MATRIX_TEST_SLEEP"):  # test hook: simulate a slow call
             time.sleep(float(os.environ["MATRIX_TEST_SLEEP"]))

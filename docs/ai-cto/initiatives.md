@@ -8,6 +8,21 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
 
 ---
 
+## INIT-005 · The Matrix: every tool call routed through the four cardinals · Active
+
+- **Goal:** "There is no way out." Every tool call, workflow, and subagent is named as
+  `cardinal.method`, and native tools are repointed to our own tooling, durably.
+- **Line items:**
+  - Map, four cardinal skills, and gate (`tools/check-cardinal.py`): **Done**.
+  - Naming hook on every call (`.claude/hooks/cardinal.py`): **Done**, seen firing live.
+  - Own tooling (`tools/matrix.py`), 10-second cap, one-time lease, stall rule: **Done**.
+  - End-to-end test (`tools/check-matrix.py`): **Done**.
+  - Reach new sessions (merge PR #37 into `main`): **Blocked** on DEC-011.
+  - Gatekeeping, staged name → warn → enforce: **Blocked** on DEC-012. Mode is `name`.
+- **Founder lease:** 3 hours of unattended work granted 2026-11-11, from about 22:28 UTC to
+  01:28 UTC on 2026-11-12. It covers building and pushing to the branch. It does not cover
+  merging to `main` or switching the gate mode, which keep their own decisions.
+
 ## INIT-004 · OODA loop as an ongoing goal (RSI) · Active
 
 - **Goal:** the OODA loop never finishes. Each cycle re-evaluates the rules, raises the quality bar, and adds tooling, so the recursive self-improvement loop keeps running.

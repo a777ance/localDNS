@@ -15,6 +15,10 @@ to `Done` or `Punted`, and it is removed only by the founder.
 Every founder decision, newest first, with its result. Open tiles stay here until the
 founder decides.
 
+- **DEC-012 · Move the Matrix from name to warn mode · OPEN**
+  Asked 2026-11-11. Waiting on GO or NO GO. Enforce stays off until warn has run cleanly in a live session.
+- **DEC-011 · Merge PR #37 into `main` so the Matrix reaches new sessions · OPEN**
+  Asked 2026-11-11. Waiting on GO or NO GO.
 - **DEC-010 · Scope DEC tiles to decisions only the founder can make · OPEN**
   Asked 2026-11-11. Waiting on GO or NO GO.
 - **DEC-009 · Spawn 4 cloud peer sessions in 2 pairs · GO · executed.** A pair ran 42 rounds; B pair paused after 1.

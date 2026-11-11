@@ -17,6 +17,7 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 - `decide.tile` — a founder decision as a GO / NO GO tile (AskUserQuestion), logged as DEC-NNN.
 - `decide.vote` — a jury verdict: `/cardio`, `/strength`, `/workout`, juror agents.
 - `decide.gate` — the static checks under `tools/` that say yes or no mechanically.
+- `decide.open` — the founder decisions still OPEN in the decision log.
 
 Loop: **slow**. Observe and Orient run on the fast loop; Decide and Act on the slow loop.
 
