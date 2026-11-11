@@ -8,6 +8,20 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
 
 ---
 
+## INIT-007 · Retro rule: a new rule reaches backward · Active
+
+- **Goal (founder, 2026-11-11):** a rule does not start at the moment it is written. When a rule
+  is adopted, it is applied to everything already there that the session can reach, and what it
+  finds is fixed or reported. This holds for every rule, including ones not yet written.
+- **Worked case:** the scratchpad rule. On adoption, every scratchpad the session could reach was
+  swept (one existed, this session's own; its three files had been announced and were deleted).
+- **Line items:**
+  - Sweep at adoption for the scratchpad rule: **Done** by hand, 2026-11-11.
+  - Sweeps not yet run for the other rules adopted the same day (rehearse, probe before egress,
+    `cd ~/localDNS`): old docs and commands in the repo have not been checked against them: **Active**.
+  - A mechanism, so the sweep is not left to memory: every rule the Stop hook or a gate enforces
+    names an audit that can be run over existing state, and a check fails if a rule has none: **Active**, not built.
+
 ## INIT-006 · 1 + N lanes: the probe always goes first · Active
 
 - **Goal (founder, 2026-11-11):** every piece of work runs as 1 + N lanes. The 1 is always the
