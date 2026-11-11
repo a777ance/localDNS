@@ -49,8 +49,7 @@ founder decides.
   from it. Both checks would be repointed in the same change. This also covers the Phase D step the
   lease did not allow: shortening the reply-style prose now that the hook enforces five of its rules.
   Nothing has been moved.
-- **DEC-012 · Move the Matrix from name to warn mode · OPEN**
-  Lean GO (L-14 to L-16). Not executed: the permission system refused to let a session flip its own gate. Needs the founder's hand.
+- **DEC-012 · Move the Matrix from name to warn mode · GO · executed.** The founder ran the change himself and pushed it to `main` as `67da1b6` (2026-11-11). It took three tries: see DEBT-012. `enforce` is still not decided.
   Asked 2026-11-11. Waiting on GO or NO GO. Enforce stays off until warn has run cleanly in a live session.
 - **DEC-011 · Merge PR #37 into `main` so the Matrix reaches new sessions · GO · executed.** Founder deferred to the loop 2026-11-11 (leans L-01 to L-05). Merged as `60a53d7`, a merge commit; the tree on `main` is identical to the branch tip `fa94d93`.
   Asked 2026-11-11. Waiting on GO or NO GO.

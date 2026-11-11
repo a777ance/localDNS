@@ -36,6 +36,9 @@ CASES = [
     ("bash block, comment then cd", f"**Done.**\n\n{F}bash\n# check\ncd ~/localDNS && git status\n{F}\n", None),
     ("bash block without cd", f"**Done.** Run:\n\n{F}bash\ngit status\n{F}\n", "COMMAND CD"),
     ("bash block with the cloud container path", f"**Done.**\n\n{F}bash\ncd /home/user/localDNS\ngit status\n{F}\n", "COMMAND CD"),
+    ("bash block never rehearsed", f"**Done.** Run:\n\n{F}bash\ncd ~/localDNS\ngit push --force\n{F}\n", "REHEARSE"),
+    ("bash block not rehearsed, reason given", f"**Done.**\n\nNot rehearsed: needs a fact from the laptop.\n\n{F}bash\ncd ~/localDNS\nls ../venv\n{F}\n", None),
+    ("bash block whose rehearsal failed", f"**Done.**\n\n{F}bash\ncd ~/localDNS\nfalse\n{F}\n", "REHEARSE"),
     ("text block needs no cd", f"**Done.**\n\n{F}text\ngit status\n{F}\n", None),
     ("hedge", "**Done.** The fix should work now.", "NO HEDGE"),
     ("hedge inside a quote is allowed", '**Done.** The style bans "should work" outright.', None),
@@ -53,6 +56,7 @@ STYLE = {
     "COMMAND CD": "starts with `cd ~/localDNS`",
     "NO HEDGE": "vague hedges",
     "TILE": "DECISION · DEC-NNN",
+    "REHEARSE": "decide.rehearse",
 }
 
 
@@ -72,6 +76,11 @@ def main() -> int:
         box = Path(tmp)
         (box / "docs/ai-cto").mkdir(parents=True)
         (box / "docs/ai-cto/blocked.md").write_text("- **DEC-900 · Ship it? · OPEN**\n", encoding="utf-8")
+        import hashlib
+        (box / ".claude").mkdir()
+        (box / ".claude/.matrix-rehearsed").write_text(
+            "".join(f"{hashlib.sha256(c.encode()).hexdigest()}\t{code}\tabc1234\tt\n"
+                    for c, code in (("git status", 0), ("false", 1))), encoding="utf-8")
         for name, reply, want in CASES:
             got = run(box, reply)
             if want is None and got:

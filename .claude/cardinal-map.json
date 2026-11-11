@@ -144,6 +144,9 @@
         ],
         "open": [
           "Bash:tools/matrix.py decide.open"
+        ],
+        "rehearse": [
+          "Bash:tools/matrix.py decide.rehearse"
         ]
       },
       "loop": "slow"

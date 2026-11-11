@@ -11,6 +11,9 @@
     python3 tools/matrix.py orient.ground
     python3 tools/matrix.py decide.gate
     python3 tools/matrix.py decide.open               (founder decisions still OPEN)
+    python3 tools/matrix.py decide.rehearse [--at REV] [--setup "CMD"] "COMMAND"
+                                                      (run a command meant for the founder in a throwaway
+                                                       clone first; pushes go to a throwaway remote)
     python3 tools/matrix.py act.write PATH            (content on stdin; backup in .claude/.matrix-bak)
     python3 tools/matrix.py act.edit  PATH OLD NEW    (OLD must occur exactly once)
     python3 tools/matrix.py act.edit  PATH --old-file F --new-file F   (multi-line text, no shell quoting)
@@ -332,6 +335,68 @@ def orient_checkpoint():
     print("rewrote the live block of docs/ai-cto/checkpoint.md")
 
 
+def norm_command(text: str) -> str:
+    """A command as the Stop hook compares it: no blank lines, comments, or leading cd to the repo."""
+    lines = [l.strip() for l in text.strip().splitlines() if l.strip() and not l.strip().startswith("#")]
+    if lines and re.match(r"cd\s+\S+$", lines[0]):
+        lines = lines[1:]
+    elif lines:  # the one-line form: cd REPO && command
+        lines[0] = re.sub(r"^cd\s+\S+\s*&&\s*", "", lines[0])
+    return "\n".join(lines)
+
+
+def decide_rehearse(*rest):
+    """Look before the founder leaps: run his command here first, in the state his checkout is in."""
+    import hashlib
+    import shutil
+    import tempfile
+    rest, at, setup = list(rest), "origin/main", ""
+    for flag in ("--at", "--setup"):
+        if flag in rest:
+            i = rest.index(flag)
+            if flag == "--at":
+                at = rest[i + 1]
+            else:
+                setup = rest[i + 1]
+            del rest[i:i + 2]
+    if len(rest) != 1:
+        sys.exit('FAILED: decide.rehearse takes one COMMAND string (plus optional --at REV, --setup "CMD")')
+    command = norm_command(rest[0])
+    rev = _git("rev-parse", "--verify", at + "^{commit}").stdout.strip()
+    tip = _git("rev-parse", "--verify", "origin/main^{commit}").stdout.strip() or rev
+    if not rev:
+        sys.exit(f"FAILED: {at} is not a commit here. Fetch first.")
+    box = Path(tempfile.mkdtemp(prefix="rehearse-"))
+    try:
+        def run(*cmd, cwd=None, **kw):
+            return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, **kw)
+        run("git", "clone", "-q", "--bare", str(ROOT), str(box / "remote.git"))
+        run("git", "--git-dir", str(box / "remote.git"), "update-ref", "refs/heads/main", tip)
+        run("git", "clone", "-q", "-b", "main", str(box / "remote.git"), str(box / "localDNS"))
+        work = box / "localDNS"
+        run("git", "reset", "-q", "--hard", rev, cwd=work)
+        env = {**os.environ, "HOME": str(box), "GIT_AUTHOR_NAME": "rehearsal", "GIT_AUTHOR_EMAIL": "rehearsal@localhost",
+               "GIT_COMMITTER_NAME": "rehearsal", "GIT_COMMITTER_EMAIL": "rehearsal@localhost"}
+        if setup:
+            s = run("bash", "-c", setup, cwd=work, env=env, timeout=60)
+            if s.returncode:
+                sys.exit(f"FAILED: the --setup command exited {s.returncode}: {(s.stdout + s.stderr)[-300:]}")
+        try:
+            r = run("bash", "-c", command, cwd=work, env=env, timeout=90)
+            code, out = r.returncode, (r.stdout + r.stderr).strip()
+        except subprocess.TimeoutExpired:
+            code, out = 124, "timed out after 90 s"
+        print(f"rehearsed at {rev[:7]} (remote main at {tip[:7]}){' after setup' if setup else ''}: exit {code}")
+        print("\n".join("  " + l for l in out.split("\n")[-12:]))
+        digest = hashlib.sha256(command.encode()).hexdigest()
+        with open(ROOT / ".claude/.matrix-rehearsed", "a", encoding="utf-8") as fh:
+            fh.write(f"{digest}\t{code}\t{rev[:7]}\t{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}\n")
+        if code:
+            sys.exit(f"FAILED: do not hand this command to the founder. It exits {code} in a copy of his checkout.")
+    finally:
+        shutil.rmtree(box, ignore_errors=True)
+
+
 def act_ship(message, *rest):
     push = "--push" in rest
     files = [f for f in rest if f != "--push"]
@@ -366,7 +431,8 @@ METHODS = {"observe.status": observe_status, "decide.open": decide_open, "act.sh
            "observe.read": observe_read, "observe.find": observe_find, "observe.search": observe_search,
            "orient.ground": orient_ground, "decide.gate": decide_gate,
            "act.write": act_write, "act.edit": act_edit, "act.undo": act_undo,
-           "observe.log": observe_log, "observe.times": observe_times, "orient.checkpoint": orient_checkpoint}
+           "observe.log": observe_log, "observe.times": observe_times, "orient.checkpoint": orient_checkpoint,
+           "decide.rehearse": decide_rehearse}
 
 
 def main():
@@ -413,7 +479,7 @@ def main():
         os._exit(124)
 
     signal.signal(signal.SIGALRM, on_timeout)
-    if name not in ("act.ship", "decide.gate"):  # these run several steps; each step is timed instead
+    if name not in ("act.ship", "decide.gate", "decide.rehearse"):  # these run several steps; each step is timed instead
         signal.alarm(cap)
     try:
         if os.environ.get("MATRIX_TEST_SLEEP"):  # test hook: simulate a slow call

@@ -57,3 +57,7 @@ Skip or punt is always the user's call. Mark a queued item `punt` only when the 
   One tile per decision, numbered `DEC-NNN`, recorded in `docs/ai-cto/blocked.md` until decided.
 - Every command given to the founder starts with `cd ~/localDNS` (never the cloud container's `/home/user/` path), in its own
   `bash` block, because the founder opens a fresh terminal each time.
+- Look before the founder leaps. Every command handed to the founder is run first, in a copy of his checkout at the
+  commit he is on: `python3 tools/matrix.py decide.rehearse [--at REV] [--setup "CMD"] "COMMAND"`. It must exit 0.
+  A command that cannot be rehearsed here is marked with a line starting `Not rehearsed:` and the reason.
+  A recipe never has a step with nothing to paste.

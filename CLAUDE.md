@@ -52,6 +52,9 @@ Applies to every reply in this repo. One line per rule; the long form is
   t630, real customer data, and the founder's own rules. Everything else: decide, act, record.
 - **Commands start with `cd ~/localDNS` [hook],** each in its own `bash` block. Never the cloud
   container's `/home/user/` path: the founder opens a fresh terminal on his own machine.
+- **Look before the founder leaps [hook].** Every command handed to the founder is run first in a copy of
+  his checkout: `python3 tools/matrix.py decide.rehearse "COMMAND"` (exit 0), or carries a
+  `Not rehearsed:` line with the reason. No recipe step without something to paste.
 - **No vague hedges [hook]** ("should work", "probably works"). Name the check that confirms it.
 - **Successes are quiet; failures are loud.** One plain sentence with the evidence. A failure
   opens with `FAILED:` or `BLOCKED:`, quotes the error, and gives a numbered **Fix** recipe or
@@ -291,7 +294,7 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `tools/check-cardinal.py` | run directly (each tool in exactly one cardinal; every method documented in its skill; every repoint names a real Matrix method) | `python3 tools/check-cardinal.py` |
 | `tools/check-matrix.py` | run directly (end-to-end test of the Matrix in a throwaway sandbox: four cardinals, gate modes, cap, lease, stall) | `python3 tools/check-matrix.py` |
 | `tools/check-decisions.py` | run directly (every `DEC-NNN` in `docs/ai-cto/blocked.md` has a status, a unique id, newest first) | `python3 tools/check-decisions.py` |
-| `tools/check-stop-hook.py` | run directly (feeds sample replies to the Stop hook `.claude/hooks/decide-act.py` and asserts allow or block for each of its five rules; fails if `.claude/output-styles/briefing.md` does not name a rule the hook enforces) | `python3 tools/check-stop-hook.py` |
+| `tools/check-stop-hook.py` | run directly (feeds sample replies to the Stop hook `.claude/hooks/decide-act.py` and asserts allow or block for each of its six rules; fails if `.claude/output-styles/briefing.md` does not name a rule the hook enforces) | `python3 tools/check-stop-hook.py` |
 | `tools/check-registers.py` | run directly (every `INIT-`/`DEBT-` entry in `docs/ai-cto/` has a valid status and a unique id, newest first; a Blocked entry names what unblocks it) | `python3 tools/check-registers.py` |
 | `tools/check-telepathy.py` | run directly (end-to-end test of the telepathy mailbox in a throwaway directory: send, inbox, read, mark done, and the watcher must report an arrival within 2 s) | `python3 tools/check-telepathy.py` |
 | `tools/telepathy/telepathy_mcp.py` | stdio MCP mailbox for sessions on one machine (+ `tools/telepathy/watch.py`, the inotify watcher) | `claude mcp add --scope user telepathy -- python3 tools/telepathy/telepathy_mcp.py` |

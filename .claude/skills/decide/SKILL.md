@@ -18,6 +18,7 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 - `decide.vote` — a jury verdict: `/cardio`, `/strength`, `/workout`, juror agents.
 - `decide.gate` — the static checks under `tools/` that say yes or no mechanically.
 - `decide.open` — the founder decisions still OPEN in the decision log.
+- `decide.rehearse` — look before the founder leaps: run a command meant for him in a throwaway clone at the commit he is on (pushes go to a throwaway remote). The Stop hook bounces a reply that hands him a command never rehearsed.
 
 Loop: **slow**. Observe and Orient run on the fast loop; Decide and Act on the slow loop.
 
