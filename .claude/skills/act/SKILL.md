@@ -23,6 +23,7 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 - `act.configure` — settings, hooks, permissions: `/update-config`.
 - `act.tidy` — clean up changed code after a fix lands: `/simplify`.
 - `act.extend` — build and test new skills: `/skill-creator`.
+- `act.resolve` — close a stall with its cause and the improvement made; logs to `docs/ai-cto/stalls.md`.
 
 Loop: **slow**. Observe and Orient run on the fast loop; Decide and Act on the slow loop.
 

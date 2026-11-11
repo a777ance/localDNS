@@ -36,4 +36,5 @@ __pycache__/
 .claude/.matrix-log
 .claude/.matrix-off
 .claude/.matrix-lease/
+.claude/.matrix-stalls/
 *.bak

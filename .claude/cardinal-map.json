@@ -92,6 +92,9 @@
         "review": [
           "/code-review",
           "/security-review"
+        ],
+        "stall": [
+          "Bash:tools/matrix.py orient.stall"
         ]
       },
       "loop": "fast"
@@ -174,6 +177,9 @@
         ],
         "extend": [
           "/skill-creator"
+        ],
+        "resolve": [
+          "Bash:tools/matrix.py act.resolve"
         ]
       },
       "loop": "slow"

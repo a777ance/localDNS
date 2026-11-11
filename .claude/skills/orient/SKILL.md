@@ -19,6 +19,7 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 - `orient.model` — which regimes a vote can be trusted in: `/diet`.
 - `orient.explore` — read-only fan-out: Explore and Plan agents.
 - `orient.review` — judge a diff: `/code-review`, `/security-review`.
+- `orient.stall` — open Matrix stalls, with the stack at the moment each call breached the 10 s cap.
 
 Loop: **fast**. Observe and Orient run on the fast loop; Decide and Act on the slow loop.
 

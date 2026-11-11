@@ -8,6 +8,8 @@
     python3 tools/matrix.py decide.gate
     python3 tools/matrix.py act.write PATH            (content on stdin; keeps a .bak)
     python3 tools/matrix.py act.edit  PATH OLD NEW    (OLD must occur exactly once)
+    python3 tools/matrix.py orient.stall              (open stall incidents, with the stack)
+    python3 tools/matrix.py act.resolve ID "CAUSE" "FIX"   (close one; logs to docs/ai-cto/stalls.md)
     python3 tools/matrix.py list
 
 These are the targets the native tools are repointed to (see "repoint" in
@@ -18,11 +20,17 @@ Hard cap: 10 seconds per call. On a timeout the call exits 124 and writes a
 one-time fallback lease (.claude/.matrix-lease/<NativeTool>). The cardinal hook
 consumes that lease to let the native tool through exactly once, so a slow
 Matrix call never roadblocks the work.
+
+A timeout is also a defect report. It records a stall incident with the stack
+at the moment of the stall (.claude/.matrix-stalls/<id>.json). While an incident
+is open the cardinal hook says so on every tool call: diagnose why the alias
+stalled and improve it before other work, then close it with act.resolve.
 """
 import json
 import os
 import re
 import signal
+import traceback
 import subprocess
 import sys
 import time
@@ -109,7 +117,35 @@ def act_edit(path, old, new):
     print(f"edited {target.relative_to(ROOT)}")
 
 
-METHODS = {"observe.read": observe_read, "observe.find": observe_find, "observe.search": observe_search,
+def orient_stall():
+    stalls = sorted((ROOT / ".claude/.matrix-stalls").glob("*.json"))
+    if not stalls:
+        print("no open stalls")
+    for f in stalls:
+        d = json.loads(f.read_text())
+        print(f"STALL {d['id']} · {d['method']} {' '.join(d['args'])} · cap {d['cap_seconds']}s\n  stalled at:")
+        print("".join("    " + line for frame in d["stack"] for line in frame.splitlines(True)))
+        print(f"  close with: python3 tools/matrix.py act.resolve {d['id']} \"CAUSE\" \"FIX\"")
+
+
+def act_resolve(sid, cause, fix):
+    f = ROOT / ".claude/.matrix-stalls" / f"{sid}.json"
+    if not f.exists():
+        sys.exit(f"FAILED: no open stall {sid}")
+    d = json.loads(f.read_text())
+    log = ROOT / "docs/ai-cto/stalls.md"
+    head = ("# Matrix stall log\n\nEvery time a Matrix call breached the 10-second cap: what stalled, why, and what "
+            "was improved. Newest first. Written by `tools/matrix.py act.resolve`.\n\n---\n")
+    body = log.read_text(encoding="utf-8").split("---\n", 1)[1] if log.exists() else ""
+    entry = (f"\n## {sid} · {d['method']}\n\n- **Call:** `{d['method']} {' '.join(d['args'])}` (cap {d['cap_seconds']}s)\n"
+             f"- **Cause:** {cause}\n- **Improvement:** {fix}\n")
+    log.write_text(head + entry + body, encoding="utf-8")
+    f.unlink()
+    print(f"resolved {sid}; logged in docs/ai-cto/stalls.md")
+
+
+METHODS = {"orient.stall": orient_stall, "act.resolve": act_resolve,
+           "observe.read": observe_read, "observe.find": observe_find, "observe.search": observe_search,
            "orient.ground": orient_ground, "decide.gate": decide_gate,
            "act.write": act_write, "act.edit": act_edit}
 
@@ -135,8 +171,16 @@ def main():
         lease_dir.mkdir(exist_ok=True)
         for t in native:
             (lease_dir / t).write_text(f"{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())} {name} timed out after {cap}s\n")
+        sid = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+        stall_dir = ROOT / ".claude/.matrix-stalls"
+        stall_dir.mkdir(exist_ok=True)
+        (stall_dir / f"{sid}.json").write_text(json.dumps({
+            "id": sid, "method": name, "args": [a[:200] for a in args], "cap_seconds": cap,
+            "stack": traceback.format_stack(_frm)[-6:]}, indent=2))
         sys.stderr.write(f"FAILED: {name} timed out after {cap}s. One-time fallback lease written for: "
-                         f"{', '.join(native) or 'none (no native tool maps to this method)'}\n")
+                         f"{', '.join(native) or 'none (no native tool maps to this method)'}\n"
+                         f"STALL {sid} recorded. Diagnose and improve the alias now:\n"
+                         f"  cd {ROOT} && python3 tools/matrix.py orient.stall\n")
         os._exit(124)
 
     signal.signal(signal.SIGALRM, on_timeout)

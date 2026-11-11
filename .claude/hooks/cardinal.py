@@ -74,6 +74,11 @@ def main() -> int:
             out["permissionDecisionReason"] = (
                 f"The Matrix gates native {tool} ({alias}). Use: cd {ROOT} && {target}. "
                 "Kill switch: touch .claude/.matrix-off")
+        stalls = sorted((ROOT / ".claude/.matrix-stalls").glob("*.json"))
+        if stalls:
+            out["additionalContext"] += (
+                f" — OPEN MATRIX STALL ({len(stalls)}): a Matrix call breached the 10 s cap. Diagnose why the alias "
+                f"stalled and improve it before other work: cd {ROOT} && python3 tools/matrix.py orient.stall")
         print(json.dumps({"hookSpecificOutput": out}))
     except Exception:
         pass  # fail open: naming a call must never stop it

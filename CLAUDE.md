@@ -37,6 +37,10 @@ Applies to every reply in this repo, regardless of output style. Mirrors
   (`.claude/skills/observe`, `orient`, `decide`, `act`) and is named as `cardinal.method`,
   for example `observe.read` or `act.ship`. Methods replace atomized skills. The map is
   `.claude/cardinal-map.json`; `tools/check-cardinal.py` is its gate.
+- **A Matrix stall is a defect, fixed at once.** Matrix calls have a 10-second hard cap. A
+  breach writes a one-time lease for the native tool (so work is never roadblocked) and a
+  stall incident. While a stall is open, diagnose why the alias stalled and improve it
+  before other work: `python3 tools/matrix.py orient.stall`, then `act.resolve`.
 - **Carrot.** The 3-hour lease for peer sessions is the Carrot. Name it by that word in
   peer prompts and in status lines. Assumed reading, stated in INIT-003: the Carrot lease is
   3 hours from the first ping, with UTC expiry.
