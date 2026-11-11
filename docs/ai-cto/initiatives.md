@@ -8,7 +8,7 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
 
 ---
 
-## INIT-007 · Retro rule: a new rule reaches backward · Active
+## INIT-007 · Retrofit (retro-compliance): a new rule reaches backward · Active
 
 - **Goal (founder, 2026-11-11):** a rule does not start at the moment it is written. When a rule
   is adopted, it is applied to everything already there that the session can reach, and what it
