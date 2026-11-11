@@ -72,6 +72,48 @@ def main() -> int:
         check("act.edit", mx("act.edit", "out.txt", "two", "three").returncode == 0
               and (box / "out.txt").read_text() == "one three\n")
         (box / "dup.txt").write_text("x x\n")
+        check("no .bak beside the file", not list(box.glob("*.bak")) and list((box / ".claude/.matrix-bak").glob("*-out.txt")))
+        check("act.undo", mx("act.undo", "out.txt").returncode == 0 and (box / "out.txt").read_text() == "one two\n")
+        check("act.undo with no backup fails", mx("act.undo", "notes.txt").returncode != 0)
+        tricky = "it's `x` and \"y\"\n$HOME line two\n"
+        (box / "old.tmp").write_text("one two\n")
+        (box / "new.tmp").write_text(tricky)
+        check("act.edit from files", mx("act.edit", "out.txt", "--old-file", "old.tmp", "--new-file", "new.tmp").returncode == 0
+              and (box / "out.txt").read_text() == tricky)
+        check("act.edit bad arguments", mx("act.edit", "out.txt", "only-one").returncode != 0)
+        # bounds (Q-005)
+        (box / "long.txt").write_text("".join(f"row {i}\n" for i in range(1, 501)))
+        r = mx("observe.read", "long.txt")
+        check("observe.read pages at 200", "row 200" in r.stdout and "row 201\n" not in r.stdout and "300 more lines" in r.stdout, r.stdout[-200:])
+        check("observe.read explicit range", "row 450" in mx("observe.read", "long.txt", "450", "451").stdout)
+        r = mx("observe.search", "^row", "long.txt")
+        check("observe.search caps at 200", r.stdout.count("long.txt:") == 200 and "stopped at 200" in r.stdout)
+        check("observe.search --max", mx("observe.search", "^row", "long.txt", "--max", "3").stdout.count("long.txt:") == 3)
+        (box / "blob.bin").write_bytes(b"gamma\0\1\2")
+        (box / "huge.txt").write_text("gamma\n" * 200_000)
+        r = mx("observe.search", "gamma")
+        check("observe.search skips binary and big files", "blob.bin" not in r.stdout and "huge.txt:" not in r.stdout
+              and "2 binary" in r.stdout, r.stdout[-200:])
+        check("observe.read refuses binary", mx("observe.read", "blob.bin").returncode != 0)
+        check("observe.read refuses a big file with no range", mx("observe.read", "huge.txt").returncode != 0)
+        # the Matrix watching itself (Q-009, Q-012, Q-013)
+        out = mx("observe.log").stdout
+        check("observe.log", "observe.read" in out and "slowest:" in out, out[-200:])
+        (box / ".claude/.matrix-log").write_text("".join(f"t\tobserve.read\tx\t0.010\n" for _ in range(2100)))
+        mx("observe.status")
+        check("log rotates at 2,000 lines", len((box / ".claude/.matrix-log").read_text().split("\n")) < 1100)
+        check("observe.times (empty)", "no native tool calls timed" in mx("observe.times").stdout)
+        (box / ".claude/.matrix-times").write_text("t1\tRead\tobserve.read\t0.200\nt2\tBash\tact.write\t12.500\nt3\tBash\tobserve.read\t0.400\n")
+        out = mx("observe.times").stdout
+        check("observe.times", "over 10 s: 1 of 3" in out and "BREACH" in out and "Read" in out, out)
+        out = mx("observe.times", "--debt").stdout
+        check("observe.times --debt", "DEBT-NNN · Native Bash" in out and "12.5 s" in out and "Read" not in out, out)
+        # orient.checkpoint (Q-010)
+        (box / "docs/ai-cto/checkpoint.md").write_text("# C\n\n<!-- live:start -->\nold\n<!-- live:end -->\n\nkept\n")
+        r1 = mx("orient.checkpoint")
+        body = (box / "docs/ai-cto/checkpoint.md").read_text()
+        check("orient.checkpoint", "Open decisions" in body and "old" not in body and body.endswith("kept\n"), r1.stdout + r1.stderr)
+        check("orient.checkpoint is idempotent", "already current" in mx("orient.checkpoint").stdout)
         check("act.edit exactly-once", mx("act.edit", "dup.txt", "x", "y").returncode != 0)
         check("unknown method", mx("observe.nope").returncode != 0)
         # hook names

@@ -22,6 +22,8 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 - `observe.verify` — launch the app and see the change working: `/run`.
 - `observe.research` — multi-source research into a report: `/deep-research`.
 - `observe.status` — branch, changed files, Matrix mode, leases, and open stalls in one call.
+- `observe.log` — the Matrix watching itself: calls per cardinal and method from `.claude/.matrix-log`, and the slowest call. The log rotates at 2,000 lines.
+- `observe.times` — measured duration of every native tool call (count, median, worst, each call over 10 s); `--debt` drafts a `DEBT-NNN` block per breaching tool.
 
 Loop: **fast**. Observe and Orient run on the fast loop; Decide and Act on the slow loop.
 

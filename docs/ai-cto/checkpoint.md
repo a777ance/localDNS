@@ -10,6 +10,23 @@ boundary (a ship, a decision, a lease start). Read this, then run
 
 ## Where things stand
 
+Live facts, rewritten by `python3 tools/matrix.py orient.checkpoint`:
+
+<!-- live:start -->
+- **Branch:** `decision-log-dec007`
+- **Lease:** start: 22:52 UTC (2026-11-11) · expiry: 01:52 UTC (2026-11-12)
+- **Open decisions:** DEC-012, DEC-011, DEC-010, DEC-006, DEC-005, DEC-004
+- **Open stalls:** none
+- **Last five commits:**
+  - bf77e56 Q-003 + Q-008: name the subagent in the cardinal line; stop quoted text naming a call
+  - fbb0fb7 Q-002: give every hook an explicit timeout, and gate on it
+  - 743ef6d Record the Orchestrator lease start and the Q-001 live hook observations
+  - a7cce63 Add the Orchestrator handoff: intent, rules, research, and a 30-item queue
+  - 64f5dd4 Strike while the iron is hot; archive finished peers; record context debt
+<!-- live:end -->
+
+Background from the handoff:
+
 - **The Matrix (INIT-005) is built and tested on the branch.** Map `.claude/cardinal-map.json`,
   four cardinal skills, naming hook `.claude/hooks/cardinal.py`, own tooling `tools/matrix.py`,
   gates `tools/check-cardinal.py` and `tools/check-matrix.py`. Gate mode is `name` (nothing blocked).

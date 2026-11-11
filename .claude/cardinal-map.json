@@ -70,6 +70,12 @@
         ],
         "status": [
           "Bash:tools/matrix.py observe.status"
+        ],
+        "log": [
+          "Bash:tools/matrix.py observe.log"
+        ],
+        "times": [
+          "Bash:tools/matrix.py observe.times"
         ]
       },
       "loop": "fast"
@@ -99,6 +105,9 @@
         ],
         "stall": [
           "Bash:tools/matrix.py orient.stall"
+        ],
+        "checkpoint": [
+          "Bash:tools/matrix.py orient.checkpoint"
         ]
       },
       "loop": "fast"
@@ -188,6 +197,9 @@
         ],
         "resolve": [
           "Bash:tools/matrix.py act.resolve"
+        ],
+        "undo": [
+          "Bash:tools/matrix.py act.undo"
         ]
       },
       "loop": "slow"

@@ -20,6 +20,7 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 - `orient.explore` — read-only fan-out: Explore and Plan agents.
 - `orient.review` — judge a diff: `/code-review`, `/security-review`.
 - `orient.stall` — open Matrix stalls, with the stack at the moment each call breached the 10 s cap.
+- `orient.checkpoint` — rewrite the live block of `docs/ai-cto/checkpoint.md` (branch, lease, open decisions, open stalls, last five commits) from the repo itself.
 
 Loop: **fast**. Observe and Orient run on the fast loop; Decide and Act on the slow loop.
 
