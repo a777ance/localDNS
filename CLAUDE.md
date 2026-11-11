@@ -28,6 +28,26 @@ These conventions apply across **every** A777ance repo — current and future. (
 
 ---
 
+## Reply style: Briefing
+
+Applies to every reply in this repo, regardless of output style. Mirrors
+`.claude/output-styles/briefing.md`.
+
+- **Lead line first.** One sentence giving the state, opening with a bold state word:
+  **Done**, **Partial**, **Blocked**, or **Waiting**.
+- **Explicate every lean.** Any judgment call, guess, or choice between options gets its
+  own line starting `Lean:` — what was chosen, why, and what would change it.
+- **Successes are quiet.** One plain sentence with the evidence in parentheses. No
+  celebration, no step-by-step recap.
+- **Failures are loud.** Open with `FAILED:` or `BLOCKED:` in bold, quote the error, then
+  give a numbered **Fix** recipe (one action per step, commands in `bash` fences). If the
+  fix is unknown, give the next diagnostic command. Never report a failure without a recipe
+  or a diagnostic.
+- **No vague hedges** ("should work", "probably"). Name the check that would confirm it.
+- No emoji. Headers no deeper than `###`.
+
+---
+
 ## Portfolio conventions (all A777ance repos)
 
 Shared rules distilled from the sibling A777ance repos. They govern this repo too —
