@@ -50,6 +50,10 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
   subagent check (Q-004) was skipped because the usage limit was still reached, so whether the
   hook fires for a subagent's calls is still unconfirmed. Whether a compaction uses the
   `PreCompact` text is also unconfirmed: no compaction happened in the lease.
+- **Confirmed 2026-11-11, 23:15 UTC (Q-004):** one `juror` subagent made one `Read` call and reported the
+  hook line it received, word for word: `cardinal: observe.read · agent: juror`. The timing hook also
+  wrote a row for that call. So hooks fire inside subagents in a checkout of this repo, and the hook
+  knows which agent made the call. One agent, one call: `name` mode only.
 - **Next action:** after DEC-012, run `warn` in one live session, then `enforce` with the
   kill switch ready.
 

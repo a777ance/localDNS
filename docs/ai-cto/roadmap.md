@@ -40,7 +40,7 @@ leave out stays open and nothing happens to it.
 
 ## What Claude does without you
 
-1. Confirms the labels also reach helper agents (one small test, skipped earlier because the usage limit was reached).
+1. Done 2026-11-11: confirmed the labels also reach helper agents.
 2. Checks, at the next compaction, that the session keeps the lease and decision list.
 3. Carries out each decision above as soon as you answer it.
 

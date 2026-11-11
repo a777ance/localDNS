@@ -56,13 +56,12 @@ files). DEC-004 and DEC-006 are moot: PR #36 is merged.
 
 **For the founder, in plain English: `docs/ai-cto/roadmap.md`.**
 
-The queue in `docs/ai-cto/handoff.md` is worked through: 25 of the 26 unblocked items are
-`DONE` with their commit, Q-004 is `SKIPPED` (usage limit), and Q-027 to Q-030 wait on the founder.
+The queue in `docs/ai-cto/handoff.md` is worked through: all 26 unblocked items are
+`DONE`, and Q-027 to Q-030 wait on the founder.
 
 1. Founder decisions, newest first: DEC-014 (trim the setup script), DEC-013 (split `CLAUDE.md`),
    DEC-012 (`warn` mode), DEC-011 (merge PR #37), DEC-010 (tile scope), DEC-005 (venv files).
-2. Q-004, once usage allows: spawn one `juror` and look for `· agent: juror` in a cardinal line
-   or a row in `.claude/.matrix-times`. Record the result in DEBT-008.
+2. Q-004 is done: the hook line `cardinal: observe.read · agent: juror` was seen in a live subagent.
 3. DEBT-011: six lint findings that predate this work.
 4. At the next compaction, check that the summary carries the lease and decision lines from
    `.claude/hooks/precompact.py`. That hook has only been tested by piping input into it.
