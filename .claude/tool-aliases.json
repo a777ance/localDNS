@@ -1,5 +1,5 @@
 {
-  "_comment": "Tool-call aliases read by .claude/hooks/alias.sh. Rules are checked in order; first match wins. action 'rewrite' (Bash only): regex-replace the command. action 'block': deny with message. 'match' is an optional regex on the call's input (JSON-escaped, so keep patterns free of double quotes).",
+  "_comment": "Tool-call aliases read by .claude/hooks/alias.sh (matcher '*', every tool call). Rules are checked in order; first match wins. Native tools are blocked: each block message names the repo replacement, which is the GitHub MCP tool (mcp__github__*). 'match' is an optional regex on the call's input (JSON-escaped, so keep patterns free of double quotes). ToolSearch and AskUserQuestion are deliberately not blocked.",
   "aliases": [
     {
       "name": "block-destructive-bash",
@@ -7,6 +7,156 @@
       "action": "block",
       "match": "\\brm\\s+-[a-zA-Z]*[rRf]|\\brm\\s+--(recursive|force)|\\bgit\\s+push\\b.*--force(?!-with-lease)|\\bgit\\s+push\\b.*\\s-f\\b|\\bgit\\s+reset\\s+--hard\\b|\\bgit\\s+clean\\b.*-[a-zA-Z]*f|\\bmkfs(\\.|\\s)|\\bdd\\s+if=|\\bshutdown\\b|\\breboot\\b|\\bdocker\\s+(system\\s+prune|rm\\s+-f)",
       "message": "Destructive shell command blocked by the repo's alias router (.claude/tool-aliases.json). Use a non-destructive form, or ask the user to run it."
+    },
+    {
+      "name": "native-read",
+      "tool": "Read",
+      "action": "block",
+      "message": "Native Read is blocked by the repo alias router. Use mcp__github__get_file_contents on the work branch."
+    },
+    {
+      "name": "native-write",
+      "tool": "Write",
+      "action": "block",
+      "message": "Native Write is blocked by the repo alias router. Use mcp__github__push_files or mcp__github__create_or_update_file on the work branch."
+    },
+    {
+      "name": "native-edit",
+      "tool": "Edit",
+      "action": "block",
+      "message": "Native Edit is blocked by the repo alias router. Use mcp__github__get_file_contents, change the text, then mcp__github__create_or_update_file with the blob SHA."
+    },
+    {
+      "name": "native-glob",
+      "tool": "Glob",
+      "action": "block",
+      "message": "Native Glob is blocked by the repo alias router. Use mcp__github__get_file_contents on a directory path to list it."
+    },
+    {
+      "name": "native-grep",
+      "tool": "Grep",
+      "action": "block",
+      "message": "Native Grep is blocked by the repo alias router. Use gh api search/code (search only), or mcp__github__get_file_contents to read a file."
+    },
+    {
+      "name": "native-notebookedit",
+      "tool": "NotebookEdit",
+      "action": "block",
+      "message": "Native NotebookEdit is blocked by the repo alias router. Use mcp__github__create_or_update_file on the notebook JSON."
+    },
+    {
+      "name": "native-webfetch",
+      "tool": "WebFetch",
+      "action": "block",
+      "message": "Native WebFetch is blocked by the repo alias router. Report the URL to the founder, or use an approved MCP tool."
+    },
+    {
+      "name": "native-websearch",
+      "tool": "WebSearch",
+      "action": "block",
+      "message": "Native WebSearch is blocked by the repo alias router. Report the question to the founder."
+    },
+    {
+      "name": "native-agent",
+      "tool": "Agent",
+      "action": "block",
+      "message": "Native Agent is blocked by the repo alias router. Do the step in this session, or report it to the founder."
+    },
+    {
+      "name": "native-skill",
+      "tool": "Skill",
+      "action": "block",
+      "message": "Native Skill is blocked by the repo alias router. Follow the skill's instructions by hand, or report it to the founder."
+    },
+    {
+      "name": "native-monitor",
+      "tool": "Monitor",
+      "action": "block",
+      "message": "Native Monitor is blocked by the repo alias router. Report the watch request to the founder."
+    },
+    {
+      "name": "native-enterworktree",
+      "tool": "EnterWorktree",
+      "action": "block",
+      "message": "Native EnterWorktree is blocked by the repo alias router. Stay on the work branch."
+    },
+    {
+      "name": "native-exitworktree",
+      "tool": "ExitWorktree",
+      "action": "block",
+      "message": "Native ExitWorktree is blocked by the repo alias router. Stay on the work branch."
+    },
+    {
+      "name": "native-croncreate",
+      "tool": "CronCreate",
+      "action": "block",
+      "message": "Native CronCreate is blocked by the repo alias router. Report the schedule request to the founder."
+    },
+    {
+      "name": "native-crondelete",
+      "tool": "CronDelete",
+      "action": "block",
+      "message": "Native CronDelete is blocked by the repo alias router. Report the request to the founder."
+    },
+    {
+      "name": "native-cronlist",
+      "tool": "CronList",
+      "action": "block",
+      "message": "Native CronList is blocked by the repo alias router. Report the request to the founder."
+    },
+    {
+      "name": "native-schedulewakeup",
+      "tool": "ScheduleWakeup",
+      "action": "block",
+      "message": "Native ScheduleWakeup is blocked by the repo alias router. Stop and report to the founder; a lease is not a scheduler."
+    },
+    {
+      "name": "native-pushnotification",
+      "tool": "PushNotification",
+      "action": "block",
+      "message": "Native PushNotification is blocked by the repo alias router. Report the message in chat."
+    },
+    {
+      "name": "native-sendmessage",
+      "tool": "SendMessage",
+      "action": "block",
+      "message": "Native SendMessage is blocked by the repo alias router. Report the message in chat."
+    },
+    {
+      "name": "native-taskcreate",
+      "tool": "TaskCreate",
+      "action": "block",
+      "message": "Native TaskCreate is blocked by the repo alias router. Record the task in docs/TECH-DEBT.md or docs/factory/ROADMAP.md."
+    },
+    {
+      "name": "native-taskget",
+      "tool": "TaskGet",
+      "action": "block",
+      "message": "Native TaskGet is blocked by the repo alias router. Read docs/TECH-DEBT.md or docs/factory/ROADMAP.md instead."
+    },
+    {
+      "name": "native-tasklist",
+      "tool": "TaskList",
+      "action": "block",
+      "message": "Native TaskList is blocked by the repo alias router. Read docs/TECH-DEBT.md or docs/factory/ROADMAP.md instead."
+    },
+    {
+      "name": "native-taskupdate",
+      "tool": "TaskUpdate",
+      "action": "block",
+      "message": "Native TaskUpdate is blocked by the repo alias router. Update docs/TECH-DEBT.md or docs/factory/ROADMAP.md via GitHub MCP."
+    },
+    {
+      "name": "native-taskstop",
+      "tool": "TaskStop",
+      "action": "block",
+      "message": "Native TaskStop is blocked by the repo alias router. Report to the founder."
+    },
+    {
+      "name": "native-reportfindings",
+      "tool": "ReportFindings",
+      "action": "block",
+      "message": "Native ReportFindings is blocked by the repo alias router. Write the findings into the repo via mcp__github__create_or_update_file."
     }
   ]
 }
