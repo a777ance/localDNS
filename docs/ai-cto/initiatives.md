@@ -8,6 +8,22 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
 
 ---
 
+## INIT-006 · 1 + N lanes: the probe always goes first · Active
+
+- **Goal (founder, 2026-11-11):** every piece of work runs as 1 + N lanes. The 1 is always the
+  probe: a quick dry run that looks before the work leaps. The N is the work itself, in any
+  shape: parallel lanes, sequential lanes, a mix, or whole workflows built from both. Every tool
+  call has at least the option of a quick probe, and each cardinal skill has its own probe
+  method that adapts to the goal.
+- **Why:** DEBT-012. Three commands failed on the founder's laptop because nothing looked first.
+- **Line items:**
+  - Probe for a command handed to the founder (`decide.rehearse`, enforced by the Stop hook): **Done**.
+  - Probe before egress (`observe.probe push`, `observe.probe merge`, hook flag, `act.ship` self-probe): **Done**.
+  - A probe method in each of the four cardinal skills, adaptive to the goal: **Active**, design not yet agreed.
+  - A quick-probe option for every tool in `.claude/cardinal-map.json`: **Active**, not started.
+  - 1 + N in the Bifrost notation (the probe as lane 0 ahead of `^`): **Active**, a proposal only;
+    the notation is the founder's schema and its spec is not edited without him.
+
 ## INIT-005 · The Matrix: every tool call routed through the four cardinals · Active
 
 - **Goal:** "There is no way out." Every tool call, workflow, and subagent is named as
