@@ -68,7 +68,8 @@ printf '%s' "$cmd" | grep -Eq '(^|[;&|[:space:]])git[[:space:]]+(-[^[:space:]]+[
 
 fails=""
 for check in tools/check-docs.py tools/check-provenance.py tools/check-doctrine.py \
-             tools/sync-briefings.py; do
+             tools/sync-briefings.py tools/check-decisions.py tools/check-cardinal.py \
+             tools/check-matrix.py; do
     [ -f "$check" ] || continue
     if ! out="$(python3 "$check" 2>&1)"; then
         fails="${fails}

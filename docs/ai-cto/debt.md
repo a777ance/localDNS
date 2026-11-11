@@ -9,6 +9,30 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 
 ---
 
+## DEBT-009 · Usage limit reached while peers ran at max effort · Open
+
+- **Observed:** on 2026-11-11 at 22:28 UTC the Carrot starter's session record showed the
+  five-hour usage limit as `rejected` with overage in use, resetting at 01:10 UTC. That one
+  peer had cost about $2.68 in nine minutes at max effort.
+- **Cost:** unattended peers at max effort spend real overage while the founder is away.
+- **Next action:** both Carrot peers were sent `stop`. Before the next pair, set a lower
+  effort for peers and a spend ceiling in the template.
+
+## DEBT-008 · The Matrix gate has never run in a live enforce session · Open
+
+- **Observed:** `name` mode is seen firing on live calls. `warn` and `enforce`, the lease,
+  and the stall rule are proven only by `tools/check-matrix.py`, which pipes calls into the hook.
+- **Cost:** whether the app honours the hook's deny, and whether subagent calls pass
+  through the hook, is unconfirmed.
+- **Next action:** after DEC-012, run `warn` in one live session, then `enforce` with the
+  kill switch ready.
+
+## DEBT-007 · The Matrix is not on `main` · Blocked
+
+- **Observed:** the map, hook, `tools/matrix.py`, and gates sit on `decision-log-dec007` (PR #37).
+- **Cost:** new sessions start from `main` and get none of it.
+- **Next action:** DEC-011.
+
 ## DEBT-006 · Gate and style checks pass only partially · Open
 
 - **Observed:** `tools/sync-briefings.py` exits 2 when given `--check`, because the flag does
@@ -49,7 +73,7 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 - **Cost:** the style applies only through `CLAUDE.md` and the Stop hook, not as a named style.
 - **Next action:** punted by the founder's choice to rely on `CLAUDE.md`.
 
-## DEBT-001 · Stop hook untested in a live turn · Open
+## DEBT-001 · Stop hook untested in a live turn · Done
 
 - **Observed:** `.claude/hooks/decide-act.py` was tested on fake transcripts. It fired once
   on a real turn (block with 3 items), which is the live test.

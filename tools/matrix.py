@@ -92,8 +92,11 @@ def orient_ground():
 def decide_gate():
     bad = 0
     for check in sorted((ROOT / "tools").glob("check-*.py")):
+        t0 = time.time()
         r = subprocess.run([sys.executable, str(check)], capture_output=True, text=True, cwd=ROOT)
-        print(f"{'ok  ' if r.returncode == 0 else 'FAIL'} {check.name}")
+        took = time.time() - t0
+        slow = "  SLOW: over the 10 s Holy Grail" if took > 10 else ""
+        print(f"{'ok  ' if r.returncode == 0 else 'FAIL'} {check.name:26} {took:5.1f}s{slow}")
         if r.returncode:
             bad += 1
             print("\n".join("     " + l for l in (r.stdout + r.stderr).strip().split("\n")[-6:]))
@@ -243,7 +246,7 @@ def main():
         os._exit(124)
 
     signal.signal(signal.SIGALRM, on_timeout)
-    if name != "act.ship":  # shipping retries a push with backoff; every other method is capped
+    if name not in ("act.ship", "decide.gate"):  # these run several steps; each step is timed instead
         signal.alarm(cap)
     try:
         if os.environ.get("MATRIX_TEST_SLEEP"):  # test hook: simulate a slow call

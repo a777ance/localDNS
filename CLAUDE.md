@@ -46,6 +46,17 @@ Applies to every reply in this repo, regardless of output style. Mirrors
   breach writes a one-time lease for the native tool (so work is never roadblocked) and a
   stall incident. While a stall is open, diagnose why the alias stalled and improve it
   before other work: `python3 tools/matrix.py orient.stall`, then `act.resolve`.
+- **Ten seconds is the Holy Grail.** Every tool call should finish in under 10 seconds.
+  Shape tools and repo layout for that: one small call over one big one, narrow reads
+  (`observe.read PATH START END`, `observe.search PATTERN PATH`) over whole-file dumps, and
+  `decide.gate` prints each check's time and flags any over 10 s as debt.
+- **Spend tokens like money; never idle.** Keep tool output short (ranges, `head`, counts).
+  Never poll or wait in a loop: end the turn and let an event wake the session. Stop peers
+  that return null results or run past their usefulness. Do not re-read what is on disk.
+- **Compact strategically.** State lives on disk, not in the conversation, so compaction
+  loses nothing: before a long stretch, and at each natural boundary (a ship, a decision,
+  a lease start), update `docs/ai-cto/checkpoint.md`. After a compaction or in a new
+  session, resume from that file plus `python3 tools/matrix.py observe.status`.
 - **Carrot.** The 3-hour lease for peer sessions is the Carrot. Name it by that word in
   peer prompts and in status lines. Assumed reading, stated in INIT-003: the Carrot lease is
   3 hours from the first ping, with UTC expiry.
@@ -305,7 +316,15 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths; asserts the Bifrost sweep string **and** the expansion template are byte-identical across their three surfaces and that the template reduces to the sweep; **and** that spec §1, `docs/bifrost.html`, and CLAUDE.md §H assign every glyph the same role) | `python3 tools/check-docs.py` |
 | `04-user-services/ai-orchestration/briefing-block.md` | canonical source for the Bifrost section in **every** sibling repo's `CLAUDE.md` — edit here, never in the rendered copies | `python3 tools/sync-briefings.py --write` |
 | `tools/sync-briefings.py` | run directly (renders the canonical briefing block into every sibling repo's `CLAUDE.md`; bare/`--check` reports drift, `--write` fixes it; also asserts the condensed block and §H agree on glyph roles) | `python3 tools/sync-briefings.py --write` |
-| `.claude/hooks/gate.sh` | `PreToolUse(Bash)` hook — runs the four checks above before any `git commit` and blocks on failure (bypass: `touch .claude/.gate-off`) | wired in `.claude/settings.json` |
+| `tools/matrix.py` | run directly — the Matrix's own tooling, called as `cardinal.method` (`observe.read/find/search/status`, `orient.ground/stall`, `decide.gate/open`, `act.write/edit/ship/resolve`); 10-second hard cap, one-time native-tool lease on timeout, stall incidents | `python3 tools/matrix.py list` |
+| `.claude/cardinal-map.json` | the Matrix (OODA matrix, alias net): every tool → one cardinal method, the `repoint` table, and the gate `mode` (`name` / `warn` / `enforce`) | edit, then `python3 tools/check-cardinal.py` |
+| `.claude/hooks/cardinal.py` | `PreToolUse` hook on every tool — names the call's cardinal; in `enforce` mode denies repointed native tools (kill switch: `touch .claude/.matrix-off`) | wired in `.claude/settings.json` |
+| `.claude/hooks/decide-act.py` | `Stop` hook — a reply ending with a numbered Decide list is sent back once to act on it | wired in `.claude/settings.json` |
+| `tools/check-cardinal.py` | run directly (each tool in exactly one cardinal; every method documented in its skill; every repoint names a real Matrix method) | `python3 tools/check-cardinal.py` |
+| `tools/check-matrix.py` | run directly (end-to-end test of the Matrix in a throwaway sandbox: four cardinals, gate modes, cap, lease, stall) | `python3 tools/check-matrix.py` |
+| `tools/check-decisions.py` | run directly (every `DEC-NNN` in `docs/ai-cto/blocked.md` has a status, a unique id, newest first) | `python3 tools/check-decisions.py` |
+| `tools/telepathy/telepathy_mcp.py` | stdio MCP mailbox for sessions on one machine (+ `tools/telepathy/watch.py`, the inotify watcher) | `claude mcp add --scope user telepathy -- python3 tools/telepathy/telepathy_mcp.py` |
+| `.claude/hooks/gate.sh` | `PreToolUse(Bash)` hook — runs the static checks above before any `git commit` and blocks on failure (bypass: `touch .claude/.gate-off`) | wired in `.claude/settings.json` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
 
 **Drift to reconcile — documented for the live box but NOT in this repo snapshot.**
