@@ -66,17 +66,29 @@ def main():
         return 0  # fail open: never trap the session on malformed input
     if data.get("stop_hook_active"):
         return 0  # already continued once this turn; let it end
-    items = decide_items(last_assistant_text(data.get("transcript_path", "")))
-    if not items:
+    text = last_assistant_text(data.get("transcript_path", ""))
+    if not text.strip():
         return 0
-    reason = (
-        "OODA ACT: the Decide list has %d numbered item(s). Act on them now, in order, "
-        "without choosing between them or asking first. Report each as Observed → Oriented "
-        "→ Decided → Acted, one line each. Skip only an item the user has marked punt. "
-        "Irreversible or outward-facing actions still need a confirm first.\n\n%s"
-        % (len(items), "\n".join(items))
-    )
-    print(json.dumps({"decision": "block", "reason": reason}))
+    reasons = []
+    # Briefing rule: the reply opens with a bold state word. Punctuation may sit just inside
+    # or just after the bold (**Done.** / **Done**:), per the peer critique of 2026-11-11.
+    first = next((l for l in text.splitlines() if l.strip()), "")
+    if not re.match(r"^\*\*(Done|Partial|Blocked|Waiting)[.:,]?\*\*[.:,]?(\s|$)", first.strip()):
+        reasons.append(
+            "BRIEFING LEAD: the reply must open with one bold state word (**Done**, **Partial**, "
+            "**Blocked**, or **Waiting**). It opened with: %r. Restate the reply with the state word first."
+            % first.strip()[:80])
+    items = decide_items(text)
+    if items:
+        reasons.append(
+            "OODA ACT: the Decide list has %d numbered item(s). Act on them now, in order, "
+            "without choosing between them or asking first. Report each as Observed → Oriented "
+            "→ Decided → Acted, one line each. Skip only an item the user has marked punt. "
+            "Irreversible or outward-facing actions still need a confirm first.\n\n%s"
+            % (len(items), "\n".join(items)))
+    if not reasons:
+        return 0
+    print(json.dumps({"decision": "block", "reason": "\n\n".join(reasons)}))
     return 0
 
 
