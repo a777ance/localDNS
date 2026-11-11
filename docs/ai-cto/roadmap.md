@@ -59,6 +59,7 @@ The vocabulary. If you see these, this is all they mean:
 
 ## Where the detail lives
 
+- The 20 leans on these decisions: `docs/ai-cto/leans.md`
 - Decisions and their evidence: `docs/ai-cto/blocked.md`
 - Where the work stands: `docs/ai-cto/checkpoint.md`
 - The finished work queue: `docs/ai-cto/handoff.md`

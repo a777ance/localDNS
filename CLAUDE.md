@@ -28,92 +28,52 @@ These conventions apply across **every** A777ance repo — current and future. (
 
 ## Reply style: Briefing
 
-Applies to every reply in this repo, regardless of output style. Mirrors
-`.claude/output-styles/briefing.md`.
+Applies to every reply in this repo. One line per rule; the long form is
+`docs/ai-cto/reply-style-full.md` and `.claude/output-styles/briefing.md`. Rules marked
+**[hook]** are enforced by the Stop hook `.claude/hooks/decide-act.py` (tested by
+`tools/check-stop-hook.py`): a reply that breaks one is bounced once, with the reason.
 
-- **Lead state word first.** Open with a bold state word: **Done**, **Partial**,
-  **Blocked**, or **Waiting**.
-- **The Matrix (also: OODA matrix, alias net — three names, one thing). Motto: "There is no way out."**
-  No tool call, workflow, or subagent runs outside it. Every tool call belongs to exactly one of the four cardinal skills
-  (`.claude/skills/observe`, `orient`, `decide`, `act`) and is named as `cardinal.method`,
-  for example `observe.read` or `act.ship`. Methods replace atomized skills. The map is
-  `.claude/cardinal-map.json`; `tools/check-cardinal.py` is its gate.
-- **Workflows follow the Matrix too.** Every rule here applies to tool calls made inside a
-  workflow (subagents, parallel agents, Ultracode runs) exactly as it applies to a normal
-  call: the cardinal name, the repoint, the 10-second cap, the lease, and the stall rule.
-  A session with no checkout of this repo loads no hooks, so its prompt must carry the rules.
-- **A Matrix stall is a defect, fixed at once.** Matrix calls have a 10-second hard cap. A
-  breach writes a one-time lease for the native tool (so work is never roadblocked) and a
-  stall incident. While a stall is open, diagnose why the alias stalled and improve it
-  before other work: `python3 tools/matrix.py orient.stall`, then `act.resolve`.
-- **Ten seconds is the Holy Grail.** Every tool call should finish in under 10 seconds.
-  Shape tools and repo layout for that: one small call over one big one, narrow reads
-  (`observe.read PATH START END`, `observe.search PATTERN PATH`) over whole-file dumps, and
-  `decide.gate` prints each check's time and flags any over 10 s as debt.
-- **Spend tokens like money; never idle.** Keep tool output short (ranges, `head`, counts).
-  Never poll or wait in a loop: end the turn and let an event wake the session. Stop peers
-  that return null results or run past their usefulness. Do not re-read what is on disk.
-- **Compact strategically.** State lives on disk, not in the conversation, so compaction
-  loses nothing: before a long stretch, and at each natural boundary (a ship, a decision,
-  a lease start), update `docs/ai-cto/checkpoint.md`. After a compaction or in a new
-  session, resume from that file plus `python3 tools/matrix.py observe.status`.
-  `.claude/hooks/resume.py` (a `SessionStart` hook on `compact`) does this automatically:
-  it re-injects the checkpoint, the Matrix status, and the open decisions, and tells the
-  session to carry on without waiting.
-- **Strike while the iron is hot.** Commit and push each finished piece the moment its
-  gates pass, and always before a compaction, a long call, or the end of a turn. Work that
-  exists only in the working tree or the conversation is state waiting to be lost.
-- **Resolve stacked requests newest first, and drop none.** When several requests arrive
-  mid-turn, work them in LIFO order and account for every one in the report.
-- **Carrot.** The 3-hour lease for peer sessions is the Carrot. Name it by that word in
-  peer prompts and in status lines. Assumed reading, stated in INIT-003: the Carrot lease is
-  3 hours from the first ping, with UTC expiry.
-- **OODA structure.** Observe (facts, with evidence) → Orient (meaning; name each assumption
-  as `Assume:`) → Decide (options queued, numbered, never chosen between unless asked) →
-  Act (run the queue or the first item, one line per result).
-- **Orient reads from disk.** Before Orient, read `docs/ai-cto/initiatives.md` (goals and
-  line items, `INIT-*`) and `docs/ai-cto/debt.md` (debt register, `DEBT-*`). Name the IDs
-  each action touches. Blocked items live in `docs/ai-cto/blocked.md` with their unblock
-  action, and stay there until their status changes.
-- **Queue, don't choose.** Where options exist, list them in run order with action and
-  reversibility. The user skips or punts items; act on the queue rather than stalling in
-  Observe or Orient.
-- **Anything needing the founder is a tile, not prose.** Each decision Dave must make is a
-  loud block the founder can scan in one glance, with a **GO** or **NO GO** decision line:
+- **Lead state word first [hook].** Open with **Done**, **Partial**, **Blocked**, or **Waiting**.
+- **OODA structure.** Observe (facts, with evidence) → Orient (meaning; each assumption as
+  `Assume:`) → Decide (options queued in run order, not chosen between unless asked) → Act.
+- **Orient reads from disk.** `docs/ai-cto/initiatives.md` (`INIT-*`), `docs/ai-cto/debt.md`
+  (`DEBT-*`), `docs/ai-cto/blocked.md`. Name the IDs each action touches.
+- **Queue, don't choose [hook].** A numbered Decide list is acted on in the same reply: one
+  Act line per item, or the reason that item is blocked.
+- **A founder decision is a tile, not prose [hook].** Logged as `DEC-NNN` in `docs/ai-cto/blocked.md`:
 
   > **DECISION · DEC-NNN · <one-line question>**
   > **Action if GO:** <what runs>
   > **Action if NO GO:** <what stays>
   > **Decision needed:** **GO** or **NO GO**
 
-  Tiles are never buried in a paragraph. One tile per decision, numbered `DEC-NNN`, and
-  each is also recorded in `docs/ai-cto/blocked.md` until decided.
-- **OODA is an ongoing goal (INIT-004).** Each cycle re-evaluates the rules: what failed,
-  what has no check, and what tooling would catch it. A rule that lives only in prose is
-  not a rule; it needs a check, a hook, or a file the next session reads. Raise the quality
-  bar each cycle; never close the loop.
-- **A null result gets new work.** When a session returns nothing useful, give it a concrete
-  task in the same cycle rather than leaving it idle or repeating the prior prompt.
-- **Commands assume a fresh terminal.** Every command given to the founder starts with
-  the navigation to the repo, so it runs in a new CLI window with no prior `cd`:
-
-  ```bash
-  cd ~/localDNS
-  <command>
-  ```
-
-  Put each command in its own fenced `bash` block, with the `cd` in the same block.
-- **Successes are quiet.** One plain sentence with the evidence in parentheses. No
-  celebration, no step-by-step recap.
-- **Failures are loud.** Open with `FAILED:` or `BLOCKED:` in bold, quote the error, then
-  give a numbered **Fix** recipe (one action per step, commands in `bash` fences). If the
-  fix is unknown, give the next diagnostic command. Never report a failure without a recipe
-  or a diagnostic.
-- **No vague hedges** ("should work", "probably"). Name the check that would confirm it.
+- **Tiles are only for what only the founder can decide** (DEC-010, GO 2026-11-11): an action
+  that cannot be undone with a revert, anything outward-facing or that spends money, the live
+  t630, real customer data, and the founder's own rules. Everything else: decide, act, record.
+- **Commands start with `cd ~/localDNS` [hook],** each in its own `bash` block. Never the cloud
+  container's `/home/user/` path: the founder opens a fresh terminal on his own machine.
+- **No vague hedges [hook]** ("should work", "probably works"). Name the check that confirms it.
+- **Successes are quiet; failures are loud.** One plain sentence with the evidence. A failure
+  opens with `FAILED:` or `BLOCKED:`, quotes the error, and gives a numbered **Fix** recipe or
+  the next diagnostic command.
 - No emoji. Headers no deeper than `###`.
-
-
----
+- **The Matrix. Motto: "There is no way out."** Every tool call, workflow, and subagent call
+  is named `cardinal.method` (`observe`, `orient`, `decide`, `act`) by the hook
+  `.claude/hooks/cardinal.py` and timed by `.claude/hooks/timing.py`. Map:
+  `.claude/cardinal-map.json`. Own tooling: `python3 tools/matrix.py list`. A session with no
+  checkout of this repo loads no hooks, so its prompt must carry the rules.
+- **Ten seconds per tool call is the Holy Grail.** A breach is a defect, fixed at once:
+  `python3 tools/matrix.py orient.stall`, then `act.resolve`; totals in `observe.times`.
+- **Spend tokens like money; never poll, never idle.** Short output, narrow reads. A null
+  result gets new work, not a repeat of the prompt.
+- **State lives on disk.** Update `docs/ai-cto/checkpoint.md` at each boundary;
+  `.claude/hooks/resume.py` and `.claude/hooks/precompact.py` carry it across a compaction.
+- **Strike while the iron is hot.** Ship each finished piece once its gates pass:
+  `python3 tools/matrix.py act.ship "MESSAGE" FILE... --push`.
+- **Stacked requests are resolved newest first, and none is dropped.**
+- **Carrot** is the name of the 3-hour lease for peer sessions (INIT-003).
+- **The OODA loop is an ongoing goal (INIT-004).** A rule that lives only in prose is not a
+  rule: give it a hook, a check, or a file the next session reads.
 
 ---
 
@@ -358,54 +318,12 @@ reference:
 
 ## F. nftables volume layer — deploy checklist
 
-Run this once on the t630 to stand up per-category byte accounting. All four
-steps can be done in one SSH session.
-
-```bash
-# 1. Copy the collect tools to the box (from your machine)
-scp -r docs/statements/tools/collect/ user@192.168.1.118:~/a777ance/collect/
-
-# 2. Load the accounting ruleset (idempotent — safe to re-run)
-sudo nft -f ~/a777ance/collect/nftables-accounting.nft
-sudo nft list table inet a777acct          # sets + counters exist, all zero — expected
-
-# 3. Dry-run the set populator (resolves DNS, touches nothing)
-python3 ~/a777ance/collect/populate_sets.py | head
-
-# 4. Apply for real (programs the IP sets; counters start counting)
-sudo python3 ~/a777ance/collect/populate_sets.py --apply
-sudo nft -j list counters table inet a777acct   # should show non-zero bytes within minutes
-
-# 5. Add to ROOT's cron (sudo crontab -e) — see the note below on why root
-sudo install -d -m 755 /var/log/a777ance
-# refresh IP sets every 6h (CDN IPs rotate; elements time out in 24h)
-3 */6 * * *  /usr/bin/python3 /home/USER/a777ance/collect/populate_sets.py --apply >>/var/log/a777ance/populate-sets.log 2>&1
-# collect monthly stats nightly
-30 0 * * *   /usr/bin/python3 /home/USER/a777ance/collect/collect_stats.py \
-             --out /var/lib/a777ance/$(date +\%Y-\%m).stats.json >>/var/log/a777ance/collect-stats.log 2>&1
-```
-
-Replace `USER` with the actual username on the t630. After the cron runs once,
-verify with: `sudo nft -j list counters table inet a777acct`
-
-**Both jobs belong in `sudo crontab -e` (root's), not the login user's, and they log
-to a file rather than `/dev/null`.** Every source they touch is root-only:
-`populate_sets.py --apply` programs the nft sets, and `collect_stats.py` reads
-`/etc/pihole/pihole-FTL.db`, runs `nft -j list counters` and `wg show`, and writes
-`/var/lib/a777ance`. Installed as the login user, both fail **silently** — the IP sets
-stop refreshing, their 24h element timeout ages them out, and the counters decay
-toward zero while the statement pipeline keeps reading them as measured fact. That is
-the honesty rule failing closed in the wrong direction, so the failure has to be
-loud: `tail /var/log/a777ance/*.log` after the first scheduled run.
-`tools/deploy-volume-layer.sh` installs it this way for you.
-
-**Uptime Kuma's `/metrics` is authenticated** — `collect_stats.py --kuma-key` defaults
-to empty, so an unkeyed run gets `HTTP 401` and `uptime`/`latency_ms` come back `null`
-no matter which user runs it. That is two of the four figures a Statement prints. The
-key lives in `/etc/a777ance/collect.env` (`chmod 600`, git-ignored by living off-repo,
-created empty by the deploy helper); mint one in Kuma under *Settings → API Keys* and
-fill it in, or the uptime figure has to be **omitted** from the Statement rather than
-guessed.
+The one-time checklist that stands up per-category byte accounting on the t630 is in
+`docs/architecture/volume-layer-deploy.md` (moved out of this briefing 2026-11-11, DEC-013).
+Three facts stay here because they bind every session: both cron jobs belong in **root's**
+crontab and log to `/var/log/a777ance/`; Uptime Kuma's `/metrics` needs the key in
+`/etc/a777ance/collect.env`, or the uptime figure is **omitted** from a Statement, never
+guessed; and `tools/deploy-volume-layer.sh` installs it that way.
 
 ---
 
@@ -829,28 +747,24 @@ stated reason.
 
 ## 4. Further reading
 
-- **README.md** — top-level map + links to the interactive field guide (setup wizard)
-- **docs/edda.html** — **The Edda**: the localDNS handbook — a self-contained,
-  keyboard-first (⌘K command palette, `/`, `j`/`k`, `?`) single-page reference over the
-  whole stack. Companion to the High Seat console (Hlidskjalf): the seat sees every
-  realm, the Edda codifies them. No external deps — open it in any browser. Faithful to
-  this briefing; when it disagrees with the live box, the box wins.
-- **docs/DEPLOY-PROTOCOL.md** — the **how** of deploying: the repeatable per-change procedure for landing one committed change on the live t630 safely (sync the checkout → diff → back up → validate → reload → verify the *effect*). Read it before `cp`-ing anything onto the box. Linked from README; the DEPLOY-QUEUE stages assume it.
-- **docs/REMEDIATION-BOARD.md** — **the standing track rotation**: the six tracks that close the gap between "well-documented" and "operationally closed" (drift closure · live-only snapshots · measured data plumbing · exposure verification · the first real Statement · AI/console hardening), each with current state, what blocks it, and the cycling rule for picking work. Adopted 2026-08-09 from an outside audit plus the first live drift audit. `docs/ai-cto/context.md` points here; update a track's state in the same commit as the work that changed it.
-- **docs/DEPLOY-QUEUE.md** — the **what** of deploying: staging runbook of everything reconstructed/fixed in the repo but not yet on the live t630, in dependency order with copy-paste commands + per-stage verification. Work it once SSH to `192.168.1.118` is available. Linked from README.
-- **docs/architecture/clear-refeed-protocol.md** — the sync → clear → refeed ritual: how to wipe a stale session and re-seed the latest CLAUDE.md losslessly. With the `SessionStart` hook (`.claude/hooks/refeed.sh`) installed, bare `/clear` runs the whole thing end-to-end (fires the §G lazy anchor first, then loads the seed); the `.claude/commands/reseed.md` slash command (`/reseed`) handles the no-clear refresh — it pulls the current seed `--ff-only` on `main` before regenerating, so it never rebuilds a stale world. **The seed** = the four-file briefing set (CLAUDE.md + README + `docs/ai-cto/context.md` + `docs/architecture/network-context.md`).
-- **docs/architecture/INSTALL-NOTES.md** — fresh install simulation: every known break point and fix
-- **docs/architecture/SKILLS.md** — skills demonstrated by the stack, each mapped to proving artifacts
-- **PLUGINS.md** — which Claude Code Directory plugins apply to this config repo (short
-  answer: none of the business ones — keep it lean)
-- **docs/architecture/network-context.md** — design rationale: Docker networking, UFW/WireGuard
-  forwarding, CAKE bufferbloat scope, Uptime Kuma monitor stack
-- **docs/architecture/cell-grammar.md** — supporting architecture notes
-- **docs/architecture/warrant-sites.md** — **where an invariant has to live to bind anything**: a run's warrant configuration (given-set · check obligation · confidence policy), why briefing prose and citations are not sites, the ranked site ladder, and the audit of which invariants in this repo are actually sited versus merely stated. Read it before writing a new rule anywhere.
-- **docs/provenance.html** — **the Provenance Ladder**: how a claim earns authority here (`M`/`O`/`D`/`R`/`A`), why transmission never promotes a tier, the four gates that check one before anything irreversible, the tag grammar, and the laundering catalogue. Published at <https://a777ance.github.io/localDNS/provenance.html>. Read it before citing a reconstructed config as fact or a plurality as a verdict — enforced by `tools/check-provenance.py`.
-- **tools/check-docs.py** — validates Markdown links (anchors + file links) AND inline repo-path references across **every** doc in the repo, and hard-fails on any stale legacy 1.x folder path (the pre-consolidation `01-unbound`, `12-secrets`, … names used with a trailing slash). Run before committing. Intentionally-absent paths (e.g. the un-snapshotted `langgraph-router/`) are allowlisted in the script. It also enforces one cross-file invariant: the **Bifrost sweep string** (the fixed string a bare `'` returns, §H) must be **byte-identical** across all three surfaces carrying it — CLAUDE.md is canonical. The **expansion template** (what a bare `` `seed` `` fills in) is held to the same standard and one more: byte-identical across the same three surfaces, *and* it must reduce to the sweep once its `(fill in)` slots and whitespace are struck — the derived clause that stops three agreeing copies of a *wrong* skeleton. A deterministic answer is only as good as the agreement of its sources. It also enforces the companion invariant: the **glyph roles** must match across spec §1, the rendered page, and §H. The sweep proves the surfaces agree on the glyphs' *order*; this proves they agree on what the glyphs *mean* — the half that actually decided wrong, when `@` read "signage" on the page for a full pass after the spec had reassigned it to "source". Deliberately narrow: it compares the first word of each archetype, so a role **reassignment** fails while the presentational differences the surfaces are entitled to ("Sanity / Tollbooth" vs "Sanity") pass. A check that failed on phrasing would be switched off, and an off check is worse than a narrow one.
-- **tools/sync-briefings.py** + **`04-user-services/ai-orchestration/briefing-block.md`** — **the parallel-session check.** Bifrost is active in every repo, so a dozen `CLAUDE.md` files carry the schema and are required to agree — but git only conflicts on the *same* file, and these are *different* files with an agreement obligation. Two sessions can each run green, each push cleanly, and still leave the portfolio self-contradictory; that is exactly how nine briefings kept describing a schema without `'` after Ignition landed here. So the copies stop being copies: `briefing-block.md` is canonical, the script renders it, and the gate blocks a commit that would ship drift. Rendered blocks are build output — **never hand-edit them.** Siblings not checked out are skipped and named, so green never silently means "checked nothing."
-- **tools/check-doctrine.py** — asserts the **mechanically-decidable** clauses of §G against the code that implements them: the juror sampler's `temperature`/`top_p`/`top_k`/`max_tokens` defaults, the CLI defaults (the real entry point), and that the penalties are **actually sent** rather than inherited from a vendor default. Deliberately narrow — the posture clauses (lazy anchor, vote-as-governor, measure `p̂`) don't decide mechanically and are sited in `.claude/commands/` and `.claude/agents/juror.md` instead, so a green run is **not** a claim the doctrine was followed, only that the numbers still agree.
+One line per entry. The full notes on each are in `docs/architecture/further-reading.md`.
+
+- **README.md** — top-level map + links to the interactive field guide (setup wizard).
+- **docs/edda.html** — **The Edda**.
+- **docs/DEPLOY-PROTOCOL.md** — the **how** of deploying.
+- **docs/REMEDIATION-BOARD.md** — **the standing track rotation**.
+- **docs/DEPLOY-QUEUE.md** — the **what** of deploying.
+- **docs/architecture/clear-refeed-protocol.md** — the sync → clear → refeed ritual.
+- **docs/architecture/INSTALL-NOTES.md** — fresh install simulation.
+- **docs/architecture/SKILLS.md** — skills demonstrated by the stack, each mapped to proving artifacts.
+- **PLUGINS.md** — which Claude Code Directory plugins apply here (short answer: none of the business ones).
+- **docs/architecture/network-context.md** — design rationale.
+- **docs/architecture/cell-grammar.md** — supporting architecture notes.
+- **docs/architecture/warrant-sites.md** — **where an invariant has to live to bind anything**.
+- **docs/provenance.html** — **the Provenance Ladder**.
+- **tools/check-docs.py** — validates links and repo-path references in every doc, and holds the Bifrost sweep, template, and glyph roles identical across their surfaces.
+- **tools/sync-briefings.py** + **`04-user-services/ai-orchestration/briefing-block.md`** — the parallel-session check: renders the canonical Bifrost block into every sibling repo's briefing; never hand-edit the copies.
+- **tools/check-doctrine.py** — asserts the **mechanically-decidable** clauses of §G against the code that implements them.
 
 ---
 
