@@ -46,3 +46,14 @@ Skip or punt is always the user's call. Mark a queued item `punt` only when the 
 - Keep sentences short. Prefer the concrete noun to the abstract one.
 - No emoji. No headers deeper than `###`.
 - If nothing needs saying beyond the lead line, reply with the lead line alone.
+- Options are queued, never chosen between, unless the founder asks for a recommendation.
+- Anything needing the founder's decision is a loud tile, not prose:
+
+  > **DECISION · DEC-NNN · <one-line question>**
+  > **Action if GO:** <what runs>
+  > **Action if NO GO:** <what stays>
+  > **Decision needed:** **GO** or **NO GO**
+
+  One tile per decision, numbered `DEC-NNN`, recorded in `docs/ai-cto/blocked.md` until decided.
+- Every command given to the founder starts with `cd /home/user/localDNS`, in its own
+  `bash` block, because the founder opens a fresh terminal each time.

@@ -4,6 +4,21 @@ Items that cannot proceed without an input from the founder or a session that ca
 reach the blocked system. Newest first. Each entry stays here until its status changes
 to `Done` or `Punted`, and it is removed only by the founder.
 
+## Decision log (DEC)
+
+Every founder decision, newest first, with its result. Open tiles stay here until the
+founder decides.
+
+- **DEC-006 · Keep pushing to PR #36 while the punted Cloudflare check fails each push · OPEN**
+  Asked 2026-11-11. Waiting on GO or NO GO.
+- **DEC-005 · Create venv peering files (`.vscode/settings.json`, bootstrap script) · OPEN**
+  Asked 2026-11-11. Waiting on GO or NO GO. Needs `echo $VIRTUAL_ENV` and `ls ../venv` run on the XPS.
+- **DEC-004 · Keep this session subscribed to #36 · OPEN**
+  Asked 2026-11-11. Waiting on GO or NO GO.
+- **DEC-003 · Restore the Decide-Act Stop hook · GO · executed.** Hook is on `main` via PR #35.
+- **DEC-002 · Stay subscribed to draft PR #36 · GO.** No action needed.
+- **DEC-001 · Merge PR #35 into `main` · GO · executed.** Merged as `e275413`.
+
 Format per entry: status · what was observed · why it is blocked · the action that unblocks it.
 
 ---
