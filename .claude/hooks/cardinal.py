@@ -18,9 +18,16 @@ READ_ONLY = re.compile(
     r"git\s+(status|log|diff|show|branch|fetch|remote|rev-parse)|python3?\s+tools/check-)\b")
 
 
+def strip_quoted(cmd: str) -> str:
+    """Drop here-document bodies and quoted strings: text a command only quotes is not a call it makes."""
+    cmd = re.sub(r"<<-?\s*(['\"]?)(\w+)\1.*?\n\s*\2\b", "<<HEREDOC", cmd, flags=re.DOTALL)
+    return re.sub(r"'[^']*'|\"(?:\\.|[^\"\\])*\"", "''", cmd)
+
+
 def classify_bash(cmd: str) -> str:
+    cmd = strip_quoted(cmd)
     own = re.search(r"tools/matrix\.py\s+((?:observe|orient|decide|act)\.[\w-]+)", cmd)
-    if own and "<<" not in cmd:  # a here-document may only quote a Matrix call, not make one
+    if own:
         return own.group(1)  # a Matrix call names its own cardinal
     if re.search(r"\bgit\s+(commit|push|merge)\b", cmd):
         return "act.ship"
@@ -60,6 +67,8 @@ def main() -> int:
         tool = data.get("tool_name", "")
         alias = lookup(tool, data.get("tool_input") or {})
         line = f"cardinal: {alias}" if alias else f"cardinal: UNMAPPED ({tool}) — add it to .claude/cardinal-map.json"
+        if data.get("agent_type"):  # set when a subagent made the call
+            line += f" · agent: {data['agent_type']}"
         out = {"hookEventName": "PreToolUse", "additionalContext": line}
         cfg = json.loads((ROOT / ".claude/cardinal-map.json").read_text(encoding="utf-8"))
         mode = os.environ.get("MATRIX_MODE") or cfg.get("mode", "name")

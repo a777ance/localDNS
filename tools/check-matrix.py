@@ -48,10 +48,10 @@ def main() -> int:
             return subprocess.run([sys.executable, str(box / "tools/matrix.py"), *args], input=stdin,
                                   capture_output=True, text=True, cwd=box, env={**base_env, **env})
 
-        def hook(tool, tool_input=None, mode=None):
+        def hook(tool, tool_input=None, mode=None, **extra):
             env = {**base_env, **({"MATRIX_MODE": mode} if mode else {})}
             r = subprocess.run([sys.executable, str(box / ".claude/hooks/cardinal.py")],
-                               input=json.dumps({"tool_name": tool, "tool_input": tool_input or {}}),
+                               input=json.dumps({"tool_name": tool, "tool_input": tool_input or {}, **extra}),
                                capture_output=True, text=True, env=env)
             return json.loads(r.stdout)["hookSpecificOutput"]
 
@@ -81,10 +81,18 @@ def main() -> int:
             ("Bash", "git commit -m x && git push"): "act.ship",
             ("Bash", "rm -rf build"): "act.write",
             ("Bash", "python3 tools/matrix.py orient.ground"): "orient.ground",
+            # text a command only quotes is not a call it makes (Q-008)
+            ("Bash", "cat <<'EOF'\npython3 tools/matrix.py act.ship x\nEOF"): "observe.read",
+            ("Bash", "python3 tools/matrix.py act.write f.txt <<EOF\ngit commit -m x\nEOF"): "act.write",
+            ("Bash", "grep -rn 'git commit' docs && echo \"git push\""): "observe.read",
+            ("Bash", "python3 - <<'EOF'\nprint('git commit')\nEOF"): "act.write",
+            ("Bash", "git commit -m \"it's done\""): "act.ship",
         }
         for (tool, cmd), want in names.items():
             got = hook(tool, {"command": cmd} if cmd else {})["additionalContext"]
             check(f"hook names {tool} {cmd}".strip(), got.startswith(f"cardinal: {want}"), got)
+        check("hook names the subagent", hook("Read", agent_type="juror", agent_id="a1")["additionalContext"]
+              == "cardinal: observe.read · agent: juror")
         check("hook unmapped", "UNMAPPED" in hook("NoSuchTool")["additionalContext"])
         # gate modes
         check("mode name allows", "permissionDecision" not in hook("Read", mode="name"))
