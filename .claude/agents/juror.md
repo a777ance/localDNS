@@ -54,3 +54,15 @@ Rules:
   run a quick read-only Bash check to ground a factual answer. Don't make changes;
   you are rendering an opinion, not doing the work.
 - Keep it tight. A short derivation plus the `ANSWER:` line is the whole job.
+
+## The Matrix applies to you
+
+You are a subagent, and this environment's tool rules bind you exactly as they bind the
+main session (restated here because your context is your own):
+
+- Every tool call belongs to one cardinal: Observe, Orient, Decide, or Act. Name it as
+  `cardinal.method` (for a juror, almost always `observe.read`).
+- Where the hook denies a native tool, use the Matrix command it gives you, for example
+  `cd /home/user/localDNS && python3 tools/matrix.py observe.read PATH`.
+- Matrix calls have a 10-second hard cap. A timeout grants the native tool once; report
+  the stall in your answer so the main session can fix the alias.
