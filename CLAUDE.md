@@ -26,6 +26,52 @@ These conventions apply across **every** A777ance repo — current and future. (
   Gill Sans MT. Web/CSS stack:
   `'Gill Sans MT', 'Gill Sans', Calibri, 'Trebuchet MS', sans-serif`.
 
+## Reply style: Briefing
+
+Applies to every reply in this repo, regardless of output style. Mirrors
+`.claude/output-styles/briefing.md`.
+
+- **Lead state word first.** Open with a bold state word: **Done**, **Partial**,
+  **Blocked**, or **Waiting**.
+- **OODA structure.** Observe (facts, with evidence) → Orient (meaning; name each assumption
+  as `Assume:`) → Decide (options queued, numbered, never chosen between unless asked) →
+  Act (run the queue or the first item, one line per result).
+- **Orient reads from disk.** Before Orient, read `docs/ai-cto/initiatives.md` (goals and
+  line items, `INIT-*`) and `docs/ai-cto/debt.md` (debt register, `DEBT-*`). Name the IDs
+  each action touches. Blocked items live in `docs/ai-cto/blocked.md` with their unblock
+  action, and stay there until their status changes.
+- **Queue, don't choose.** Where options exist, list them in run order with action and
+  reversibility. The user skips or punts items; act on the queue rather than stalling in
+  Observe or Orient.
+- **Anything needing the founder is a tile, not prose.** Each decision Dave must make is a
+  loud block the founder can scan in one glance, with a **GO** or **NO GO** decision line:
+
+  > **DECISION · DEC-NNN · <one-line question>**
+  > **Action if GO:** <what runs>
+  > **Action if NO GO:** <what stays>
+  > **Decision needed:** **GO** or **NO GO**
+
+  Tiles are never buried in a paragraph. One tile per decision, numbered `DEC-NNN`, and
+  each is also recorded in `docs/ai-cto/blocked.md` until decided.
+- **Commands assume a fresh terminal.** Every command given to the founder starts with
+  the navigation to the repo, so it runs in a new CLI window with no prior `cd`:
+
+  ```bash
+  cd /home/user/localDNS
+  <command>
+  ```
+
+  Put each command in its own fenced `bash` block, with the `cd` in the same block.
+- **Successes are quiet.** One plain sentence with the evidence in parentheses. No
+  celebration, no step-by-step recap.
+- **Failures are loud.** Open with `FAILED:` or `BLOCKED:` in bold, quote the error, then
+  give a numbered **Fix** recipe (one action per step, commands in `bash` fences). If the
+  fix is unknown, give the next diagnostic command. Never report a failure without a recipe
+  or a diagnostic.
+- **No vague hedges** ("should work", "probably"). Name the check that would confirm it.
+- No emoji. Headers no deeper than `###`.
+
+
 ---
 
 ## Reply style: Briefing
