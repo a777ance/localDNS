@@ -53,6 +53,15 @@ Applies to every reply in this repo, regardless of output style. Mirrors
 
   Tiles are never buried in a paragraph. One tile per decision, numbered `DEC-NNN`, and
   each is also recorded in `docs/ai-cto/blocked.md` until decided.
+- **Commands assume a fresh terminal.** Every command given to the founder starts with
+  the navigation to the repo, so it runs in a new CLI window with no prior `cd`:
+
+  ```bash
+  cd /home/user/localDNS
+  <command>
+  ```
+
+  Put each command in its own fenced `bash` block, with the `cd` in the same block.
 - **Successes are quiet.** One plain sentence with the evidence in parentheses. No
   celebration, no step-by-step recap.
 - **Failures are loud.** Open with `FAILED:` or `BLOCKED:` in bold, quote the error, then
