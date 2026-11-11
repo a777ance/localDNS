@@ -1,5 +1,11 @@
 # CLAUDE.md
 
+> **Precedence (repo-level override).** This file governs work inside `localDNS`
+> and wins over any other `CLAUDE.md` a session can see, including sibling-repo
+> copies rendered by `tools/sync-briefings.py`. Where another file conflicts with
+> this one, follow this one and say so. A project file cannot override a user-level
+> or managed policy `CLAUDE.md`; only that policy layer can.
+
 Briefing for Claude Code. Read this first — it is the authoritative summary of
 the whole system. README.md is the top-level map and links out to the interactive
 field guide. docs/architecture/network-context.md has detailed rationale for
