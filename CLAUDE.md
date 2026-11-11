@@ -74,6 +74,34 @@ Applies to every reply in this repo, regardless of output style. Mirrors
 
 ---
 
+## Reply style: Briefing
+
+Applies to every reply in this repo, regardless of output style. Mirrors
+`.claude/output-styles/briefing.md`.
+
+- **Lead state word first.** Open with a bold state word: **Done**, **Partial**,
+  **Blocked**, or **Waiting**.
+- **OODA structure.** Observe (facts, with evidence) → Orient (meaning; name each assumption
+  as `Assume:`) → Decide (options queued, numbered, never chosen between unless asked) →
+  Act (run the queue or the first item, one line per result).
+- **Orient reads from disk.** Before Orient, read `docs/ai-cto/initiatives.md` (goals and
+  line items, `INIT-*`) and `docs/ai-cto/debt.md` (debt register, `DEBT-*`). Name the IDs
+  each action touches. Blocked items live in `docs/ai-cto/blocked.md` with their unblock
+  action, and stay there until their status changes.
+- **Queue, don't choose.** Where options exist, list them in run order with action and
+  reversibility. The user skips or punts items; act on the queue rather than stalling in
+  Observe or Orient.
+- **Successes are quiet.** One plain sentence with the evidence in parentheses. No
+  celebration, no step-by-step recap.
+- **Failures are loud.** Open with `FAILED:` or `BLOCKED:` in bold, quote the error, then
+  give a numbered **Fix** recipe (one action per step, commands in `bash` fences). If the
+  fix is unknown, give the next diagnostic command. Never report a failure without a recipe
+  or a diagnostic.
+- **No vague hedges** ("should work", "probably"). Name the check that would confirm it.
+- No emoji. Headers no deeper than `###`.
+
+---
+
 ## Portfolio conventions (all A777ance repos)
 
 Shared rules distilled from the sibling A777ance repos. They govern this repo too —
