@@ -1,14 +1,13 @@
 # Roadmap for Dave
 
-Written 2026-11-11, 23:10 UTC. One page, plain English. If this page and another file
+Written 2026-11-11, 23:10 UTC; updated 23:35 UTC after the merge. One page, plain English. If this page and another file
 disagree about what you need to do, this page is the newer one.
 
 ## What happened
 
 Two sessions built a set of tools for how Claude works in this repo. None of it touches the
-t630, DNS, the VPN, or any customer document. All of it sits on one branch,
-`decision-log-dec007`, in one draft pull request, PR #37. Nothing is on `main` yet, so a new
-session does not have any of it until you say so.
+t630, DNS, the VPN, or any customer document. All of it was merged into `main` on 2026-11-11 (PR #37), so every
+new session now has it.
 
 ## What was built, in four lines
 
@@ -21,28 +20,36 @@ Nothing is blocked by any of this today. It labels and measures; it does not sto
 
 ## What you need to do
 
-Six yes-or-no answers, in this order. The order matters only for the first one.
+You deferred the six decisions to the loop on 2026-11-11. Four are done. Two still need you.
 
-1. **DEC-011 · Merge PR #37 into `main`?** Do this one first: everything above is invisible to new sessions until it merges. Risk is low. All nine checks pass in the cloud and on your XPS, and nothing is blocked by the tools.
-2. **DEC-013 · Shrink `CLAUDE.md`?** It is 69,000 characters and is loaded into every turn of every session, which costs money each time. A yes moves about 40% of it into files that are read only when needed. No rule is deleted.
-3. **DEC-010 · Fewer decision tiles?** A yes means you get a tile only for something that truly needs you, not for every small choice.
-4. **DEC-014 · Trim the cloud setup script?** A yes stops every new cloud session installing two packages it never uses, and makes it run all nine checks at start.
-5. **DEC-012 · Turn on reminders ("warn" mode)?** A yes makes Claude remind itself to use the repo's own tools. Still nothing is blocked. Answer this after number 1 has merged.
-6. **DEC-005 · Python environment files for the XPS?** This one needs two facts from your laptop first. Run this and paste the output:
+| Decision | Result |
+| -------- | ------ |
+| DEC-014 · Trim the cloud setup script | Done. You approved the change; it applies to the next new cloud session. |
+| DEC-013 · Shrink `CLAUDE.md` | Done in part: 69,153 to 59,123 characters, nothing deleted. Two large sections were left whole on purpose. |
+| DEC-011 · Merge PR #37 | Done. Merged into `main` as `60a53d7`. |
+| DEC-010 · Fewer decision tiles | Done. You now get a tile only for what cannot be undone, costs money, or touches the t630. |
+| DEC-012 · Turn on reminders | **Needs you.** The safety system does not let a session change its own guardrail. Command below. |
+| DEC-005 · Python files for the XPS | **Needs you.** Two facts from your laptop. Command below. |
+
+To turn on reminders (DEC-012), if you want them:
+
+```bash
+cd ~/localDNS
+git checkout main && git pull --ff-only && sed -i 's/"mode": "name"/"mode": "warn"/' .claude/cardinal-map.json && python3 tools/matrix.py decide.gate && git commit -am "DEC-012: gate mode to warn" && git push
+```
+
+For DEC-005, run this and paste the output:
 
 ```bash
 cd ~/localDNS
 echo "venv: $VIRTUAL_ENV"; ls ../venv
 ```
 
-**How to answer:** one line is enough, for example `GO 011, GO 013, NO GO 012`. Anything you
-leave out stays open and nothing happens to it.
-
 ## What Claude does without you
 
 1. Done 2026-11-11: confirmed the labels also reach helper agents.
 2. Checks, at the next compaction, that the session keeps the lease and decision list.
-3. Carries out each decision above as soon as you answer it.
+3. Checks in the next new session that the merge and the trimmed setup script both took effect.
 
 ## What you can ignore
 

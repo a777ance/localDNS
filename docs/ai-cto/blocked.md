@@ -17,8 +17,7 @@ A plain-English version of the open decisions, in the order to answer them, is i
 Every founder decision, newest first, with its result. Open tiles stay here until the
 founder decides.
 
-- **DEC-014 · Trim the cloud environment setup script · OPEN**
-  Lean GO (L-17, L-18 in `docs/ai-cto/leans.md`). The founder deferred to the loop 2026-11-11; the environment's own approval prompt is the last step.
+- **DEC-014 · Trim the cloud environment setup script · GO · executed.** Founder deferred to the loop and approved the environment change 2026-11-11 (leans L-17, L-18). The new script was run once in a live container first; it takes effect on the next fresh container. Original evidence:
   Asked 2026-11-11. Waiting on GO or NO GO. Evidence (read from the Default environment, 2026-11-11):
   the script runs `apt-get install` for `shellcheck`, `wireguard-tools`, `nftables`, and `python3-yaml`
   on every fresh container. No gate, hook, or Matrix method calls `wg` or `nft` (a search of
@@ -53,8 +52,7 @@ founder decides.
 - **DEC-012 · Move the Matrix from name to warn mode · OPEN**
   Lean GO (L-14 to L-16). Not executed: the permission system refused to let a session flip its own gate. Needs the founder's hand.
   Asked 2026-11-11. Waiting on GO or NO GO. Enforce stays off until warn has run cleanly in a live session.
-- **DEC-011 · Merge PR #37 into `main` so the Matrix reaches new sessions · OPEN**
-  Lean GO (L-01 to L-05). The founder deferred to the loop 2026-11-11.
+- **DEC-011 · Merge PR #37 into `main` so the Matrix reaches new sessions · GO · executed.** Founder deferred to the loop 2026-11-11 (leans L-01 to L-05). Merged as `60a53d7`, a merge commit; the tree on `main` is identical to the branch tip `fa94d93`.
   Asked 2026-11-11. Waiting on GO or NO GO.
 - **DEC-010 · Scope DEC tiles to decisions only the founder can make · GO · executed.**
   Founder deferred to the loop 2026-11-11; leans L-11 to L-13. The rule is one line in the reply style in `CLAUDE.md`.
