@@ -37,6 +37,10 @@ Applies to every reply in this repo, regardless of output style. Mirrors
   (`.claude/skills/observe`, `orient`, `decide`, `act`) and is named as `cardinal.method`,
   for example `observe.read` or `act.ship`. Methods replace atomized skills. The map is
   `.claude/cardinal-map.json`; `tools/check-cardinal.py` is its gate.
+- **Workflows follow the Matrix too.** Every rule here applies to tool calls made inside a
+  workflow (subagents, parallel agents, Ultracode runs) exactly as it applies to a normal
+  call: the cardinal name, the repoint, the 10-second cap, the lease, and the stall rule.
+  A session with no checkout of this repo loads no hooks, so its prompt must carry the rules.
 - **A Matrix stall is a defect, fixed at once.** Matrix calls have a 10-second hard cap. A
   breach writes a one-time lease for the native tool (so work is never roadblocked) and a
   stall incident. While a stall is open, diagnose why the alias stalled and improve it
