@@ -267,7 +267,7 @@ names the hook. This is the phase that pays down rule inflation.
 - **Q-023 · DEBT-006.** · DONE (this commit: Stop hook rules and tests) · `act.write`. Fix the `SyntaxWarning: invalid escape sequence` in
   `tools/check-doctrine.py` (raw string), and add a `--check` alias to
   `tools/sync-briefings.py` for its default mode. Done: no warning on stderr; DEBT-006 → Done. 6 min.
-- **Q-024 · Telepathy test.** `act.write`. a new check, `check-telepathy` (to be created under `tools/`): in a temp mailbox,
+- **Q-024 · Telepathy test.** · DONE (this commit: telepathy test) · `act.write`. a new check, `check-telepathy` (to be created under `tools/`): in a temp mailbox,
   send → inbox → read → mark done, and assert the watcher prints `NEW` for an arrival
   within 2 s. Map the tools into the Matrix (`act.message`, `observe.listen`). 9 min.
 

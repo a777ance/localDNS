@@ -14,7 +14,7 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 ## Methods
 
 - `observe.read` — files and read-only shell: Read, Glob, Grep.
-- `observe.listen` — events that arrive: ReadNotifications, Monitor, session events.
+- `observe.listen` — events that arrive: ReadNotifications, Monitor, session events, and the telepathy mailbox (`tools/telepathy/watch.py`, inbox, read).
 - `observe.survey` — the fleet: sessions, environments, scheduled tasks, repos.
 - `observe.inspect` — GitHub state: PRs, check runs, commits, logs.
 - `observe.fetch` — outside facts: web, docs, tool and plugin search.

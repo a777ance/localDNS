@@ -15,7 +15,7 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 
 - `act.write` — change files: Write, Edit, state-changing shell.
 - `act.ship` — commit, push, open or merge a PR. Merge needs a founder GO.
-- `act.message` — send to a session, a person, or a thread.
+- `act.message` — send to a session, a person, or a thread; includes the telepathy mailbox (`tools/telepathy/telepathy_mcp.py`: send, mark done).
 - `act.recruit` — create, interrupt, or archive sessions; spawn worker agents.
 - `act.schedule` — scheduled tasks and wake-ups.
 - `act.watch` — subscribe or unsubscribe PR activity.

@@ -29,7 +29,11 @@
           "ReadNotifications",
           "Monitor",
           "mcp__claude-code-remote__list_events",
-          "mcp__claude-code-remote__get_event"
+          "mcp__claude-code-remote__get_event",
+          "Bash:tools/telepathy/watch.py",
+          "mcp__telepathy__inbox",
+          "mcp__telepathy__read",
+          "mcp__telepathy__whoami"
         ],
         "survey": [
           "mcp__claude-code-remote__list_sessions",
@@ -164,7 +168,10 @@
           "mcp__claude-code-remote__send_message",
           "mcp__claude-code-remote__send_later",
           "mcp__github__add_issue_comment",
-          "SendUserFile"
+          "SendUserFile",
+          "Bash:tools/telepathy/telepathy_mcp.py",
+          "mcp__telepathy__send",
+          "mcp__telepathy__mark_done"
         ],
         "recruit": [
           "mcp__claude-code-remote__create_session",
