@@ -1,11 +1,12 @@
 {
-  "_comment": "Tool-call aliases read by .claude/hooks/alias.sh. Rules are checked in order; first match wins. action 'rewrite' (Bash only): regex-replace the command. action 'block': deny with message. 'match' is an optional regex on the call's input.",
+  "_comment": "Tool-call aliases read by .claude/hooks/alias.sh. Rules are checked in order; first match wins. action 'rewrite' (Bash only): regex-replace the command. action 'block': deny with message. 'match' is an optional regex on the call's input (JSON-escaped, so keep patterns free of double quotes).",
   "aliases": [
     {
-      "name": "ban-bash",
+      "name": "block-destructive-bash",
       "tool": "Bash",
       "action": "block",
-      "message": "Bash is banned in this repo. Use the repo's own tools instead."
+      "match": "\\brm\\s+-[a-zA-Z]*[rRf]|\\brm\\s+--(recursive|force)|\\bgit\\s+push\\b.*--force(?!-with-lease)|\\bgit\\s+push\\b.*\\s-f\\b|\\bgit\\s+reset\\s+--hard\\b|\\bgit\\s+clean\\b.*-[a-zA-Z]*f|\\bmkfs(\\.|\\s)|\\bdd\\s+if=|\\bshutdown\\b|\\breboot\\b|\\bdocker\\s+(system\\s+prune|rm\\s+-f)",
+      "message": "Destructive shell command blocked by the repo's alias router (.claude/tool-aliases.json). Use a non-destructive form, or ask the user to run it."
     }
   ]
 }

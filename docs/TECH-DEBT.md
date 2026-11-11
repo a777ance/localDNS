@@ -41,9 +41,9 @@ Fields per entry: `id`, `opened`, `owner`, `status` (`open` | `closed`), `due`
 - **owner:** founder
 - **status:** open
 - **due:** 2026-11-18
-- **what:** the Bash ban rule in `.claude/tool-aliases.json` is not enforced, because `.claude/hooks/alias.sh` is not wired into `.claude/settings.json`.
-- **why it is debt:** a stated policy with no enforcement is a silent gap.
-- **fix:** wire the hook into settings, and decide whether the ban is full or narrowed (a full ban blocks `git`, tests, and the repo's checks).
+- **what:** the Bash rule is now narrowed to destructive commands (`block-destructive-bash` in `.claude/tool-aliases.json`) and `alias.sh` is registered as a PreToolUse hook in `.claude/settings.json`. Enforcement is not yet verified: no live run has shown the hook firing, and the executable bit on `alias.sh` cannot be confirmed through the GitHub API.
+- **why it is debt:** a rule that has never fired is still a silent gap.
+- **fix:** from a session with a shell, run `chmod +x .claude/hooks/alias.sh`, then confirm `rm -rf /tmp/x` is blocked and `git status` is allowed. Close this entry once both are seen.
 
 ### DEBT-004
 - **opened:** 2026-11-11
