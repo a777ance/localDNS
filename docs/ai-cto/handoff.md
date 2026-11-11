@@ -180,7 +180,7 @@ behind. `BLOCKED` items wait for the founder.
 - **Q-003 · Use `agent_id` / `agent_type` in the naming hook.** · DONE bf77e56 · `act.write`. When the hook
   input carries them, append `· agent: <type>` to the cardinal line. Add a case to
   `tools/check-matrix.py`. Done: e2e green. 5 min.
-- **Q-004 · One live subagent check (the single permitted spawn).** · DONE (founder said go, 23:15 UTC; hook line seen: `cardinal: observe.read · agent: juror`) · `decide.vote`. Spawn one
+- **Q-004 · One live subagent check (the single permitted spawn).** · DONE (founder said go, 23:08 UTC; hook line seen: `cardinal: observe.read · agent: juror`) · `decide.vote`. Spawn one
   `juror` with a one-line read-only question and confirm from its transcript or the Matrix
   log that the hook fired for its tool call. Done: result recorded in DEBT-008. Skip if the
   usage limit is still reached. 5 min.

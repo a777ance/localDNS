@@ -132,7 +132,8 @@
           "/cardio",
           "/strength",
           "/workout",
-          "Agent:juror"
+          "Agent:juror",
+          "SubagentHandback"
         ],
         "gate": [
           "Bash:tools/check-docs.py",
