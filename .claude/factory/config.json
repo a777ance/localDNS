@@ -1,0 +1,10 @@
+{
+  "_comment": "Limits for a bounded factory arc. The run halts at the first cap hit or the kill file. Edit these, not the procedure.",
+  "wall_clock_minutes": 180,
+  "max_iterations": 10,
+  "max_tool_calls": 200,
+  "scope": "docs/TECH-DEBT.md",
+  "kill_file": ".claude/.factory-stop",
+  "branch": "claude/elegant-sagan-ul1tc6",
+  "push_requires_approval": true
+}
