@@ -1,0 +1,12 @@
+# Repo-owned lint config. The repo, not the user's global ruff config, decides
+# what "lint clean" means. Scope: Python in tools/, tests/ and the jury trees.
+target-version = "py313"
+line-length = 100
+extend-exclude = [".audit", "docs/statements/tools/collect"]
+
+[lint]
+select = ["E", "F", "W", "B", "UP", "I"]
+ignore = ["E501"]  # line length is advisory here; formatter owns wrapping
+
+[lint.per-file-ignores]
+"tests/*" = []

@@ -1,4 +1,7 @@
-import os, json, random
+import json
+import os
+import random
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 # ───────── data-driven pipeline ─────────
@@ -67,8 +70,8 @@ def attention_html(items):
 
 
 def log_html(items):
-    return "".join(f'<div class="lx"><div class="scope">{l["scope"]}</div>'
-                   f'<div class="txt">{l["text"]}</div></div>' for l in items)
+    return "".join(f'<div class="lx"><div class="scope">{it["scope"]}</div>'
+                   f'<div class="txt">{it["text"]}</div></div>' for it in items)
 
 
 def roster_html(rows):

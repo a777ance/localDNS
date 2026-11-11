@@ -1,4 +1,9 @@
-import io, segno, os, json
+import io
+import json
+import os
+
+import segno
+
 HERE=os.path.dirname(os.path.abspath(__file__))
 
 RAMP = ["#13314f","#2d5a82","#4d82a8","#7aa6c4","#a9803f","#c6a463","#ddd6c6"]
@@ -11,9 +16,11 @@ def qr(data,color="#13314f"):
 AVATAR = open(os.path.join(HERE,'avatar.svg')).read().replace('width="200" height="200"','width="100%" height="100%"')
 
 def conic(alloc):
-    stops=[];cum=0
+    stops = []
+    cum = 0
     for i,(_,pct,_) in enumerate(alloc):
-        stops.append(f"{RAMP[i]} {cum}% {cum+pct}%");cum+=pct
+        stops.append(f"{RAMP[i]} {cum}% {cum+pct}%")
+        cum += pct
     return "background:conic-gradient("+",".join(stops)+");"
 
 def legend(alloc):
@@ -43,7 +50,8 @@ def cmp(rows):
           '<span>above average &#9656;</span></div></div>')
     out=""
     for r in rows:
-        d=r["delta"]; w=min(abs(d),100)/100*46.0
+        d = r["delta"]
+        w = min(abs(d), 100) / 100 * 46.0
         side="right" if d>=0 else "left"
         sign="+" if d>0 else ("&minus;" if d<0 else "")
         dd=f'{sign}{abs(d):g}%'
@@ -74,7 +82,8 @@ def suggestions_block(cfg):
 STYLE = open(os.path.join(HERE,'style.css')).read()
 
 def build(cfg):
-    qr_live = qr(cfg["live_url"]); qr_stmt = qr(cfg["stmt_url"])
+    qr_live = qr(cfg["live_url"])
+    qr_stmt = qr(cfg["stmt_url"])
     # Optional sections — rendered only when honest data is present, otherwise omitted
     # entirely (no faked donut, no invented peer cohort, no phantom Alliance match).
     sec_alloc = (f'''\n\n    <div class="section"><div class="section-head"><div class="section-title">Traffic Allocation</div>

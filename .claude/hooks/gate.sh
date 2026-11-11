@@ -15,7 +15,7 @@
 # thing the next session inherits — the last point at which "did this earn its
 # tier?" can still be answered cheaply.
 #
-# Runs the repo's three static checks before any `git commit`:
+# Runs before any `git commit` or `git push` (lint + tests + checks via tools/verify.sh):
 #   tools/check-docs.py        links + repo-path references resolve; the Bifrost
 #                              sweep string is byte-identical across its surfaces
 #   tools/check-provenance.py  provenance tags valid; no unstaged R-tier deploy
@@ -64,7 +64,7 @@ print(d.get("tool_input", {}).get("command", ""))
 # Only gate real commits. `git commit` appearing inside a quoted string (a commit
 # MESSAGE that talks about committing, say) is matched too — over-triggering costs
 # two seconds; under-triggering costs the invariant.
-printf '%s' "$cmd" | grep -Eq '(^|[;&|[:space:]])git[[:space:]]+(-[^[:space:]]+[[:space:]]+)*commit([[:space:]]|$)' || exit 0
+printf '%s' "$cmd" | grep -Eq '(^|[;&|[:space:]])git[[:space:]]+(-[^[:space:]]+[[:space:]]+)*(commit|push)([[:space:]]|$)' || exit 0
 
 fails=""
 for check in tools/check-docs.py tools/check-provenance.py tools/check-doctrine.py \
@@ -76,6 +76,16 @@ for check in tools/check-docs.py tools/check-provenance.py tools/check-doctrine.
 $(printf '%s' "$out" | tail -20)"
     fi
 done
+
+# Lint, unit tests and repo checks together. Lint is never skipped: a missing
+# ruff is a failure inside verify.sh, not a pass.
+if [ -f tools/verify.sh ]; then
+    if ! out="$(bash tools/verify.sh 2>&1)"; then
+        fails="${fails}
+── tools/verify.sh (ruff + unit tests + repo checks) ──
+$(printf '%s' "$out" | tail -30)"
+    fi
+fi
 
 [ -z "$fails" ] && exit 0
 

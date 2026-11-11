@@ -37,7 +37,7 @@ because a plurality vote over decorrelated draws is model-agnostic.
 Run against Claude (key from env or ./.env — never hard-code it):
   export ANTHROPIC_API_KEY=sk-ant-...
   python3 jury_claude.py deliberate \
-      --prompt "A bat and ball cost \$1.10. The bat costs \$1 more. Ball? End with 'ANSWER: <n>'." \
+      --prompt "A bat and ball cost \\$1.10. The bat costs \\$1 more. Ball? End with 'ANSWER: <n>'." \
       --answer-marker ANSWER: --effort medium
 
 Test the statistics anywhere, no key and no spend (synthetic jurors, stdlib only):
@@ -56,17 +56,17 @@ _JURY_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "jury
 sys.path.insert(0, _JURY_DIR)
 try:
     from jury import (  # noqa: E402  (import after sys.path juggling, by design)
-        make_extractor,
-        deliberate,
-        calibrate,
         MockSampler,
+        calibrate,
+        deliberate,
         load_dotenv,
+        make_extractor,
     )
 except ImportError as e:  # pragma: no cover
     raise SystemExit(
         f"Could not import the shared voter from {_JURY_DIR}/jury.py: {e}\n"
         "jury-claude/ reuses ../jury/jury.py — keep the two side by side."
-    )
+    ) from e
 
 DEFAULT_MODEL = "claude-opus-5"
 # Server-side refusal fallback (scalar 'default' mode) rides its own beta header.
@@ -152,7 +152,7 @@ class ClaudeSampler:
                 "The 'anthropic' package is required for live runs.\n"
                 "  pip install anthropic\n"
                 "…or use --mock-p for an offline, keyless run."
-            )
+            ) from None
         if not api_key and not os.environ.get("ANTHROPIC_API_KEY"):
             raise SystemExit(
                 "No API key. Set ANTHROPIC_API_KEY (env or ./.env) or use "
@@ -434,7 +434,7 @@ def main(argv=None):
 
     if cmd == "calibrate":
         if args.dataset:
-            dataset = [json.loads(l) for l in open(args.dataset) if l.strip()]
+            dataset = [json.loads(ln) for ln in open(args.dataset) if ln.strip()]
         elif args.mock_questions and args.mock_p is not None:
             dataset = [{"prompt": f"q{i}", "answer": args.mock_true}
                        for i in range(args.mock_questions)]
