@@ -43,6 +43,16 @@ Applies to every reply in this repo, regardless of output style. Mirrors
 - **Queue, don't choose.** Where options exist, list them in run order with action and
   reversibility. The user skips or punts items; act on the queue rather than stalling in
   Observe or Orient.
+- **Anything needing the founder is a tile, not prose.** Each decision Dave must make is a
+  loud block the founder can scan in one glance, with a **GO** or **NO GO** decision line:
+
+  > **DECISION · DEC-NNN · <one-line question>**
+  > **Action if GO:** <what runs>
+  > **Action if NO GO:** <what stays>
+  > **Decision needed:** **GO** or **NO GO**
+
+  Tiles are never buried in a paragraph. One tile per decision, numbered `DEC-NNN`, and
+  each is also recorded in `docs/ai-cto/blocked.md` until decided.
 - **Successes are quiet.** One plain sentence with the evidence in parentheses. No
   celebration, no step-by-step recap.
 - **Failures are loud.** Open with `FAILED:` or `BLOCKED:` in bold, quote the error, then
