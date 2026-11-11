@@ -98,7 +98,7 @@ Applies to every reply in this repo, regardless of output style. Mirrors
   the navigation to the repo, so it runs in a new CLI window with no prior `cd`:
 
   ```bash
-  cd /home/user/localDNS
+  cd ~/localDNS
   <command>
   ```
 

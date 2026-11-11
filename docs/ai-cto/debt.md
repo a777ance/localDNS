@@ -16,8 +16,10 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
   `compose.py`, and `tools/telepathy/watch.py`, and two unused variables in `compose.py`.
 - **Cost:** the setup script prints `!! FAILED` on every fresh container, so a real failure
   on that line would not stand out.
-- **Next action:** remove the unused imports; read `compose.py` before deleting the two
-  variables, because an unused `other_bytes` in a Statement composer may be a missing figure.
+- **Done 2026-11-11:** the four unused imports are removed.
+- **Next action:** two unused variables remain in `build_alloc` in `compose.py` (`other`, `other_bytes`).
+  Read on 2026-11-11: the "Other" row is computed from `remainder`, so no figure is missing; they are
+  dead code. Left in place because it is the Statement composer; remove them with a test of its output.
 
 ## DEBT-010 · Fixed context cost per session is high · Open
 

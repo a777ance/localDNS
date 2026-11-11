@@ -55,5 +55,5 @@ Skip or punt is always the user's call. Mark a queued item `punt` only when the 
   > **Decision needed:** **GO** or **NO GO**
 
   One tile per decision, numbered `DEC-NNN`, recorded in `docs/ai-cto/blocked.md` until decided.
-- Every command given to the founder starts with `cd /home/user/localDNS`, in its own
+- Every command given to the founder starts with `cd ~/localDNS` (never the cloud container's `/home/user/` path), in its own
   `bash` block, because the founder opens a fresh terminal each time.

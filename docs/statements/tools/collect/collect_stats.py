@@ -20,7 +20,7 @@ Run on the box:
 Test anywhere (no box needed):
   python3 collect_stats.py --sample --out /tmp/sample.stats.json
 """
-import argparse, json, subprocess, sqlite3, time, calendar, datetime as dt, urllib.request, re, sys
+import argparse, json, subprocess, sqlite3, time, calendar, datetime as dt, urllib.request, sys
 
 # Pi-hole FTL query.status values that mean "blocked"
 BLOCKED_STATUSES = (1, 4, 5, 9, 10, 11)

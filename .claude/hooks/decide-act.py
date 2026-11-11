@@ -7,7 +7,7 @@ requires .claude/output-styles/briefing.md to name):
 
   LEAD     the reply opens with a bold state word
   ACT      a numbered Decide list is acted on: an Act section with at least as many lines
-  CD       every fenced bash block starts with cd
+  CD       every fenced bash block starts with cd, and never with the cloud container's path
   HEDGE    no vague hedge outside code and quotes
   TILE     a DECISION tile has both action lines, the GO / NO GO line, and a logged DEC id
 
@@ -115,6 +115,10 @@ def review(text):
     # CD. The founder opens a fresh terminal for every command.
     for block in re.findall(r"```bash\n(.*?)```", text, flags=re.DOTALL):
         lines = [l.strip() for l in block.splitlines() if l.strip() and not l.strip().startswith("#")]
+        if lines and lines[0].startswith("cd /home/user/"):
+            reasons.append("COMMAND CD: this bash block uses the cloud container's path (/home/user/...), which does "
+                           "not exist on the founder's machine. Use: cd ~/localDNS")
+            break
         if lines and not lines[0].startswith("cd "):
             reasons.append("COMMAND CD: every bash block must start with the cd to the repo. "
                            "This block starts with: %r" % lines[0][:80])

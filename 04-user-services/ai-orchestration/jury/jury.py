@@ -38,7 +38,6 @@ import json
 import os
 import random
 import re
-import sys
 import urllib.request
 import urllib.error
 from collections import Counter

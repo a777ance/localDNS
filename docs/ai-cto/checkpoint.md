@@ -54,6 +54,8 @@ files). DEC-004 and DEC-006 are moot: PR #36 is merged.
 
 ## Next work, in order
 
+**For the founder, in plain English: `docs/ai-cto/roadmap.md`.**
+
 The queue in `docs/ai-cto/handoff.md` is worked through: 25 of the 26 unblocked items are
 `DONE` with their commit, Q-004 is `SKIPPED` (usage limit), and Q-027 to Q-030 wait on the founder.
 

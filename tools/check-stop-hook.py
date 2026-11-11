@@ -32,9 +32,10 @@ CASES = [
     ("decide list, acted in full", "**Done.**\n\n**Decide**\n\n1. Run A\n2. Run B\n\n**Act**\n\n1. A ran.\n2. B is blocked on DEC-900.\n", None),
     ("decide list, one act line short", "**Partial.**\n\n**Decide**\n\n1. Run A\n2. Run B\n\n**Act**\n\n- A ran.\n", "OODA ACT"),
     ("decide with no list", "**Done.**\n\n**Decide.** Nothing to queue.\n", None),
-    ("bash block with cd", f"**Done.** Run:\n\n{F}bash\ncd /home/user/localDNS\ngit status\n{F}\n", None),
-    ("bash block, comment then cd", f"**Done.**\n\n{F}bash\n# check\ncd /home/user/localDNS && git status\n{F}\n", None),
+    ("bash block with cd", f"**Done.** Run:\n\n{F}bash\ncd ~/localDNS\ngit status\n{F}\n", None),
+    ("bash block, comment then cd", f"**Done.**\n\n{F}bash\n# check\ncd ~/localDNS && git status\n{F}\n", None),
     ("bash block without cd", f"**Done.** Run:\n\n{F}bash\ngit status\n{F}\n", "COMMAND CD"),
+    ("bash block with the cloud container path", f"**Done.**\n\n{F}bash\ncd /home/user/localDNS\ngit status\n{F}\n", "COMMAND CD"),
     ("text block needs no cd", f"**Done.**\n\n{F}text\ngit status\n{F}\n", None),
     ("hedge", "**Done.** The fix should work now.", "NO HEDGE"),
     ("hedge inside a quote is allowed", '**Done.** The style bans "should work" outright.', None),
@@ -49,7 +50,7 @@ CASES = [
 STYLE = {
     "BRIEFING LEAD": "lead state word",
     "OODA ACT": "Run the queue",
-    "COMMAND CD": "starts with `cd /home/user/localDNS`",
+    "COMMAND CD": "starts with `cd ~/localDNS`",
     "NO HEDGE": "vague hedges",
     "TILE": "DECISION · DEC-NNN",
 }

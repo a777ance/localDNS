@@ -12,6 +12,8 @@ to `Done` or `Punted`, and it is removed only by the founder.
 
 ## Decision log (DEC)
 
+A plain-English version of the open decisions, in the order to answer them, is in `docs/ai-cto/roadmap.md`.
+
 Every founder decision, newest first, with its result. Open tiles stay here until the
 founder decides.
 
