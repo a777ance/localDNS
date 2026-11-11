@@ -1,0 +1,11 @@
+{
+  "_comment": "Tool-call aliases read by .claude/hooks/alias.sh. Rules are checked in order; first match wins. action 'rewrite' (Bash only): regex-replace the command. action 'block': deny with message. 'match' is an optional regex on the call's input.",
+  "aliases": [
+    {
+      "name": "ban-bash",
+      "tool": "Bash",
+      "action": "block",
+      "message": "Bash is banned in this repo. Use the repo's own tools instead."
+    }
+  ]
+}
