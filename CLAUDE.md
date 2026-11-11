@@ -33,7 +33,7 @@ Applies to every reply in this repo, regardless of output style. Mirrors
 
 - **Lead state word first.** Open with a bold state word: **Done**, **Partial**,
   **Blocked**, or **Waiting**.
-- **Cardinal aliases.** Every tool call belongs to exactly one of the four cardinal skills
+- **The Matrix (also: OODA matrix, alias net — three names, one thing).** Every tool call belongs to exactly one of the four cardinal skills
   (`.claude/skills/observe`, `orient`, `decide`, `act`) and is named as `cardinal.method`,
   for example `observe.read` or `act.ship`. Methods replace atomized skills. The map is
   `.claude/cardinal-map.json`; `tools/check-cardinal.py` is its gate.

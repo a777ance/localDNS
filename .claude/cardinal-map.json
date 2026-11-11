@@ -1,4 +1,9 @@
 {
+  "_names": [
+    "the Matrix",
+    "OODA matrix",
+    "alias net"
+  ],
   "_comment": "Every tool call belongs to exactly one cardinal action. tools/check-cardinal.py enforces it. Bash is split by intent: read-only commands are Observe, anything that changes state is Act.",
   "cardinals": {
     "observe": {
