@@ -56,7 +56,20 @@ def main() -> int:
         tool = data.get("tool_name", "")
         alias = lookup(tool, data.get("tool_input") or {})
         line = f"cardinal: {alias}" if alias else f"cardinal: UNMAPPED ({tool}) — add it to .claude/cardinal-map.json"
-        print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": line}}))
+        out = {"hookEventName": "PreToolUse", "additionalContext": line}
+        cfg = json.loads((ROOT / ".claude/cardinal-map.json").read_text(encoding="utf-8"))
+        mode = os.environ.get("MATRIX_MODE") or cfg.get("mode", "name")
+        target = cfg.get("repoint", {}).get(tool)
+        if (ROOT / ".claude/.matrix-off").exists():
+            mode = "name"  # kill switch: never warn, never deny
+        if target and mode == "warn":
+            out["additionalContext"] = f"{line} — Matrix route: {target}"
+        if target and mode == "enforce":
+            out["permissionDecision"] = "deny"
+            out["permissionDecisionReason"] = (
+                f"The Matrix gates native {tool} ({alias}). Use: cd {ROOT} && {target}. "
+                "Kill switch: touch .claude/.matrix-off")
+        print(json.dumps({"hookSpecificOutput": out}))
     except Exception:
         pass  # fail open: naming a call must never stop it
     return 0

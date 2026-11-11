@@ -14,8 +14,19 @@ CARDINALS = ("observe", "orient", "decide", "act")
 
 
 def main() -> int:
-    data = json.loads((ROOT / ".claude/cardinal-map.json").read_text(encoding="utf-8"))["cardinals"]
+    cfg = json.loads((ROOT / ".claude/cardinal-map.json").read_text(encoding="utf-8"))
+    data = cfg["cardinals"]
     problems, owner, count = [], {}, 0
+    if cfg.get("mode") not in ("name", "warn", "enforce"):
+        problems.append(f"mode must be name, warn, or enforce, not {cfg.get('mode')!r}")
+    matrix = (ROOT / "tools/matrix.py").read_text(encoding="utf-8")
+    mapped = {t for c in data.values() for ts in c["methods"].values() for t in ts}
+    for tool, target in cfg.get("repoint", {}).items():
+        method = target.split("matrix.py ")[-1].split()[0]
+        if f'"{method}"' not in matrix:
+            problems.append(f"repoint for {tool} names {method}, which tools/matrix.py does not implement")
+        if tool not in mapped:
+            problems.append(f"repointed tool {tool} is not in any cardinal")
     for c in CARDINALS:
         if c not in data:
             problems.append(f"cardinal '{c}' missing from the map")
