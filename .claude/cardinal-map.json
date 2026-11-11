@@ -195,7 +195,8 @@
           "Artifact"
         ],
         "configure": [
-          "/update-config"
+          "/update-config",
+          "mcp__claude-code-remote__update_environment"
         ],
         "tidy": [
           "/simplify"

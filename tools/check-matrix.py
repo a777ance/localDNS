@@ -39,6 +39,11 @@ def main() -> int:
                     "docs/ai-cto/initiatives.md", "docs/ai-cto/debt.md", "docs/ai-cto/blocked.md"):
             (box / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(ROOT / rel, box / rel)
+        # Pin the sandbox to name mode: the live map's mode must never change a test result.
+        # Each mode is tested below by passing it explicitly.
+        cfg = json.loads((box / ".claude/cardinal-map.json").read_text(encoding="utf-8"))
+        cfg["mode"] = "name"
+        (box / ".claude/cardinal-map.json").write_text(json.dumps(cfg), encoding="utf-8")
         (box / "notes.txt").write_text("alpha\nbeta\ngamma\n")
         base_env = {**os.environ, "CLAUDE_PROJECT_DIR": str(box)}
         for k in ("MATRIX_MODE", "MATRIX_TIMEOUT", "MATRIX_TEST_SLEEP"):
@@ -157,6 +162,8 @@ def main() -> int:
             check(f"hook names {tool} {cmd}".strip(), got.startswith(f"cardinal: {want}"), got)
         check("hook names the subagent", hook("Read", agent_type="juror", agent_id="a1")["additionalContext"]
               == "cardinal: observe.read · agent: juror")
+        w = hook("Read", mode="warn", agent_type="juror")["additionalContext"]
+        check("warn mode names the subagent and the route", "· agent: juror" in w and "Matrix route" in w, w)
         check("hook unmapped", "UNMAPPED" in hook("NoSuchTool")["additionalContext"])
         # gate modes
         check("mode name allows", "permissionDecision" not in hook("Read", mode="name"))
