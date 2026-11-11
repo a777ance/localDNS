@@ -19,5 +19,9 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 - `observe.inspect` — GitHub state: PRs, check runs, commits, logs.
 - `observe.fetch` — outside facts: web, docs, tool and plugin search.
 - `observe.measure` — measured p-hat: `/form`, `/workout.calibrate`.
+- `observe.verify` — launch the app and see the change working: `/run`.
+- `observe.research` — multi-source research into a report: `/deep-research`.
+
+Loop: **fast**. Observe and Orient run on the fast loop; Decide and Act on the slow loop.
 
 Rule: report only what was seen, with the evidence in parentheses. Never poll; listen.

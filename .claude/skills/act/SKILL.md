@@ -20,6 +20,11 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 - `act.schedule` — scheduled tasks and wake-ups.
 - `act.watch` — subscribe or unsubscribe PR activity.
 - `act.publish` — publish an Artifact.
+- `act.configure` — settings, hooks, permissions: `/update-config`.
+- `act.tidy` — clean up changed code after a fix lands: `/simplify`.
+- `act.extend` — build and test new skills: `/skill-creator`.
+
+Loop: **slow**. Observe and Orient run on the fast loop; Decide and Act on the slow loop.
 
 Rule: one Act line per Decided item, with its result. Successes quiet, failures loud with
 a fix recipe. Irreversible or outward-facing acts need a founder GO first.

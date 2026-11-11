@@ -18,5 +18,7 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 - `decide.vote` — a jury verdict: `/cardio`, `/strength`, `/workout`, juror agents.
 - `decide.gate` — the static checks under `tools/` that say yes or no mechanically.
 
+Loop: **slow**. Observe and Orient run on the fast loop; Decide and Act on the slow loop.
+
 Rule: tiles are only for decisions the founder alone can make. Everything else in the
 queue runs without asking.

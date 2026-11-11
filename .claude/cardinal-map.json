@@ -4,43 +4,168 @@
     "observe": {
       "question": "What is true right now?",
       "methods": {
-        "read":    ["Read", "Glob", "Grep", "Bash:read-only"],
-        "listen":  ["ReadNotifications", "Monitor", "mcp__claude-code-remote__list_events", "mcp__claude-code-remote__get_event"],
-        "survey":  ["mcp__claude-code-remote__list_sessions", "mcp__claude-code-remote__get_session", "mcp__claude-code-remote__list_environments", "mcp__claude-code-remote__get_environment", "mcp__claude-code-remote__list_triggers", "mcp__claude-code-remote__get_trigger", "mcp__claude-code-remote__list_repos", "mcp__claude-code-remote__list_computer_folders", "ListAgents"],
-        "inspect": ["mcp__github__pull_request_read", "mcp__github__get_check_run", "mcp__github__get_file_contents", "mcp__github__list_pull_requests", "mcp__github__list_commits", "mcp__github__get_commit", "mcp__github__get_job_logs"],
-        "fetch":   ["WebFetch", "WebSearch", "mcp__claude-code-remote__read_documentation", "ToolSearch", "SearchPlugins"],
-        "measure": ["/form", "/workout.calibrate"]
-      }
+        "read": [
+          "Read",
+          "Glob",
+          "Grep",
+          "Bash:read-only"
+        ],
+        "listen": [
+          "ReadNotifications",
+          "Monitor",
+          "mcp__claude-code-remote__list_events",
+          "mcp__claude-code-remote__get_event"
+        ],
+        "survey": [
+          "mcp__claude-code-remote__list_sessions",
+          "mcp__claude-code-remote__get_session",
+          "mcp__claude-code-remote__list_environments",
+          "mcp__claude-code-remote__get_environment",
+          "mcp__claude-code-remote__list_triggers",
+          "mcp__claude-code-remote__get_trigger",
+          "mcp__claude-code-remote__list_repos",
+          "mcp__claude-code-remote__list_computer_folders",
+          "ListAgents"
+        ],
+        "inspect": [
+          "mcp__github__pull_request_read",
+          "mcp__github__get_check_run",
+          "mcp__github__get_file_contents",
+          "mcp__github__list_pull_requests",
+          "mcp__github__list_commits",
+          "mcp__github__get_commit",
+          "mcp__github__get_job_logs"
+        ],
+        "fetch": [
+          "WebFetch",
+          "WebSearch",
+          "mcp__claude-code-remote__read_documentation",
+          "ToolSearch",
+          "SearchPlugins"
+        ],
+        "measure": [
+          "/form",
+          "/workout.calibrate"
+        ],
+        "verify": [
+          "/run"
+        ],
+        "research": [
+          "/deep-research"
+        ]
+      },
+      "loop": "fast"
     },
     "orient": {
       "question": "What does it mean, against our goals and debt?",
       "methods": {
-        "ground":   ["Read:docs/ai-cto/initiatives.md", "Read:docs/ai-cto/debt.md", "Read:docs/ai-cto/blocked.md"],
-        "reseed":   ["/reseed", "/refresh"],
-        "model":    ["/diet"],
-        "explore":  ["Agent:Explore", "Agent:Plan"]
-      }
+        "ground": [
+          "Read:docs/ai-cto/initiatives.md",
+          "Read:docs/ai-cto/debt.md",
+          "Read:docs/ai-cto/blocked.md"
+        ],
+        "reseed": [
+          "/reseed",
+          "/refresh"
+        ],
+        "model": [
+          "/diet"
+        ],
+        "explore": [
+          "Agent:Explore",
+          "Agent:Plan"
+        ],
+        "review": [
+          "/code-review",
+          "/security-review"
+        ]
+      },
+      "loop": "fast"
     },
     "decide": {
       "question": "What is the queue, and what needs the founder?",
       "methods": {
-        "queue":  ["TaskCreate", "TaskUpdate", "TaskList", "TaskGet"],
-        "tile":   ["AskUserQuestion"],
-        "vote":   ["/cardio", "/strength", "/workout", "Agent:juror"],
-        "gate":   ["Bash:tools/check-docs.py", "Bash:tools/check-provenance.py", "Bash:tools/check-doctrine.py", "Bash:tools/check-decisions.py", "Bash:tools/check-cardinal.py"]
-      }
+        "queue": [
+          "TaskCreate",
+          "TaskUpdate",
+          "TaskList",
+          "TaskGet"
+        ],
+        "tile": [
+          "AskUserQuestion"
+        ],
+        "vote": [
+          "/cardio",
+          "/strength",
+          "/workout",
+          "Agent:juror"
+        ],
+        "gate": [
+          "Bash:tools/check-docs.py",
+          "Bash:tools/check-provenance.py",
+          "Bash:tools/check-doctrine.py",
+          "Bash:tools/check-decisions.py",
+          "Bash:tools/check-cardinal.py"
+        ]
+      },
+      "loop": "slow"
     },
     "act": {
       "question": "What changed, and what is the evidence?",
       "methods": {
-        "write":    ["Write", "Edit", "NotebookEdit", "Bash:state-changing"],
-        "ship":     ["Bash:git commit", "Bash:git push", "mcp__github__create_pull_request", "mcp__github__update_pull_request", "mcp__github__merge_pull_request"],
-        "message":  ["mcp__claude-code-remote__send_message", "mcp__claude-code-remote__send_later", "mcp__github__add_issue_comment", "SendUserFile"],
-        "recruit":  ["mcp__claude-code-remote__create_session", "mcp__claude-code-remote__archive_session", "mcp__claude-code-remote__interrupt_session", "Agent:general-purpose"],
-        "schedule": ["mcp__claude-code-remote__create_trigger", "mcp__claude-code-remote__update_trigger", "mcp__claude-code-remote__delete_trigger", "mcp__claude-code-remote__fire_trigger", "ScheduleWakeup"],
-        "watch":    ["mcp__claude-code-remote__subscribe_pr_activity", "mcp__claude-code-remote__unsubscribe_pr_activity"],
-        "publish":  ["Artifact"]
-      }
+        "write": [
+          "Write",
+          "Edit",
+          "NotebookEdit",
+          "Bash:state-changing"
+        ],
+        "ship": [
+          "Bash:git commit",
+          "Bash:git push",
+          "mcp__github__create_pull_request",
+          "mcp__github__update_pull_request",
+          "mcp__github__merge_pull_request"
+        ],
+        "message": [
+          "mcp__claude-code-remote__send_message",
+          "mcp__claude-code-remote__send_later",
+          "mcp__github__add_issue_comment",
+          "SendUserFile"
+        ],
+        "recruit": [
+          "mcp__claude-code-remote__create_session",
+          "mcp__claude-code-remote__archive_session",
+          "mcp__claude-code-remote__interrupt_session",
+          "Agent:general-purpose"
+        ],
+        "schedule": [
+          "mcp__claude-code-remote__create_trigger",
+          "mcp__claude-code-remote__update_trigger",
+          "mcp__claude-code-remote__delete_trigger",
+          "mcp__claude-code-remote__fire_trigger",
+          "ScheduleWakeup"
+        ],
+        "watch": [
+          "mcp__claude-code-remote__subscribe_pr_activity",
+          "mcp__claude-code-remote__unsubscribe_pr_activity"
+        ],
+        "publish": [
+          "Artifact"
+        ],
+        "configure": [
+          "/update-config"
+        ],
+        "tidy": [
+          "/simplify"
+        ],
+        "extend": [
+          "/skill-creator"
+        ]
+      },
+      "loop": "slow"
     }
+  },
+  "_excluded": {
+    "/loop": "runs on a recurring interval, which is polling; banned by the founder"
   }
 }

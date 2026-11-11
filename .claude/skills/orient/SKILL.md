@@ -18,5 +18,8 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 - `orient.reseed` — refresh the briefing: `/reseed`, `/refresh`.
 - `orient.model` — which regimes a vote can be trusted in: `/diet`.
 - `orient.explore` — read-only fan-out: Explore and Plan agents.
+- `orient.review` — judge a diff: `/code-review`, `/security-review`.
+
+Loop: **fast**. Observe and Orient run on the fast loop; Decide and Act on the slow loop.
 
 Rule: name every assumption as `Assume:`. Orient changes nothing on disk.
