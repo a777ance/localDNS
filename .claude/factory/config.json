@@ -1,9 +1,9 @@
 {
   "_comment": "Lease for a factory run. The run is unbounded in shape but halts when the lease expires, when the kill file exists, or when a backstop cap is hit. Only the founder writes this file to extend a lease. The agent never sets expires_at itself. expires_at null means no active lease: the factory must refuse to start.",
   "lease": {
-    "issued_at": null,
-    "expires_at": null,
-    "renewed_by": null,
+    "issued_at": "2026-11-11T20:34:09Z",
+    "expires_at": "2026-11-11T23:34:09Z",
+    "renewed_by": "founder (chat instruction)",
     "length_hours": 3
   },
   "backstops": {

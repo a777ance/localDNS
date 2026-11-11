@@ -21,11 +21,12 @@ Fields per entry: `id`, `opened`, `owner`, `status` (`open` | `closed`), `due`
 ### DEBT-007
 - **opened:** 2026-11-11
 - **owner:** founder
-- **status:** open
+- **status:** closed
 - **due:** 2026-11-18
 - **what:** the repo-level precedence header in `CLAUDE.md` exists only as a local, uncommitted edit.
 - **why it is debt:** the file on the branch does not carry the rule the session is supposed to follow.
 - **fix:** commit and push the 6-line header to `claude/elegant-sagan-ul1tc6`, then confirm the remote copy.
+- **closed:** the header is on the branch. `CLAUDE.md` at ea709d5 begins with the precedence blockquote, and no later commit on this branch touches `CLAUDE.md`. Verified by reading the remote file, not by a local diff.
 
 ### DEBT-006
 - **opened:** 2026-11-11
