@@ -177,6 +177,17 @@ def main() -> int:
         check("a failed probe does not count", "EGRESS WITHOUT A PROBE" in hook("mcp__github__merge_pull_request")["additionalContext"])
         os.utime(box / ".claude/.matrix-probes/merge", (0, 0))
         check("a read is never egress", "EGRESS" not in hook("Read")["additionalContext"])
+        (box / ".claude/.matrix-probes/any").unlink(missing_ok=True)
+        check("opening a lane with no probe is flagged", "lane 0 of 1 + N" in hook("Agent", {"subagent_type": "juror"})["additionalContext"])
+        check("observe.probe path, missing file", mx("observe.probe", "path", "nope.txt").returncode != 0)
+        r = mx("observe.probe", "path", "long.txt")
+        check("observe.probe path", r.returncode == 0 and "500 lines" in r.stdout and "pages of 200" in r.stdout, r.stdout)
+        check("any passing probe opens the lanes", "EGRESS" not in hook("Agent", {"subagent_type": "juror"})["additionalContext"])
+        r = mx("act.probe", "edit", "dup.txt", "x")
+        check("act.probe edit refuses a double match and writes nothing", r.returncode != 0 and "2 time(s)" in r.stdout
+              and (box / "dup.txt").read_text() == "x x\n", r.stdout)
+        check("act.probe edit ok", mx("act.probe", "edit", "notes.txt", "beta").returncode == 0)
+        check("act.probe bad arguments", mx("act.probe", "nope").returncode != 0)
         check("observe.probe bad arguments", mx("observe.probe", "nope").returncode != 0)
         check("hook unmapped", "UNMAPPED" in hook("NoSuchTool")["additionalContext"])
         # gate modes

@@ -18,11 +18,11 @@ Live facts, rewritten by `python3 tools/matrix.py orient.checkpoint`:
 - **Open decisions:** DEC-005
 - **Open stalls:** none
 - **Last five commits:**
-  - 67da1b6 DEC-012: gate mode to warn
-  - 253d0d8 Merge pull request #38 from a777ance/claude/serene-tesla-yvl22m
-  - 383c057 Fix check-matrix.py failing whenever the live gate mode is warn
-  - 7a40e52 Record DEC-011 and DEC-014 as executed; update the roadmap and checkpoint after the merge
-  - 60a53d7 Merge pull request #37 from a777ance/decision-log-dec007
+  - b747788 Merge pull request #40 from a777ance/claude/serene-tesla-yvl22m
+  - e0f3fc9 INIT-006: record the founder's 1 + N lanes proposal and what of it exists
+  - 7d0ca93 decide.rehearse: build the copy from a mirror and refuse a wrong remote state
+  - cd6d9ff Merge pull request #39 from a777ance/claude/serene-tesla-yvl22m
+  - 8c88bf7 Probe before egress: dry-run pushes and merges, and flag any that skip it
 <!-- live:end -->
 
 Background from the handoff:

@@ -61,3 +61,7 @@ Skip or punt is always the user's call. Mark a queued item `punt` only when the 
   commit he is on: `python3 tools/matrix.py decide.rehearse [--at REV] [--setup "CMD"] "COMMAND"`. It must exit 0.
   A command that cannot be rehearsed here is marked with a line starting `Not rehearsed:` and the reason.
   A recipe never has a step with nothing to paste.
+- Announce every scratchpad. Any file written to the session's scratchpad is named in a reply by its full path, with
+  what it is, or deleted. A scratchpad nobody was told about is lost.
+- 1 + N lanes. The probe is lane 0 of every piece of work and goes first: `observe.probe`, `orient.probe`,
+  `decide.probe`, or `act.probe`, whichever fits the goal. The N lanes (parallel, sequential, or both) open after it.

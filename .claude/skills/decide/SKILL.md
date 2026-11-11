@@ -13,6 +13,7 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 
 ## Methods
 
+- `decide.probe` — lane 0 for Decide: the six fast gates only, in under a second. Given one command string, it rehearses that command instead.
 - `decide.queue` — the numbered queue, in run order; never choose between options.
 - `decide.tile` — a founder decision as a GO / NO GO tile (AskUserQuestion), logged as DEC-NNN.
 - `decide.vote` — a jury verdict: `/cardio`, `/strength`, `/workout`, juror agents.

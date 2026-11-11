@@ -13,6 +13,7 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 
 ## Methods
 
+- `orient.probe` — lane 0 for Orient: is the picture current? Checks that the checkpoint names the current commit, lists uncommitted files, open decisions, and open stalls.
 - `orient.ground` — read `docs/ai-cto/initiatives.md`, `docs/ai-cto/debt.md`, and
   `docs/ai-cto/blocked.md`; name the INIT and DEBT ids the work touches.
 - `orient.reseed` — refresh the briefing: `/reseed`, `/refresh`.

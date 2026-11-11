@@ -13,6 +13,7 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 
 ## Methods
 
+- `act.probe` — lane 0 for Act: `ship FILE...` says what would be committed, runs the fast gates, and dry-runs the push; `edit PATH OLD` says whether an edit would apply exactly once. Neither changes anything.
 - `act.write` — change files: Write, Edit, state-changing shell.
 - `act.ship` — commit, push, open or merge a PR. Merge needs a founder GO.
 - `act.message` — send to a session, a person, or a thread; includes the telepathy mailbox (`tools/telepathy/telepathy_mcp.py`: send, mark done).

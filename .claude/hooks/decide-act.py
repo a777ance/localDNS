@@ -10,6 +10,7 @@ requires .claude/output-styles/briefing.md to name):
   CD       every fenced bash block starts with cd, and never with the cloud container's path
   HEDGE    no vague hedge outside code and quotes
   REHEARSE a bash block handed to the founder was run first (decide.rehearse), or says why not
+  SCRATCH  every new file in the session's scratchpad is announced by its full path
   TILE     a DECISION tile has both action lines, the GO / NO GO line, and a logged DEC id
 
 Loop safety: when Claude Code re-enters the turn because of this hook, the
@@ -93,9 +94,32 @@ def prose(text):
     return re.sub(r"[\"\u201c][^\"\u201d\n]*[\"\u201d]", "", text)
 
 
-def review(text):
+def scratch_unannounced(text, session_id):
+    """New top-level scratchpad entries this reply does not name by full path. Named ones are recorded."""
+    import glob
+    base = os.environ.get("MATRIX_SCRATCH_DIR")
+    dirs = [base] if base else (glob.glob(f"/tmp/claude-*/*/{session_id}/scratchpad") if session_id else [])
+    store = ROOT / ".claude/.matrix-scratch"
+    known = set(store.read_text(encoding="utf-8").splitlines()) if store.exists() else set()
+    new = sorted(str(f) for d in dirs for f in Path(d).glob("*") if str(f) not in known)
+    named = [f for f in new if f in text]
+    if named:
+        with open(store, "a", encoding="utf-8") as fh:
+            fh.write("".join(f + "\n" for f in named))
+    return [f for f in new if f not in named]
+
+
+def review(text, session_id=""):
     """Return the list of reasons this reply may not end the turn. Empty means allow."""
     reasons = []
+    # SCRATCH. A scratchpad nobody was told about is lost in the woodwork.
+    try:
+        lost = scratch_unannounced(text, session_id)
+    except Exception:
+        lost = []
+    if lost:
+        reasons.append("SCRATCHPAD: %d scratchpad file(s) have not been announced. Name each by its full path and say "
+                       "what it is, or delete it if it is not needed:\n%s" % (len(lost), "\n".join(lost[:8])))
     # LEAD. Punctuation may sit just inside or just after the bold (**Done.** / **Done**:).
     first = next((l for l in text.splitlines() if l.strip()), "")
     if not re.match(r"^\*\*(Done|Partial|Blocked|Waiting)[.:,]?\*\*[.:,]?(\s|$)", first.strip()):
@@ -175,7 +199,7 @@ def main():
         return 0  # already continued once this turn; let it end
     try:
         text = last_assistant_text(data.get("transcript_path", ""))
-        reasons = review(text) if text.strip() else []
+        reasons = review(text, str(data.get("session_id") or "")) if text.strip() else []
     except Exception:
         return 0  # fail open
     if not reasons:
