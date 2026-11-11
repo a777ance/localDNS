@@ -6,7 +6,7 @@ boundary (a ship, a decision, a lease start). Read this, then run
 
 ---
 
-**Written:** 2026-11-11, about 22:35 UTC · branch `decision-log-dec007` · PR #37 (draft, unmerged)
+**Written:** 2026-11-11, about 22:50 UTC (handoff to the Orchestrator session) · branch `decision-log-dec007` · PR #37 (draft, unmerged)
 
 ## Where things stand
 
@@ -28,7 +28,6 @@ files). DEC-004 and DEC-006 are moot: PR #36 is merged.
 
 ## Next work, in order
 
-1. On DEC-011 GO: merge PR #37, then confirm the hook fires in a fresh session on `main`.
-2. On DEC-012 GO: set mode `warn`, run one live session, then consider `enforce` (DEBT-008).
-3. Turn the Carrot pair's rule-check proposals into gates, if any report arrived.
-4. Done: the peer template now has a spend ceiling (low effort, 60 s between rounds, report every 10).
+**The roadmap is `docs/ai-cto/handoff.md`.** It holds the founder's intent, the rules of
+engagement for the 3-hour lease, research notes on hooks, and a queue of 30 items (Q-001 to
+Q-030). Start at Q-001. Items Q-027 to Q-030 wait on founder decisions.

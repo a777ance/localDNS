@@ -19,6 +19,7 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
   - End-to-end test (`tools/check-matrix.py`): **Done**.
   - Reach new sessions (merge PR #37 into `main`): **Blocked** on DEC-011.
   - Gatekeeping, staged name → warn → enforce: **Blocked** on DEC-012. Mode is `name`.
+- **Handoff:** the next session's roadmap for a fresh 3-hour lease is `docs/ai-cto/handoff.md`.
 - **Founder lease:** 3 hours of unattended work granted 2026-11-11, from about 22:28 UTC to
   01:28 UTC on 2026-11-12. It covers building and pushing to the branch. It does not cover
   merging to `main` or switching the gate mode, which keep their own decisions.
