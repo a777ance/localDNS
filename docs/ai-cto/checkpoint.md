@@ -21,6 +21,15 @@ boundary (a ship, a decision, a lease start). Read this, then run
 - **Stop hook** now also requires each reply to open with a bold state word (the one rule
   the Carrot pair proposed before they were stopped).
 
+## Q-001 · hooks observed live in the Orchestrator session (2026-11-11, 22:53 UTC)
+
+- `Read` call: the hook returned `cardinal: observe.read`.
+- Bash call: the hook returned `cardinal: decide.gate` (start commands) and `cardinal: observe.read` (a read-only compound).
+- Stop-hook bounce: **not observed live.** Proving it means ending a turn on a deliberately
+  bad reply; if the hook did not fire, the lease would stop there. Q-014 tests the hook by
+  feeding it replies directly.
+- **Orchestrator lease:** 22:52 UTC to 01:52 UTC.
+
 ## Open founder decisions
 
 DEC-012 (warn mode), DEC-011 (merge PR #37), DEC-010 (scope the tile rule), DEC-005 (venv

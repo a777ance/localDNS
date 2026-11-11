@@ -65,7 +65,7 @@ What Dave asked for over the session, distilled. When a queue item is unclear, d
 ## 2. State at handoff
 
 - **Lease (Orchestrator):** 3 hours from your first action. Record it here when you start:
-  `start: ____ UTC · expiry: ____ UTC`.
+  `start: 22:52 UTC (2026-11-11) · expiry: 01:52 UTC (2026-11-12)`.
 - **Usage:** the account's five-hour limit showed as reached at 22:28 UTC with overage in
   use; it resets at **01:10 UTC on 2026-11-12**. Work lean until then.
 - **Branch and PR:** `decision-log-dec007`, PR #37 (draft, unmerged, not watched). Working
