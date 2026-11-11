@@ -31,3 +31,13 @@ __pycache__/
 .claude/.gate-off
 # Local audit artifacts from laptop-to-t630 drift checks
 .audit/
+
+# Matrix runtime state (log, kill switch, backups)
+.claude/.matrix-log
+.claude/.matrix-off
+.claude/.matrix-lease/
+.claude/.matrix-stalls/
+.claude/.matrix-bak/
+.claude/.matrix-times
+.claude/.matrix-starts/
+*.bak

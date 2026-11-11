@@ -4,17 +4,69 @@ Items that cannot proceed without an input from the founder or a session that ca
 reach the blocked system. Newest first. Each entry stays here until its status changes
 to `Done` or `Punted`, and it is removed only by the founder.
 
+## 2026-11-11 · Ping-pong peers: lease not running, Stop hook not reachable — BLOCKED
+
+- **Observed:** Peer A (`session_01Wg5h8frVuhW6Af87Z7HzN6`) declined the 3-hour lease and sent nothing. Peer B (`session_01Wg5h8e5zDnRYtHU8MybWw5`) completed its three rounds. Both peers are `config:no-git-repo`, so the Decide-Act Stop hook in this repo is not loaded in them.
+- **Why blocked:** a peer only follows its original prompt. A later message that conflicts with it is treated as an injection. The hook can't be wired into a repo-less session.
+- **Unblock action:** start a fresh peer pair whose original prompt contains the lease (expiry in UTC), the stop word, and the OODA act step. Confirm the lease was in place before the first ping. Put the decided-items act step in each prompt.
+
 ## Decision log (DEC)
+
+A plain-English version of the open decisions, in the order to answer them, is in `docs/ai-cto/roadmap.md`.
 
 Every founder decision, newest first, with its result. Open tiles stay here until the
 founder decides.
 
-- **DEC-006 · Keep pushing to PR #36 while the punted Cloudflare check fails each push · OPEN**
+- **DEC-014 · Trim the cloud environment setup script · OPEN**
+  Lean GO (L-17, L-18 in `docs/ai-cto/leans.md`). The founder deferred to the loop 2026-11-11; the environment's own approval prompt is the last step.
+  Asked 2026-11-11. Waiting on GO or NO GO. Evidence (read from the Default environment, 2026-11-11):
+  the script runs `apt-get install` for `shellcheck`, `wireguard-tools`, `nftables`, and `python3-yaml`
+  on every fresh container. No gate, hook, or Matrix method calls `wg` or `nft` (a search of
+  `tools/check-*.py`, `.claude/hooks/`, and `tools/matrix.py` finds none); they are only needed on the
+  t630. The script's check step runs four of the nine gates by name. Proposal: drop `wireguard-tools`
+  and `nftables`, and replace the four named checks with `python3 tools/matrix.py decide.gate`, which
+  runs all nine. Keep `shellcheck` and `ruff`. Nothing in the environment has been changed.
+- **DEC-013 · Split `CLAUDE.md` into an always-loaded core and on-demand files · GO · executed in part.**
+  Founder deferred to the loop 2026-11-11; leans L-06 to L-10. Section F, Further reading, and the reply style were moved or shortened (69,153 to about 59,000 bytes). Sections G and H were left whole. Original evidence:
+  Asked 2026-11-11. Waiting on GO or NO GO. Evidence (`wc -c` per top-level section, this branch,
+  69,162 bytes in all, loaded into every turn of every session):
+
+  | Section | Bytes | Proposal |
+  | ------- | ----- | -------- |
+  | C. Deploy paths | 12,908 | keep (the repo → system map) |
+  | G. LLM sampling doctrine | 8,632 | move to `docs/`; keep the invariants as a short list |
+  | H. Bifrost | 8,497 | move to `docs/`; keep the sweep, the template, and the glyph line |
+  | 4. Further reading | 6,971 | move to `docs/`; keep one line per link |
+  | 3. Working philosophy | 6,855 | keep the rules; move the worked cases to `docs/` |
+  | Reply style: Briefing | 5,896 | keep, cut to one line per rule the Stop hook now enforces |
+  | 1. Known issues | 4,429 | keep |
+  | B. Network topology | 3,890 | keep |
+  | F. nftables volume layer | 2,859 | move to `docs/` (a one-time deploy checklist) |
+  | all other sections | 8,225 | keep |
+
+  The four "move" rows and the worked cases come to about 30,000 bytes, a little over 40% of the file.
+  Two things stand in the way and are part of the decision: `tools/check-docs.py` requires the Bifrost
+  sweep and template to sit in `CLAUDE.md`, and `tools/check-doctrine.py` reads the section G values
+  from it. Both checks would be repointed in the same change. This also covers the Phase D step the
+  lease did not allow: shortening the reply-style prose now that the hook enforces five of its rules.
+  Nothing has been moved.
+- **DEC-012 · Move the Matrix from name to warn mode · OPEN**
+  Lean GO (L-14 to L-16). Not executed: the permission system refused to let a session flip its own gate. Needs the founder's hand.
+  Asked 2026-11-11. Waiting on GO or NO GO. Enforce stays off until warn has run cleanly in a live session.
+- **DEC-011 · Merge PR #37 into `main` so the Matrix reaches new sessions · OPEN**
+  Lean GO (L-01 to L-05). The founder deferred to the loop 2026-11-11.
   Asked 2026-11-11. Waiting on GO or NO GO.
+- **DEC-010 · Scope DEC tiles to decisions only the founder can make · GO · executed.**
+  Founder deferred to the loop 2026-11-11; leans L-11 to L-13. The rule is one line in the reply style in `CLAUDE.md`.
+  Asked 2026-11-11. Waiting on GO or NO GO.
+- **DEC-009 · Spawn 4 cloud peer sessions in 2 pairs · GO · executed.** A pair ran 42 rounds; B pair paused after 1.
+- **DEC-008 · Start a fresh peer pair from the revised template · GO · executed.** Carrot C1 and C2 created 2026-11-11.
+- **DEC-007 · Merge PR #36 into `main` so the tile, navigation, and decision-log rules reach new sessions · GO · executed.** Merged as `f25bd95`.
+- **DEC-006 · Keep pushing to PR #36 while the punted Cloudflare check fails each push · MOOT.** PR #36 merged as `f25bd95` (DEC-007), so there is nothing left to decide. Marked 2026-11-11.
 - **DEC-005 · Create venv peering files (`.vscode/settings.json`, bootstrap script) · OPEN**
+  Lean L-19: stays open; not created from a guessed path.
   Asked 2026-11-11. Waiting on GO or NO GO. Needs `echo $VIRTUAL_ENV` and `ls ../venv` run on the XPS.
-- **DEC-004 · Keep this session subscribed to #36 · OPEN**
-  Asked 2026-11-11. Waiting on GO or NO GO.
+- **DEC-004 · Keep this session subscribed to #36 · MOOT.** PR #36 merged as `f25bd95` (DEC-007), so there is nothing left to decide. Marked 2026-11-11.
 - **DEC-003 · Restore the Decide-Act Stop hook · GO · executed.** Hook is on `main` via PR #35.
 - **DEC-002 · Stay subscribed to draft PR #36 · GO.** No action needed.
 - **DEC-001 · Merge PR #35 into `main` · GO · executed.** Merged as `e275413`.

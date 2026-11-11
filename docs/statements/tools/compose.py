@@ -16,7 +16,7 @@ Test end-to-end with no box:
   python3 compose.py --stats /tmp/s.json --sidecar collect/sample-sidecar.json --out /tmp/out.json
   # then point generate_client at it, or inspect /tmp/out.json
 """
-import argparse, json, os
+import argparse, json
 
 GB = 1024 ** 3
 RAMP_MAX = 7   # template renders up to 7 category rows

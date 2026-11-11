@@ -9,13 +9,71 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 
 ---
 
-## DEBT-006 · Gate and style checks pass only partially · Open
+## DEBT-011 · Six lint findings predate the Matrix work · Open
+
+- **Observed:** `ruff check --select E9,F` (the cloud setup script's lint step) reports six
+  findings outside this lease's files: unused imports in `jury/jury.py`, `collect_stats.py`,
+  `compose.py`, and `tools/telepathy/watch.py`, and two unused variables in `compose.py`.
+- **Cost:** the setup script prints `!! FAILED` on every fresh container, so a real failure
+  on that line would not stand out.
+- **Done 2026-11-11:** the four unused imports are removed.
+- **Next action:** two unused variables remain in `build_alloc` in `compose.py` (`other`, `other_bytes`).
+  Read on 2026-11-11: the "Other" row is computed from `remainder`, so no figure is missing; they are
+  dead code. Left in place because it is the Statement composer; remove them with a test of its output.
+
+## DEBT-010 · Fixed context cost per session is high · Open
+
+- **Observed:** on 2026-11-11 the session's context showed `CLAUDE.md` at about 24.5k tokens,
+  the GitHub connector's tool list at about 35k, and one session-management call (archive)
+  returning a full session record each time.
+- **Cost:** every turn of every session in this repo pays for these before any work starts.
+- **Next action:** founder call on splitting `CLAUDE.md` into a short always-loaded core plus
+  on-demand reference files; prefer `observe.status`-style narrow calls over bulky ones.
+
+## DEBT-009 · Usage limit reached while peers ran at max effort · Open
+
+- **Observed:** on 2026-11-11 at 22:28 UTC the Carrot starter's session record showed the
+  five-hour usage limit as `rejected` with overage in use, resetting at 01:10 UTC. That one
+  peer had cost about $2.68 in nine minutes at max effort.
+- **Cost:** unattended peers at max effort spend real overage while the founder is away.
+- **Next action:** both Carrot peers were sent `stop`. Before the next pair, set a lower
+  effort for peers and a spend ceiling in the template.
+
+## DEBT-008 · The Matrix gate has never run in a live enforce session · Open
+
+- **Observed:** `name` mode is seen firing on live calls. `warn` and `enforce`, the lease,
+  and the stall rule are proven only by `tools/check-matrix.py`, which pipes calls into the hook.
+- **Cost:** whether the app honours the hook's deny, and whether subagent calls pass
+  through the hook, is unconfirmed.
+- **Measured 2026-11-11 (Orchestrator lease):** the `PostToolUse` timing hook fires live in a
+  running session (`.claude/.matrix-times` filled from the first call after it was wired). The
+  subagent check (Q-004) was skipped because the usage limit was still reached, so whether the
+  hook fires for a subagent's calls is still unconfirmed. Whether a compaction uses the
+  `PreCompact` text is also unconfirmed: no compaction happened in the lease.
+- **Confirmed 2026-11-11, 23:08 UTC (Q-004):** one `juror` subagent made one `Read` call and reported the
+  hook line it received, word for word: `cardinal: observe.read · agent: juror`. The timing hook also
+  wrote a row for that call. So hooks fire inside subagents in a checkout of this repo, and the hook
+  knows which agent made the call. One agent, one call: `name` mode only.
+- **Next action:** after DEC-012, run `warn` in one live session, then `enforce` with the
+  kill switch ready.
+
+## DEBT-007 · The Matrix is not on `main` · Blocked
+
+- **Observed:** the map, hook, `tools/matrix.py`, and gates sit on `decision-log-dec007` (PR #37).
+- **Cost:** new sessions start from `main` and get none of it.
+- **Next action:** DEC-011.
+
+## DEBT-006 · Gate and style checks pass only partially · Done
 
 - **Observed:** `tools/sync-briefings.py` exits 2 when given `--check`, because the flag does
   not exist; the bare run exits 0 and reports zero sibling repos. `tools/check-doctrine.py`
   prints a `SyntaxWarning: invalid escape sequence '\$'` at line 29 of an embedded string.
 - **Cost:** the briefing-drift check checks nothing on this machine, so a green run
   here does not mean siblings agree.
+- **Fixed 2026-11-11:** the warning came from the module docstrings of `jury/jury.py` and
+  `jury-claude/jury_claude.py` (a `\$` in a normal string), which `check-doctrine.py` parses; both
+  are now raw strings, and `python3 tools/check-doctrine.py` now prints nothing on stderr. `sync-briefings.py`
+  accepts `--check`. Still true: with no sibling repos checked out, the drift check compares nothing.
 - **Next action:** fix the escape in the `check-doctrine.py` string (use a raw string), and
   either document the bare call in the gate or add the `--check` mode the gate expects.
 
@@ -49,7 +107,7 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 - **Cost:** the style applies only through `CLAUDE.md` and the Stop hook, not as a named style.
 - **Next action:** punted by the founder's choice to rely on `CLAUDE.md`.
 
-## DEBT-001 · Stop hook untested in a live turn · Open
+## DEBT-001 · Stop hook untested in a live turn · Done
 
 - **Observed:** `.claude/hooks/decide-act.py` was tested on fake transcripts. It fired once
   on a real turn (block with 3 items), which is the live test.

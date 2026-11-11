@@ -11,7 +11,6 @@ Usage: python3 watch.py [mailbox-name]     (default: same name rules as telepath
 import ctypes
 import ctypes.util
 import os
-import socket
 import struct
 import sys
 from pathlib import Path

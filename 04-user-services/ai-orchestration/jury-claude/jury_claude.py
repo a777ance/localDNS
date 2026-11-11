@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 jury_claude.py — the Jury, driven by Claude instead of Kimi K3.
 
 This is the sibling `jury/`'s thesis made real: "Nothing there is
