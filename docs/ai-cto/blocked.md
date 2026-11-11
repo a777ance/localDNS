@@ -15,6 +15,10 @@ to `Done` or `Punted`, and it is removed only by the founder.
 Every founder decision, newest first, with its result. Open tiles stay here until the
 founder decides.
 
+- **DEC-010 · Scope DEC tiles to decisions only the founder can make · OPEN**
+  Asked 2026-11-11. Waiting on GO or NO GO.
+- **DEC-009 · Spawn 4 cloud peer sessions in 2 pairs · GO · executed.** A pair ran 42 rounds; B pair paused after 1.
+- **DEC-008 · Start a fresh peer pair from the revised template · GO · executed.** Carrot C1 and C2 created 2026-11-11.
 - **DEC-007 · Merge PR #36 into `main` so the tile, navigation, and decision-log rules reach new sessions · GO · executed.** Merged as `f25bd95`.
 - **DEC-006 · Keep pushing to PR #36 while the punted Cloudflare check fails each push · OPEN**
   Asked 2026-11-11. Waiting on GO or NO GO.
