@@ -417,11 +417,20 @@ def decide_rehearse(*rest):
     try:
         def run(*cmd, cwd=None, **kw):
             return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, **kw)
-        run("git", "clone", "-q", "--bare", str(ROOT), str(box / "remote.git"))
-        run("git", "--git-dir", str(box / "remote.git"), "update-ref", "refs/heads/main", tip)
-        run("git", "clone", "-q", "-b", "main", str(box / "remote.git"), str(box / "localDNS"))
         work = box / "localDNS"
-        run("git", "reset", "-q", "--hard", rev, cwd=work)
+        # --mirror, not --bare: the remote's main is usually known here only as origin/main, and a
+        # bare clone copies local branches alone, so its "main" would be a stale one (found 2026-11-11).
+        steps = [(("git", "clone", "-q", "--mirror", str(ROOT), str(box / "remote.git")), None),
+                 (("git", "--git-dir", str(box / "remote.git"), "update-ref", "refs/heads/main", tip), None),
+                 (("git", "clone", "-q", "-b", "main", str(box / "remote.git"), str(work)), None),
+                 (("git", "reset", "-q", "--hard", rev), work)]
+        for cmd, cwd in steps:
+            s = run(*cmd, cwd=cwd)
+            if s.returncode:
+                sys.exit(f"FAILED: could not build the rehearsal copy ({' '.join(cmd[:3])}): {s.stderr.strip()[-200:]}")
+        seen = run("git", "rev-parse", "origin/main", cwd=work).stdout.strip()
+        if seen != tip:
+            sys.exit(f"FAILED: the rehearsal copy's origin/main is {seen[:7]}, not {tip[:7]}; refusing to rehearse a wrong state")
         env = {**os.environ, "HOME": str(box), "GIT_AUTHOR_NAME": "rehearsal", "GIT_AUTHOR_EMAIL": "rehearsal@localhost",
                "GIT_COMMITTER_NAME": "rehearsal", "GIT_COMMITTER_EMAIL": "rehearsal@localhost"}
         if setup:
