@@ -6,7 +6,7 @@
   ],
   "_motto": "There is no way out.",
   "_comment": "Every tool call belongs to exactly one cardinal action. tools/check-cardinal.py enforces it. Bash is split by intent: read-only commands are Observe, anything that changes state is Act.",
-  "mode": "name",
+  "mode": "warn",
   "_mode_comment": "name = label each call only. warn = label and remind of the Matrix command for repointed tools. enforce = deny repointed native tools and give the Matrix command. Kill switch in any mode: touch .claude/.matrix-off",
   "repoint": {
     "Read": "python3 tools/matrix.py observe.read PATH [START [END]]",
