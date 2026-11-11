@@ -1,8 +1,15 @@
 {
-  "_comment": "Limits for a bounded factory arc. The run halts at the first cap hit or the kill file. Edit these, not the procedure.",
-  "wall_clock_minutes": 180,
-  "max_iterations": 10,
-  "max_tool_calls": 200,
+  "_comment": "Lease for a factory run. The run is unbounded in shape but halts when the lease expires, when the kill file exists, or when a backstop cap is hit. Only the founder writes this file to extend a lease. The agent never sets expires_at itself. expires_at null means no active lease: the factory must refuse to start.",
+  "lease": {
+    "issued_at": null,
+    "expires_at": null,
+    "renewed_by": null,
+    "length_hours": 3
+  },
+  "backstops": {
+    "max_iterations": 10,
+    "max_tool_calls": 200
+  },
   "scope": "docs/TECH-DEBT.md",
   "kill_file": ".claude/.factory-stop",
   "branch": "claude/elegant-sagan-ul1tc6",

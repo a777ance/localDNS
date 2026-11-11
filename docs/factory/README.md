@@ -1,25 +1,35 @@
 # Factory run contract
 
-A bounded, stoppable arc of work. It takes one entry at a time from
-`docs/TECH-DEBT.md`, makes the fix on the work branch, runs the repo checks, and
-records the result. It does not run without limits.
+A stoppable arc of work. It takes one entry at a time from `docs/TECH-DEBT.md`,
+makes the fix on the work branch, runs the repo checks, and records the result. The
+loop has no fixed length. A **lease** bounds it.
 
-## Limits
+## The lease
 
-See `.claude/factory/config.json`:
+See `.claude/factory/config.json`, field `lease`:
 
-- `wall_clock_minutes`: 180 from the recorded start time.
-- `max_iterations`: 10.
-- `max_tool_calls`: 200.
-- `kill_file`: `.claude/.factory-stop`. Creating it halts the run at the next check.
+- `expires_at`: the run halts when the wall clock passes this time. `null` means no
+  active lease, and the factory refuses to start.
+- `renewed_by`: who last wrote the lease. Only the founder writes it.
+- Renewal means the founder writes a new `expires_at`. The agent never sets or extends
+  it.
+
+## Backstops
+
+`max_iterations` (10) and `max_tool_calls` (200) are secondary guards against a run
+that is stuck on one failure. They do not replace the lease.
+
+## Kill file
+
+Creating `.claude/.factory-stop` halts the run at the next check.
 
 ## Iteration procedure
 
-Each iteration does these steps in order. A failed check ends the run.
+Before every step, not only at the start of an iteration:
 
-1. **Check the stop conditions.** Halt if the kill file exists, the wall clock has
-   passed its cap, the iteration count has reached `max_iterations`, or the
-   tool-call count has reached `max_tool_calls`.
+1. **Check the stop conditions.** Halt if the lease has expired or is `null`, the kill
+   file exists, or a backstop cap has been reached. If a halt happens mid-fix, finish
+   nothing new: leave the entry `open` and record where the run stopped.
 2. **Pick one open entry** from the register, newest first. Skip entries past their
    `due` date and report them instead.
 3. **Make the smallest fix** the entry's `fix` field describes. Keep to one entry.
@@ -33,6 +43,7 @@ Each iteration does these steps in order. A failed check ends the run.
 
 ## What the factory does not do
 
+- It does not extend or write its own lease.
 - It does not edit `.claude/settings.json` without a separate approval.
 - It does not change the cloud environment.
 - It does not push, open PRs, or subscribe to PR activity.
@@ -41,5 +52,5 @@ Each iteration does these steps in order. A failed check ends the run.
 
 ## Status
 
-The contract and limits are committed. The loop is not started. It starts when the
-founder approves a run.
+The lease is committed with `expires_at` unset, so the factory will not start. The
+founder sets `issued_at` and `expires_at` to start a run.
