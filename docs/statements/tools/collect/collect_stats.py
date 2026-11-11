@@ -20,7 +20,15 @@ Run on the box:
 Test anywhere (no box needed):
   python3 collect_stats.py --sample --out /tmp/sample.stats.json
 """
-import argparse, json, subprocess, sqlite3, time, calendar, datetime as dt, urllib.request, re, sys
+import argparse
+import calendar
+import datetime as dt
+import json
+import sqlite3
+import subprocess
+import sys
+import time
+import urllib.request
 
 # Pi-hole FTL query.status values that mean "blocked"
 BLOCKED_STATUSES = (1, 4, 5, 9, 10, 11)
@@ -145,20 +153,25 @@ def main():
             stats["queries"] = {"total": total, "blocked": blocked}
             stats["devices"] = devices
         except Exception as e:
-            print(f"[warn] pihole: {e}", file=sys.stderr); stats["queries"] = None
+            print(f"[warn] pihole: {e}", file=sys.stderr)
+            stats["queries"] = None
         try:
             up, lat = kuma_metrics(a.kuma_metrics, a.kuma_key, a.kuma_monitors.split(","))
-            stats["uptime"] = {"pct": up}; stats["latency_ms"] = {"peak": lat}
+            stats["uptime"] = {"pct": up}
+            stats["latency_ms"] = {"peak": lat}
         except Exception as e:
-            print(f"[warn] kuma: {e}", file=sys.stderr); stats["uptime"] = None
+            print(f"[warn] kuma: {e}", file=sys.stderr)
+            stats["uptime"] = None
         try:
             stats["vpn_sessions"] = {"count": wg_sessions(a.wg_iface)}
         except Exception as e:
-            print(f"[warn] wg: {e}", file=sys.stderr); stats["vpn_sessions"] = None
+            print(f"[warn] wg: {e}", file=sys.stderr)
+            stats["vpn_sessions"] = None
         try:
             stats["volume"] = {"by_category": nft_category_bytes()}
         except Exception as e:
-            print(f"[warn] nft: {e}", file=sys.stderr); stats["volume"] = None
+            print(f"[warn] nft: {e}", file=sys.stderr)
+            stats["volume"] = None
 
     with open(a.out, "w") as f:
         json.dump(stats, f, indent=2)
