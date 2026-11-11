@@ -60,6 +60,9 @@ Applies to every reply in this repo. One line per rule; the long form is
   fits the goal. The N lanes (parallel, sequential, or both) open after it. The naming hook flags
   a push, a merge, or a new agent or session with no passing probe in the last 10 minutes;
   `act.ship` probes its own push; `tools/check-cardinal.py` fails if a cardinal has no probe.
+- **Retrofit: a new rule reaches backward (INIT-007).** When a rule is adopted, apply it to what
+  already exists: `python3 tools/matrix.py orient.retrofit`. Every enforced rule names its audit;
+  `tools/check-stop-hook.py` fails if one has none. This binds rules not yet written.
 - **Announce every scratchpad [hook].** A file written to the session's scratchpad is named in a
   reply by its full path, with what it is, or deleted.
 - **No vague hedges [hook]** ("should work", "probably works"). Name the check that confirms it.

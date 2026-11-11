@@ -7,6 +7,7 @@
     python3 tools/matrix.py observe.probe push             (dry-run the push of this branch; changes nothing)
     python3 tools/matrix.py observe.probe merge BRANCH [BASE]   (would BRANCH merge into BASE cleanly?)
     python3 tools/matrix.py observe.probe path PATH        (size, lines, binary or text, before a read)
+    python3 tools/matrix.py orient.retrofit                (audit what already exists against every enforced rule)
     python3 tools/matrix.py orient.probe                   (is the picture current? checkpoint, decisions, stalls)
     python3 tools/matrix.py decide.probe [FILE...]         (the fast gates only; with a command string: rehearse it)
     python3 tools/matrix.py act.probe ship FILE...         (what would be committed and pushed; changes nothing)
@@ -475,6 +476,95 @@ def act_probe(kind="", *args):
         sys.exit(1)
 
 
+# ---- Retrofit (retro-compliance, INIT-007): a new rule reaches backward. Every rule the Stop hook
+# enforces on replies has an entry here: an audit over what already exists, or the reason there is
+# nothing stored to audit. tools/check-stop-hook.py fails if a rule has no entry.
+FOUNDER_DOCS = ("CLAUDE.md", "README.md", "docs/ai-cto", ".claude/output-styles")
+RETROFIT_EXEMPT = {"docs/ai-cto/handoff.md": "written for a cloud session, where the container path is the right one",
+                   "docs/ai-cto/reply-style-full.md": "the archived long form of the rules; it quotes what they forbid"}
+HEDGES = ("should work", "probably works", "probably work", "may have worked", "might have worked", "should be fine")
+
+
+def _founder_docs():
+    for entry in FOUNDER_DOCS:
+        base = ROOT / entry
+        for f in ([base] if base.is_file() else sorted(base.rglob("*.md")) if base.is_dir() else []):
+            rel = str(f.relative_to(ROOT))
+            if rel not in RETROFIT_EXEMPT:
+                yield rel, f.read_text(encoding="utf-8", errors="replace")
+
+
+def _bash_blocks(text):
+    return re.findall(r"```bash\n(.*?)```", text, flags=re.DOTALL)
+
+
+def audit_cd():
+    return [f"{rel}: a bash block uses the cloud container path /home/user/" for rel, text in _founder_docs()
+            if any(re.search(r"^\s*cd /home/user/", b, re.MULTILINE) for b in _bash_blocks(text))]
+
+
+def audit_hedge():
+    out = []
+    for rel, text in _founder_docs():
+        prose = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+        prose = re.sub(r"`[^`\n]*`", "", prose)
+        prose = re.sub(r"[\"\u201c][^\"\u201d\n]*[\"\u201d]", "", prose).lower()
+        out += [f"{rel}: says {h!r} outside a quote" for h in HEDGES if h in prose]
+    return out
+
+
+def audit_rehearse():
+    import hashlib
+    f = ROOT / ".claude/.matrix-rehearsed"
+    done = {l.split("\t")[0] for l in (f.read_text(encoding="utf-8").splitlines() if f.exists() else [])
+            if l.split("\t")[1:2] == ["0"]}
+    out = []
+    for rel in ("docs/ai-cto/roadmap.md",):  # the docs that hand the founder commands to paste
+        text = (ROOT / rel).read_text(encoding="utf-8") if (ROOT / rel).exists() else ""
+        if "Not rehearsed:" in text:
+            continue
+        out += [f"{rel}: command never rehearsed here: {norm_command(b)[:70]!r}" for b in _bash_blocks(text)
+                if norm_command(b) and hashlib.sha256(norm_command(b).encode()).hexdigest() not in done]
+    return out
+
+
+def audit_scratch():
+    import glob
+    f = ROOT / ".claude/.matrix-scratch"
+    known = set(f.read_text(encoding="utf-8").splitlines()) if f.exists() else set()
+    return [f"unannounced scratchpad entry: {e}" for e in sorted(glob.glob("/tmp/claude-*/*/*/scratchpad/*")) if e not in known]
+
+
+RETROFIT = {
+    "BRIEFING LEAD": "applies to a reply as it is sent; no replies are stored to audit",
+    "OODA ACT": "applies to a reply as it is sent; no replies are stored to audit",
+    "COMMAND CD": audit_cd,
+    "REHEARSE": audit_rehearse,
+    "NO HEDGE": audit_hedge,
+    "TILE": "stored decisions are audited on every commit by tools/check-decisions.py",
+    "SCRATCHPAD": audit_scratch,
+}
+
+
+def orient_retrofit():
+    """Apply every enforced rule to what already exists, and list what does not comply."""
+    total = 0
+    for rule, audit in RETROFIT.items():
+        if isinstance(audit, str):
+            print(f"n/a  {rule:14} {audit}")
+            continue
+        found = audit()
+        total += len(found)
+        print(f"{'ok  ' if not found else 'FIX '} {rule:14} {len(found)} finding(s)")
+        for line in found[:10]:
+            print("       " + line)
+    for rel, why in RETROFIT_EXEMPT.items():
+        print(f"exempt {rel}: {why}")
+    print("gates: the nine checks in decide.gate audit all stored state on every commit")
+    if total:
+        sys.exit(f"FAILED: {total} retrofit finding(s). Fix each, or exempt it in RETROFIT_EXEMPT with the reason.")
+
+
 def norm_command(text: str) -> str:
     """A command as the Stop hook compares it: no blank lines, comments, or leading cd to the repo."""
     lines = [l.strip() for l in text.strip().splitlines() if l.strip() and not l.strip().startswith("#")]
@@ -586,7 +676,7 @@ METHODS = {"observe.status": observe_status, "decide.open": decide_open, "act.sh
            "act.write": act_write, "act.edit": act_edit, "act.undo": act_undo,
            "observe.log": observe_log, "observe.times": observe_times, "orient.checkpoint": orient_checkpoint,
            "decide.rehearse": decide_rehearse, "observe.probe": observe_probe,
-           "orient.probe": orient_probe, "decide.probe": decide_probe, "act.probe": act_probe}
+           "orient.probe": orient_probe, "orient.retrofit": orient_retrofit, "decide.probe": decide_probe, "act.probe": act_probe}
 
 
 def main():

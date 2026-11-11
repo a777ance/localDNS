@@ -18,11 +18,11 @@ Live facts, rewritten by `python3 tools/matrix.py orient.checkpoint`:
 - **Open decisions:** DEC-005
 - **Open stalls:** none
 - **Last five commits:**
+  - adc7b5f INIT-007: name it retrofit (retro-compliance), the founder's term
+  - 6168e8e INIT-007: record the retro rule (a new rule reaches backward) and its first sweep
+  - 516a241 Enforce 1 + N lanes: a probe in every cardinal, lanes flagged without one; announce scratchpads; laptop auto-sync
   - b747788 Merge pull request #40 from a777ance/claude/serene-tesla-yvl22m
   - e0f3fc9 INIT-006: record the founder's 1 + N lanes proposal and what of it exists
-  - 7d0ca93 decide.rehearse: build the copy from a mirror and refuse a wrong remote state
-  - cd6d9ff Merge pull request #39 from a777ance/claude/serene-tesla-yvl22m
-  - 8c88bf7 Probe before egress: dry-run pushes and merges, and flag any that skip it
 <!-- live:end -->
 
 Background from the handoff:

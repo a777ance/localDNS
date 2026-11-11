@@ -17,10 +17,11 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
   swept (one existed, this session's own; its three files had been announced and were deleted).
 - **Line items:**
   - Sweep at adoption for the scratchpad rule: **Done** by hand, 2026-11-11.
-  - Sweeps not yet run for the other rules adopted the same day (rehearse, probe before egress,
-    `cd ~/localDNS`): old docs and commands in the repo have not been checked against them: **Active**.
-  - A mechanism, so the sweep is not left to memory: every rule the Stop hook or a gate enforces
-    names an audit that can be run over existing state, and a check fails if a rule has none: **Active**, not built.
+  - Sweep for every enforced rule, 2026-11-11 (`orient.retrofit`): one finding, a command in
+    `docs/ai-cto/roadmap.md` that could not be rehearsed and did not say so. Fixed: **Done**.
+  - Mechanism: `python3 tools/matrix.py orient.retrofit` audits existing state against each rule,
+    and `tools/check-stop-hook.py` fails if a rule has no retrofit entry: **Done**.
+  - Rules that live only in prose (house style, provenance, the Jury doctrine) have no audit yet: **Active**.
 
 ## INIT-006 · 1 + N lanes: the probe always goes first · Active
 

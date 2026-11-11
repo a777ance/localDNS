@@ -110,6 +110,12 @@ def main() -> int:
             fails.append(f"rule {key} is listed here but the hook does not enforce it")
         if phrase not in style:
             fails.append(f"the hook enforces {key}, but the output style does not say {phrase!r}")
+    # Retrofit (INIT-007): a rule reaches backward, so each one names its audit of existing state.
+    matrix_src = (ROOT / "tools/matrix.py").read_text(encoding="utf-8")
+    table = matrix_src.split("RETROFIT = {", 1)[-1].split("}", 1)[0]
+    for key in STYLE:
+        if f'"{key}":' not in table:
+            fails.append(f"rule {key} has no retrofit entry in tools/matrix.py (an audit, or why there is nothing to audit)")
     tested = {want for _, _, want in CASES if want} | {"SCRATCHPAD"}
     for key in STYLE:
         if key not in tested:

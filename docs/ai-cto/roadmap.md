@@ -33,6 +33,8 @@ You deferred the six decisions to the loop on 2026-11-11. Five are done. One sti
 
 For DEC-005, run this and paste the output:
 
+Not rehearsed: this command reads your laptop's own Python environment, which no cloud session can see.
+
 ```bash
 cd ~/localDNS
 echo "venv: $VIRTUAL_ENV"; ls ../venv

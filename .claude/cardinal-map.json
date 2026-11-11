@@ -118,6 +118,9 @@
         ],
         "probe": [
           "Bash:tools/matrix.py orient.probe"
+        ],
+        "retrofit": [
+          "Bash:tools/matrix.py orient.retrofit"
         ]
       },
       "loop": "fast"
