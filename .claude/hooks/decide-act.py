@@ -43,7 +43,7 @@ def last_assistant_text(path):
 
 def decide_items(text):
     """Return numbered items under a **Decide** heading (or 'Decide' line)."""
-    m = re.search(r"^\W*Decide\b.*$", text, re.MULTILINE)
+    m = re.search(r"^\W*Decide[ds]?\b.*$", text, re.MULTILINE)
     if not m:
         return []
     items = []
