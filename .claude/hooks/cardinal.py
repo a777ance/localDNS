@@ -10,6 +10,7 @@ import json
 import os
 import re
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(os.environ.get("CLAUDE_PROJECT_DIR") or Path(__file__).resolve().parents[2])
@@ -67,6 +68,13 @@ def main() -> int:
         tool = data.get("tool_name", "")
         alias = lookup(tool, data.get("tool_input") or {})
         line = f"cardinal: {alias}" if alias else f"cardinal: UNMAPPED ({tool}) — add it to .claude/cardinal-map.json"
+        try:  # start stamp for the PostToolUse timing hook (.claude/hooks/timing.py)
+            key = re.sub(r"[^\w.-]", "_", str(data.get("tool_use_id") or tool or "unknown"))[:120]
+            starts = ROOT / ".claude/.matrix-starts"
+            starts.mkdir(exist_ok=True)
+            (starts / key).write_text(f"{time.time()}\t{alias or 'UNMAPPED'}", encoding="utf-8")
+        except OSError:
+            pass
         if data.get("agent_type"):  # set when a subagent made the call
             line += f" · agent: {data['agent_type']}"
         out = {"hookEventName": "PreToolUse", "additionalContext": line}

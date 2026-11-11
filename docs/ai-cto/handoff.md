@@ -170,42 +170,42 @@ behind. `BLOCKED` items wait for the founder.
 
 ### Phase A · Verify what is only proven on paper (about 20 min)
 
-- **Q-001 · Confirm the hooks fire in your session.** `observe`. Make one `Read` and one
+- **Q-001 · Confirm the hooks fire in your session.** · DONE 743ef6d · `observe`. Make one `Read` and one
   Bash call and look for a `cardinal:` line on each; end one reply without a state word and
   confirm the bounce. Done: three observations recorded in `docs/ai-cto/checkpoint.md`. 5 min.
-- **Q-002 · Give every hook an explicit timeout.** `act.configure`. In `.claude/settings.json`
+- **Q-002 · Give every hook an explicit timeout.** · DONE fbb0fb7 · `act.configure`. In `.claude/settings.json`
   add `"timeout": 5` to `cardinal.py`, `decide-act.py`, and `resume.py` entries (leave
   `gate.sh` at 60; its checks take about 3 s). Done: settings valid JSON, gates green,
   `check-cardinal.py` extended to fail if a hook has no timeout. 8 min.
-- **Q-003 · Use `agent_id` / `agent_type` in the naming hook.** `act.write`. When the hook
+- **Q-003 · Use `agent_id` / `agent_type` in the naming hook.** · DONE bf77e56 · `act.write`. When the hook
   input carries them, append `· agent: <type>` to the cardinal line. Add a case to
   `tools/check-matrix.py`. Done: e2e green. 5 min.
-- **Q-004 · One live subagent check (the single permitted spawn).** `decide.vote`. Spawn one
+- **Q-004 · One live subagent check (the single permitted spawn).** · SKIPPED (usage limit still reached at 23:10 UTC; retry after 01:10 UTC) · `decide.vote`. Spawn one
   `juror` with a one-line read-only question and confirm from its transcript or the Matrix
   log that the hook fired for its tool call. Done: result recorded in DEBT-008. Skip if the
   usage limit is still reached. 5 min.
 
 ### Phase B · Harden the Matrix's own tooling (about 45 min)
 
-- **Q-005 · Bound `observe.search` and `observe.read`.** `act.write`. Skip files over 1 MB
+- **Q-005 · Bound `observe.search` and `observe.read`.** · DONE 52ecd1b · `act.write`. Skip files over 1 MB
   and binary files; add `--max N` (default 200 matches) to search; make read default to the
   first 200 lines with a "N more lines" notice. Done: each returns in under 1 s on this
   repo (time it), e2e cases added. 10 min.
-- **Q-006 · Move backups out of the tree.** `act.write`. `act.write` and `act.edit` save
+- **Q-006 · Move backups out of the tree.** · DONE 52ecd1b · `act.write`. `act.write` and `act.edit` save
   backups to `.claude/.matrix-bak/<timestamp>-<name>` (git-ignored), not beside the file.
   Add `act.undo` to restore the latest backup of a path. Done: e2e covers write → edit →
   undo; no `.bak` left behind. 8 min.
-- **Q-007 · Make `act.edit` safe for multi-line text.** `act.write`. Accept
+- **Q-007 · Make `act.edit` safe for multi-line text.** · DONE 52ecd1b · `act.write`. Accept
   `--old-file` / `--new-file` so shell quoting cannot corrupt an edit. Done: e2e case with
   quotes, backticks, and newlines. 6 min.
-- **Q-008 · Fix the Bash classifier's known misses.** `act.write`. A here-document that only
+- **Q-008 · Fix the Bash classifier's known misses.** · DONE bf77e56 · `act.write`. A here-document that only
   quotes a Matrix call must not take that call's name; `git commit` inside a quoted message
   must not make a read-only command `act.ship`. Add each as an e2e case first, then fix.
   Done: e2e green. 8 min.
-- **Q-009 · `observe.log`: the Matrix watching itself.** `act.write`. Summarize
+- **Q-009 · `observe.log`: the Matrix watching itself.** · DONE 52ecd1b · `act.write`. Summarize
   `.claude/.matrix-log` as calls per cardinal and per method, with the slowest call. Rotate
   the log at 2,000 lines. Done: method documented in the `observe` skill and the map. 6 min.
-- **Q-010 · `orient.checkpoint`.** `act.write`. One command that rewrites the "Where things
+- **Q-010 · `orient.checkpoint`.** · DONE 52ecd1b · `act.write`. One command that rewrites the "Where things
   stand" block of `docs/ai-cto/checkpoint.md` from live facts: branch, last five commits,
   open decisions, open stalls, lease line. Done: running it twice changes nothing the
   second time. 7 min.
@@ -217,10 +217,10 @@ behind. `BLOCKED` items wait for the founder.
   if no id), `PostToolUse` computes the duration and appends `tool, cardinal, seconds` to
   `.claude/.matrix-times`. Over 10 s, add a context line naming the breach. Fail open.
   Done: e2e case with a simulated pair; file git-ignored. 12 min.
-- **Q-012 · `observe.times`.** `act.write`. Report count, median, and worst duration per
+- **Q-012 · `observe.times`.** · DONE 52ecd1b · `act.write`. Report count, median, and worst duration per
   tool and per cardinal from that file, and list every call over 10 s. Done: documented in
   the skill and map. 6 min.
-- **Q-013 · Make a breach a debt entry.** `act.write`. `observe.times --debt` prints a
+- **Q-013 · Make a breach a debt entry.** · DONE 52ecd1b · `act.write`. `observe.times --debt` prints a
   ready-to-paste `DEBT-NNN` block for each tool whose worst call broke 10 s. Done: tested
   on synthetic data. 7 min.
 

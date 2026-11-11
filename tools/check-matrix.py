@@ -35,7 +35,7 @@ def check(name, ok, detail=""):
 def main() -> int:
     box = Path(tempfile.mkdtemp(prefix="matrix-e2e-"))
     try:
-        for rel in ("tools/matrix.py", ".claude/hooks/cardinal.py", ".claude/cardinal-map.json",
+        for rel in ("tools/matrix.py", ".claude/hooks/cardinal.py", ".claude/hooks/timing.py", ".claude/hooks/precompact.py", ".claude/cardinal-map.json",
                     "docs/ai-cto/initiatives.md", "docs/ai-cto/debt.md", "docs/ai-cto/blocked.md"):
             (box / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(ROOT / rel, box / rel)
@@ -108,6 +108,28 @@ def main() -> int:
         check("observe.times", "over 10 s: 1 of 3" in out and "BREACH" in out and "Read" in out, out)
         out = mx("observe.times", "--debt").stdout
         check("observe.times --debt", "DEBT-NNN · Native Bash" in out and "12.5 s" in out and "Read" not in out, out)
+        # native tool timing (Q-011): PreToolUse stamps, PostToolUse measures
+        def post(tool, tid):
+            return subprocess.run([sys.executable, str(box / ".claude/hooks/timing.py")], capture_output=True, text=True,
+                                  input=json.dumps({"tool_name": tool, "tool_use_id": tid}), env=base_env).stdout
+        (box / ".claude/.matrix-times").unlink()
+        hook("Read", tool_use_id="toolu_1")
+        check("timing: quick call is quiet", post("Read", "toolu_1") == "")
+        hook("Bash", {"command": "ls"}, tool_use_id="toolu_2")
+        stamp = box / ".claude/.matrix-starts/toolu_2"
+        started, alias = stamp.read_text().split("\t")
+        stamp.write_text(f"{float(started) - 12}\t{alias}")
+        check("timing: breach is named", "10-SECOND BREACH: native Bash (observe.read)" in post("Bash", "toolu_2"))
+        rows = (box / ".claude/.matrix-times").read_text().strip().split("\n")
+        check("timing: rows written", len(rows) == 2 and "\tRead\tobserve.read\t0." in rows[0] and "\tBash\t" in rows[1], str(rows))
+        check("timing: stamps consumed", not list((box / ".claude/.matrix-starts").glob("*")))
+        check("timing: no stamp, no row", post("Read", "toolu_none") == "" and "over 10 s: 1 of 2" in mx("observe.times").stdout)
+        # compaction instructions (Q-020)
+        shutil.copy(ROOT / "docs/ai-cto/handoff.md", box / "docs/ai-cto/handoff.md")
+        out = subprocess.run([sys.executable, str(box / ".claude/hooks/precompact.py")], capture_output=True, text=True,
+                             input="{}", env=base_env).stdout
+        check("precompact", "Lease: start:" in out and "Open founder decisions: DEC-" in out and "checkpoint.md" in out
+              and len(out) <= 1200, out)
         # orient.checkpoint (Q-010)
         (box / "docs/ai-cto/checkpoint.md").write_text("# C\n\n<!-- live:start -->\nold\n<!-- live:end -->\n\nkept\n")
         r1 = mx("orient.checkpoint")
