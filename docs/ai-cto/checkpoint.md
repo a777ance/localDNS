@@ -30,4 +30,4 @@ files). DEC-004 and DEC-006 are moot: PR #36 is merged.
 1. On DEC-011 GO: merge PR #37, then confirm the hook fires in a fresh session on `main`.
 2. On DEC-012 GO: set mode `warn`, run one live session, then consider `enforce` (DEBT-008).
 3. Turn the Carrot pair's rule-check proposals into gates, if any report arrived.
-4. Lower peer effort and add a spend ceiling to `docs/ai-cto/bootstrap-peer-template.md`.
+4. Done: the peer template now has a spend ceiling (low effort, 60 s between rounds, report every 10).

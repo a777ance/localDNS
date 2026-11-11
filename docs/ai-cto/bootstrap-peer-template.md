@@ -54,4 +54,9 @@ Constraints: {CONSTRAINTS}
    Keep replies short. Act on each Decided item in order without asking, except where rule 3 needs
    the parent's approval.
 
-6. **Finish.** After the final report to the parent, stop. Send no closing message to the partner.
+6. **Spend ceiling.** Peers run at low effort unless the founder names a higher one. Wait at
+   least 60 seconds between rounds. Report to the parent every 10 rounds, on any failure, and
+   at the end, never every round. If a round adds nothing new, stop and report as in rule 2:
+   a null result is a reason to stop, not to keep pinging.
+
+7. **Finish.** After the final report to the parent, stop. Send no closing message to the partner.
