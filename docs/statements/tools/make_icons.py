@@ -8,7 +8,9 @@ Run once, or whenever icons/icon.svg changes:
 The resulting PNGs are committed to the repo, so the repo itself has NO runtime
 dependency on cairosvg — this script is only needed to regenerate them.
 """
-import os, cairosvg
+import os
+
+import cairosvg
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ICONS = os.path.join(HERE, "..", "icons")

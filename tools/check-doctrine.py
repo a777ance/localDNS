@@ -113,7 +113,7 @@ def sampler_facts():
             for fn in node.body:
                 if isinstance(fn, ast.FunctionDef) and fn.name == "__init__":
                     args = fn.args.args[-len(fn.args.defaults):] if fn.args.defaults else []
-                    for a, d in zip(args, fn.args.defaults):
+                    for a, d in zip(args, fn.args.defaults, strict=False):
                         v = _const(d)
                         if v is not None:
                             ctor[a.arg] = v
@@ -121,7 +121,7 @@ def sampler_facts():
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) \
                 and node.func.attr == "dumps" and node.args \
                 and isinstance(node.args[0], ast.Dict):
-            for k, v in zip(node.args[0].keys, node.args[0].values):
+            for k, v in zip(node.args[0].keys, node.args[0].values, strict=False):
                 if isinstance(k, ast.Constant) and isinstance(k.value, str):
                     sent[k.value] = v
         # argparse: p.add_argument("--temperature", type=float, default=1.1)

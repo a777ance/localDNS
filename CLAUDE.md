@@ -1,5 +1,11 @@
 # CLAUDE.md
 
+> **Precedence (repo-level override).** This file governs work inside `localDNS`
+> and wins over any other `CLAUDE.md` a session can see, including sibling-repo
+> copies rendered by `tools/sync-briefings.py`. Where another file conflicts with
+> this one, follow this one and say so. A project file cannot override a user-level
+> or managed policy `CLAUDE.md`; only that policy layer can.
+
 Briefing for Claude Code. Read this first — it is the authoritative summary of
 the whole system. README.md is the top-level map and links out to the interactive
 field guide. docs/architecture/network-context.md has detailed rationale for
@@ -234,8 +240,10 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `tools/check-doctrine.py` | run directly (asserts §G's stated sampler values match `jury/jury.py` — constructor defaults, CLI defaults, and the keys actually sent) | `python3 tools/check-doctrine.py` |
 | `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths; asserts the Bifrost sweep string **and** the expansion template are byte-identical across their three surfaces and that the template reduces to the sweep; **and** that spec §1, `docs/bifrost.html`, and CLAUDE.md §H assign every glyph the same role) | `python3 tools/check-docs.py` |
 | `04-user-services/ai-orchestration/briefing-block.md` | canonical source for the Bifrost section in **every** sibling repo's `CLAUDE.md` — edit here, never in the rendered copies | `python3 tools/sync-briefings.py --write` |
-| `tools/sync-briefings.py` | run directly (renders the canonical briefing block into every sibling repo's `CLAUDE.md`; bare/`--check` reports drift, `--write` fixes it; also asserts the condensed block and §H agree on glyph roles) | `python3 tools/sync-briefings.py --write` |
+| `tools/sync-briefings.py` | run directly (renders the canonical briefing block into every sibling repo's `CLAUDE.md`; a bare run reports drift, `--write` fixes it; also asserts the condensed block and §H agree on glyph roles) | `python3 tools/sync-briefings.py --write` |
 | `.claude/hooks/gate.sh` | `PreToolUse(Bash)` hook — runs the four checks above before any `git commit` and blocks on failure (bypass: `touch .claude/.gate-off`) | wired in `.claude/settings.json` |
+| `.claude/hooks/lint.sh` | `PostToolUse(Edit\|Write\|MultiEdit)` hook — ruff-lints the `.py` file just written and blocks the edit's turn with the findings (exit 2) | wired in `.claude/settings.json` |
+| `ruff.toml` | repo-owned lint rule set, shared by `tools/verify.sh` (run from `gate.sh`) and `lint.sh`; without it ruff falls back to defaults that change between releases | run `ruff check .` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
 
 **Drift to reconcile — documented for the live box but NOT in this repo snapshot.**

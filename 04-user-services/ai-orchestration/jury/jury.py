@@ -26,7 +26,7 @@ plain OpenAI-compatible chat-completions API. Swap the sampler to point anywhere
 Run against the live model (key from env or ./.env — never hard-code it):
   export FIREWORKS_API_KEY=fw_...
   python3 jury.py deliberate \
-      --prompt "A bat and ball cost \$1.10. The bat costs \$1 more. Ball? End with 'ANSWER: <n>'." \
+      --prompt "A bat and ball cost \\$1.10. The bat costs \\$1 more. Ball? End with 'ANSWER: <n>'." \
       --temperature 1.1 --top-p 0.9 --top-k 40 --answer-marker ANSWER:
 
 Test the statistics anywhere, no key and no spend (synthetic jurors):
@@ -38,9 +38,8 @@ import json
 import os
 import random
 import re
-import sys
-import urllib.request
 import urllib.error
+import urllib.request
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from math import comb
@@ -98,7 +97,7 @@ def leader_confidence(counts, leader, prior=1.0, draws=2000, rng=random):
     often `leader` comes out on top.
     """
     labels = list(counts)
-    alphas = [counts[l] + prior for l in labels]
+    alphas = [counts[lab] + prior for lab in labels]
     alphas.append(prior)  # 'some answer not yet seen'
     li = labels.index(leader)
     wins = 0
@@ -454,7 +453,7 @@ def main(argv=None):
 
     if cmd == "calibrate":
         if args.dataset:
-            dataset = [json.loads(l) for l in open(args.dataset) if l.strip()]
+            dataset = [json.loads(ln) for ln in open(args.dataset) if ln.strip()]
         elif args.mock_questions and args.mock_p is not None:
             dataset = [{"prompt": f"q{i}", "answer": args.mock_true}
                        for i in range(args.mock_questions)]

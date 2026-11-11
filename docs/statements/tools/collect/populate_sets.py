@@ -30,7 +30,13 @@ loaded) to actually program the sets.
     python3 populate_sets.py                 # dry run, prints the nft script
     sudo python3 populate_sets.py --apply    # on the t630, programs the sets
 """
-import argparse, ipaddress, json, os, socket, subprocess, sys
+import argparse
+import ipaddress
+import json
+import os
+import socket
+import subprocess
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
