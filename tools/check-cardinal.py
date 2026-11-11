@@ -2,7 +2,8 @@
 """check-cardinal.py — gate for the cardinal alias map (.claude/cardinal-map.json).
 
 Fails if: a cardinal is missing, a method is empty, a tool appears under two
-cardinals, a cardinal has no SKILL.md, or a SKILL.md omits one of its methods.
+cardinals, a cardinal has no SKILL.md, a SKILL.md omits one of its methods, or a hook in
+.claude/settings.json has no explicit timeout (the default is 600 seconds).
 Exit 0 when clean, 1 otherwise.
 """
 import json
@@ -45,6 +46,14 @@ def main() -> int:
                 if t in owner and owner[t] != c:
                     problems.append(f"tool '{t}' is in both '{owner[t]}' and '{c}'")
                 owner[t] = c
+    settings = json.loads((ROOT / ".claude/settings.json").read_text(encoding="utf-8"))
+    for event, groups in settings.get("hooks", {}).items():
+        for group in groups:
+            for h in group.get("hooks", []):
+                limit = h.get("timeout")
+                if not isinstance(limit, int) or not 0 < limit <= 60:
+                    problems.append(f"{event} hook has no timeout between 1 and 60 s (the default is 600 s): "
+                                    f"{h.get('command', '')[-40:]}")
     extra = set(data) - set(CARDINALS)
     if extra:
         problems.append(f"unknown cardinals: {sorted(extra)}")
