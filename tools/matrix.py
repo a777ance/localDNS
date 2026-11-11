@@ -4,6 +4,8 @@
     python3 tools/matrix.py observe.read  PATH [START [END]]   (first 200 lines unless a range is given)
     python3 tools/matrix.py observe.find  GLOB
     python3 tools/matrix.py observe.search PATTERN [PATH] [--max N]   (default 200 matches)
+    python3 tools/matrix.py observe.probe push             (dry-run the push of this branch; changes nothing)
+    python3 tools/matrix.py observe.probe merge BRANCH [BASE]   (would BRANCH merge into BASE cleanly?)
     python3 tools/matrix.py observe.log               (Matrix calls per cardinal and method, slowest call)
     python3 tools/matrix.py observe.times [--debt]    (native tool durations; --debt drafts DEBT entries)
     python3 tools/matrix.py orient.checkpoint         (rewrite the live block of docs/ai-cto/checkpoint.md)
@@ -335,6 +337,51 @@ def orient_checkpoint():
     print("rewrote the live block of docs/ai-cto/checkpoint.md")
 
 
+def _record_probe(kind, target, ok, note):
+    d = ROOT / ".claude/.matrix-probes"
+    d.mkdir(exist_ok=True)
+    (d / kind).write_text(f"{'ok' if ok else 'FAILED'}\t{target}\t{note}\t"
+                          f"{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}\n", encoding="utf-8")
+
+
+def probe_push():
+    """Dry-run the push of the current branch. Returns (ok, note). Changes nothing on the remote."""
+    branch = _git("branch", "--show-current").stdout.strip()
+    if not branch:
+        return False, "not on a branch"
+    r = _git("push", "--dry-run", "--porcelain", "origin", branch)
+    last = (r.stdout + r.stderr).strip().split("\n")
+    note = next((l.strip() for l in last if l.startswith(("=", "*", " ", "!", "+", "-"))), last[-1] if last else "")
+    _record_probe("push", branch, r.returncode == 0, note[:120])
+    return r.returncode == 0, f"{branch}: {note[:160]}"
+
+
+def observe_probe(kind="", *args):
+    """Dry-run an action that reaches outside the session, before doing it."""
+    if kind == "push":
+        ok, note = probe_push()
+        print(f"probe push {'ok' if ok else 'FAILED'} · {note}")
+    elif kind == "merge" and args:
+        branch, base = args[0], (args[1] if len(args) > 1 else "main")
+        _git("fetch", "-q", "origin", branch, base)
+        tip, onto = (_git("rev-parse", "--verify", f"origin/{x}^{{commit}}").stdout.strip() for x in (branch, base))
+        if not tip or not onto:
+            sys.exit(f"FAILED: origin/{branch} or origin/{base} is not known here")
+        ahead = _git("rev-list", "--count", f"{onto}..{tip}").stdout.strip()
+        behind = _git("rev-list", "--count", f"{tip}..{onto}").stdout.strip()
+        clean = _git("merge-tree", "--write-tree", onto, tip).returncode == 0
+        ok = clean and ahead != "0"
+        note = f"{ahead} ahead, {behind} behind, {'no conflicts' if clean else 'CONFLICTS'}, head {tip}"
+        _record_probe("merge", branch, ok, note)
+        print(f"probe merge {'ok' if ok else 'FAILED'} · origin/{branch} into origin/{base} · {note}")
+        files = _git("diff", "--stat", f"{onto}...{tip}").stdout.strip().split("\n")
+        print("\n".join("  " + l for l in files[-6:]))
+    else:
+        sys.exit("FAILED: observe.probe takes: push  |  merge BRANCH [BASE]")
+    if not ok:
+        sys.exit(1)
+
+
 def norm_command(text: str) -> str:
     """A command as the Stop hook compares it: no blank lines, comments, or leading cd to the repo."""
     lines = [l.strip() for l in text.strip().splitlines() if l.strip() and not l.strip().startswith("#")]
@@ -408,6 +455,10 @@ def act_ship(message, *rest):
             sys.exit(f"FAILED: gate {check.name} is red; nothing committed.\n" + (r.stdout + r.stderr)[-600:])
     for f in files:
         inside(f)
+    if push:  # probe before egress: a push that cannot land is found before anything is committed
+        ok, note = probe_push()
+        if not ok:
+            sys.exit(f"FAILED: push probe (dry run) failed; nothing committed. {note}")
     r = _git("add", "--", *files)
     if r.returncode:
         sys.exit("FAILED: git add: " + r.stderr.strip())
@@ -432,7 +483,7 @@ METHODS = {"observe.status": observe_status, "decide.open": decide_open, "act.sh
            "orient.ground": orient_ground, "decide.gate": decide_gate,
            "act.write": act_write, "act.edit": act_edit, "act.undo": act_undo,
            "observe.log": observe_log, "observe.times": observe_times, "orient.checkpoint": orient_checkpoint,
-           "decide.rehearse": decide_rehearse}
+           "decide.rehearse": decide_rehearse, "observe.probe": observe_probe}
 
 
 def main():

@@ -164,6 +164,20 @@ def main() -> int:
               == "cardinal: observe.read · agent: juror")
         w = hook("Read", mode="warn", agent_type="juror")["additionalContext"]
         check("warn mode names the subagent and the route", "· agent: juror" in w and "Matrix route" in w, w)
+        # probe before egress
+        eg = hook("mcp__github__merge_pull_request")["additionalContext"]
+        check("egress with no probe is flagged", "EGRESS WITHOUT A PROBE" in eg and "observe.probe merge" in eg, eg)
+        check("git push with no probe is flagged", "EGRESS WITHOUT A PROBE" in hook("Bash", {"command": "git push origin main"})["additionalContext"])
+        check("quoted git push is not egress", "EGRESS" not in hook("Bash", {"command": "grep -rn 'git push' docs"})["additionalContext"])
+        check("act.ship is not flagged (it probes itself)", "EGRESS" not in hook("Bash", {"command": "python3 tools/matrix.py act.ship m f --push && git push"})["additionalContext"])
+        (box / ".claude/.matrix-probes").mkdir()
+        (box / ".claude/.matrix-probes/merge").write_text("ok\tbranch\tnote\tt\n")
+        check("egress after a passing probe is quiet", "EGRESS" not in hook("mcp__github__merge_pull_request")["additionalContext"])
+        (box / ".claude/.matrix-probes/merge").write_text("FAILED\tbranch\tnote\tt\n")
+        check("a failed probe does not count", "EGRESS WITHOUT A PROBE" in hook("mcp__github__merge_pull_request")["additionalContext"])
+        os.utime(box / ".claude/.matrix-probes/merge", (0, 0))
+        check("a read is never egress", "EGRESS" not in hook("Read")["additionalContext"])
+        check("observe.probe bad arguments", mx("observe.probe", "nope").returncode != 0)
         check("hook unmapped", "UNMAPPED" in hook("NoSuchTool")["additionalContext"])
         # gate modes
         check("mode name allows", "permissionDecision" not in hook("Read", mode="name"))

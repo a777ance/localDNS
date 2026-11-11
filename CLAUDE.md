@@ -55,6 +55,9 @@ Applies to every reply in this repo. One line per rule; the long form is
 - **Look before the founder leaps [hook].** Every command handed to the founder is run first in a copy of
   his checkout: `python3 tools/matrix.py decide.rehearse "COMMAND"` (exit 0), or carries a
   `Not rehearsed:` line with the reason. No recipe step without something to paste.
+- **Probe before egress.** Dry-run any call that changes something outside the session:
+  `python3 tools/matrix.py observe.probe push` or `observe.probe merge BRANCH`. The naming hook flags a
+  push or merge with no passing probe in the last 10 minutes; `act.ship` probes its own push.
 - **No vague hedges [hook]** ("should work", "probably works"). Name the check that confirms it.
 - **Successes are quiet; failures are loud.** One plain sentence with the evidence. A failure
   opens with `FAILED:` or `BLOCKED:`, quotes the error, and gives a numbered **Fix** recipe or
