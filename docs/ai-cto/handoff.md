@@ -230,21 +230,21 @@ For each item: add the check to `.claude/hooks/decide-act.py` (one bounce per tu
 open), add cases to its test, then cut that rule's text in `CLAUDE.md` to one line that
 names the hook. This is the phase that pays down rule inflation.
 
-- **Q-014 · Test file for the Stop hook.** · DONE (this commit: Stop hook rules and tests) · `act.write`. a new check, `check-stop-hook` (to be created under `tools/`), feeds
+- **Q-014 · Test file for the Stop hook.** · DONE 74d0e40 · `act.write`. a new check, `check-stop-hook` (to be created under `tools/`), feeds
   sample replies to `decide-act.py` in a temp directory and asserts allow or block. Port the
   seven cases already used by hand. Add it to `gate.sh`. Done: gates green. 8 min.
-- **Q-015 · Decide and Act parity.** · DONE (this commit: Stop hook rules and tests) · `act.write`. A reply with N numbered Decide items and
+- **Q-015 · Decide and Act parity.** · DONE 74d0e40 · `act.write`. A reply with N numbered Decide items and
   an Act section must have at least N Act lines or say why one is blocked. (This was the
   Carrot starter's unsent second proposal.) 7 min.
-- **Q-016 · Commands start with `cd`.** · DONE (this commit: Stop hook rules and tests) · `act.write`. Every fenced `bash` block in a reply
+- **Q-016 · Commands start with `cd`.** · DONE 74d0e40 · `act.write`. Every fenced `bash` block in a reply
   must have `cd ` as its first command. 5 min.
-- **Q-017 · No vague hedges.** · DONE (this commit: Stop hook rules and tests) · `act.write`. Block "should work", "probably works",
+- **Q-017 · No vague hedges.** · DONE 74d0e40 · `act.write`. Block "should work", "probably works",
   "may have worked" outside code fences and quotes. Keep the list short to avoid false
   positives; record each false positive you meet as a test case. 6 min.
-- **Q-018 · Tile integrity.** · DONE (this commit: Stop hook rules and tests) · `act.write`. A reply containing `DECISION · DEC-NNN` must
+- **Q-018 · Tile integrity.** · DONE 74d0e40 · `act.write`. A reply containing `DECISION · DEC-NNN` must
   contain both action lines and the GO / NO GO line, and that id must exist in
   `docs/ai-cto/blocked.md`. 7 min.
-- **Q-019 · Register status gate.** · DONE (this commit: Stop hook rules and tests) · `act.write`. a new check, `check-registers` (to be created under `tools/`): every `DEBT-`
+- **Q-019 · Register status gate.** · DONE 74d0e40 · `act.write`. a new check, `check-registers` (to be created under `tools/`): every `DEBT-`
   and `INIT-` heading ends in a valid status; ids are unique and newest first; every
   `Blocked` entry names a `DEC-` id or a `blocked.md` section. Allow `MOOT` in
   `check-decisions.py` and mark DEC-004 and DEC-006 `MOOT` with the reason. 7 min.
@@ -258,16 +258,16 @@ names the hook. This is the phase that pays down rule inflation.
   Done: output under 1,200 characters; e2e case. 8 min.
 - **Q-021 · Wake on `resume` and `fork` as well as `compact`.** · DONE c1ea0ef · `act.configure`. Extend the
   `resume.py` matcher. Done: settings valid, gates green. 3 min.
-- **Q-022 · One source for the reply-style rules.** · DONE (this commit: Stop hook rules and tests) · `act.write`. The rules exist in both
+- **Q-022 · One source for the reply-style rules.** · DONE 74d0e40 · `act.write`. The rules exist in both
   `.claude/output-styles/briefing.md` and `CLAUDE.md`. Add a check that the output-style
   file names every rule the hook enforces, so the two cannot drift. 4 min.
 
 ### Phase F · Clear small debt (about 15 min)
 
-- **Q-023 · DEBT-006.** · DONE (this commit: Stop hook rules and tests) · `act.write`. Fix the `SyntaxWarning: invalid escape sequence` in
+- **Q-023 · DEBT-006.** · DONE 74d0e40 · `act.write`. Fix the `SyntaxWarning: invalid escape sequence` in
   `tools/check-doctrine.py` (raw string), and add a `--check` alias to
   `tools/sync-briefings.py` for its default mode. Done: no warning on stderr; DEBT-006 → Done. 6 min.
-- **Q-024 · Telepathy test.** · DONE (this commit: telepathy test) · `act.write`. a new check, `check-telepathy` (to be created under `tools/`): in a temp mailbox,
+- **Q-024 · Telepathy test.** · DONE 9dbb09b · `act.write`. a new check, `check-telepathy` (to be created under `tools/`): in a temp mailbox,
   send → inbox → read → mark done, and assert the watcher prints `NEW` for an arrival
   within 2 s. Map the tools into the Matrix (`act.message`, `observe.listen`). 9 min.
 
@@ -275,11 +275,11 @@ names the hook. This is the phase that pays down rule inflation.
 
 Add each to the decision log in `docs/ai-cto/blocked.md` as `OPEN`, with the evidence.
 
-- **Q-025 · DEC-013: split `CLAUDE.md`.** · DONE (this commit: DEC-013 and DEC-014 tiles) · `orient`. Measure each top-level section's size
+- **Q-025 · DEC-013: split `CLAUDE.md`.** · DONE 65a36de · `orient`. Measure each top-level section's size
   (`wc -c`), and propose which sections stay always-loaded (reply style, the Matrix, deploy
   table, known issues) and which move to on-demand files under `docs/`. Evidence: the table
   of sizes. Do not move anything. 6 min.
-- **Q-026 · DEC-014: trim the cloud environment setup script.** · DONE (this commit: DEC-013 and DEC-014 tiles) · `orient`. It installs
+- **Q-026 · DEC-014: trim the cloud environment setup script.** · DONE 65a36de · `orient`. It installs
   `wireguard-tools` and `nftables` on every fresh container; propose dropping them and
   adding `python3 tools/matrix.py decide.gate` as its check step. Do not edit the environment. 4 min.
 

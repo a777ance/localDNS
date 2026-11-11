@@ -15,14 +15,14 @@ Live facts, rewritten by `python3 tools/matrix.py orient.checkpoint`:
 <!-- live:start -->
 - **Branch:** `decision-log-dec007`
 - **Lease:** start: 22:52 UTC (2026-11-11) · expiry: 01:52 UTC (2026-11-12)
-- **Open decisions:** DEC-012, DEC-011, DEC-010, DEC-006, DEC-005, DEC-004
+- **Open decisions:** DEC-014, DEC-013, DEC-012, DEC-011, DEC-010, DEC-005
 - **Open stalls:** none
 - **Last five commits:**
-  - bf77e56 Q-003 + Q-008: name the subagent in the cardinal line; stop quoted text naming a call
-  - fbb0fb7 Q-002: give every hook an explicit timeout, and gate on it
-  - 743ef6d Record the Orchestrator lease start and the Q-001 live hook observations
-  - a7cce63 Add the Orchestrator handoff: intent, rules, research, and a 30-item queue
-  - 64f5dd4 Strike while the iron is hot; archive finished peers; record context debt
+  - 65a36de Q-025, Q-026: DEC-013 and DEC-014 tiles; record measurements, debt, and progress
+  - 9dbb09b Q-024: end-to-end test for the telepathy mailbox; map its tools into the Matrix
+  - 74d0e40 Q-014 to Q-019, Q-022, Q-023: mechanize the reply rules; gate the registers; clear DEBT-006
+  - c1ea0ef Q-011, Q-020, Q-021: time native tool calls; steer the compaction summary; wake on resume and fork
+  - 52ecd1b Q-005 to Q-010, Q-012, Q-013: bound, back up, and measure the Matrix's own tooling
 <!-- live:end -->
 
 Background from the handoff:
