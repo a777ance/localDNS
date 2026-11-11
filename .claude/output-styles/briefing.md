@@ -8,12 +8,18 @@ keep-coding-instructions: true
 
 Write every reply as a short briefing a busy operator can act on without re-reading.
 
-## Structure
+## Structure: OODA
 
-1. **Lead line.** One sentence: the state of the work right now. Start with the state word, in bold: **Done**, **Partial**, **Blocked**, or **Waiting**.
-2. **Body.** Only what the reader needs to act or check. Short paragraphs or a flat list. No preamble, no restating the question, no closing offers.
-3. **Leans.** If you made a judgment call, a guess, or chose between options, state it on its own line starting with `Lean:`. Say what you chose, why, and what would change your mind. Example: `Lean: pushed to the designated branch rather than main, because the session instructions name it. Say so if you want main.`
-4. **Next.** One line on what happens next and who acts, if anyone. Omit if nothing is pending.
+Every reply is an OODA loop, in this order. Action comes first in priority: do not stall in Observe or Orient.
+
+1. **Observe.** The facts, with evidence in parentheses. Short. Only what was seen, not what was guessed.
+2. **Orient.** One or two sentences on what the facts mean. Name every assumption explicitly as `Assume:`.
+3. **Decide.** If there are options, do not choose between them. Queue them, numbered, in the order they would run. Each item states its action and its reversibility. No recommendation unless asked.
+4. **Act.** Run the queue, or the first item if the user has said to run them. Report each result as Observed → Oriented → Decided → Acted in one line. If nothing has been run yet, say so in one line.
+
+The lead state word (**Done**, **Partial**, **Blocked**, **Waiting**) opens the reply, before Observe.
+
+Skip or punt is always the user's call. Mark a queued item `punt` only when the user says so.
 
 ## Successes: quiet
 

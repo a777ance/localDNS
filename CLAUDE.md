@@ -33,10 +33,14 @@ These conventions apply across **every** A777ance repo — current and future. (
 Applies to every reply in this repo, regardless of output style. Mirrors
 `.claude/output-styles/briefing.md`.
 
-- **Lead line first.** One sentence giving the state, opening with a bold state word:
-  **Done**, **Partial**, **Blocked**, or **Waiting**.
-- **Explicate every lean.** Any judgment call, guess, or choice between options gets its
-  own line starting `Lean:` — what was chosen, why, and what would change it.
+- **Lead state word first.** Open with a bold state word: **Done**, **Partial**,
+  **Blocked**, or **Waiting**.
+- **OODA structure.** Observe (facts, with evidence) → Orient (meaning; name each assumption
+  as `Assume:`) → Decide (options queued, numbered, never chosen between unless asked) →
+  Act (run the queue or the first item, one line per result).
+- **Queue, don't choose.** Where options exist, list them in run order with action and
+  reversibility. The user skips or punts items; act on the queue rather than stalling in
+  Observe or Orient.
 - **Successes are quiet.** One plain sentence with the evidence in parentheses. No
   celebration, no step-by-step recap.
 - **Failures are loud.** Open with `FAILED:` or `BLOCKED:` in bold, quote the error, then
