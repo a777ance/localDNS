@@ -9,6 +9,22 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 
 ---
 
+## DEBT-012 · Commands were handed to the founder without being run first · Done
+
+- **Observed 2026-11-11:** three recipes in one session failed on the founder's laptop. One used
+  the cloud container's path. One switched the gate to `warn` when no test had ever run with the
+  live mode set to `warn`, so the gate went red on his machine. One depended on a merge that the
+  recipe left as a step with nothing to paste. The founder's words: "an observe failure. We
+  didn't check, we didn't look before we leap."
+- **Root cause:** nothing made a session run a command before handing it over. Each failure was
+  findable in seconds in a copy of his checkout.
+- **Fix:** `python3 tools/matrix.py decide.rehearse` runs a command in a throwaway clone at the
+  commit the founder is on, with pushes going to a throwaway remote. The Stop hook
+  (`.claude/hooks/decide-act.py`, rule REHEARSE) bounces a reply whose `bash` block was not
+  rehearsed with exit 0, unless the reply says `Not rehearsed:` and why.
+- **Limit:** a rehearsal copies the repo, not the laptop. It cannot see his shell, his other
+  folders, or uncommitted edits unless they are given with `--setup`.
+
 ## DEBT-011 · Six lint findings predate the Matrix work · Open
 
 - **Observed:** `ruff check --select E9,F` (the cloud setup script's lint step) reports six

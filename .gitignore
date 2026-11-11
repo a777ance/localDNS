@@ -39,5 +39,7 @@ __pycache__/
 .claude/.matrix-stalls/
 .claude/.matrix-bak/
 .claude/.matrix-times
+.claude/.matrix-rehearsed
+.claude/.matrix-probes/
 .claude/.matrix-starts/
 *.bak

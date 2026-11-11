@@ -80,6 +80,9 @@
         ],
         "times": [
           "Bash:tools/matrix.py observe.times"
+        ],
+        "probe": [
+          "Bash:tools/matrix.py observe.probe"
         ]
       },
       "loop": "fast"
@@ -144,6 +147,9 @@
         ],
         "open": [
           "Bash:tools/matrix.py decide.open"
+        ],
+        "rehearse": [
+          "Bash:tools/matrix.py decide.rehearse"
         ]
       },
       "loop": "slow"
@@ -216,5 +222,21 @@
   },
   "_excluded": {
     "/loop": "runs on a recurring interval, which is polling; banned by the founder"
+  },
+  "egress": {
+    "_comment": "Calls that change something outside the session. The naming hook asks for a fresh passing probe (python3 tools/matrix.py observe.probe ...) before each. act.ship runs its own push probe.",
+    "fresh_seconds": 600,
+    "tools": {
+      "mcp__github__merge_pull_request": "merge",
+      "mcp__github__create_pull_request": "push",
+      "mcp__github__push_files": "push",
+      "mcp__github__create_or_update_file": "push",
+      "mcp__github__update_pull_request_branch": "merge",
+      "mcp__github__enable_pr_auto_merge": "merge"
+    },
+    "bash": {
+      "\\bgit\\s+push\\b": "push",
+      "\\bgit\\s+merge\\b": "merge"
+    }
   }
 }

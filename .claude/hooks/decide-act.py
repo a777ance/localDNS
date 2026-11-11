@@ -9,6 +9,7 @@ requires .claude/output-styles/briefing.md to name):
   ACT      a numbered Decide list is acted on: an Act section with at least as many lines
   CD       every fenced bash block starts with cd, and never with the cloud container's path
   HEDGE    no vague hedge outside code and quotes
+  REHEARSE a bash block handed to the founder was run first (decide.rehearse), or says why not
   TILE     a DECISION tile has both action lines, the GO / NO GO line, and a logged DEC id
 
 Loop safety: when Claude Code re-enters the turn because of this hook, the
@@ -123,6 +124,28 @@ def review(text):
             reasons.append("COMMAND CD: every bash block must start with the cd to the repo. "
                            "This block starts with: %r" % lines[0][:80])
             break
+    # REHEARSE. Look before the founder leaps: a command handed to him was run here first.
+    if "Not rehearsed:" not in text:
+        try:
+            import hashlib
+            done = {l.split("\t")[0] for l in (ROOT / ".claude/.matrix-rehearsed").read_text(encoding="utf-8").splitlines()
+                    if l.split("\t")[1:2] == ["0"]}
+        except OSError:
+            done = set()
+        for block in re.findall(r"```bash\n(.*?)```", text, flags=re.DOTALL):
+            lines = [l.strip() for l in block.strip().splitlines() if l.strip() and not l.strip().startswith("#")]
+            if lines and re.match(r"cd\s+\S+$", lines[0]):
+                lines = lines[1:]
+            elif lines:  # the one-line form: cd REPO && command
+                lines[0] = re.sub(r"^cd\s+\S+\s*&&\s*", "", lines[0])
+            body = "\n".join(lines)
+            if body and hashlib.sha256(body.encode()).hexdigest() not in done:
+                reasons.append(
+                    "REHEARSE: this command is being handed to the founder without having been run: %r. Run it first "
+                    "in a copy of his checkout: python3 tools/matrix.py decide.rehearse [--at REV] [--setup CMD] "
+                    "\"COMMAND\" (it must exit 0). If it cannot be rehearsed here, say so in the reply on a line "
+                    "starting 'Not rehearsed:' with the reason." % body[:100])
+                break
     # HEDGE.
     low = prose(text).lower()
     found = [h for h in HEDGES if h in low]

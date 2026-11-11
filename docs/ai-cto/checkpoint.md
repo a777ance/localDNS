@@ -6,7 +6,7 @@ boundary (a ship, a decision, a lease start). Read this, then run
 
 ---
 
-**Written:** 2026-11-11, about 23:35 UTC · PR #37 is merged into `main` as `60a53d7` · follow-up work is on branch `claude/serene-tesla-yvl22m`
+**Written:** 2026-11-11, about 23:55 UTC · `main` is at `67da1b6` plus this change · gate mode is `warn`
 
 ## Where things stand
 
@@ -15,14 +15,14 @@ Live facts, rewritten by `python3 tools/matrix.py orient.checkpoint`:
 <!-- live:start -->
 - **Branch:** `claude/serene-tesla-yvl22m`
 - **Lease:** start: 22:52 UTC (2026-11-11) · expiry: 01:52 UTC (2026-11-12)
-- **Open decisions:** DEC-012, DEC-005
+- **Open decisions:** DEC-005
 - **Open stalls:** none
 - **Last five commits:**
+  - 67da1b6 DEC-012: gate mode to warn
+  - 253d0d8 Merge pull request #38 from a777ance/claude/serene-tesla-yvl22m
+  - 383c057 Fix check-matrix.py failing whenever the live gate mode is warn
+  - 7a40e52 Record DEC-011 and DEC-014 as executed; update the roadmap and checkpoint after the merge
   - 60a53d7 Merge pull request #37 from a777ance/decision-log-dec007
-  - fa94d93 DEC-013 and DEC-010: shrink CLAUDE.md by 10,000 bytes, scope the tile rule; record 20 leans
-  - 83937ef Map SubagentHandback (seen unmapped in the live subagent run); correct the Q-004 time
-  - 482d34d Q-004: confirm live that the naming hook fires inside a subagent and names it
-  - 996ce7f Add a plain-English roadmap for the founder; fix the cloud-only cd path at its source
 <!-- live:end -->
 
 Background from the handoff:
@@ -49,8 +49,7 @@ Background from the handoff:
 
 ## Open founder decisions
 
-DEC-012 (`warn` mode: lean GO, but a session may not flip its own gate; needs the founder's
-hand) and DEC-005 (venv files: needs two facts from the XPS). The leans are in
+DEC-012 is done (mode is `warn`, set by the founder, `67da1b6`). Open: DEC-005 (venv files: needs two facts from the XPS). The leans are in
 `docs/ai-cto/leans.md`.
 
 ## Next work, in order

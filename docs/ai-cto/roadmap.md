@@ -20,7 +20,7 @@ Nothing is blocked by any of this today. It labels and measures; it does not sto
 
 ## What you need to do
 
-You deferred the six decisions to the loop on 2026-11-11. Four are done. Two still need you.
+You deferred the six decisions to the loop on 2026-11-11. Five are done. One still needs you.
 
 | Decision | Result |
 | -------- | ------ |
@@ -28,15 +28,8 @@ You deferred the six decisions to the loop on 2026-11-11. Four are done. Two sti
 | DEC-013 · Shrink `CLAUDE.md` | Done in part: 69,153 to 59,123 characters, nothing deleted. Two large sections were left whole on purpose. |
 | DEC-011 · Merge PR #37 | Done. Merged into `main` as `60a53d7`. |
 | DEC-010 · Fewer decision tiles | Done. You now get a tile only for what cannot be undone, costs money, or touches the t630. |
-| DEC-012 · Turn on reminders | **Needs you.** The safety system does not let a session change its own guardrail. Command below. |
+| DEC-012 · Turn on reminders | Done. You set it yourself; `main` is at `67da1b6`. |
 | DEC-005 · Python files for the XPS | **Needs you.** Two facts from your laptop. Command below. |
-
-To turn on reminders (DEC-012), if you want them:
-
-```bash
-cd ~/localDNS
-git checkout main && git pull --ff-only && sed -i 's/"mode": "name"/"mode": "warn"/' .claude/cardinal-map.json && python3 tools/matrix.py decide.gate && git commit -am "DEC-012: gate mode to warn" && git push
-```
 
 For DEC-005, run this and paste the output:
 

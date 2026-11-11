@@ -95,6 +95,21 @@ def main() -> int:
             out["permissionDecisionReason"] = (
                 f"The Matrix gates native {tool} ({alias}). Use: cd {ROOT} && {target}. "
                 "Kill switch: touch .claude/.matrix-off")
+        # Probe before egress: a call that changes something outside the session wants a fresh dry run.
+        eg = cfg.get("egress", {})
+        cmd = strip_quoted(str((data.get("tool_input") or {}).get("command", ""))) if tool == "Bash" else ""
+        kind = eg.get("tools", {}).get(tool) or next(
+            (k for pat, k in eg.get("bash", {}).items() if re.search(pat, cmd) and "tools/matrix.py" not in cmd), None)
+        if kind:
+            probe = ROOT / ".claude/.matrix-probes" / kind
+            fresh = (probe.exists() and time.time() - probe.stat().st_mtime < eg.get("fresh_seconds", 600)
+                     and probe.read_text(encoding="utf-8").startswith("ok"))
+            if not fresh:
+                out["additionalContext"] += (
+                    f" — EGRESS WITHOUT A PROBE: this call changes something outside the session and no "
+                    f"passing '{kind}' probe is on record from the last {eg.get('fresh_seconds', 600) // 60} minutes. "
+                    f"Dry-run first: cd {ROOT} && python3 tools/matrix.py observe.probe "
+                    f"{'push' if kind == 'push' else 'merge BRANCH'}")
         stalls = sorted((ROOT / ".claude/.matrix-stalls").glob("*.json"))
         if stalls:
             out["additionalContext"] += (
