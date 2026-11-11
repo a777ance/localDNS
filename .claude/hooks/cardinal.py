@@ -64,6 +64,11 @@ def main() -> int:
             mode = "name"  # kill switch: never warn, never deny
         if target and mode == "warn":
             out["additionalContext"] = f"{line} — Matrix route: {target}"
+        lease = ROOT / ".claude/.matrix-lease" / tool
+        if target and mode == "enforce" and lease.exists():
+            lease.unlink()  # one-time lease: consumed by this call
+            out["additionalContext"] = f"{line} — fallback lease consumed: the Matrix call timed out, native {tool} allowed once"
+            target = None
         if target and mode == "enforce":
             out["permissionDecision"] = "deny"
             out["permissionDecisionReason"] = (

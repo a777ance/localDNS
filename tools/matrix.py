@@ -13,8 +13,16 @@
 These are the targets the native tools are repointed to (see "repoint" in
 .claude/cardinal-map.json). Every call is appended to .claude/.matrix-log.
 Paths are confined to the repository. Standard library only.
+
+Hard cap: 10 seconds per call. On a timeout the call exits 124 and writes a
+one-time fallback lease (.claude/.matrix-lease/<NativeTool>). The cardinal hook
+consumes that lease to let the native tool through exactly once, so a slow
+Matrix call never roadblocks the work.
 """
+import json
+import os
 import re
+import signal
 import subprocess
 import sys
 import time
@@ -118,12 +126,31 @@ def main():
             log.write(f"{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())} {name} {' '.join(a[:80] for a in args[:1])}\n")
     except OSError:
         pass
+    cap = min(10, int(os.environ.get("MATRIX_TIMEOUT", "10")))  # hard cap: never above 10 s
+
+    def on_timeout(_sig, _frm):
+        cfg = json.loads((ROOT / ".claude/cardinal-map.json").read_text(encoding="utf-8"))
+        native = [t for t, target in cfg.get("repoint", {}).items() if f"matrix.py {name} " in target + " "]
+        lease_dir = ROOT / ".claude/.matrix-lease"
+        lease_dir.mkdir(exist_ok=True)
+        for t in native:
+            (lease_dir / t).write_text(f"{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())} {name} timed out after {cap}s\n")
+        sys.stderr.write(f"FAILED: {name} timed out after {cap}s. One-time fallback lease written for: "
+                         f"{', '.join(native) or 'none (no native tool maps to this method)'}\n")
+        os._exit(124)
+
+    signal.signal(signal.SIGALRM, on_timeout)
+    signal.alarm(cap)
     try:
+        if os.environ.get("MATRIX_TEST_SLEEP"):  # test hook: simulate a slow call
+            time.sleep(float(os.environ["MATRIX_TEST_SLEEP"]))
         METHODS[name](*args)
     except BrokenPipeError:
         sys.exit(0)
     except TypeError:
         sys.exit(f"FAILED: wrong arguments for {name}. See: python3 tools/matrix.py --help")
+    finally:
+        signal.alarm(0)
 
 
 if __name__ == "__main__":

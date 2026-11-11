@@ -35,4 +35,5 @@ __pycache__/
 # Matrix runtime state (log, kill switch, backups)
 .claude/.matrix-log
 .claude/.matrix-off
+.claude/.matrix-lease/
 *.bak
