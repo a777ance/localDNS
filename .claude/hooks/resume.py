@@ -27,7 +27,11 @@ def main() -> int:
               "and do not re-derive state: resume the work below now, in order. If the founder lease in the "
               "checkpoint has expired, finish the current item, update the checkpoint, and report.\n")
         print(checkpoint[:3000])
-        print("\n== Matrix status\n" + run("observe.status"))
+        status = run("observe.status")
+        if "changed: nothing" not in status:
+            print("\nUNCOMMITTED WORK SURVIVED THE COMPACTION. Strike while the iron is hot: ship it first "
+                  "(python3 tools/matrix.py act.ship \"MESSAGE\" FILE... --push), before anything else.")
+        print("\n== Matrix status\n" + status)
         print("\n== Open founder decisions\n" + run("decide.open"))
     except Exception:
         pass

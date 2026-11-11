@@ -60,6 +60,9 @@ Applies to every reply in this repo, regardless of output style. Mirrors
   `.claude/hooks/resume.py` (a `SessionStart` hook on `compact`) does this automatically:
   it re-injects the checkpoint, the Matrix status, and the open decisions, and tells the
   session to carry on without waiting.
+- **Strike while the iron is hot.** Commit and push each finished piece the moment its
+  gates pass, and always before a compaction, a long call, or the end of a turn. Work that
+  exists only in the working tree or the conversation is state waiting to be lost.
 - **Resolve stacked requests newest first, and drop none.** When several requests arrive
   mid-turn, work them in LIFO order and account for every one in the report.
 - **Carrot.** The 3-hour lease for peer sessions is the Carrot. Name it by that word in

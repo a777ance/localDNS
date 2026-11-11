@@ -9,6 +9,15 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 
 ---
 
+## DEBT-010 · Fixed context cost per session is high · Open
+
+- **Observed:** on 2026-11-11 the session's context showed `CLAUDE.md` at about 24.5k tokens,
+  the GitHub connector's tool list at about 35k, and one session-management call (archive)
+  returning a full session record each time.
+- **Cost:** every turn of every session in this repo pays for these before any work starts.
+- **Next action:** founder call on splitting `CLAUDE.md` into a short always-loaded core plus
+  on-demand reference files; prefer `observe.status`-style narrow calls over bulky ones.
+
 ## DEBT-009 · Usage limit reached while peers ran at max effort · Open
 
 - **Observed:** on 2026-11-11 at 22:28 UTC the Carrot starter's session record showed the

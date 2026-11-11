@@ -16,9 +16,10 @@ boundary (a ship, a decision, a lease start). Read this, then run
 - **Not on `main`.** New sessions get none of it until PR #37 merges (DEC-011).
 - **Founder lease:** unattended work until about 01:28 UTC on 2026-11-12. Covers building and
   pushing to the branch. Does not cover merging to `main` or changing the gate mode.
-- **Peers:** all peer sessions are stopped or were sent `stop` (Carrot C1/C2 at 22:28 UTC,
-  because the usage limit showed as reached; see DEBT-009). None should be restarted without
-  a lower effort setting.
+- **Peers:** all eight peer sessions this session created are finished and archived
+  (2026-11-11, about 22:33 UTC). None is running. Their combined cost was about $12.80.
+- **Stop hook** now also requires each reply to open with a bold state word (the one rule
+  the Carrot pair proposed before they were stopped).
 
 ## Open founder decisions
 
