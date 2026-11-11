@@ -6,6 +6,12 @@
     python3 tools/matrix.py observe.search PATTERN [PATH] [--max N]   (default 200 matches)
     python3 tools/matrix.py observe.probe push             (dry-run the push of this branch; changes nothing)
     python3 tools/matrix.py observe.probe merge BRANCH [BASE]   (would BRANCH merge into BASE cleanly?)
+    python3 tools/matrix.py observe.probe path PATH        (size, lines, binary or text, before a read)
+    python3 tools/matrix.py orient.retrofit                (audit what already exists against every enforced rule)
+    python3 tools/matrix.py orient.probe                   (is the picture current? checkpoint, decisions, stalls)
+    python3 tools/matrix.py decide.probe [FILE...]         (the fast gates only; with a command string: rehearse it)
+    python3 tools/matrix.py act.probe ship FILE...         (what would be committed and pushed; changes nothing)
+    python3 tools/matrix.py act.probe edit PATH OLD        (would the edit apply exactly once? writes nothing)
     python3 tools/matrix.py observe.log               (Matrix calls per cardinal and method, slowest call)
     python3 tools/matrix.py observe.times [--debt]    (native tool durations; --debt drafts DEBT entries)
     python3 tools/matrix.py orient.checkpoint         (rewrite the live block of docs/ai-cto/checkpoint.md)
@@ -340,8 +346,9 @@ def orient_checkpoint():
 def _record_probe(kind, target, ok, note):
     d = ROOT / ".claude/.matrix-probes"
     d.mkdir(exist_ok=True)
-    (d / kind).write_text(f"{'ok' if ok else 'FAILED'}\t{target}\t{note}\t"
-                          f"{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}\n", encoding="utf-8")
+    line = f"{'ok' if ok else 'FAILED'}\t{target}\t{note}\t{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}\n"
+    (d / kind).write_text(line, encoding="utf-8")
+    (d / "any").write_text(line, encoding="utf-8")  # lane 0 ran: any probe counts before lanes are opened
 
 
 def probe_push():
@@ -376,10 +383,186 @@ def observe_probe(kind="", *args):
         print(f"probe merge {'ok' if ok else 'FAILED'} · origin/{branch} into origin/{base} · {note}")
         files = _git("diff", "--stat", f"{onto}...{tip}").stdout.strip().split("\n")
         print("\n".join("  " + l for l in files[-6:]))
+    elif kind == "path" and args:
+        f = inside(args[0])
+        ok = f.is_file()
+        if ok:
+            size, binary = f.stat().st_size, is_binary(f)
+            lines = 0 if binary or size > BIG else f.read_text(encoding="utf-8", errors="replace").count("\n")
+            note = f"{size} bytes, " + ("binary" if binary else "over 1 MB: give a range" if size > BIG else
+                                        f"{lines} lines" + (f": read in pages of {PAGE}" if lines > PAGE else ""))
+        else:
+            note = "a directory: use observe.find" if f.is_dir() else "does not exist"
+        _record_probe("path", args[0], ok, note)
+        print(f"probe path {'ok' if ok else 'FAILED'} · {args[0]} · {note}")
     else:
-        sys.exit("FAILED: observe.probe takes: push  |  merge BRANCH [BASE]")
+        sys.exit("FAILED: observe.probe takes: push  |  merge BRANCH [BASE]  |  path PATH")
     if not ok:
         sys.exit(1)
+
+
+FAST_GATES = ("check-cardinal.py", "check-decisions.py", "check-docs.py", "check-doctrine.py",
+              "check-provenance.py", "check-registers.py")  # each under a second; the end-to-end tests are not here
+
+
+def _fast_gates():
+    bad = []
+    for name in FAST_GATES:
+        r = subprocess.run([sys.executable, str(ROOT / "tools" / name)], capture_output=True, text=True, cwd=ROOT)
+        if r.returncode:
+            bad.append(f"{name}: {(r.stdout + r.stderr).strip().splitlines()[-1][:140]}")
+    return bad
+
+
+def orient_probe():
+    """Lane 0 for Orient: is the picture this session is about to reason from still current?"""
+    notes = []
+    cp = ROOT / "docs/ai-cto/checkpoint.md"
+    head = _git("log", "--format=%h", "-1").stdout.strip()
+    if cp.exists() and head and head not in cp.read_text(encoding="utf-8"):
+        notes.append(f"checkpoint does not name the current commit {head}: run orient.checkpoint")
+    dirty = _git("status", "--short").stdout.strip()
+    if dirty:
+        notes.append(f"{len(dirty.splitlines())} uncommitted file(s)")
+    stalls = list((ROOT / ".claude/.matrix-stalls").glob("*.json"))
+    if stalls:
+        notes.append(f"{len(stalls)} open stall(s): run orient.stall first")
+    opens = re.findall(r"^- \*\*(DEC-\d{3}) · .*? · OPEN\*\*", (ROOT / "docs/ai-cto/blocked.md").read_text(encoding="utf-8"), re.MULTILINE)
+    ok = not stalls
+    _record_probe("orient", head, ok, "; ".join(notes)[:120])
+    print(f"probe orient {'ok' if ok else 'FAILED'} · commit {head} · open decisions: {', '.join(opens) or 'none'}")
+    for n in notes:
+        print("  note: " + n)
+    if not ok:
+        sys.exit(1)
+
+
+def decide_probe(*args):
+    """Lane 0 for Decide: the fast gates only. A single argument with a space in it is a command: rehearse it."""
+    if len(args) == 1 and " " in args[0]:
+        return decide_rehearse(args[0])
+    bad = _fast_gates()
+    _record_probe("decide", "fast gates", not bad, "; ".join(bad)[:120])
+    print(f"probe decide {'ok' if not bad else 'FAILED'} · {len(FAST_GATES) - len(bad)} of {len(FAST_GATES)} fast gates pass"
+          " (the end-to-end tests run in decide.gate)")
+    for b in bad:
+        print("  FAIL " + b)
+    if bad:
+        sys.exit(1)
+
+
+def act_probe(kind="", *args):
+    """Lane 0 for Act: say what the action would do, and whether it would work, without doing it."""
+    if kind == "edit" and len(args) == 2:
+        n = inside(args[0]).read_text(encoding="utf-8").count(args[1])
+        ok, target, note = n == 1, args[0], f"OLD occurs {n} time(s); an edit needs exactly 1"
+    elif kind == "ship" and args:
+        for f in args:
+            inside(f)
+        changed = _git("status", "--short", "--", *args).stdout.strip().splitlines()
+        bad = _fast_gates()
+        pushed, pnote = probe_push()
+        ok = bool(changed) and not bad and pushed
+        target = " ".join(args)[:60]
+        note = (f"{len(changed)} file(s) would be committed; fast gates {'pass' if not bad else 'FAIL: ' + bad[0]}; "
+                f"push dry run {'ok' if pushed else 'FAILED: ' + pnote}")
+        if not changed:
+            note = "nothing to commit in those paths; " + note
+    else:
+        sys.exit("FAILED: act.probe takes: ship FILE...  |  edit PATH OLD")
+    _record_probe("act", target, ok, note[:120])
+    print(f"probe act {kind} {'ok' if ok else 'FAILED'} · {note}")
+    if not ok:
+        sys.exit(1)
+
+
+# ---- Retrofit (retro-compliance, INIT-007): a new rule reaches backward. Every rule the Stop hook
+# enforces on replies has an entry here: an audit over what already exists, or the reason there is
+# nothing stored to audit. tools/check-stop-hook.py fails if a rule has no entry.
+FOUNDER_DOCS = ("CLAUDE.md", "README.md", "docs/ai-cto", ".claude/output-styles")
+RETROFIT_EXEMPT = {"docs/ai-cto/handoff.md": "written for a cloud session, where the container path is the right one",
+                   "docs/ai-cto/reply-style-full.md": "the archived long form of the rules; it quotes what they forbid"}
+HEDGES = ("should work", "probably works", "probably work", "may have worked", "might have worked", "should be fine")
+
+
+def _founder_docs():
+    for entry in FOUNDER_DOCS:
+        base = ROOT / entry
+        for f in ([base] if base.is_file() else sorted(base.rglob("*.md")) if base.is_dir() else []):
+            rel = str(f.relative_to(ROOT))
+            if rel not in RETROFIT_EXEMPT:
+                yield rel, f.read_text(encoding="utf-8", errors="replace")
+
+
+def _bash_blocks(text):
+    return re.findall(r"```bash\n(.*?)```", text, flags=re.DOTALL)
+
+
+def audit_cd():
+    return [f"{rel}: a bash block uses the cloud container path /home/user/" for rel, text in _founder_docs()
+            if any(re.search(r"^\s*cd /home/user/", b, re.MULTILINE) for b in _bash_blocks(text))]
+
+
+def audit_hedge():
+    out = []
+    for rel, text in _founder_docs():
+        prose = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+        prose = re.sub(r"`[^`\n]*`", "", prose)
+        prose = re.sub(r"[\"\u201c][^\"\u201d\n]*[\"\u201d]", "", prose).lower()
+        out += [f"{rel}: says {h!r} outside a quote" for h in HEDGES if h in prose]
+    return out
+
+
+def audit_rehearse():
+    import hashlib
+    f = ROOT / ".claude/.matrix-rehearsed"
+    done = {l.split("\t")[0] for l in (f.read_text(encoding="utf-8").splitlines() if f.exists() else [])
+            if l.split("\t")[1:2] == ["0"]}
+    out = []
+    for rel in ("docs/ai-cto/roadmap.md",):  # the docs that hand the founder commands to paste
+        text = (ROOT / rel).read_text(encoding="utf-8") if (ROOT / rel).exists() else ""
+        if "Not rehearsed:" in text:
+            continue
+        out += [f"{rel}: command never rehearsed here: {norm_command(b)[:70]!r}" for b in _bash_blocks(text)
+                if norm_command(b) and hashlib.sha256(norm_command(b).encode()).hexdigest() not in done]
+    return out
+
+
+def audit_scratch():
+    import glob
+    f = ROOT / ".claude/.matrix-scratch"
+    known = set(f.read_text(encoding="utf-8").splitlines()) if f.exists() else set()
+    return [f"unannounced scratchpad entry: {e}" for e in sorted(glob.glob("/tmp/claude-*/*/*/scratchpad/*")) if e not in known]
+
+
+RETROFIT = {
+    "BRIEFING LEAD": "applies to a reply as it is sent; no replies are stored to audit",
+    "OODA ACT": "applies to a reply as it is sent; no replies are stored to audit",
+    "COMMAND CD": audit_cd,
+    "REHEARSE": audit_rehearse,
+    "NO HEDGE": audit_hedge,
+    "TILE": "stored decisions are audited on every commit by tools/check-decisions.py",
+    "SCRATCHPAD": audit_scratch,
+}
+
+
+def orient_retrofit():
+    """Apply every enforced rule to what already exists, and list what does not comply."""
+    total = 0
+    for rule, audit in RETROFIT.items():
+        if isinstance(audit, str):
+            print(f"n/a  {rule:14} {audit}")
+            continue
+        found = audit()
+        total += len(found)
+        print(f"{'ok  ' if not found else 'FIX '} {rule:14} {len(found)} finding(s)")
+        for line in found[:10]:
+            print("       " + line)
+    for rel, why in RETROFIT_EXEMPT.items():
+        print(f"exempt {rel}: {why}")
+    print("gates: the nine checks in decide.gate audit all stored state on every commit")
+    if total:
+        sys.exit(f"FAILED: {total} retrofit finding(s). Fix each, or exempt it in RETROFIT_EXEMPT with the reason.")
 
 
 def norm_command(text: str) -> str:
@@ -492,7 +675,8 @@ METHODS = {"observe.status": observe_status, "decide.open": decide_open, "act.sh
            "orient.ground": orient_ground, "decide.gate": decide_gate,
            "act.write": act_write, "act.edit": act_edit, "act.undo": act_undo,
            "observe.log": observe_log, "observe.times": observe_times, "orient.checkpoint": orient_checkpoint,
-           "decide.rehearse": decide_rehearse, "observe.probe": observe_probe}
+           "decide.rehearse": decide_rehearse, "observe.probe": observe_probe,
+           "orient.probe": orient_probe, "orient.retrofit": orient_retrofit, "decide.probe": decide_probe, "act.probe": act_probe}
 
 
 def main():
@@ -539,7 +723,7 @@ def main():
         os._exit(124)
 
     signal.signal(signal.SIGALRM, on_timeout)
-    if name not in ("act.ship", "decide.gate", "decide.rehearse"):  # these run several steps; each step is timed instead
+    if name not in ("act.ship", "decide.gate", "decide.rehearse", "decide.probe", "act.probe"):  # these run several steps; each step is timed instead
         signal.alarm(cap)
     try:
         if os.environ.get("MATRIX_TEST_SLEEP"):  # test hook: simulate a slow call

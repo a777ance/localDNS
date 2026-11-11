@@ -57,6 +57,7 @@ STYLE = {
     "NO HEDGE": "vague hedges",
     "TILE": "DECISION · DEC-NNN",
     "REHEARSE": "decide.rehearse",
+    "SCRATCHPAD": "scratchpad",
 }
 
 
@@ -87,6 +88,17 @@ def main() -> int:
                 fails.append(f"{name}: expected allow, blocked with: {got[:90]}")
             elif want and not got.startswith(want):
                 fails.append(f"{name}: expected a {want} block, got: {got[:90] or 'allow'}")
+        os.environ["MATRIX_SCRATCH_DIR"] = str(box / "scratch")
+        (box / "scratch").mkdir()
+        note = box / "scratch" / "notes.txt"
+        note.write_text("x")
+        if not run(box, "**Done.** Nothing to add.").startswith("SCRATCHPAD"):
+            fails.append("an unannounced scratchpad file must block")
+        if run(box, f"**Done.** Scratch file: {note} (working notes)."):
+            fails.append("a scratchpad file named by full path must be allowed")
+        if run(box, "**Done.** Nothing to add."):
+            fails.append("an announced scratchpad file must not block again")
+        del os.environ["MATRIX_SCRATCH_DIR"]
         if run(box, "no state word", active=True):
             fails.append("a second stop in the same turn must be allowed (stop_hook_active)")
         if subprocess.run([sys.executable, str(HOOK)], input="not json", capture_output=True, text=True).stdout.strip():
@@ -98,7 +110,13 @@ def main() -> int:
             fails.append(f"rule {key} is listed here but the hook does not enforce it")
         if phrase not in style:
             fails.append(f"the hook enforces {key}, but the output style does not say {phrase!r}")
-    tested = {want for _, _, want in CASES if want}
+    # Retrofit (INIT-007): a rule reaches backward, so each one names its audit of existing state.
+    matrix_src = (ROOT / "tools/matrix.py").read_text(encoding="utf-8")
+    table = matrix_src.split("RETROFIT = {", 1)[-1].split("}", 1)[0]
+    for key in STYLE:
+        if f'"{key}":' not in table:
+            fails.append(f"rule {key} has no retrofit entry in tools/matrix.py (an audit, or why there is nothing to audit)")
+    tested = {want for _, _, want in CASES if want} | {"SCRATCHPAD"}
     for key in STYLE:
         if key not in tested:
             fails.append(f"rule {key} has no blocking test case")

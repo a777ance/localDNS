@@ -115,6 +115,12 @@
         ],
         "checkpoint": [
           "Bash:tools/matrix.py orient.checkpoint"
+        ],
+        "probe": [
+          "Bash:tools/matrix.py orient.probe"
+        ],
+        "retrofit": [
+          "Bash:tools/matrix.py orient.retrofit"
         ]
       },
       "loop": "fast"
@@ -150,6 +156,9 @@
         ],
         "rehearse": [
           "Bash:tools/matrix.py decide.rehearse"
+        ],
+        "probe": [
+          "Bash:tools/matrix.py decide.probe"
         ]
       },
       "loop": "slow"
@@ -215,6 +224,9 @@
         ],
         "undo": [
           "Bash:tools/matrix.py act.undo"
+        ],
+        "probe": [
+          "Bash:tools/matrix.py act.probe"
         ]
       },
       "loop": "slow"
@@ -224,7 +236,7 @@
     "/loop": "runs on a recurring interval, which is polling; banned by the founder"
   },
   "egress": {
-    "_comment": "Calls that change something outside the session. The naming hook asks for a fresh passing probe (python3 tools/matrix.py observe.probe ...) before each. act.ship runs its own push probe.",
+    "_comment": "1 + N lanes: the probe is lane 0. Calls that change something outside the session, or open more lanes (agents, sessions), want a fresh passing probe first. Kind 'any' accepts any cardinal's probe. act.ship runs its own push probe.",
     "fresh_seconds": 600,
     "tools": {
       "mcp__github__merge_pull_request": "merge",
@@ -232,7 +244,13 @@
       "mcp__github__push_files": "push",
       "mcp__github__create_or_update_file": "push",
       "mcp__github__update_pull_request_branch": "merge",
-      "mcp__github__enable_pr_auto_merge": "merge"
+      "mcp__github__enable_pr_auto_merge": "merge",
+      "Agent": "any",
+      "mcp__claude-code-remote__create_session": "any",
+      "mcp__claude-code-remote__send_message": "any",
+      "mcp__claude-code-remote__create_trigger": "any",
+      "mcp__claude-code-remote__fire_trigger": "any",
+      "mcp__claude-code-remote__update_environment": "any"
     },
     "bash": {
       "\\bgit\\s+push\\b": "push",

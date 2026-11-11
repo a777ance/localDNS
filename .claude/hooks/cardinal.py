@@ -108,8 +108,9 @@ def main() -> int:
                 out["additionalContext"] += (
                     f" — EGRESS WITHOUT A PROBE: this call changes something outside the session and no "
                     f"passing '{kind}' probe is on record from the last {eg.get('fresh_seconds', 600) // 60} minutes. "
-                    f"Dry-run first: cd {ROOT} && python3 tools/matrix.py observe.probe "
-                    f"{'push' if kind == 'push' else 'merge BRANCH'}")
+                    f"The probe is lane 0 of 1 + N. Run it first: cd {ROOT} && python3 tools/matrix.py "
+                    + {"push": "observe.probe push", "merge": "observe.probe merge BRANCH"}.get(
+                        kind, "orient.probe  (or observe.probe / decide.probe / act.probe, whichever fits the goal)"))
         stalls = sorted((ROOT / ".claude/.matrix-stalls").glob("*.json"))
         if stalls:
             out["additionalContext"] += (

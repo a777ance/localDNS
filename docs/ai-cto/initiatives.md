@@ -8,6 +8,21 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
 
 ---
 
+## INIT-007 · Retrofit (retro-compliance): a new rule reaches backward · Active
+
+- **Goal (founder, 2026-11-11):** a rule does not start at the moment it is written. When a rule
+  is adopted, it is applied to everything already there that the session can reach, and what it
+  finds is fixed or reported. This holds for every rule, including ones not yet written.
+- **Worked case:** the scratchpad rule. On adoption, every scratchpad the session could reach was
+  swept (one existed, this session's own; its three files had been announced and were deleted).
+- **Line items:**
+  - Sweep at adoption for the scratchpad rule: **Done** by hand, 2026-11-11.
+  - Sweep for every enforced rule, 2026-11-11 (`orient.retrofit`): one finding, a command in
+    `docs/ai-cto/roadmap.md` that could not be rehearsed and did not say so. Fixed: **Done**.
+  - Mechanism: `python3 tools/matrix.py orient.retrofit` audits existing state against each rule,
+    and `tools/check-stop-hook.py` fails if a rule has no retrofit entry: **Done**.
+  - Rules that live only in prose (house style, provenance, the Jury doctrine) have no audit yet: **Active**.
+
 ## INIT-006 · 1 + N lanes: the probe always goes first · Active
 
 - **Goal (founder, 2026-11-11):** every piece of work runs as 1 + N lanes. The 1 is always the

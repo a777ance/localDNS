@@ -2,7 +2,7 @@
 """check-cardinal.py — gate for the cardinal alias map (.claude/cardinal-map.json).
 
 Fails if: a cardinal is missing, a method is empty, a tool appears under two
-cardinals, a cardinal has no SKILL.md, a SKILL.md omits one of its methods, or a hook in
+cardinals, a cardinal has no SKILL.md, a SKILL.md omits one of its methods, a cardinal has no probe method, or a hook in
 .claude/settings.json has no explicit timeout (the default is 600 seconds).
 Exit 0 when clean, 1 otherwise.
 """
@@ -36,6 +36,8 @@ def main() -> int:
         text = skill.read_text(encoding="utf-8") if skill.exists() else ""
         if not text:
             problems.append(f"no skill file for '{c}'")
+        if "probe" not in data[c]["methods"] or f'"{c}.probe"' not in matrix:
+            problems.append(f"cardinal '{c}' has no probe method (1 + N lanes: the probe is lane 0 of every cardinal)")
         for method, tools in data[c]["methods"].items():
             if not tools:
                 problems.append(f"{c}.{method} has no tools")

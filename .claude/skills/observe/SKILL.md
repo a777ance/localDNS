@@ -22,7 +22,7 @@ Every tool call belongs to exactly one cardinal. Before a call, name it as
 - `observe.verify` — launch the app and see the change working: `/run`.
 - `observe.research` — multi-source research into a report: `/deep-research`.
 - `observe.status` — branch, changed files, Matrix mode, leases, and open stalls in one call.
-- `observe.probe` — dry-run before egress: `push` dry-runs the push of this branch; `merge BRANCH` reports ahead, behind, and conflicts against the base. The naming hook flags a push or merge call with no passing probe in the last 10 minutes. `act.ship` probes its own push before it commits.
+- `observe.probe` — lane 0 for Observe: `path PATH` sizes a file before a read. Also the dry run before egress: `push` dry-runs the push of this branch; `merge BRANCH` reports ahead, behind, and conflicts against the base. The naming hook flags a push or merge call with no passing probe in the last 10 minutes. `act.ship` probes its own push before it commits.
 - `observe.log` — the Matrix watching itself: calls per cardinal and method from `.claude/.matrix-log`, and the slowest call. The log rotates at 2,000 lines.
 - `observe.times` — measured duration of every native tool call (count, median, worst, each call over 10 s); `--debt` drafts a `DEBT-NNN` block per breaching tool.
 

@@ -41,5 +41,6 @@ __pycache__/
 .claude/.matrix-times
 .claude/.matrix-rehearsed
 .claude/.matrix-probes/
+.claude/.matrix-scratch
 .claude/.matrix-starts/
 *.bak
