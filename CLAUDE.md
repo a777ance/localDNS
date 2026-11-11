@@ -240,7 +240,7 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `tools/check-doctrine.py` | run directly (asserts §G's stated sampler values match `jury/jury.py` — constructor defaults, CLI defaults, and the keys actually sent) | `python3 tools/check-doctrine.py` |
 | `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths; asserts the Bifrost sweep string **and** the expansion template are byte-identical across their three surfaces and that the template reduces to the sweep; **and** that spec §1, `docs/bifrost.html`, and CLAUDE.md §H assign every glyph the same role) | `python3 tools/check-docs.py` |
 | `04-user-services/ai-orchestration/briefing-block.md` | canonical source for the Bifrost section in **every** sibling repo's `CLAUDE.md` — edit here, never in the rendered copies | `python3 tools/sync-briefings.py --write` |
-| `tools/sync-briefings.py` | run directly (renders the canonical briefing block into every sibling repo's `CLAUDE.md`; bare/`--check` reports drift, `--write` fixes it; also asserts the condensed block and §H agree on glyph roles) | `python3 tools/sync-briefings.py --write` |
+| `tools/sync-briefings.py` | run directly (renders the canonical briefing block into every sibling repo's `CLAUDE.md`; a bare run reports drift, `--write` fixes it; also asserts the condensed block and §H agree on glyph roles) | `python3 tools/sync-briefings.py --write` |
 | `.claude/hooks/gate.sh` | `PreToolUse(Bash)` hook — runs the four checks above before any `git commit` and blocks on failure (bypass: `touch .claude/.gate-off`) | wired in `.claude/settings.json` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
 
