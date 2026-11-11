@@ -53,6 +53,12 @@ Applies to every reply in this repo, regardless of output style. Mirrors
 
   Tiles are never buried in a paragraph. One tile per decision, numbered `DEC-NNN`, and
   each is also recorded in `docs/ai-cto/blocked.md` until decided.
+- **OODA is an ongoing goal (INIT-004).** Each cycle re-evaluates the rules: what failed,
+  what has no check, and what tooling would catch it. A rule that lives only in prose is
+  not a rule; it needs a check, a hook, or a file the next session reads. Raise the quality
+  bar each cycle; never close the loop.
+- **A null result gets new work.** When a session returns nothing useful, give it a concrete
+  task in the same cycle rather than leaving it idle or repeating the prior prompt.
 - **Commands assume a fresh terminal.** Every command given to the founder starts with
   the navigation to the repo, so it runs in a new CLI window with no prior `cd`:
 

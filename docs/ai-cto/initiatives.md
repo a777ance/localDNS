@@ -8,6 +8,15 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
 
 ---
 
+## INIT-004 · OODA loop as an ongoing goal (RSI) · Active
+
+- **Goal:** the OODA loop never finishes. Each cycle re-evaluates the rules, raises the quality bar, and adds tooling, so the recursive self-improvement loop keeps running.
+- **Line items:**
+  - Every cycle re-reads the reply-style rules and the Decide-Act gate, and records any rule that failed. Done in this cycle.
+  - A null result from a session triggers new work for it, not silence. Recorded in `CLAUDE.md`.
+  - Rule gatekeeping: a rule that only lives in prose is not a rule. Each one needs a check, a hook, or a file the next session reads. Queued.
+  - Quality bar moves up each cycle: each new rule adds one measurable check. Queued.
+
 ## INIT-003 · Make session-to-session messaging work end to end · Active
 
 - **Goal:** two Claude sessions exchange messages and each one wakes on arrival, without
