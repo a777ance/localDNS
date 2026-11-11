@@ -57,6 +57,11 @@ Applies to every reply in this repo, regardless of output style. Mirrors
   loses nothing: before a long stretch, and at each natural boundary (a ship, a decision,
   a lease start), update `docs/ai-cto/checkpoint.md`. After a compaction or in a new
   session, resume from that file plus `python3 tools/matrix.py observe.status`.
+  `.claude/hooks/resume.py` (a `SessionStart` hook on `compact`) does this automatically:
+  it re-injects the checkpoint, the Matrix status, and the open decisions, and tells the
+  session to carry on without waiting.
+- **Resolve stacked requests newest first, and drop none.** When several requests arrive
+  mid-turn, work them in LIFO order and account for every one in the report.
 - **Carrot.** The 3-hour lease for peer sessions is the Carrot. Name it by that word in
   peer prompts and in status lines. Assumed reading, stated in INIT-003: the Carrot lease is
   3 hours from the first ping, with UTC expiry.
