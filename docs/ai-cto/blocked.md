@@ -15,6 +15,37 @@ to `Done` or `Punted`, and it is removed only by the founder.
 Every founder decision, newest first, with its result. Open tiles stay here until the
 founder decides.
 
+- **DEC-014 · Trim the cloud environment setup script · OPEN**
+  Asked 2026-11-11. Waiting on GO or NO GO. Evidence (read from the Default environment, 2026-11-11):
+  the script runs `apt-get install` for `shellcheck`, `wireguard-tools`, `nftables`, and `python3-yaml`
+  on every fresh container. No gate, hook, or Matrix method calls `wg` or `nft` (a search of
+  `tools/check-*.py`, `.claude/hooks/`, and `tools/matrix.py` finds none); they are only needed on the
+  t630. The script's check step runs four of the nine gates by name. Proposal: drop `wireguard-tools`
+  and `nftables`, and replace the four named checks with `python3 tools/matrix.py decide.gate`, which
+  runs all nine. Keep `shellcheck` and `ruff`. Nothing in the environment has been changed.
+- **DEC-013 · Split `CLAUDE.md` into an always-loaded core and on-demand files · OPEN**
+  Asked 2026-11-11. Waiting on GO or NO GO. Evidence (`wc -c` per top-level section, this branch,
+  69,162 bytes in all, loaded into every turn of every session):
+
+  | Section | Bytes | Proposal |
+  | ------- | ----- | -------- |
+  | C. Deploy paths | 12,908 | keep (the repo → system map) |
+  | G. LLM sampling doctrine | 8,632 | move to `docs/`; keep the invariants as a short list |
+  | H. Bifrost | 8,497 | move to `docs/`; keep the sweep, the template, and the glyph line |
+  | 4. Further reading | 6,971 | move to `docs/`; keep one line per link |
+  | 3. Working philosophy | 6,855 | keep the rules; move the worked cases to `docs/` |
+  | Reply style: Briefing | 5,896 | keep, cut to one line per rule the Stop hook now enforces |
+  | 1. Known issues | 4,429 | keep |
+  | B. Network topology | 3,890 | keep |
+  | F. nftables volume layer | 2,859 | move to `docs/` (a one-time deploy checklist) |
+  | all other sections | 8,225 | keep |
+
+  The four "move" rows and the worked cases come to about 30,000 bytes, a little over 40% of the file.
+  Two things stand in the way and are part of the decision: `tools/check-docs.py` requires the Bifrost
+  sweep and template to sit in `CLAUDE.md`, and `tools/check-doctrine.py` reads the section G values
+  from it. Both checks would be repointed in the same change. This also covers the Phase D step the
+  lease did not allow: shortening the reply-style prose now that the hook enforces five of its rules.
+  Nothing has been moved.
 - **DEC-012 · Move the Matrix from name to warn mode · OPEN**
   Asked 2026-11-11. Waiting on GO or NO GO. Enforce stays off until warn has run cleanly in a live session.
 - **DEC-011 · Merge PR #37 into `main` so the Matrix reaches new sessions · OPEN**

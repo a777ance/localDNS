@@ -99,7 +99,7 @@ def main() -> int:
         # the Matrix watching itself (Q-009, Q-012, Q-013)
         out = mx("observe.log").stdout
         check("observe.log", "observe.read" in out and "slowest:" in out, out[-200:])
-        (box / ".claude/.matrix-log").write_text("".join(f"t\tobserve.read\tx\t0.010\n" for _ in range(2100)))
+        (box / ".claude/.matrix-log").write_text("".join("t\tobserve.read\tx\t0.010\n" for _ in range(2100)))
         mx("observe.status")
         check("log rotates at 2,000 lines", len((box / ".claude/.matrix-log").read_text().split("\n")) < 1100)
         check("observe.times (empty)", "no native tool calls timed" in mx("observe.times").stdout)

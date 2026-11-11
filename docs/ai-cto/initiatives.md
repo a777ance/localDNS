@@ -17,6 +17,12 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
   - Naming hook on every call (`.claude/hooks/cardinal.py`): **Done**, seen firing live.
   - Own tooling (`tools/matrix.py`), 10-second cap, one-time lease, stall rule: **Done**.
   - End-to-end test (`tools/check-matrix.py`): **Done**.
+  - Bounded reads and searches, backups out of the tree with `act.undo`, file-based `act.edit`: **Done**.
+  - Measurement: every Matrix call and every native tool call is timed (`observe.log`,
+    `observe.times`); a call over 10 seconds is named at once: **Done**, seen recording live.
+  - Reply rules moved into the Stop hook (lead word, Decide and Act parity, `cd` first, hedges,
+    tile integrity), with `tools/check-stop-hook.py`: **Done**. Shortening the prose waits on DEC-013.
+  - Compaction: `PreCompact` instructions and wake on resume and fork: **Done**, not yet seen in a live compaction.
   - Reach new sessions (merge PR #37 into `main`): **Blocked** on DEC-011.
   - Gatekeeping, staged name → warn → enforce: **Blocked** on DEC-012. Mode is `name`.
 - **Handoff:** the next session's roadmap for a fresh 3-hour lease is `docs/ai-cto/handoff.md`.

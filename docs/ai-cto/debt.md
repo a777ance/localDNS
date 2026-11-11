@@ -9,6 +9,16 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 
 ---
 
+## DEBT-011 · Six lint findings predate the Matrix work · Open
+
+- **Observed:** `ruff check --select E9,F` (the cloud setup script's lint step) reports six
+  findings outside this lease's files: unused imports in `jury/jury.py`, `collect_stats.py`,
+  `compose.py`, and `tools/telepathy/watch.py`, and two unused variables in `compose.py`.
+- **Cost:** the setup script prints `!! FAILED` on every fresh container, so a real failure
+  on that line would not stand out.
+- **Next action:** remove the unused imports; read `compose.py` before deleting the two
+  variables, because an unused `other_bytes` in a Statement composer may be a missing figure.
+
 ## DEBT-010 · Fixed context cost per session is high · Open
 
 - **Observed:** on 2026-11-11 the session's context showed `CLAUDE.md` at about 24.5k tokens,
@@ -33,6 +43,11 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
   and the stall rule are proven only by `tools/check-matrix.py`, which pipes calls into the hook.
 - **Cost:** whether the app honours the hook's deny, and whether subagent calls pass
   through the hook, is unconfirmed.
+- **Measured 2026-11-11 (Orchestrator lease):** the `PostToolUse` timing hook fires live in a
+  running session (`.claude/.matrix-times` filled from the first call after it was wired). The
+  subagent check (Q-004) was skipped because the usage limit was still reached, so whether the
+  hook fires for a subagent's calls is still unconfirmed. Whether a compaction uses the
+  `PreCompact` text is also unconfirmed: no compaction happened in the lease.
 - **Next action:** after DEC-012, run `warn` in one live session, then `enforce` with the
   kill switch ready.
 
