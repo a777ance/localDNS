@@ -212,7 +212,7 @@ behind. `BLOCKED` items wait for the founder.
 
 ### Phase C · Measure the Holy Grail instead of asserting it (about 25 min)
 
-- **Q-011 · Time every native tool call.** `act.write`. Add a `PostToolUse` hook
+- **Q-011 · Time every native tool call.** · DONE c1ea0ef · `act.write`. Add a `PostToolUse` hook
   (`.claude/hooks/timing.py`): `PreToolUse` stamps a start per `tool_use_id` (or tool name
   if no id), `PostToolUse` computes the duration and appends `tool, cardinal, seconds` to
   `.claude/.matrix-times`. Over 10 s, add a context line naming the breach. Fail open.
@@ -230,41 +230,41 @@ For each item: add the check to `.claude/hooks/decide-act.py` (one bounce per tu
 open), add cases to its test, then cut that rule's text in `CLAUDE.md` to one line that
 names the hook. This is the phase that pays down rule inflation.
 
-- **Q-014 · Test file for the Stop hook.** `act.write`. a new check, `check-stop-hook` (to be created under `tools/`), feeds
+- **Q-014 · Test file for the Stop hook.** · DONE (this commit: Stop hook rules and tests) · `act.write`. a new check, `check-stop-hook` (to be created under `tools/`), feeds
   sample replies to `decide-act.py` in a temp directory and asserts allow or block. Port the
   seven cases already used by hand. Add it to `gate.sh`. Done: gates green. 8 min.
-- **Q-015 · Decide and Act parity.** `act.write`. A reply with N numbered Decide items and
+- **Q-015 · Decide and Act parity.** · DONE (this commit: Stop hook rules and tests) · `act.write`. A reply with N numbered Decide items and
   an Act section must have at least N Act lines or say why one is blocked. (This was the
   Carrot starter's unsent second proposal.) 7 min.
-- **Q-016 · Commands start with `cd`.** `act.write`. Every fenced `bash` block in a reply
+- **Q-016 · Commands start with `cd`.** · DONE (this commit: Stop hook rules and tests) · `act.write`. Every fenced `bash` block in a reply
   must have `cd ` as its first command. 5 min.
-- **Q-017 · No vague hedges.** `act.write`. Block "should work", "probably works",
+- **Q-017 · No vague hedges.** · DONE (this commit: Stop hook rules and tests) · `act.write`. Block "should work", "probably works",
   "may have worked" outside code fences and quotes. Keep the list short to avoid false
   positives; record each false positive you meet as a test case. 6 min.
-- **Q-018 · Tile integrity.** `act.write`. A reply containing `DECISION · DEC-NNN` must
+- **Q-018 · Tile integrity.** · DONE (this commit: Stop hook rules and tests) · `act.write`. A reply containing `DECISION · DEC-NNN` must
   contain both action lines and the GO / NO GO line, and that id must exist in
   `docs/ai-cto/blocked.md`. 7 min.
-- **Q-019 · Register status gate.** `act.write`. a new check, `check-registers` (to be created under `tools/`): every `DEBT-`
+- **Q-019 · Register status gate.** · DONE (this commit: Stop hook rules and tests) · `act.write`. a new check, `check-registers` (to be created under `tools/`): every `DEBT-`
   and `INIT-` heading ends in a valid status; ids are unique and newest first; every
   `Blocked` entry names a `DEC-` id or a `blocked.md` section. Allow `MOOT` in
   `check-decisions.py` and mark DEC-004 and DEC-006 `MOOT` with the reason. 7 min.
 
 ### Phase E · Durability and compaction (about 15 min)
 
-- **Q-020 · `PreCompact` hook.** `act.write`. `.claude/hooks/precompact.py` prints
+- **Q-020 · `PreCompact` hook.** · DONE c1ea0ef · `act.write`. `.claude/hooks/precompact.py` prints
   instructions for the summary: keep the lease times, the open `DEC` ids, the current queue
   item, and the last shipped commit; say that state is in `docs/ai-cto/checkpoint.md`. If
   the working tree is dirty, say so in the same text. Wire it for `manual` and `auto`.
   Done: output under 1,200 characters; e2e case. 8 min.
-- **Q-021 · Wake on `resume` and `fork` as well as `compact`.** `act.configure`. Extend the
+- **Q-021 · Wake on `resume` and `fork` as well as `compact`.** · DONE c1ea0ef · `act.configure`. Extend the
   `resume.py` matcher. Done: settings valid, gates green. 3 min.
-- **Q-022 · One source for the reply-style rules.** `act.write`. The rules exist in both
+- **Q-022 · One source for the reply-style rules.** · DONE (this commit: Stop hook rules and tests) · `act.write`. The rules exist in both
   `.claude/output-styles/briefing.md` and `CLAUDE.md`. Add a check that the output-style
   file names every rule the hook enforces, so the two cannot drift. 4 min.
 
 ### Phase F · Clear small debt (about 15 min)
 
-- **Q-023 · DEBT-006.** `act.write`. Fix the `SyntaxWarning: invalid escape sequence` in
+- **Q-023 · DEBT-006.** · DONE (this commit: Stop hook rules and tests) · `act.write`. Fix the `SyntaxWarning: invalid escape sequence` in
   `tools/check-doctrine.py` (raw string), and add a `--check` alias to
   `tools/sync-briefings.py` for its default mode. Done: no warning on stderr; DEBT-006 → Done. 6 min.
 - **Q-024 · Telepathy test.** `act.write`. a new check, `check-telepathy` (to be created under `tools/`): in a temp mailbox,

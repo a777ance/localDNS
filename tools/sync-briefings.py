@@ -161,6 +161,7 @@ def check_backbone(block: str) -> list[str]:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--write", action="store_true", help="render the block (default: check only)")
+    ap.add_argument("--check", action="store_true", help="report drift without writing (the default; kept as an explicit flag)")
     ap.add_argument("--root", type=pathlib.Path, default=REPO_ROOT.parent,
                     help="portfolio root holding the sibling repos")
     args = ap.parse_args()

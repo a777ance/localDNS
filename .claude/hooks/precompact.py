@@ -29,7 +29,7 @@ def main() -> int:
         handoff = read("docs/ai-cto/handoff.md")
         lease = re.search(r"`(start: [^`]*expiry: [^`]*)`", handoff)
         item = next((m for m in re.finditer(r"^- \*\*(Q-\d{3}) · (.*?)\*\*.*$", handoff, re.MULTILINE)
-                     if "BLOCKED" not in m.group(0) and "DONE" not in m.group(0)), None)
+                     if not re.search("BLOCKED|DONE|SKIPPED", m.group(0))), None)
         opens = re.findall(r"^- \*\*(DEC-\d{3}) · .*? · OPEN\*\*", read("docs/ai-cto/blocked.md"), re.MULTILINE)
         dirty = git("status", "--short")
         out = ("The summary MUST keep these facts word for word:\n"

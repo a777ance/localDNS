@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 jury.py — adaptive sequential self-consistency for Fireworks / Kimi K3.
 
 The Jury turns ONE tuned sampling config (a "lazy anchor, governed-warm body":

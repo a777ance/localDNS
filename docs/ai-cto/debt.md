@@ -42,13 +42,17 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 - **Cost:** new sessions start from `main` and get none of it.
 - **Next action:** DEC-011.
 
-## DEBT-006 · Gate and style checks pass only partially · Open
+## DEBT-006 · Gate and style checks pass only partially · Done
 
 - **Observed:** `tools/sync-briefings.py` exits 2 when given `--check`, because the flag does
   not exist; the bare run exits 0 and reports zero sibling repos. `tools/check-doctrine.py`
   prints a `SyntaxWarning: invalid escape sequence '\$'` at line 29 of an embedded string.
 - **Cost:** the briefing-drift check checks nothing on this machine, so a green run
   here does not mean siblings agree.
+- **Fixed 2026-11-11:** the warning came from the module docstrings of `jury/jury.py` and
+  `jury-claude/jury_claude.py` (a `\$` in a normal string), which `check-doctrine.py` parses; both
+  are now raw strings, and `python3 tools/check-doctrine.py` now prints nothing on stderr. `sync-briefings.py`
+  accepts `--check`. Still true: with no sibling repos checked out, the drift check compares nothing.
 - **Next action:** fix the escape in the `check-doctrine.py` string (use a raw string), and
   either document the bare call in the gate or add the `--check` mode the gate expects.
 

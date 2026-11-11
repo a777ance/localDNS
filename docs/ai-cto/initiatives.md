@@ -61,4 +61,5 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
 - **Line items:**
   - telepathy server, watcher, style, and hook commits on the branch: **Done**.
   - Cloudflare Workers Builds check green: **Punted**, see DEBT-004. Not part of the OODA loop project.
-  - subscription noise from the other session stopped: **Blocked**, see DEBT-003.
+  - subscription noise from the other session stopped: **Blocked**, see DEBT-003. Logged in
+    `docs/ai-cto/blocked.md` under "Unsubscribe Gate test v2 from PR #35".

@@ -331,6 +331,8 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `tools/check-cardinal.py` | run directly (each tool in exactly one cardinal; every method documented in its skill; every repoint names a real Matrix method) | `python3 tools/check-cardinal.py` |
 | `tools/check-matrix.py` | run directly (end-to-end test of the Matrix in a throwaway sandbox: four cardinals, gate modes, cap, lease, stall) | `python3 tools/check-matrix.py` |
 | `tools/check-decisions.py` | run directly (every `DEC-NNN` in `docs/ai-cto/blocked.md` has a status, a unique id, newest first) | `python3 tools/check-decisions.py` |
+| `tools/check-stop-hook.py` | run directly (feeds sample replies to the Stop hook `.claude/hooks/decide-act.py` and asserts allow or block for each of its five rules; fails if `.claude/output-styles/briefing.md` does not name a rule the hook enforces) | `python3 tools/check-stop-hook.py` |
+| `tools/check-registers.py` | run directly (every `INIT-`/`DEBT-` entry in `docs/ai-cto/` has a valid status and a unique id, newest first; a Blocked entry names what unblocks it) | `python3 tools/check-registers.py` |
 | `tools/telepathy/telepathy_mcp.py` | stdio MCP mailbox for sessions on one machine (+ `tools/telepathy/watch.py`, the inotify watcher) | `claude mcp add --scope user telepathy -- python3 tools/telepathy/telepathy_mcp.py` |
 | `.claude/hooks/gate.sh` | `PreToolUse(Bash)` hook — runs the static checks above before any `git commit` and blocks on failure (bypass: `touch .claude/.gate-off`) | wired in `.claude/settings.json` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |

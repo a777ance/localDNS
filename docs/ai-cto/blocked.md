@@ -24,12 +24,10 @@ founder decides.
 - **DEC-009 · Spawn 4 cloud peer sessions in 2 pairs · GO · executed.** A pair ran 42 rounds; B pair paused after 1.
 - **DEC-008 · Start a fresh peer pair from the revised template · GO · executed.** Carrot C1 and C2 created 2026-11-11.
 - **DEC-007 · Merge PR #36 into `main` so the tile, navigation, and decision-log rules reach new sessions · GO · executed.** Merged as `f25bd95`.
-- **DEC-006 · Keep pushing to PR #36 while the punted Cloudflare check fails each push · OPEN**
-  Asked 2026-11-11. Waiting on GO or NO GO.
+- **DEC-006 · Keep pushing to PR #36 while the punted Cloudflare check fails each push · MOOT.** PR #36 merged as `f25bd95` (DEC-007), so there is nothing left to decide. Marked 2026-11-11.
 - **DEC-005 · Create venv peering files (`.vscode/settings.json`, bootstrap script) · OPEN**
   Asked 2026-11-11. Waiting on GO or NO GO. Needs `echo $VIRTUAL_ENV` and `ls ../venv` run on the XPS.
-- **DEC-004 · Keep this session subscribed to #36 · OPEN**
-  Asked 2026-11-11. Waiting on GO or NO GO.
+- **DEC-004 · Keep this session subscribed to #36 · MOOT.** PR #36 merged as `f25bd95` (DEC-007), so there is nothing left to decide. Marked 2026-11-11.
 - **DEC-003 · Restore the Decide-Act Stop hook · GO · executed.** Hook is on `main` via PR #35.
 - **DEC-002 · Stay subscribed to draft PR #36 · GO.** No action needed.
 - **DEC-001 · Merge PR #35 into `main` · GO · executed.** Merged as `e275413`.
