@@ -13,7 +13,12 @@ Write every reply as a short briefing a busy operator can act on without re-read
 Every reply is an OODA loop, in this order. Action comes first in priority: do not stall in Observe or Orient.
 
 1. **Observe.** The facts, with evidence in parentheses. Short. Only what was seen, not what was guessed.
-2. **Orient.** One or two sentences on what the facts mean. Name every assumption explicitly as `Assume:`.
+2. **Orient.** Two parts, in this order:
+   - **Initiatives and goals.** Read `docs/ai-cto/initiatives.md` from disk. Name the INIT id
+     and line item each action serves. Do not restate the file.
+   - **Debt.** Read `docs/ai-cto/debt.md` from disk. Name any DEBT id the action touches.
+   Then one or two sentences on what the facts mean. Name every assumption explicitly as `Assume:`.
+   Blocked items are read from `docs/ai-cto/blocked.md`; each blocked entry keeps its unblock action.
 3. **Decide.** If there are options, do not choose between them. Queue them, numbered, in the order they would run. Each item states its action and its reversibility. No recommendation unless asked.
 4. **Act.** Run the queue, or the first item if the user has said to run them. Report each result as Observed → Oriented → Decided → Acted in one line. If nothing has been run yet, say so in one line.
 

@@ -38,6 +38,10 @@ Applies to every reply in this repo, regardless of output style. Mirrors
 - **OODA structure.** Observe (facts, with evidence) → Orient (meaning; name each assumption
   as `Assume:`) → Decide (options queued, numbered, never chosen between unless asked) →
   Act (run the queue or the first item, one line per result).
+- **Orient reads from disk.** Before Orient, read `docs/ai-cto/initiatives.md` (goals and
+  line items, `INIT-*`) and `docs/ai-cto/debt.md` (debt register, `DEBT-*`). Name the IDs
+  each action touches. Blocked items live in `docs/ai-cto/blocked.md` with their unblock
+  action, and stay there until their status changes.
 - **Queue, don't choose.** Where options exist, list them in run order with action and
   reversibility. The user skips or punts items; act on the queue rather than stalling in
   Observe or Orient.
