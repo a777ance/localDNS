@@ -8,7 +8,9 @@ Format per entry: status · what was observed · why it is blocked · the action
 
 ---
 
-## 2026-11-11 · Cloudflare build failure on PR #35 — BLOCKED
+## 2026-11-11 · Cloudflare Workers Builds failure — PUNTED
+
+- **Status:** Punted by the founder. Not part of the current OODA loop project. Revisit only if the founder asks.
 
 - **Observed:** `Workers Builds: cloudflarelocaldns` fails on every head of
   `claude/youthful-hopper-7knhtn` (`c1737f2`, `fea6f36`, `df0bac1`). The same check failed on

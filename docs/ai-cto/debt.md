@@ -28,12 +28,12 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 - **Next action:** run a two-session test on one machine; decide whether to re-arm with a
   longer timeout or use the connector the other session is building.
 
-## DEBT-004 · PR #35 has a failing Cloudflare check on every push · Blocked
+## DEBT-004 · Cloudflare Workers Builds check fails on PRs · Punted
 
 - **Observed:** `Workers Builds: cloudflarelocaldns` fails on `c1737f2`, `fea6f36`,
   `df0bac1`. The same check failed on PR #32 before it merged. The build log is behind login.
 - **Cost:** every push wakes subscribed sessions, and the PR can't be called mergeable.
-- **Next action:** see `docs/ai-cto/blocked.md`, "Cloudflare build failure on PR #35".
+- **Next action:** none. Punted by the founder; not part of the current OODA loop project.
 
 ## DEBT-003 · Other session still subscribed to PR #35 · Blocked
 

@@ -35,5 +35,5 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
 - **Goal:** PR #35 (`claude/youthful-hopper-7knhtn` → `main`) passes CI and can merge.
 - **Line items:**
   - telepathy server, watcher, style, and hook commits on the branch: **Done**.
-  - Cloudflare Workers Builds check green: **Blocked**, see DEBT-004.
+  - Cloudflare Workers Builds check green: **Punted**, see DEBT-004. Not part of the OODA loop project.
   - subscription noise from the other session stopped: **Blocked**, see DEBT-003.
