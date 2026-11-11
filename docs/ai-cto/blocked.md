@@ -4,6 +4,12 @@ Items that cannot proceed without an input from the founder or a session that ca
 reach the blocked system. Newest first. Each entry stays here until its status changes
 to `Done` or `Punted`, and it is removed only by the founder.
 
+## 2026-11-11 · Ping-pong peers: lease not running, Stop hook not reachable — BLOCKED
+
+- **Observed:** Peer A (`session_01Wg5h8frVuhW6Af87Z7HzN6`) declined the 3-hour lease and sent nothing. Peer B (`session_01Wg5h8e5zDnRYtHU8MybWw5`) completed its three rounds. Both peers are `config:no-git-repo`, so the Decide-Act Stop hook in this repo is not loaded in them.
+- **Why blocked:** a peer only follows its original prompt. A later message that conflicts with it is treated as an injection. The hook can't be wired into a repo-less session.
+- **Unblock action:** start a fresh peer pair whose original prompt contains the lease (expiry in UTC), the stop word, and the OODA act step. Confirm the lease was in place before the first ping. Put the decided-items act step in each prompt.
+
 ## Decision log (DEC)
 
 Every founder decision, newest first, with its result. Open tiles stay here until the
