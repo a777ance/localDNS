@@ -18,11 +18,11 @@ Live facts, rewritten by `python3 tools/matrix.py orient.checkpoint`:
 - **Open decisions:** DEC-005
 - **Open stalls:** none
 - **Last five commits:**
+  - fed4184 Merge pull request #47 from a777ance/claude/serene-tesla-yvl22m
+  - d0ff063 DEC-016 executed: main is emptied (646c709, by the founder); records brought current
   - ff3c944 Merge pull request #46 from a777ance/claude/serene-tesla-yvl22m
   - 6744310 branches.md: all six meanings of the empty centre, each as a parable; record the founder's correction
   - 0266471 Merge pull request #45 from a777ance/claude/serene-tesla-yvl22m
-  - a98d997 branches.md: record the founder's reference for the empty main (the empty centre strategy)
-  - b985c25 Merge pull request #43 from a777ance/claude/serene-tesla-yvl22m
 <!-- live:end -->
 
 In prose:

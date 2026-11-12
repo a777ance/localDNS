@@ -188,6 +188,9 @@ def main() -> int:
               and (box / "dup.txt").read_text() == "x x\n", r.stdout)
         check("act.probe edit ok", mx("act.probe", "edit", "notes.txt", "beta").returncode == 0)
         check("act.probe bad arguments", mx("act.probe", "nope").returncode != 0)
+        chain = hook("Bash", {"command": "python3 tools/matrix.py act.ship m f --push && python3 tools/matrix.py decide.rehearse x"})
+        check("a chain of slow steps is flagged", "SLOW CHAIN" in chain["additionalContext"], chain["additionalContext"])
+        check("one slow step is not flagged", "SLOW CHAIN" not in hook("Bash", {"command": "python3 tools/matrix.py act.ship m f --push"})["additionalContext"])
         check("observe.probe bad arguments", mx("observe.probe", "nope").returncode != 0)
         check("hook unmapped", "UNMAPPED" in hook("NoSuchTool")["additionalContext"])
         # gate modes
