@@ -146,7 +146,8 @@ def loop_items(text):
     for line in text[m.end():].splitlines():
         if re.match(r"^#{1,3}\s|^\*\*Landed|^Stopping because:", line):
             break
-        if re.match(r"^\s*(\d+\.|[-*])\s+\S", line) and not re.search(r"DEC-\d{3}", line):
+        # An item already handed to a sub-loop says so, and is not handed out twice.
+        if re.match(r"^\s*(\d+\.|[-*])\s+\S", line) and not re.search(r"DEC-\d{3}|sub-loop running", line):
             items.append(line.strip()[:160])
     return items
 

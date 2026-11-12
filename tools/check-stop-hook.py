@@ -116,6 +116,8 @@ def main() -> int:
             fails.append(f"a loop-owned L item must start a sub-loop, a DEC item must not: {got[:120] or 'allow'}")
         if run(box, "**Waiting.** Shipped.\n\n### L · Left open\n\n- DEC-900: waits on the founder.\n" + LAND):
             fails.append("an L step holding only the founder's DEC items must be allowed")
+        if run(box, "**Waiting.** Shipped.\n\n### L · Left open\n\n- The probe does not adapt yet (sub-loop running).\n" + LAND):
+            fails.append("an L item already in a running sub-loop must not be handed out again")
         if not run(box, "**Partial.** Shipped.\n\n### Still open\n\n- DEC-900: waits.\n" + LAND).startswith("L STEP"):
             fails.append("a 'Still open' heading must be sent back to be an L step")
         queue = box / "docs/ai-cto/handoff.md"
