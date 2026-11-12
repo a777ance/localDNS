@@ -297,6 +297,38 @@ def _git(*a):
     return subprocess.run(["git", *a], capture_output=True, text=True, cwd=ROOT)
 
 
+AGENT_LEDGER = ROOT / ".claude/.agent-ledger"
+
+
+def observe_agents(kind="status", *args):
+    """The agent ledger: a launch is recorded by the Matrix hook (every Agent call); a finish is recorded
+    with `observe.agents finish ID`, because a completion notice does not reach a hook.
+
+    `observe.agents status` prints the running count. `observe.agents check` exits 1 while any agent is
+    running, so the repo's check-all fails closed until every launch has a finish.
+    """
+    lines = AGENT_LEDGER.read_text(encoding="utf-8").splitlines() if AGENT_LEDGER.exists() else []
+    if kind == "launch":
+        AGENT_LEDGER.parent.mkdir(exist_ok=True)
+        with AGENT_LEDGER.open("a", encoding="utf-8") as fh:
+            fh.write(f"launch\t{args[0] if args else '?'}\n")
+        return 0
+    if kind == "finish":
+        if not args:
+            sys.exit("FAILED: observe.agents finish takes the agent id")
+        AGENT_LEDGER.parent.mkdir(exist_ok=True)
+        with AGENT_LEDGER.open("a", encoding="utf-8") as fh:
+            fh.write(f"finish\t{args[0]}\n")
+        return 0
+    launched = [ln.split("\t", 1)[1] for ln in lines if ln.startswith("launch\t")]
+    finished = {ln.split("\t", 1)[1] for ln in lines if ln.startswith("finish\t")}
+    running = [i for i in launched if i not in finished]
+    print(f"agents running: {len(running)} · launched {len(launched)} · finished {len(finished)}")
+    if kind == "check" and running:
+        sys.exit(1)  # the dispatcher ignores return values; the exit code is what check-all reads
+    return 0
+
+
 def observe_status():
     cfg = json.loads((ROOT / ".claude/cardinal-map.json").read_text(encoding="utf-8"))
     off = (ROOT / ".claude/.matrix-off").exists()
@@ -731,7 +763,7 @@ def observe_hitrate():
     return 0
 
 
-METHODS = {"observe.hitrate": observe_hitrate, "observe.status": observe_status,"decide.open": decide_open, "act.ship": act_ship,
+METHODS = {"observe.hitrate": observe_hitrate, "observe.agents": observe_agents,"observe.status": observe_status,"decide.open": decide_open, "act.ship": act_ship,
            "orient.stall": orient_stall, "act.resolve": act_resolve,
            "observe.read": observe_read, "observe.find": observe_find, "observe.search": observe_search,
            "orient.ground": orient_ground, "decide.gate": decide_gate,

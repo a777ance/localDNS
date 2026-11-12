@@ -88,6 +88,15 @@ def main() -> int:
             (starts / key).write_text(f"{time.time()}\t{alias or 'UNMAPPED'}", encoding="utf-8")
         except OSError:
             pass
+        if tool == "Agent" and not (ROOT / ".claude/.matrix-off").exists():
+            # Agent ledger: every launch is recorded; a finish is recorded by `observe.agents finish ID`.
+            try:
+                ledger = ROOT / ".claude/.agent-ledger"
+                ledger.parent.mkdir(exist_ok=True)
+                with ledger.open("a", encoding="utf-8") as fh:
+                    fh.write(f"launch\t{data.get('tool_use_id') or 'unknown'}\n")
+            except OSError:
+                pass
         if data.get("agent_type"):  # set when a subagent made the call
             line += f" · agent: {data['agent_type']}"
         # Hard guards (the safety goals of the alias routers, kept in the Matrix). They deny in EVERY

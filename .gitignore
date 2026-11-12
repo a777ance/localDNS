@@ -47,3 +47,4 @@ __pycache__/
 .claude/.matrix-recent
 .claude/.matrix-hitrate
 .claude/.file-route-enforce
+.claude/.agent-ledger
