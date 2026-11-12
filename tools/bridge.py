@@ -410,6 +410,7 @@ def main():
             print()
         return 0
     if not sys.stdout.isatty() or not sys.stdin.isatty():
+        COLOR = False  # piped or redirected: plain text, never colour codes in a file
         print("\n".join(l.rstrip() for l in frame("status", 100)))
         return 0
     interactive()
