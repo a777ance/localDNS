@@ -52,39 +52,31 @@ Applies to every reply in this repo. One line per rule; the long form is
   t630, real customer data, and the founder's own rules. Everything else: decide, act, record.
 - **Commands start with `cd ~/localDNS` [hook],** each in its own `bash` block. Never the cloud
   container's `/home/user/` path: the founder opens a fresh terminal on his own machine.
-- **Look before the founder leaps [hook].** Every command handed to the founder is run first in a copy of
-  his checkout: `python3 tools/matrix.py decide.rehearse "COMMAND"` (exit 0), or carries a
+- **Look before the founder leaps [hook].** A command handed to the founder is run first in a copy of
+  his checkout (`python3 tools/matrix.py decide.rehearse "COMMAND"`, exit 0), or carries a
   `Not rehearsed:` line with the reason. No recipe step without something to paste.
-- **1 + N lanes: the probe is lane 0, always (INIT-006).** Every piece of work opens with a probe
-  that changes nothing: `observe.probe`, `orient.probe`, `decide.probe`, or `act.probe`, whichever
-  fits the goal. The N lanes (parallel, sequential, or both) open after it. The naming hook flags
-  a push, a merge, or a new agent or session with no passing probe in the last 10 minutes;
-  `act.ship` probes its own push; `tools/check-cardinal.py` fails if a cardinal has no probe.
-- **Retrofit: a new rule reaches backward (INIT-007).** When a rule is adopted, apply it to what
-  already exists: `python3 tools/matrix.py orient.retrofit`. Every enforced rule names its audit;
-  `tools/check-stop-hook.py` fails if one has none. This binds rules not yet written.
-- **Announce every scratchpad [hook].** A file written to the session's scratchpad is named in a
-  reply by its full path, with what it is, or deleted.
+- **1 + N lanes: the probe is lane 0, always (INIT-006).** Work opens with a probe that changes
+  nothing (`observe.probe`, `orient.probe`, `decide.probe`, `act.probe`); the N lanes open after it.
+  The naming hook flags a push, merge, or new agent or session with no fresh passing probe.
+- **Retrofit: a new rule reaches backward (INIT-007).** On adopting a rule, apply it to what already
+  exists: `python3 tools/matrix.py orient.retrofit`. This binds rules not yet written.
+- **Announce every scratchpad [hook].** Name each scratchpad file by full path, or delete it.
 - **No vague hedges [hook]** ("should work", "probably works"). Name the check that confirms it.
 - **Successes are quiet; failures are loud.** One plain sentence with the evidence. A failure
   opens with `FAILED:` or `BLOCKED:`, quotes the error, and gives a numbered **Fix** recipe or
   the next diagnostic command.
 - No emoji. Headers no deeper than `###`.
-- **The Matrix. Motto: "There is no way out."** Every tool call, workflow, and subagent call
-  is named `cardinal.method` (`observe`, `orient`, `decide`, `act`) by the hook
-  `.claude/hooks/cardinal.py` and timed by `.claude/hooks/timing.py`. Map:
-  `.claude/cardinal-map.json`. Own tooling: `python3 tools/matrix.py list`. A session with no
-  checkout of this repo loads no hooks, so its prompt must carry the rules.
-- **Ten seconds per tool call is the Holy Grail.** A breach is a defect, fixed at once:
-  `python3 tools/matrix.py orient.stall`, then `act.resolve`; totals in `observe.times`.
-- **Spend tokens like money; never poll, never idle.** Short output, narrow reads. A null
-  result gets new work, not a repeat of the prompt.
-- **State lives on disk.** Update `docs/ai-cto/checkpoint.md` at each boundary;
-  `.claude/hooks/resume.py` and `.claude/hooks/precompact.py` carry it across a compaction.
-- **Strike while the iron is hot.** Ship each finished piece once its gates pass:
-  `python3 tools/matrix.py act.ship "MESSAGE" FILE... --push`.
-- **Stacked requests are resolved newest first, and none is dropped.**
-- **Carrot** is the name of the 3-hour lease for peer sessions (INIT-003).
+- **The Matrix. Motto: "There is no way out."** Every tool call, workflow, and subagent call is named
+  `cardinal.method` by `.claude/hooks/cardinal.py` and timed by `.claude/hooks/timing.py` (map:
+  `.claude/cardinal-map.json`; tooling: `python3 tools/matrix.py list`). A session with no checkout
+  of this repo loads no hooks, so its prompt must carry the rules.
+- **Ten seconds per tool call is the Holy Grail.** A breach is a defect, fixed at once
+  (`orient.stall`, `act.resolve`, `observe.times`).
+- **Spend tokens like money; never poll, never idle.** Short output, narrow reads, one slow step
+  (ship, rehearse, gate, push) per call. A null result gets new work, not a repeat of the prompt.
+- **State lives on disk; ship each finished piece at once.** `docs/ai-cto/checkpoint.md` at each
+  boundary; `python3 tools/matrix.py act.ship "MESSAGE" FILE... --push` once the gates pass.
+- **Stacked requests: newest first, none dropped.** **Carrot** is the 3-hour peer lease.
 - **The OODA loop is an ongoing goal (INIT-004).** A rule that lives only in prose is not a
   rule: give it a hook, a check, or a file the next session reads.
 
@@ -292,23 +284,23 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `docs/statements/tools/collect/nftables-accounting.nft` | load with `sudo nft -f nftables-accounting.nft` | re-run anytime (idempotent) |
 | `docs/statements/tools/collect/populate_sets.py` | `~/a777ance/collect/populate_sets.py` (+ cron `3 */6 * * *`) | `crontab -e` |
 | `docs/statements/tools/collect/collect_stats.py` | `~/a777ance/collect/collect_stats.py` (+ cron `30 0 * * *`) | `crontab -e` |
-| `tools/check-provenance.py` | run directly (validate provenance tags; fail on an unstaged `R`-tier deploy target, an `R`/`A` tag with no `verify:` route, or a malformed claim; `--strict` also requires full deploy-target coverage) | `python3 tools/check-provenance.py` |
+| `tools/check-provenance.py` | run directly (provenance tags: an unstaged `R`-tier deploy target, an `R`/`A` tag with no `verify:` route, or a malformed claim fails; `--strict` wants full coverage) | `python3 tools/check-provenance.py` |
 | `tools/check-doctrine.py` | run directly (asserts §G's stated sampler values match `jury/jury.py` — constructor defaults, CLI defaults, and the keys actually sent) | `python3 tools/check-doctrine.py` |
-| `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths; asserts the Bifrost sweep string **and** the expansion template are byte-identical across their three surfaces and that the template reduces to the sweep; **and** that spec §1, `docs/bifrost.html`, and CLAUDE.md §H assign every glyph the same role) | `python3 tools/check-docs.py` |
+| `tools/check-docs.py` | run directly (links and repo paths in every doc; legacy 1.x paths; the Bifrost sweep, template, and glyph roles identical across their three surfaces) | `python3 tools/check-docs.py` |
 | `04-user-services/ai-orchestration/briefing-block.md` | canonical source for the Bifrost section in **every** sibling repo's `CLAUDE.md` — edit here, never in the rendered copies | `python3 tools/sync-briefings.py --write` |
-| `tools/sync-briefings.py` | run directly (renders the canonical briefing block into every sibling repo's `CLAUDE.md`; bare/`--check` reports drift, `--write` fixes it; also asserts the condensed block and §H agree on glyph roles) | `python3 tools/sync-briefings.py --write` |
-| `tools/matrix.py` | run directly — the Matrix's own tooling, called as `cardinal.method`: read, find, search, status, log, times, and a probe in each cardinal; `decide.gate`, `decide.rehearse`; `orient.checkpoint`, `orient.retrofit`; `act.write/edit/undo/ship/resolve`. 10-second hard cap, one-time native-tool lease on timeout, stall incidents | `python3 tools/matrix.py list` |
+| `tools/sync-briefings.py` | run directly (renders the canonical briefing block into every sibling repo's `CLAUDE.md`; `--check` reports drift, `--write` fixes it) | `python3 tools/sync-briefings.py --write` |
+| `tools/matrix.py` | run directly: the Matrix's own tooling, called as `cardinal.method`; 10-second cap; methods are listed by the command at right | `python3 tools/matrix.py list` |
 | `.claude/cardinal-map.json` | the Matrix (OODA matrix, alias net): every tool → one cardinal method, the `repoint` table, and the gate `mode` (`name` / `warn` / `enforce`) | edit, then `python3 tools/check-cardinal.py` |
 | `.claude/hooks/cardinal.py` | `PreToolUse` hook on every tool — names the call's cardinal; in `enforce` mode denies repointed native tools (kill switch: `touch .claude/.matrix-off`) | wired in `.claude/settings.json` |
-| `.claude/hooks/decide-act.py` | `Stop` hook — bounces a reply once if it breaks a reply rule: lead state word, Decide and Act parity, `cd` first, rehearsed commands, no hedges, complete tiles, announced scratchpads | wired in `.claude/settings.json` |
+| `.claude/hooks/decide-act.py` | `Stop` hook: bounces a reply once if it breaks one of the seven reply rules | wired in `.claude/settings.json` |
 | `.claude/hooks/timing.py`, `.claude/hooks/resume.py`, `.claude/hooks/precompact.py` | `PostToolUse` timing of every tool call; wake-up after a compaction, resume, or fork; what a compaction summary must keep | wired in `.claude/settings.json` |
 | `tools/check-cardinal.py` | run directly (each tool in exactly one cardinal; every method documented in its skill; every repoint names a real Matrix method) | `python3 tools/check-cardinal.py` |
 | `tools/check-matrix.py` | run directly (end-to-end test of the Matrix in a throwaway sandbox: four cardinals, gate modes, cap, lease, stall) | `python3 tools/check-matrix.py` |
 | `tools/check-decisions.py` | run directly (every `DEC-NNN` in `docs/ai-cto/blocked.md` has a status, a unique id, newest first) | `python3 tools/check-decisions.py` |
-| `tools/check-stop-hook.py` | run directly (feeds sample replies to the Stop hook `.claude/hooks/decide-act.py` and asserts allow or block for each of its seven rules; fails if `.claude/output-styles/briefing.md` does not name a rule the hook enforces) | `python3 tools/check-stop-hook.py` |
-| `tools/check-registers.py` | run directly (every `INIT-`/`DEBT-` entry in `docs/ai-cto/` has a valid status and a unique id, newest first; a Blocked entry names what unblocks it) | `python3 tools/check-registers.py` |
+| `tools/check-stop-hook.py` | run directly (sample replies against the Stop hook's rules; every rule must be named in the output style and have a retrofit entry) | `python3 tools/check-stop-hook.py` |
+| `tools/check-registers.py` | run directly (`INIT-`/`DEBT-` entries valid, unique, newest first; `CLAUDE.md` within its 60,000-byte budget) | `python3 tools/check-registers.py` |
 | `tools/check-telepathy.py` | run directly (end-to-end test of the telepathy mailbox in a throwaway directory: send, inbox, read, mark done, and the watcher must report an arrival within 2 s) | `python3 tools/check-telepathy.py` |
-| `tools/laptop-sync.sh` | run on the founder's laptop — keeps a clean checkout of `main` current without a terminal: `install` sets a systemd user timer (every 15 minutes), `run` does one fast-forward-only pull, `status` shows the log. Never touches a dirty tree or another branch. | `bash tools/laptop-sync.sh install` |
+| `tools/laptop-sync.sh` | run on the founder's laptop: a systemd user timer that fast-forwards a clean checkout of `leader` every 15 minutes | `bash tools/laptop-sync.sh install` |
 | `tools/telepathy/telepathy_mcp.py` | stdio MCP mailbox for sessions on one machine (+ `tools/telepathy/watch.py`, the inotify watcher) | `claude mcp add --scope user telepathy -- python3 tools/telepathy/telepathy_mcp.py` |
 | `.claude/hooks/gate.sh` | `PreToolUse(Bash)` hook — runs the static checks above before any `git commit` and blocks on failure (bypass: `touch .claude/.gate-off`) | wired in `.claude/settings.json` |
 | `tools/migrate.sh` | one-time 1.x→2.0 folder migration (already applied) | — |
@@ -666,12 +658,10 @@ cat /sys/class/drm/card*/device/power_dpm_force_performance_level  # high
 Every commit to `outer` (and to `leader`, while it still carries the stack) must leave README.md
 able to reproduce a working system on clean Ubuntu 24.04.
 
-**Three branches** — founder's decision, 2026-11-12 (DEC-015); it replaces "push to `main`, no
-branches" (2026-06-05). `main` is intent cold storage and receives nothing but the founder's
-promotions. `leader` is where all OODA and Matrix work lands: each session cuts its own branch
-from it and merges back by pull request once the gates pass, with no approval needed. `outer` is
-the home for everything that is not OODA work. `main-before-evacuation` is the frozen undo copy.
-The full picture, and what is not yet sorted: `docs/ai-cto/branches.md`.
+**Three branches** — founder's decision, 2026-11-12 (DEC-015), replacing "push to `main`, no
+branches". `main` is emptied: intent cold storage, the founder's promotions only. `leader` is where
+all work lands: each session cuts its own branch from it and merges back by pull request once the
+gates pass. `outer` is the home for non-OODA files. Full picture: `docs/ai-cto/branches.md`.
 
 **RCPS — how work gets done here** (adopted 2026-08-07). The acronym carries **two
 readings, and both are required, interleaved**:
@@ -788,9 +778,8 @@ One line per entry. The full notes on each are in `docs/architecture/further-rea
 
 ## 5. AI CTO state
 
-**Start of session:** `docs/ai-cto/handoff.md` (the queue), `docs/ai-cto/checkpoint.md` (where things
-stand), `docs/ai-cto/session-log.md` (what past sessions shipped and learned, newest first), and
-`docs/ai-cto/roadmap.md` (the founder's plain-English view).
+**Start of session:** `docs/ai-cto/handoff.md` (queue), `docs/ai-cto/checkpoint.md` (state),
+`docs/ai-cto/session-log.md` (history), `docs/ai-cto/roadmap.md` (the founder's view).
 
 Read `docs/ai-cto/context.md` in this repo for current open items and component status.
 Its **"Default next actions"** block at the top is the pre-computed session-start

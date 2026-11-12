@@ -420,8 +420,9 @@ def orient_probe():
     notes = []
     cp = ROOT / "docs/ai-cto/checkpoint.md"
     head = _git("log", "--format=%h", "-1").stdout.strip()
-    if cp.exists() and head and head not in cp.read_text(encoding="utf-8"):
-        notes.append(f"checkpoint does not name the current commit {head}: run orient.checkpoint")
+    # The checkpoint cannot name the commit that contains it, so "current" means: touched in the last five commits.
+    if cp.exists() and head and not _git("log", "-5", "--format=%h", "--", "docs/ai-cto/checkpoint.md").stdout.strip():
+        notes.append("checkpoint has not been touched in the last five commits: run orient.checkpoint")
     dirty = _git("status", "--short").stdout.strip()
     if dirty:
         notes.append(f"{len(dirty.splitlines())} uncommitted file(s)")

@@ -111,6 +111,12 @@ def main() -> int:
                     f"The probe is lane 0 of 1 + N. Run it first: cd {ROOT} && python3 tools/matrix.py "
                     + {"push": "observe.probe push", "merge": "observe.probe merge BRANCH"}.get(
                         kind, "orient.probe  (or observe.probe / decide.probe / act.probe, whichever fits the goal)"))
+        # One slow step per call: every 10-second breach of 2026-11-11/12 was a chain of these.
+        slow = len(re.findall(r"matrix\.py\s+(?:act\.ship|decide\.rehearse|decide\.gate)\b|\bgit\s+push\b", cmd)) if cmd else 0
+        if slow > 1:
+            out["additionalContext"] += (
+                f" — SLOW CHAIN: this call chains {slow} slow steps (ship, rehearse, gate, push). "
+                "Each takes 3 to 6 seconds; together they break the 10-second cap. Run one per call.")
         stalls = sorted((ROOT / ".claude/.matrix-stalls").glob("*.json"))
         if stalls:
             out["additionalContext"] += (
