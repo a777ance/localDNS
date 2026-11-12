@@ -1,7 +1,8 @@
 # Racetrack rules
 
-**Preflight before any run (founder rule, 2026-11-12).** Any request for an actual run is preceded by
-a thorough preflight and a series of probes, in this order, each one read before the next:
+**Preflight before any run (founder rule, 2026-11-12).** Scope: ANY run, not only racetracks: a build,
+a test suite, a script, a gate, an agent launch, a push, a merge, a deploy. Each run is preceded by a
+thorough preflight and a series of probes, in this order, each one read before the next:
 
 1. Repo state: `git status --short` is empty, and `leader` matches `origin/leader`.
 2. Matrix probes: `python3 tools/matrix.py orient.probe`, `decide.probe`, and `observe.probe push` if the run pushes.
