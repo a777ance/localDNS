@@ -107,6 +107,9 @@ appliance.
 - [ ] **Omit** unsupported sections rather than inventing them — the "How You Compare"
       neighbour benchmark has no cohort, and by-category volume is only real once
       Track 3 lands.
+- [x] Gate for the omit rule: `tools/check-statements.py` runs before every commit (2026-11-12). It
+      found two faults in `compose.py`'s `build_alloc`, reported and not fixed: rounding ties can make
+      the percentages sum to 97 or 103, and an empty input reports a total of 1 byte.
 - [ ] Test the Statement PWA install on iOS and Android.
 - [ ] Generate one household Statement.
 - [ ] Document the repeatable monthly process.
