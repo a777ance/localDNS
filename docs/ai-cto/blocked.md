@@ -12,6 +12,16 @@ to `Done` or `Punted`, and it is removed only by the founder.
 
 ## Decision log (DEC)
 
+- **DEC-023 · Where lane 0 (the probe) sits in the Bifrost notation · OPEN**
+  The probe is lane 0 of 1 + N (INIT-006). The Bifrost spec (`04-user-services/ai-orchestration/highway-notation.md`)
+  does not yet say where a probe sits in the glyph order, so a reader of a Bifrost string cannot tell whether
+  the probe is the first cargo or a staging step. The spec is not edited here.
+  **Action if GO:** the founder names the glyph for the probe (proposed: a `~` staging step before the first `!`),
+  and the loop edits the spec and the page in one commit under `check-docs.py`.
+  **Action if NO GO:** the probe stays outside the notation, as it is now.
+  **Decision needed:** **GO** or **NO GO**. Asked 2026-11-12.
+
+
 - **DEC-022 · Shrink CLAUDE.md sections G and H, and repoint the checks that read them · OPEN**
   Measured 2026-11-12 (SQ-011). §G is 8,631 bytes and §H is 8,496 bytes: 17,127 of CLAUDE.md's
   59,997 bytes, 28.5%. The file is 3 bytes under its 60,000-byte budget, so any growth fails the
