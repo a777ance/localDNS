@@ -39,16 +39,17 @@ pass=0
 while [ "$pass" -lt "$MAX_PASSES" ]; do
   pass=$((pass + 1))
 
+  # 2. Agents first: no new milestone starts while a launched agent has no recorded finish.
+  # (Checked before the gates, so a running agent is reported as itself, not as a red gate.)
+  if ! python3 tools/matrix.py observe.agents check >/dev/null 2>&1; then
+    echo "STOP 2: an agent is still running. Record its finish, then rerun."
+    exit 2
+  fi
+
   # 1. Gates: a red gate stops the factory; it does not pass a bad result on.
   if ! bash tools/check-all.sh --quick >/dev/null 2>&1; then
     echo "STOP 1: a gate is red. Run: bash tools/check-all.sh --quick"
     exit 1
-  fi
-
-  # 2. Agents: no new milestone starts while a launched agent has no recorded finish.
-  if ! python3 tools/matrix.py observe.agents check >/dev/null 2>&1; then
-    echo "STOP 2: an agent is still running. Record its finish, then rerun."
-    exit 2
   fi
 
   # 3. Budget: stop before the next launch once the token budget is spent.
