@@ -18,6 +18,13 @@ Claude to serve OUR UI." The first panel, `console`, is that.
 - Every later message resumes the same conversation. The cost so far is shown at the top.
 - `x` stops Claude mid-turn. Quitting the display stops it too.
 
+**The sandbox, on Ubuntu.** On the founder's XPS the first run printed: "Sandbox disabled ...
+Ubuntu's AppArmor restriction on user namespaces stops bubblewrap here ... Commands will run WITHOUT
+sandboxing." Until that is fixed, anything Claude runs behind the display has the same reach as the
+founder's own shell. Claude Code's documentation gives the fix: add an AppArmor profile for
+`/usr/bin/bwrap`, reload AppArmor, and restart. Do that before starting the console with any
+permission mode that lets Claude act without asking. The console shows such warnings in full, in red.
+
 **Permissions.** With no screen of its own, Claude cannot stop to ask you whether it may edit a
 file or run a command; a step that needs a yes is refused. The display passes no permission
 setting by itself. To give one, set `BRIDGE_CLAUDE_ARGS` before starting it, for example:
@@ -111,5 +118,9 @@ The display uses the terminal's 256-colour set, which does not change with the p
 ## Limits
 
 - It is a viewer. It runs the gates on request; it ships nothing and decides nothing.
-- It has been drawn and checked at four widths by `tools/check-bridge.py`. It has not been seen on
-  the founder's terminal as of 2026-11-12.
+- **Seen working on the founder's terminal, 2026-11-12, 02:11 UTC.** He typed one word into the
+  console; the real Claude answered through the display, in the repo's reply style, and the turn
+  cost 0.32 dollars. Most of that is the briefing every session loads, so a one-word message is
+  not cheap (lean 24).
+- Two faults seen in that first screenshot were fixed the same hour: the tenth rail label ran one
+  column wide, and the session-start hook named the old queue.

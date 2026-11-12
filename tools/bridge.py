@@ -278,7 +278,11 @@ def console_line(raw):
         ev = json.loads(raw)
     except ValueError:
         if raw.strip():
-            say("note", raw.strip()[:300])
+            line = raw.strip()
+            # A line Claude prints outside its stream is usually a warning. Show all of it, and
+            # loudly if it is about safety: the first live run cut a sandbox warning off in grey.
+            loud = line.startswith(("⚠", "Warning", "WARNING", "Error")) or "WITHOUT sandboxing" in line or "NOT be enforced" in line
+            say("warn" if loud else "note", line[:2000])
         return
     kind = ev.get("type")
     if kind == "assistant":
@@ -343,7 +347,7 @@ def panel_console(w):
                   fg(GREY, "The reply appears here. The live panel (3) shows each step Claude takes, by letter."),
                   fg(GREY, "Each message continues the same conversation until you quit.")]
     style = {"you": (ORANGE, "YOU   "), "claude": (WHITE, "CLAUDE"), "tool": (BLUE, "  step"), "note": (GREY, "  note"),
-             "fail": (RED, "FAILED"), "done": (GREEN, "  done")}
+             "fail": (RED, "FAILED"), "done": (GREEN, "  done"), "warn": (RED, "WARNING")}
     for kind, text in CONSOLE["log"]:
         color, label = style[kind]
         first = True
@@ -352,7 +356,7 @@ def panel_console(w):
                 shown = fg(color, wrapped) if kind != "claude" else re.sub(r"\*\*(.+?)\*\*", lambda m: bold(m.group(1)), wrapped)
                 lines.append((fg(color, label) if first else "      ") + "  " + shown)
                 first = False
-        if kind in ("claude", "done", "fail"):
+        if kind in ("claude", "done", "fail", "warn"):
             lines.append("")
     return lines
 
@@ -615,7 +619,7 @@ def frame(panel, w, h=None, scroll=0, sel=None, opened=False):
         slot, sub = divmod(row, 2)
         if slot < len(PANELS):
             name = PANELS[slot]
-            label = f" {slot + 1} {name.upper():<10}" if sub == 0 else ""
+            label = f"{slot + 1:>2} {name.upper():<10}" if sub == 0 else ""
             cell = bg(WHITE if name == panel else RAIL[slot], label.ljust(rail_w - 1)) + (fg(WHITE, "▌") if name == panel else " ")
         else:
             cell = (bg(GREY if (row // 2) % 3 else ORANGE, " " * (rail_w - 1)) + " ") if h else " " * rail_w
@@ -757,7 +761,7 @@ def check_console():
               {"type": "result", "subtype": "success", "result": "ok", "session_id": "s-1", "total_cost_usd": 0.42}]
     with tempfile.TemporaryDirectory() as tmp:
         stub = Path(tmp) / "claude"
-        stub.write_text("#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$0.args\"\ncat <<'EOF'\n" + "\n".join(json.dumps(e) for e in events) + "\nnot json\nEOF\n")
+        stub.write_text("#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$0.args\"\ncat <<'EOF'\n" + "\n".join(json.dumps(e) for e in events) + "\nnot json\n⚠ Sandbox disabled: commands will run WITHOUT sandboxing.\nEOF\n")
         stub.chmod(0o755)
         old = os.environ.get("BRIDGE_CLAUDE_BIN")
         os.environ["BRIDGE_CLAUDE_BIN"] = str(stub)
@@ -771,7 +775,7 @@ def check_console():
                 if turn == 2 and "--resume" not in args:
                     faults.append("console: the second message did not resume the first conversation")
             kinds = [k for k, _ in CONSOLE["log"]]
-            for want in ("you", "tool", "claude", "done", "note"):
+            for want in ("you", "tool", "claude", "done", "note", "warn"):
                 if want not in kinds:
                     faults.append(f"console: no {want!r} line after a turn")
             if CONSOLE["session"] != "s-1" or abs(CONSOLE["cost"] - 0.42) > 1e-9:
