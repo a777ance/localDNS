@@ -17,8 +17,7 @@ A plain-English version of the open decisions, in the order to answer them, is i
 Every founder decision, newest first, with its result. Open tiles stay here until the
 founder decides.
 
-- **DEC-017 · Run the loop on a schedule, without the founder prompting it · OPEN**
-  Asked 2026-11-12. Waiting on GO or NO GO. Today the loop turns only when the founder sends a
+- **DEC-017 · Run the loop on a schedule, without the founder prompting it · GO · executed.** Founder's GO, 2026-11-12. A scheduled task named "localDNS loop tick" fires once a day at 10:43 UTC into one standing loop session (the second session of 2026-11-12, which has the repository and the GitHub tools). A first design that started a fresh session on each firing was created and deleted within a minute: a fresh session gets no repository and no GitHub tools, so its ticks would have done nothing. To stop the loop: disable or delete the scheduled task in the Claude app. Original note: Today the loop turns only when the founder sends a
   message. The standing prompt for one unattended tick is written (`docs/ai-cto/loop-tick.md`): one
   item, 30 minutes at most, a pull request into `leader`, a session-log entry, then stop. It is the
   founder's decision because every firing starts a session and spends money. Proposed: once a day.

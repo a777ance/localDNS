@@ -5,6 +5,11 @@ session with this text, so the loop turns without the founder prompting it. One 
 item and stops. The schedule itself is the founder's decision (DEC-017): it spends money on
 every firing.
 
+**Switched on 2026-11-12 (DEC-017, GO):** a scheduled task named "localDNS loop tick" delivers a
+short message once a day, at 10:43 UTC, to one standing loop session, and that message points here.
+It goes to a standing session, not a fresh one, because a fresh scheduled session is given no
+repository and no GitHub tools. To stop the loop, disable or delete the task in the Claude app.
+
 ---
 
 You are one unattended tick of the working loop on the repository a777ance/localDNS. No person
