@@ -44,3 +44,4 @@ __pycache__/
 .claude/.matrix-scratch
 .claude/.matrix-starts/
 *.bak
+.claude/.matrix-recent

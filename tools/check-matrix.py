@@ -228,6 +228,16 @@ def main() -> int:
             check("act.resolve", r.returncode == 0 and (box / "docs/ai-cto/stalls.md").exists(), r.stderr)
         check("stall closed", "OPEN MATRIX STALL" not in hook("Glob")["additionalContext"])
         check("cap cannot be raised", mx("observe.read", "notes.txt", MATRIX_TIMEOUT="99").returncode == 0)
+        # SQ-007: three acts in a row name an ACT RUN; an observe between them clears it.
+        (box / ".claude/.matrix-recent").unlink(missing_ok=True)
+        hook("Write", {"file_path": "a.txt", "content": "x"})
+        two = hook("Write", {"file_path": "b.txt", "content": "x"})["additionalContext"]
+        check("act run: two acts do not warn", "ACT RUN" not in two, two)
+        three = hook("Write", {"file_path": "c.txt", "content": "x"})["additionalContext"]
+        check("act run: three acts in a row warn", "ACT RUN" in three, three)
+        hook("Read", {"file_path": "notes.txt"})
+        after = hook("Write", {"file_path": "d.txt", "content": "x"})["additionalContext"]
+        check("act run: an observe between acts clears it", "ACT RUN" not in after, after)
     finally:
         shutil.rmtree(box, ignore_errors=True)
     for f in FAILS:

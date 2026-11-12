@@ -130,6 +130,24 @@ def main() -> int:
             out["additionalContext"] += (
                 f" — SLOW CHAIN: this call chains {slow} slow steps (ship, rehearse, gate, push). "
                 "Each takes 3 to 6 seconds; together they break the 10-second cap. Run one per call.")
+        # SQ-007: three or more act calls in a row with no observe or orient between them. The
+        # trail is the last 20 cardinals; a run of act at its end is what this names.
+        try:
+            trail_path = ROOT / ".claude/.matrix-recent"
+            trail = json.loads(trail_path.read_text(encoding="utf-8")) if trail_path.exists() else []
+            trail = (trail + [alias.split(".")[0] if alias else "unmapped"])[-20:]
+            trail_path.write_text(json.dumps(trail), encoding="utf-8")
+            run = 0
+            for c in reversed(trail):
+                if c != "act":
+                    break
+                run += 1
+            if alias.startswith("act.") and run >= 3:
+                out["additionalContext"] += (
+                    f" — ACT RUN: {run} act calls in a row with no observe or orient between them. "
+                    "Look before the next act: cd " + str(ROOT) + " && python3 tools/matrix.py orient.probe")
+        except (OSError, ValueError):
+            pass  # the trail is a warning, never a gate
         stalls = sorted((ROOT / ".claude/.matrix-stalls").glob("*.json"))
         if stalls:
             out["additionalContext"] += (

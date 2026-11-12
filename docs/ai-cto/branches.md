@@ -99,3 +99,28 @@ cannot be undone from here, so it stays the founder's hand.
 | `Yggdrasil` | 2026-08-11 | 48 | **Superfluous, not safe to delete unread.** It holds work that is nowhere else. |
 
 `main-before-evacuation` is not superfluous: it is the undo copy and stays.
+
+## Promotions to main (SQ-004)
+
+What goes to `main`: only the one-page intent (`docs/ai-cto/intent-draft.md`, once edited) and any
+later statement of what the founder has decided. Who does it: the founder, by hand, after reading the
+draft. Each promotion is tagged on `main` with its date, so a reader can tell which intent was in
+force when. The loop never writes to `main`.
+
+## What the three old branches hold (SQ-005)
+
+Measured 2026-11-12 with `git log` and `git diff` against `origin/leader`. Counts are measured; the
+reading of each is the loop's and is not yet checked by a person.
+
+- **`Yggdrasil`** (48 commits not on leader; 36 files differ, 4135 lines added). Holds the earlier
+  gates and hooks (`gate.sh`, `push-guard.sh`, `refeed.sh`), a `promotion-guard.yml` workflow, and
+  the ai-orchestration blocks for branch policy, proxy and session visibility. Likely unique: the
+  promotion guard and the branch-policy block. Its own tip says "close the nine dead-shape promotions".
+- **`doom-drawer/2026-08-08`** (261 commits not on leader; 7 files differ, 582 added, 123 removed).
+  Holds a `pages-toggle.py` tool, the warrant-sites note, and an older `CLAUDE.md`. Its tip is an
+  archive of 26 stale session branches. Likely unique: `pages-toggle.py`; the rest is probably
+  superseded by leader.
+- **`cloudflare/workers-autoconfig`** (128 commits; no merge base with leader, so it is unrelated
+  history). Holds the Cloudflare Workers configuration commit (2026-07-21). Its file diff against
+  leader is 180 files, which is mostly leader's newer tree read backwards; the unique material is
+  the Workers configuration alone, and needs a person to pull it out before anything is kept.

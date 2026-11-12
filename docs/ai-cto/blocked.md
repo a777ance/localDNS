@@ -12,6 +12,10 @@ to `Done` or `Punted`, and it is removed only by the founder.
 
 ## Decision log (DEC)
 
+- **DEC-021 · Promote the one-page intent draft onto `main` · OPEN**
+  **Action if GO:** the founder copies `docs/ai-cto/intent-draft.md` onto `main` after editing it, and tags the promotion.
+  **Action if NO GO:** `main` stays empty and the draft stays on `leader`.
+  **Decision needed:** **GO** or **NO GO**. Asked 2026-11-12.
 A plain-English version of the open decisions, in the order to answer them, is in `docs/ai-cto/roadmap.md`.
 
 Every founder decision, newest first, with its result. Open tiles stay here until the

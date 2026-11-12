@@ -6,6 +6,20 @@ session. Commit ids are on `main`.
 
 ---
 
+## Entry template (SQ-006)
+
+Each entry carries a cost line, filled from what the session can read, never estimated:
+
+- **Cost:** tool calls (from `python3 tools/matrix.py observe.times`), wall time, and whether the
+  session ran on the plan or on overage. A dollar figure is entered only when the platform shows one;
+  otherwise write "not shown".
+
+**Known figures, recorded 2026-11-12:**
+- Cost: the usage limit was reached at 22:28 UTC on 2026-11-11 and the session ran on overage. Dollar figure: not shown.
+- Cost: 95 native tool calls timed by 00:40 UTC on 2026-11-12, five of them over 10 seconds. Dollar figure: not shown.
+
+---
+
 ## 2026-11-11 to 2026-11-12 · The Matrix goes live; look before the leap
 
 **Set out to do:** work the 30-item queue left by the previous session (archived in
