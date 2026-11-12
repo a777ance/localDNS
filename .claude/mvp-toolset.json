@@ -1,0 +1,13 @@
+{
+  "_comment": "Minimum viable toolset. Tools listed here are never blocked by .claude/hooks/alias.sh, whatever tool-aliases.json says. This is the bootstrap set: read, write and recover through GitHub MCP, and ask questions. Extend it deliberately, one reason per addition. Bash is not listed: its destructive-command rule must keep applying.",
+  "tools": [
+    "ToolSearch",
+    "AskUserQuestion",
+    "mcp__github__get_file_contents",
+    "mcp__github__create_or_update_file",
+    "mcp__github__push_files",
+    "mcp__github__pull_request_read",
+    "mcp__github__get_commit",
+    "mcp__github__list_commits"
+  ]
+}
