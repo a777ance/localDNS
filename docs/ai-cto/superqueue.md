@@ -19,7 +19,7 @@ after its bold title. Each line names its lean number in brackets.
 - **SQ-007 · Flag a run of acts with no observation.** [lean 21] In `.claude/hooks/cardinal.py`: three or more act calls in a row with no observe or orient call between them gets a warning. Done: a test case in `tools/check-matrix.py`. This changes a hook: see SQ-104.
 - **SQ-008 · Audit the prose-only rules, or name the gate that does. · DONE bd67027 ·** [lean 27, old Q-035] Done: `python3 tools/matrix.py orient.retrofit` lists house style, provenance, and the Jury values.
 - **SQ-009 · One probe that picks the others from a stated goal. · DONE 92dcb24 ·** [lean 26] Done: one method takes a goal in plain words and runs the probes that fit it.
-- **SQ-010 · Name session branches by cardinal.** [lean 19] Done: one line in `docs/ai-cto/branches.md`, and the setup script names a moved session accordingly.
+- **SQ-010 · Name session branches by cardinal.** · DONE 0f16cc3 · [lean 19] Done: one line in `docs/ai-cto/branches.md`, and the setup script names a moved session accordingly.
 - **SQ-011 · Proposal: shrink sections G and H of `CLAUDE.md`.** [lean 24, old Q-039] Measure, say which checks must be repointed, and write a DEC entry. Do not move anything.
 - **SQ-012 · Proposal: where lane 0 sits in the Bifrost notation.** [old Q-036] A DEC entry only. Do not edit the spec.
 
