@@ -615,7 +615,7 @@ def frame(panel, w, h=None, scroll=0, sel=None, opened=False):
         slot, sub = divmod(row, 2)
         if slot < len(PANELS):
             name = PANELS[slot]
-            label = f" {slot + 1} {name.upper():<10}" if sub == 0 else ""
+            label = f"{slot + 1:>2} {name.upper():<10}" if sub == 0 else ""
             cell = bg(WHITE if name == panel else RAIL[slot], label.ljust(rail_w - 1)) + (fg(WHITE, "▌") if name == panel else " ")
         else:
             cell = (bg(GREY if (row // 2) % 3 else ORANGE, " " * (rail_w - 1)) + " ") if h else " " * rail_w

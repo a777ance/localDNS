@@ -111,5 +111,9 @@ The display uses the terminal's 256-colour set, which does not change with the p
 ## Limits
 
 - It is a viewer. It runs the gates on request; it ships nothing and decides nothing.
-- It has been drawn and checked at four widths by `tools/check-bridge.py`. It has not been seen on
-  the founder's terminal as of 2026-11-12.
+- **Seen working on the founder's terminal, 2026-11-12, 02:11 UTC.** He typed one word into the
+  console; the real Claude answered through the display, in the repo's reply style, and the turn
+  cost 0.32 dollars. Most of that is the briefing every session loads, so a one-word message is
+  not cheap (lean 24).
+- Two faults seen in that first screenshot were fixed the same hour: the tenth rail label ran one
+  column wide, and the session-start hook named the old queue.
