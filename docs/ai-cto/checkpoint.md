@@ -6,7 +6,7 @@ boundary (a ship, a decision, a lease start). Read this, then run
 
 ---
 
-**Written:** 2026-11-12, about 02:00 UTC · work lands on `leader` · `main` is emptied (`646c709`) · gate mode is `warn`
+**Written:** 2026-11-12, about 02:10 UTC, just before a compaction · work lands on `leader` · `main` is emptied (`646c709`) · gate mode is `warn`
 
 ## Where things stand
 
@@ -18,11 +18,11 @@ Live facts, rewritten by `python3 tools/matrix.py orient.checkpoint`:
 - **Open decisions:** DEC-019, DEC-018, DEC-005
 - **Open stalls:** none
 - **Last five commits:**
-  - 31f17be Thirty leans for the end-to-end build, ranked and sorted into five tiers
-  - edce654 DEC-019: the sub-loop hand-out for L items was stopped by the platform's safety system; record it as the founder's choice
-  - add23bf Stop hook: an L item with a sub-loop already running is not handed out twice
-  - d0a238f Merge pull request #57 from a777ance/claude/serene-tesla-yvl22m
-  - 61610df The L step: what is left open goes under L, and each loop-owned item starts a sub-OODA loop at once
+  - 3c19470 Merge pull request #64 from a777ance/claude/serene-tesla-yvl22m
+  - 5bb9038 Bridge display: Claude served through our own screen, a live panel, and a status-bar strip
+  - ce63002 Merge pull request #63 from a777ance/claude/serene-tesla-yvl22m
+  - df50ef1 Bridge display: pick and open items, two new panels with charts, headline tiles, a keys screen
+  - 2b25ab4 Merge pull request #62 from a777ance/claude/serene-tesla-yvl22m
 <!-- live:end -->
 
 In prose:
@@ -38,10 +38,40 @@ In prose:
 - **No PR is open and none is watched.**
 - **No peers are running.** All eight from 2026-11-11 are archived.
 
+## Built since the handoff was written (2026-11-12, 00:40 to 02:10 UTC)
+
+- **Reply rules, now eleven,** all in `.claude/hooks/decide-act.py`: the landing line (last line
+  is `**Landed · N = <count>:**`), the next action (a stop names the next queue item unless the reply
+  has a `Stopping because:` line), and the L step (what is left open goes under `L · `; each item
+  cites a DEC id or is the loop's own).
+- **The letter leads:** every shell command's description starts `O · `, `OO · `, `D · ` or `A · `;
+  the naming hook flags a wrong or missing letter. For calls with no description, put the letter on
+  a line of text just before the call.
+- **Thirty leans, a dependency map, and the superqueue** (`docs/ai-cto/leans-e2e.md`,
+  `docs/ai-cto/dependency-map.md`, `docs/ai-cto/superqueue.md`). The superqueue is the queue the
+  hooks read. Its first open item is SQ-001.
+- **The superfleet plan** (`docs/ai-cto/superfleet.md`, `.claude/superfleet.json`,
+  `tools/check-superfleet.py`): ten scenarios, 34 lanes, a gate, and a review command. The lanes' own
+  instructions are the founder's to write.
+- **The bridge display** (`tools/bridge.py`, guide `docs/ai-cto/bridge.md`): ten panels with charts,
+  items that open on Enter, and a console that serves Claude through the display by way of
+  `claude -p`. Tested against a stand-in; not yet run against the real Claude on the founder's machine.
+- **The scheduled loop is paused.** Its one proving run could not push (DEC-018).
+
+## What this session may not do, learned the hard way
+
+- **Write standing instructions for unattended agents, or launch parallel subagents.** The platform's
+  safety system stopped the response each time (three times). Do not retry and do not reword. A
+  session may describe work and build checks; the founder writes agent instructions (DEC-019, DEC-020).
+- **Change the gate mode, `.claude/settings.json`, or files under `.claude/commands/`.** Refused as
+  changes to the session's own configuration. Describe the change for the founder instead.
+- **Read another session's event log.** It returns far more text than it is worth.
+
 ## Open founder decisions
 
-DEC-019 (how sub-loops run), DEC-018 (attach the repo to the scheduled loop, which is paused), and DEC-005 (venv files: needs two facts from the XPS; the command is in `docs/ai-cto/roadmap.md`).
-`enforce` mode has no decision open and must not be turned on without one.
+DEC-020 (the superfleet: lane instructions and a first run are the founder's), DEC-019 (how
+sub-loops run), DEC-018 (attach the repo to the scheduled loop, which is paused), and DEC-005
+(venv files). `enforce` mode has no decision open and must not be turned on without one.
 
 ## Next work, in order
 
