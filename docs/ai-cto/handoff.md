@@ -64,8 +64,8 @@ One item at a time, in order. Each has a done-test.
 
 - **Q-031 · See the hooks in a fresh session on `main`.** · DONE (2026-11-12: a fresh second session showed the hook line on its first `Read`) · Look for a `cardinal:` line with `Matrix route` on the first `Read`. Done: recorded in DEBT-008. This is the proof the merge reached new sessions.
 - **Q-032 · See the trimmed setup script run in a fresh cloud container.** · DONE (same session: the setup script ran, nine gates ok at start) · Done: nine `ok` lines in the setup log, recorded under DEC-014.
-- **Q-033 · See a live compaction.** (The Stop-hook bounce was seen live on 2026-11-12.) Done: both recorded in DEBT-008, with the hook text that appeared.
-- **Q-034 · A quick probe for every mapped tool (INIT-006).** Add a `probe` field per tool in `.claude/cardinal-map.json` (the dry-run form of the call, or the reason none exists) and make `tools/check-cardinal.py` fail on a tool with neither. Done: gate green.
+- **Q-033 · BLOCKED on an event · See a live compaction.** (The Stop-hook bounce was seen live on 2026-11-12.) Done: both recorded in DEBT-008, with the hook text that appeared.
+- **Q-034 · A quick probe for every mapped tool (INIT-006).** · DONE (2026-11-12: 110 tools, 65 with a probe, 45 with a stated reason) · Add a `probe` field per tool in `.claude/cardinal-map.json` (the dry-run form of the call, or the reason none exists) and make `tools/check-cardinal.py` fail on a tool with neither. Done: gate green.
 - **Q-035 · Retrofit audits for the prose-only rules (INIT-007).** House style (newest first, Z to A), provenance, and the Jury doctrine have no audit in `orient.retrofit`. Add one each, or the stated reason none can exist. Done: `orient.retrofit` lists them.
 - **Q-036 · 1 + N in the Bifrost notation.** A proposal for the founder only: where lane 0 sits relative to `^`. Do not edit the spec. Done: a tile in `docs/ai-cto/blocked.md`.
 - **Q-037 · Confirm the laptop timer.** Once the founder has run `bash tools/laptop-sync.sh install`, ask for the output of `bash tools/laptop-sync.sh status`. Done: recorded in the session log.
