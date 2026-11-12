@@ -1,5 +1,5 @@
 {
-  "_comment": "Tool-call aliases read by .claude/hooks/alias.sh (matcher '*', every tool call). Rules are checked in order; first match wins. Native tools are blocked: each block message names the repo replacement, which is the GitHub MCP tool (mcp__github__*). 'match' is an optional regex on the call's input (JSON-escaped, so keep patterns free of double quotes). ToolSearch and AskUserQuestion are deliberately not blocked.",
+  "_comment": "Tool-call aliases read by .claude/hooks/alias.sh (matcher '*', every tool call). Rules are checked in order; first match wins. Native tools are blocked: each block message names the repo replacement, which is the GitHub MCP tool (mcp__github__*). 'match' is an optional regex on the call's input (JSON-escaped, so keep patterns free of double quotes). ToolSearch and AskUserQuestion are deliberately not blocked. Bash has two independent layers: block-destructive-bash is the ban; the block-bash-* rules are the fallback and must hold even if the ban fails.",
   "aliases": [
     {
       "name": "block-destructive-bash",
@@ -7,6 +7,41 @@
       "action": "block",
       "match": "\\brm\\s+-[a-zA-Z]*[rRf]|\\brm\\s+--(recursive|force)|\\bgit\\s+push\\b.*--force(?!-with-lease)|\\bgit\\s+push\\b.*\\s-f\\b|\\bgit\\s+reset\\s+--hard\\b|\\bgit\\s+clean\\b.*-[a-zA-Z]*f|\\bmkfs(\\.|\\s)|\\bdd\\s+if=|\\bshutdown\\b|\\breboot\\b|\\bdocker\\s+(system\\s+prune|rm\\s+-f)",
       "message": "Destructive shell command blocked by the repo's alias router (.claude/tool-aliases.json). Use a non-destructive form, or ask the user to run it."
+    },
+    {
+      "name": "block-bash-redirect-write",
+      "tool": "Bash",
+      "action": "block",
+      "match": "(?<![0-9<])>{1,2}(?!\\s*/dev/null)(?!&\\d)",
+      "message": "Bash output redirection into a file is blocked by the repo alias router (second layer, separate from the destructive ban). Write with mcp__github__create_or_update_file on the work branch."
+    },
+    {
+      "name": "block-bash-file-verbs",
+      "tool": "Bash",
+      "action": "block",
+      "match": "^\\{.command.:\\s.(?:[^;&|]*?(?:&&|\\|\\||[;|])\\s*)?(?:cat|head|tail|less|more|bat|nl|tac|strings|xxd|od|hexdump|awk|sed|tee|cp|mv|install|touch|truncate|chmod|chown|grep|rg|find|ls|tree|stat|wc|diff|cmp|vi|vim|nano|emacs)\\b|(?:&&|\\|\\||[;|]|\\$\\(|`)\\s*(?:cat|head|tail|less|more|bat|nl|tac|strings|xxd|od|hexdump|awk|sed|tee|cp|mv|install|touch|truncate|chmod|chown|grep|rg|find|ls|tree|stat|wc|diff|cmp|vi|vim|nano|emacs)\\b",
+      "message": "Bash file reads and writes are blocked by the repo alias router. Read with mcp__github__get_file_contents, write with mcp__github__create_or_update_file. Non-file uses of these verbs are blocked too, by design."
+    },
+    {
+      "name": "block-bash-interpreter-io",
+      "tool": "Bash",
+      "action": "block",
+      "match": "(?:python3?|perl|ruby|node)\\b.*(?:open\\(|write|Path\\(|writeFile|write_text|shutil|os\\.(?:remove|rename|replace|makedirs|symlink))",
+      "message": "Scripted file I/O through an interpreter is blocked by the repo alias router. Use mcp__github__create_or_update_file on the work branch."
+    },
+    {
+      "name": "block-bash-heredoc",
+      "tool": "Bash",
+      "action": "block",
+      "match": "<<",
+      "message": "Heredoc input is blocked by the repo alias router, since it is the usual route to writing a file. Use mcp__github__create_or_update_file on the work branch."
+    },
+    {
+      "name": "block-bash-git-worktree",
+      "tool": "Bash",
+      "action": "block",
+      "match": "git\\s+(?:restore|apply|am|mv|rm|stash)\\b|git\\s+checkout\\s+--\\s",
+      "message": "Git commands that change the working tree are blocked by the repo alias router. Use mcp__github__create_or_update_file or mcp__github__push_files on the work branch."
     },
     {
       "name": "native-read",
