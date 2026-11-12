@@ -11,6 +11,9 @@ requires .claude/output-styles/briefing.md to name):
   HEDGE    no vague hedge outside code and quotes
   REHEARSE a bash block handed to the founder was run first (decide.rehearse), or says why not
   SCRATCH  every new file in the session's scratchpad is announced by its full path
+  LANDING  the last line says where we landed on the N items: **Landed · N = <count>:** ...
+  NEXT     a stop names the next action (uncommitted work, an open stall, the next queue item)
+           unless the reply says why it stops, on a line starting "Stopping because:"
   TILE     a DECISION tile has both action lines, the GO / NO GO line, and a logged DEC id
 
 Loop safety: when Claude Code re-enters the turn because of this hook, the
@@ -109,6 +112,29 @@ def scratch_unannounced(text, session_id):
     return [f for f in new if f not in named]
 
 
+def next_action():
+    """What the loop should do next, read from disk. None when nothing is waiting."""
+    import subprocess
+    try:
+        dirty = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True, cwd=ROOT,
+                               timeout=3).stdout.strip().splitlines()
+    except Exception:
+        dirty = []
+    if dirty:
+        return ("%d file(s) are changed and not shipped (%s). Ship them: python3 tools/matrix.py act.ship "
+                "\"MESSAGE\" FILE... --push" % (len(dirty), ", ".join(l.split()[-1] for l in dirty[:4])))
+    if list((ROOT / ".claude/.matrix-stalls").glob("*.json")):
+        return "a Matrix stall is open. Diagnose it: python3 tools/matrix.py orient.stall"
+    try:
+        queue = (ROOT / "docs/ai-cto/handoff.md").read_text(encoding="utf-8")
+    except OSError:
+        return None
+    for m in re.finditer(r"^- \*\*(Q-\d{3}) · (.*?)\*\*.*$", queue, re.MULTILINE):
+        if not re.search(r"BLOCKED|DONE|SKIPPED", m.group(0)):
+            return "the next queue item is %s · %s (docs/ai-cto/handoff.md). Start it now." % (m.group(1), m.group(2)[:90])
+    return None
+
+
 def review(text, session_id=""):
     """Return the list of reasons this reply may not end the turn. Empty means allow."""
     reasons = []
@@ -187,6 +213,25 @@ def review(text, session_id=""):
             missing.append("an entry for %s in docs/ai-cto/blocked.md" % dec)
         if missing:
             reasons.append("TILE: the tile for %s is missing: %s." % (dec, "; ".join(missing)))
+    # NEXT. The founder's rule, 2026-11-12: the Stop hook starts the next action. A stop is allowed
+    # only when nothing is waiting, or when the reply says why it stops.
+    if "Stopping because:" not in text:
+        try:
+            todo = next_action()
+        except Exception:
+            todo = None
+        if todo:
+            reasons.append(
+                "NEXT ACTION: do not stop here; %s If stopping is right (waiting on the founder, on an "
+                "event, or the work was a question and not a task), say so on a line starting "
+                "'Stopping because:' and end the reply." % todo)
+    # LANDING. The founder's rule, 2026-11-12: the last sentence always answers "where did we land on N x".
+    last = next((l for l in reversed(text.splitlines()) if l.strip()), "")
+    if not re.match(r"^\*\*Landed · N = \d+:\*\*\s+\S", last.strip()):
+        reasons.append(
+            "LANDING: the reply must end with one line that says where we landed, in this form: "
+            "**Landed · N = <count>:** then where each of the N items in play stands, in one sentence. "
+            "It ended with: %r" % last.strip()[:80])
     return reasons
 
 

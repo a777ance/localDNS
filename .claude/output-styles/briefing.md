@@ -65,3 +65,10 @@ Skip or punt is always the user's call. Mark a queued item `punt` only when the 
   what it is, or deleted. A scratchpad nobody was told about is lost.
 - 1 + N lanes. The probe is lane 0 of every piece of work and goes first: `observe.probe`, `orient.probe`,
   `decide.probe`, or `act.probe`, whichever fits the goal. The N lanes (parallel, sequential, or both) open after it.
+- The landing line. The last line of every reply answers "where did we land on N x": it reads
+  `**Landed · N = <count>:**` followed by one sentence saying where each of the N items in play stands.
+  N is the number of items the reply dealt with. Nothing comes after it.
+- The stop hook starts the next action. When a turn ends, the hook reads the disk: unshipped changes, an open
+  stall, or the next unblocked item in `docs/ai-cto/handoff.md`. If one is waiting, the stop is refused once and
+  the hook names it. A reply that should end anyway says why on a line starting `Stopping because:`
+  (waiting on the founder, waiting on an event, or the turn was a question and not a task).
