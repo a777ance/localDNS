@@ -5,6 +5,38 @@ A text dashboard of the loop's state, for the founder's terminal: `tools/bridge.
 the checkout and changes nothing. The look follows the panel style he named: a block-colour side
 rail, pill labels, and bars.
 
+## Claude, served through this display
+
+The founder's instruction, 2026-11-12: "I don't want the usual Claude out-of-the-box CLI, I want
+Claude to serve OUR UI." The first panel, `console`, is that.
+
+- Press `i`, type a message, press Enter. The message goes to Claude through `claude -p` with
+  streamed JSON output, which is the documented way to run Claude Code with no screen of its own.
+- The reply streams into the console panel. Each step Claude takes shows as a line, and the
+  `live` panel shows the same steps by letter (O, OO, D, A) with their times, because the repo's
+  hooks run in that mode too.
+- Every later message resumes the same conversation. The cost so far is shown at the top.
+- `x` stops Claude mid-turn. Quitting the display stops it too.
+
+**Permissions.** With no screen of its own, Claude cannot stop to ask you whether it may edit a
+file or run a command; a step that needs a yes is refused. The display passes no permission
+setting by itself. To give one, set `BRIDGE_CLAUDE_ARGS` before starting it, for example:
+
+```bash
+cd ~/localDNS
+BRIDGE_CLAUDE_ARGS="--permission-mode acceptEdits" python3 tools/bridge.py
+```
+
+Not rehearsed: this needs the `claude` command and your login, which the cloud container that
+built it does not use. The console's handling of Claude's output is tested against a stand-in
+that writes the same kind of stream.
+
+**Inside Claude Code's own screen**, if you ever use it, the display can supply its status bar:
+`python3 tools/bridge.py --statusline` prints two lines (branch, mode, open decisions, the next
+queue item, a context bar, cost, and the trail of letters). To turn it on, the `statusLine` setting
+in `.claude/settings.json` has to name that command; a session is not allowed to change that file,
+so it is yours to add.
+
 ## Run it
 
 Full screen, with panels to move through:
@@ -14,8 +46,8 @@ cd ~/localDNS
 python3 tools/bridge.py
 ```
 
-One panel printed and done (`status`, `queue`, `decisions`, `activity`, `timing`, `branches`,
-`fleet`, `leans`, or `all`):
+One panel printed and done (`console`, `status`, `live`, `queue`, `decisions`, `activity`,
+`timing`, `branches`, `fleet`, `leans`, or `all`):
 
 ```bash
 cd ~/localDNS
@@ -26,7 +58,9 @@ python3 tools/bridge.py --once all
 | --- | ---- |
 | Tab, → | next panel |
 | Shift-Tab, ← | previous panel |
-| 1 to 8 | jump to a panel |
+| 1 to 9, 0 | jump to a panel (0 is the tenth) |
+| i | write a message to Claude; Enter sends, Esc cancels |
+| x | stop Claude mid-turn |
 | ↑ ↓ | pick an item (marked ▸); on a panel with none, scroll |
 | Enter | open or close the picked item: its full text appears beneath it |
 | PgUp, PgDn, Space | scroll a page |
@@ -39,6 +73,8 @@ python3 tools/bridge.py --once all
 
 | Panel | Shows | Opens to |
 | ----- | ----- | -------- |
+| console | Claude, served through this display: your messages, its replies, each step it takes | |
+| live | calls in flight right now, the latest finished calls with their letters and times, and the trail of letters | |
 | status | four headline tiles; branch, gate mode, unshipped files; both lanes' progress; the next item for the loop and for the founder; the gates | the next item's full text; each gate's last line |
 | queue | the superqueue in three lanes, with a mark per item | the item's done-test |
 | decisions | open, GO, NO GO, and moot as bars; then each, newest first | the decision's full record |

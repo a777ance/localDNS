@@ -1,15 +1,23 @@
 #!/usr/bin/env python3
 """bridge.py — the bridge display: the state of the loop as a text dashboard.
 
-    python3 tools/bridge.py                 full screen. Tab or left/right change panel, 1-8 jump,
+    python3 tools/bridge.py                 full screen. Tab or left/right change panel, 1-9 jump,
                                             up/down pick an item, Enter opens it, g runs the gates,
-                                            ? shows the keys, q quits
+                                            i types a message to Claude (the console panel shows
+                                            the reply), x stops Claude, ? shows the keys, q quits
     python3 tools/bridge.py --once [PANEL]  print one panel (or `all`) and exit; colour if a terminal
     python3 tools/bridge.py --plain [PANEL] the same with no colour codes, for pasting into a reply
+    python3 tools/bridge.py --statusline    two lines for a status bar, from session facts on stdin
     python3 tools/bridge.py --check         draw every panel at several widths, with every item
                                             opened in turn; exit 1 on any fault
 
-Panels: status, queue, decisions, activity, timing, branches, fleet, leans. Everything is read from
+Panels: console, status, live, queue, decisions, activity, timing, branches, fleet, leans.
+
+The console is Claude served through this display, not through Claude Code's own screen. A message
+typed here is passed to `claude -p ... --output-format stream-json`, the documented way to run
+Claude Code with no interface of its own, and each later message resumes the same conversation.
+The repo's hooks run in that mode too, so the live panel fills as Claude works. Extra flags, such
+as a permission mode, come from the environment variable BRIDGE_CLAUDE_ARGS; none is set here. Everything is read from
 files and from git in this checkout; the display changes nothing. The look is in the spirit of the
 "LCARS" panels the founder asked for: a block-colour side rail, pill labels, tiles, and bars.
 Standard library only.
@@ -17,6 +25,7 @@ Standard library only.
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -25,9 +34,11 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PANELS = ["status", "queue", "decisions", "activity", "timing", "branches", "fleet", "leans"]
+PANELS = ["console", "status", "live", "queue", "decisions", "activity", "timing", "branches", "fleet", "leans"]
 ORANGE, PEACH, LAV, BLUE, RED, GREEN, GREY, WHITE = 208, 216, 141, 110, 203, 114, 245, 231
-RAIL = [ORANGE, PEACH, LAV, BLUE, PEACH, LAV, BLUE, ORANGE]
+RAIL = [WHITE, ORANGE, GREEN, PEACH, LAV, BLUE, PEACH, LAV, BLUE, ORANGE]
+LETTER = {"observe": "O", "orient": "OO", "decide": "D", "act": "A"}
+CONSOLE = {"log": [], "proc": None, "buf": b"", "session": None, "cost": 0.0, "typing": None}
 CANON = ["main", "leader", "outer", "main-before-evacuation"]
 COLOR = True
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
@@ -238,6 +249,168 @@ def panel_status(w):
     return lines
 
 
+# ---- the console: Claude, served through this display ------------------------------------------
+
+def say(kind, text):
+    CONSOLE["log"].append((kind, text))
+    del CONSOLE["log"][:-400]
+
+
+def console_send(prompt):
+    """Start one turn. Returns at once; console_pump() reads the reply as it arrives."""
+    if CONSOLE["proc"] is not None:
+        say("note", "Claude is still working. Press x to stop it first.")
+        return
+    say("you", prompt)
+    cmd = [os.environ.get("BRIDGE_CLAUDE_BIN", "claude"), "-p", prompt, "--output-format", "stream-json", "--verbose"]
+    if CONSOLE["session"]:
+        cmd += ["--resume", CONSOLE["session"]]
+    cmd += shlex.split(os.environ.get("BRIDGE_CLAUDE_ARGS", ""))
+    try:
+        CONSOLE["proc"] = subprocess.Popen(cmd, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        CONSOLE["buf"] = b""
+    except OSError as e:
+        say("fail", f"Could not start Claude: {e}. Is the `claude` command installed and on the PATH?")
+
+
+def console_line(raw):
+    try:
+        ev = json.loads(raw)
+    except ValueError:
+        if raw.strip():
+            say("note", raw.strip()[:300])
+        return
+    kind = ev.get("type")
+    if kind == "assistant":
+        for block in (ev.get("message") or {}).get("content") or []:
+            if block.get("type") == "text" and block.get("text", "").strip():
+                say("claude", block["text"].strip())
+            elif block.get("type") == "tool_use":
+                inp = block.get("input") or {}
+                what = inp.get("description") or inp.get("file_path") or inp.get("pattern") or inp.get("command") or ""
+                say("tool", f"{block.get('name', '?')}  {str(what)[:120]}")
+    elif kind == "system" and ev.get("subtype") == "init":
+        CONSOLE["session"] = ev.get("session_id") or CONSOLE["session"]
+    elif kind == "system" and ev.get("subtype") == "permission_denied":
+        say("fail", "A step needed permission and nobody could give it. Set BRIDGE_CLAUDE_ARGS, for example to a permission mode, and restart the display.")
+    elif kind == "result":
+        CONSOLE["session"] = ev.get("session_id") or CONSOLE["session"]
+        CONSOLE["cost"] = ev.get("total_cost_usd") or CONSOLE["cost"]
+        if ev.get("is_error"):
+            say("fail", str(ev.get("result") or "The turn ended with an error.")[:400])
+        say("done", f"turn finished · conversation cost so far ${CONSOLE['cost']:.2f}")
+
+
+def console_pump(wait=0.0):
+    """Read whatever Claude has written. Returns True while a turn is still running."""
+    import select
+    proc = CONSOLE["proc"]
+    if proc is None:
+        return False
+    while select.select([proc.stdout], [], [], wait)[0]:
+        chunk = os.read(proc.stdout.fileno(), 65536)
+        if not chunk:
+            break
+        CONSOLE["buf"] += chunk
+        *lines, CONSOLE["buf"] = CONSOLE["buf"].split(b"\n")
+        for line in lines:
+            console_line(line.decode(errors="replace"))
+        wait = 0.0
+    if proc.poll() is not None:
+        rest = proc.stdout.read() or b""
+        for line in (CONSOLE["buf"] + rest).split(b"\n"):
+            console_line(line.decode(errors="replace"))
+        if proc.returncode not in (0, None) and not any(k == "done" for k, _ in CONSOLE["log"][-3:]):
+            say("fail", f"Claude stopped with exit code {proc.returncode}.")
+        CONSOLE["proc"], CONSOLE["buf"] = None, b""
+        return False
+    return True
+
+
+def console_stop():
+    proc = CONSOLE["proc"]
+    if proc is not None:
+        proc.terminate()
+        say("note", "Stopped at your request. The unfinished turn was left as it was.")
+
+
+def panel_console(w):
+    lines = head("console", WHITE)
+    busy = CONSOLE["proc"] is not None
+    lines[0] += "  " + (pill(GREEN, "CLAUDE IS WORKING") if busy else fg(GREY, "press i to write to Claude")) + (fg(GREY, f"   ${CONSOLE['cost']:.2f} so far") if CONSOLE["cost"] else "")
+    if not CONSOLE["log"]:
+        lines += [fg(GREY, "This is Claude, served through this display. Press i, type a message, and press Enter."),
+                  fg(GREY, "The reply appears here. The live panel (3) shows each step Claude takes, by letter."),
+                  fg(GREY, "Each message continues the same conversation until you quit.")]
+    style = {"you": (ORANGE, "YOU   "), "claude": (WHITE, "CLAUDE"), "tool": (BLUE, "  step"), "note": (GREY, "  note"),
+             "fail": (RED, "FAILED"), "done": (GREEN, "  done")}
+    for kind, text in CONSOLE["log"]:
+        color, label = style[kind]
+        first = True
+        for para in text.split("\n"):
+            for wrapped in textwrap.wrap(para, max(20, w - 12)) or [""]:
+                shown = fg(color, wrapped) if kind != "claude" else re.sub(r"\*\*(.+?)\*\*", lambda m: bold(m.group(1)), wrapped)
+                lines.append((fg(color, label) if first else "      ") + "  " + shown)
+                first = False
+        if kind in ("claude", "done", "fail"):
+            lines.append("")
+    return lines
+
+
+def panel_live(w):
+    """What a Claude session in this checkout is doing: calls in flight, then the latest finished."""
+    lines = head("live", GREEN)
+    now = time.time()
+    flying = []
+    for f in sorted((ROOT / ".claude/.matrix-starts").glob("*")):
+        try:
+            started, alias = f.read_text(encoding="utf-8").split("\t", 1)
+            flying.append((now - float(started), alias.strip()))
+        except (OSError, ValueError):
+            pass
+    flying = [x for x in flying if x[0] < 600]
+    lines.append(pill(GREEN if flying else GREY, f"{len(flying)} IN FLIGHT"))
+    for age, alias in flying:
+        letter = LETTER.get(alias.split(".")[0], "?")
+        lines.append(f"  {fg(ORANGE, letter)}{' ' * (3 - len(letter))}{alias:<20} " + bar(age, 10, 20, RED if age > 10 else GREEN) + fg(GREY, f" {age:4.1f}s so far"))
+    rows = [l.split("\t") for l in read(".claude/.matrix-times").splitlines()[-200:]]
+    rows = [r for r in rows if len(r) == 4]
+    lines += ["", pill(BLUE, "LATEST CALLS, NEWEST FIRST")]
+    if not rows:
+        lines.append(fg(GREY, "  No calls recorded on this machine. Write to Claude from the console and this fills as it works."))
+    for when, tool, alias, secs in reversed(rows[-18:]):
+        letter, s = LETTER.get(alias.split(".")[0], "?"), float(secs)
+        lines.append(f"  {fg(GREY, when[11:19])}  {fg(ORANGE, letter)}{' ' * (3 - len(letter))}{alias:<18} " + bar(s, 10, 14, RED if s > 10 else GREEN) + fg(GREY, f" {s:5.1f}s  ") + tool[:28])
+    trail = " ".join(LETTER.get(r[2].split(".")[0], "?") for r in rows[-40:])
+    if trail:
+        lines += ["", fg(GREY, "the trail  ") + fg(ORANGE, trail)]
+    return lines
+
+
+def statusline():
+    """Two lines for a status bar. Fast, and quiet on any fault: a status bar must never break."""
+    try:
+        data = json.loads(sys.stdin.read() or "{}") if not sys.stdin.isatty() else {}
+    except ValueError:
+        data = {}
+    q, d = queue_items(), decisions()
+    opens = [x for x in d if x["status"] == "OPEN"]
+    nxt = next((i for i in q if i["lane"] == "loop" and i["state"] == "open"), None)
+    mode = (re.search(r'"mode": "(\w+)"', read(".claude/cardinal-map.json")) or [None, "?"])[1]
+    rows = [l.split("\t") for l in read(".claude/.matrix-times").splitlines()[-40:]]
+    rows = [r for r in rows if len(r) == 4]
+    trail = "".join(LETTER.get(r[2].split(".")[0], "?")[0] for r in rows[-16:])
+    slow = sum(1 for r in rows if float(r[3]) > 10)
+    pct = ((data.get("context_window") or {}).get("used_percentage")) or 0
+    cost = ((data.get("cost") or {}).get("total_cost_usd")) or 0
+    print(" ".join([pill(ORANGE, "LOCALDNS"), bold(git("branch", "--show-current") or "?"), fg(GREY, mode),
+                    pill(ORANGE if opens else GREEN, f"{len(opens)} OPEN"),
+                    fg(WHITE, f"next {nxt['id']} {nxt['title'][:44]}") if nxt else fg(GREEN, "queue clear")]))
+    print(" ".join(x for x in [fg(GREY, "context"), bar(pct, 100, 16, RED if pct > 80 else GREEN), f"{pct:.0f}%",
+                               fg(GREY, " cost"), f"${cost:.2f}", fg(GREY, " trail"), fg(ORANGE, trail or "-"),
+                               pill(RED, f"{slow} SLOW") if slow else ""] if x))
+
+
 def panel_queue(w):
     q = queue_items()
     lines = head("superqueue")
@@ -385,7 +558,8 @@ def panel_leans(w):
 
 
 def panel_help(w):
-    rows = [("Tab  →", "next panel"), ("Shift-Tab  ←", "previous panel"), ("1 to 8", "jump to a panel"),
+    rows = [("Tab  →", "next panel"), ("Shift-Tab  ←", "previous panel"), ("1 to 9, 0", "jump to a panel (0 is the tenth)"), ("i", "write a message to Claude; Enter sends it, Esc cancels"),
+            ("x", "stop Claude mid-turn"),
             ("↑  ↓", "pick an item (marked ▸); on a panel with none, scroll"), ("Enter", "open or close the picked item"),
             ("PgUp  PgDn  Space", "scroll a page"), ("g", "run all the gates and show each with its time"),
             ("r", "redraw now (it also redraws twice a minute)"), ("?", "this screen"), ("q", "quit")]
@@ -394,7 +568,7 @@ def panel_help(w):
         fg(GREY, "the one thing it runs is the gates, when you press g.")]
 
 
-DRAW = {"status": panel_status, "queue": panel_queue, "decisions": panel_decisions, "activity": panel_activity,
+DRAW = {"console": panel_console, "status": panel_status, "live": panel_live, "queue": panel_queue, "decisions": panel_decisions, "activity": panel_activity,
         "timing": panel_timing, "branches": panel_branches, "fleet": panel_fleet, "leans": panel_leans, "help": panel_help}
 
 
@@ -446,8 +620,11 @@ def frame(panel, w, h=None, scroll=0, sel=None, opened=False):
         else:
             cell = (bg(GREY if (row // 2) % 3 else ORANGE, " " * (rail_w - 1)) + " ") if h else " " * rail_w
         out.append(fit(cell + " " + line, w))
-    if h:
-        keys = " Tab panel · ↑↓ pick · Enter open · g gates · ? keys · q quit "
+    if h and CONSOLE["typing"] is not None:
+        typed = CONSOLE["typing"][-(w - 24):]
+        out += ["", fit(bg(WHITE, " TO CLAUDE ") + " " + typed + fg(ORANGE, "█") + fg(GREY, "   Enter sends · Esc cancels"), w)]
+    elif h:
+        keys = " Tab panel · i write to Claude · ↑↓ pick · Enter open · ? keys · q quit "
         foot = fg(ORANGE, "◥") + bg(ORANGE, keys) + " " + fg(ORANGE, "━" * max(0, w - len(keys) - 16)) + (" " + bg(PEACH, f" +{more} more ") if more > 0 else "")
         out += ["", fit(foot, w)]
     return out, scroll, n
@@ -468,10 +645,31 @@ def interactive():
             lines, scroll, n = frame("help" if helping else PANELS[idx], w, h, scroll, sel, opened)
             sys.stdout.write("\x1b[H\x1b[2J" + "\n".join(lines))
             sys.stdout.flush()
-            if not select.select([sys.stdin], [], [], 30)[0]:
-                continue  # redraw twice a minute, so the clock and the files stay current
-            ch = os.read(fd, 8).decode(errors="ignore")
+            busy = CONSOLE["proc"] is not None
+            if not select.select([sys.stdin], [], [], 0.3 if busy else 30)[0]:
+                before = len(CONSOLE["log"])
+                console_pump()
+                if PANELS[idx] == "console" and len(CONSOLE["log"]) != before:
+                    scroll = 10 ** 9  # follow the reply as it arrives
+                continue  # no key: redraw, so the clock, the files and the reply stay current
+            ch = os.read(fd, 64).decode(errors="ignore")
+            if CONSOLE["typing"] is not None:
+                if ch in ("\r", "\n"):
+                    text, CONSOLE["typing"] = CONSOLE["typing"].strip(), None
+                    if text:
+                        console_send(text)
+                        scroll = 10 ** 9
+                elif ch == "\x1b":
+                    CONSOLE["typing"] = None
+                elif ch in ("\x7f", "\x08"):
+                    CONSOLE["typing"] = CONSOLE["typing"][:-1]
+                elif ch == "\x15":
+                    CONSOLE["typing"] = ""
+                elif not ch.startswith("\x1b"):
+                    CONSOLE["typing"] += "".join(c for c in ch if c.isprintable())
+                continue
             if ch in ("q", "Q", "\x03"):
+                console_stop()
                 break
             if helping:
                 helping, scroll = False, 0
@@ -481,8 +679,13 @@ def interactive():
                 go = (idx + 1) % len(PANELS)
             elif ch in ("\x1b[Z", "\x1b[D"):
                 go = (idx - 1) % len(PANELS)
-            elif ch.isdigit() and 1 <= int(ch) <= len(PANELS):
-                go = int(ch) - 1
+            elif ch.isdigit() and (int(ch) or 10) <= len(PANELS):
+                go = (int(ch) or 10) - 1
+            elif ch in ("i", "I"):
+                idx, sel, opened, scroll = PANELS.index("console"), None, False, 10 ** 9
+                CONSOLE["typing"] = ""
+            elif ch in ("x", "X"):
+                console_stop()
             elif ch in ("\x1b[B", "j"):
                 if n:
                     sel, opened = (0 if sel is None else min(n - 1, sel + 1)), False
@@ -536,6 +739,7 @@ def check():
                                 faults.append(f"{panel}: plain mode still holds colour codes")
                     except Exception as e:  # a panel must never take the display down
                         faults.append(f"{panel} at width {w}: {type(e).__name__}: {e}")
+    faults += check_console()
     for f in sorted(set(faults)):
         print("FAIL", f)
     if not faults:
@@ -543,11 +747,65 @@ def check():
     return 1 if faults else 0
 
 
+def check_console():
+    """Drive one console turn against a stand-in for the `claude` command that speaks stream-json."""
+    import tempfile
+    faults = []
+    events = [{"type": "system", "subtype": "init", "session_id": "s-1"},
+              {"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "Read", "input": {"file_path": "README.md"}}]}},
+              {"type": "assistant", "message": {"content": [{"type": "text", "text": "**Done.** Read it."}]}},
+              {"type": "result", "subtype": "success", "result": "ok", "session_id": "s-1", "total_cost_usd": 0.42}]
+    with tempfile.TemporaryDirectory() as tmp:
+        stub = Path(tmp) / "claude"
+        stub.write_text("#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$0.args\"\ncat <<'EOF'\n" + "\n".join(json.dumps(e) for e in events) + "\nnot json\nEOF\n")
+        stub.chmod(0o755)
+        old = os.environ.get("BRIDGE_CLAUDE_BIN")
+        os.environ["BRIDGE_CLAUDE_BIN"] = str(stub)
+        try:
+            for turn in (1, 2):
+                console_send(f"hello {turn}")
+                deadline = time.time() + 5
+                while console_pump(0.2) and time.time() < deadline:
+                    pass
+                args = (Path(str(stub) + ".args").read_text() if Path(str(stub) + ".args").exists() else "").split("\n")
+                if turn == 2 and "--resume" not in args:
+                    faults.append("console: the second message did not resume the first conversation")
+            kinds = [k for k, _ in CONSOLE["log"]]
+            for want in ("you", "tool", "claude", "done", "note"):
+                if want not in kinds:
+                    faults.append(f"console: no {want!r} line after a turn")
+            if CONSOLE["session"] != "s-1" or abs(CONSOLE["cost"] - 0.42) > 1e-9:
+                faults.append("console: session id or cost not taken from the result line")
+            if CONSOLE["proc"] is not None:
+                faults.append("console: the turn did not finish")
+            os.environ["BRIDGE_CLAUDE_BIN"] = str(Path(tmp) / "no-such-command")
+            console_send("hello")
+            if not any(k == "fail" for k, _ in CONSOLE["log"][-2:]):
+                faults.append("console: a missing `claude` command must be reported, not raised")
+            for w in (60, 103):
+                lines, _s, _n = frame("console", w, 24, 10 ** 9)
+                if any(vis(l) > w for l in lines) or len(lines) != 24:
+                    faults.append(f"console: transcript does not fit a {w}-column screen")
+        finally:
+            if old is None:
+                os.environ.pop("BRIDGE_CLAUDE_BIN", None)
+            else:
+                os.environ["BRIDGE_CLAUDE_BIN"] = old
+            CONSOLE.update(log=[], proc=None, buf=b"", session=None, cost=0.0, typing=None)
+    return faults
+
+
 def main():
     global COLOR
     args = sys.argv[1:]
     if args[:1] == ["--check"]:
         return check()
+    if args[:1] == ["--statusline"]:
+        try:
+            statusline()
+        except Exception:
+            print("localDNS")  # never leave a status bar broken
+        return 0
     if args[:1] in (["--once"], ["--plain"]):
         COLOR = args[0] == "--once" and sys.stdout.isatty()
         want = args[1] if len(args) > 1 else "status"
