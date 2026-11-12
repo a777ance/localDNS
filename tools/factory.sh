@@ -24,7 +24,10 @@
 set -u
 cd "$(dirname "$0")/.." || { echo "STOP: cannot enter the repo root"; exit 1; }
 
-BUDGET="${FACTORY_BUDGET_TOKENS:-2400000}"
+# Budget precedence: the env var, then the budget file (set by the founder, local and gitignored), then 2,400,000.
+BUDGET="${FACTORY_BUDGET_TOKENS:-}"
+if [ -z "$BUDGET" ] && [ -f .claude/.factory-budget ]; then BUDGET="$(tr -d '[:space:]' < .claude/.factory-budget)"; fi
+BUDGET="${BUDGET:-2400000}"
 MAX_PASSES="${FACTORY_MAX_PASSES:-10}"
 TASKS=".claude/factory-tasks"  # gitignored: the loop's own output must not dirty the tree it checks
 

@@ -50,3 +50,4 @@ __pycache__/
 .claude/.agent-ledger
 .claude/.factory-state
 .claude/factory-tasks
+.claude/.factory-budget
