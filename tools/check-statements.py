@@ -6,8 +6,8 @@ the box measured; with no measured volume the category breakdown is omitted, not
 
 Imports docs/statements/tools/compose.py by path and asserts, on synthetic inputs built
 here (no files, no box, no real customer data):
-  1. build_alloc: every percentage is between 0 and 100, the rows sum to between 98
-     and 102, and the total equals the sum of the input bytes;
+  1. build_alloc: every percentage is between 0 and 100, the rows sum to exactly
+     100, and the total equals the sum of the input bytes;
   2. build_alloc: no row names a category that was not in its input, other than a
      single "Other" row;
   3. compose(stats, sidecar) with no measured volume (by_category empty, missing,
@@ -53,8 +53,10 @@ def alloc_problems(mod, by_category):
         if not 0 <= pct <= 100:
             out.append(f"percentage {pct} for {name!r} is outside 0 to 100")
     pct_sum = sum(r[1] for r in rows)
-    if not 98 <= pct_sum <= 102:
-        out.append(f"percentages sum to {pct_sum}, outside 98 to 102")
+    if rows and pct_sum != 100:
+        out.append(f"percentages sum to {pct_sum}, not exactly 100")
+    if not rows and sum(by_category.values()) > 0:
+        out.append("measured bytes produced no rows")
     if total != sum(by_category.values()):
         out.append(f"total {total} is not the sum of the input bytes {sum(by_category.values())}")
     names = [r[0] for r in rows]
@@ -80,6 +82,10 @@ def alloc_inputs():
         ("Other measured, smallest of nine", {**{f"Cat {i}": (i + 2) * GB for i in range(8)}, "Other": GB}),
         ("a zero-byte category", {"Streaming & Video": 12 * GB, "Gaming": 0}),
         ("tiny volumes", {"Streaming & Video": 3, "Gaming": 2, "Social": 1}),
+        ("rounding ties at 14.5%", {**{f"Cat {i}": 145 for i in range(6)}, "Cat 6": 130}),
+        ("rounding ties at 15.5%", {**{f"Cat {i}": 155 for i in range(6)}, "Cat 6": 70}),
+        ("three equal thirds", {"A": 1, "B": 1, "C": 1}),
+        ("empty input", {}),
     ]
     rng = random.Random(777)  # fixed seed: the same inputs on every run
     for n in range(200):
@@ -92,14 +98,7 @@ def alloc_inputs():
 
 
 # Faults found in compose.py and reported, not fixed here. (label, input, text expected in the fault)
-KNOWN = [
-    ("rounding ties: six categories at 14.5% and a 13% remainder",
-     {**{f"Cat {i}": 145 for i in range(6)}, "Cat 6": 130}, "percentages sum to 97"),
-    ("rounding ties: six categories at 15.5% and a 7% remainder",
-     {**{f"Cat {i}": 155 for i in range(6)}, "Cat 6": 70}, "percentages sum to 103"),
-    ("empty input: total is reported as 1 byte, not 0",
-     {}, "total 1 is not the sum"),
-]
+KNOWN = []  # the three faults pinned here on 2026-11-12 were fixed the same day (DEBT-013)
 
 
 def base_stats():

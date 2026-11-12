@@ -111,6 +111,11 @@ def main() -> int:
                     f"The probe is lane 0 of 1 + N. Run it first: cd {ROOT} && python3 tools/matrix.py "
                     + {"push": "observe.probe push", "merge": "observe.probe merge BRANCH"}.get(
                         kind, "orient.probe  (or observe.probe / decide.probe / act.probe, whichever fits the goal)"))
+        # main is intent cold storage (DEC-015): nothing is pushed to it but the founder's promotions.
+        if cmd and re.search(r"\bgit\s+push\b[^|;&\n]*[\s:]main(?![-\w/])", cmd):
+            out["additionalContext"] += (
+                " — PUSH TO MAIN: main is kept empty on purpose and takes the founder's promotions only. "
+                "Work lands on leader, by pull request from your own branch. Do not run this push.")
         # One slow step per call: every 10-second breach of 2026-11-11/12 was a chain of these.
         slow = len(re.findall(r"matrix\.py\s+(?:act\.ship|decide\.rehearse|decide\.gate)\b|\bgit\s+push\b", cmd)) if cmd else 0
         if slow > 1:

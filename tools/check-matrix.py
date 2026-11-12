@@ -191,6 +191,11 @@ def main() -> int:
         chain = hook("Bash", {"command": "python3 tools/matrix.py act.ship m f --push && python3 tools/matrix.py decide.rehearse x"})
         check("a chain of slow steps is flagged", "SLOW CHAIN" in chain["additionalContext"], chain["additionalContext"])
         check("one slow step is not flagged", "SLOW CHAIN" not in hook("Bash", {"command": "python3 tools/matrix.py act.ship m f --push"})["additionalContext"])
+        check("git merge-base is not egress", "EGRESS" not in hook("Bash", {"command": "git merge-base --is-ancestor a b"})["additionalContext"])
+        check("git merge is egress", "EGRESS" in hook("Bash", {"command": "git merge origin/leader"})["additionalContext"])
+        check("a push to main is called out", "PUSH TO MAIN" in hook("Bash", {"command": "git push origin HEAD:main"})["additionalContext"])
+        check("a push to main-before-evacuation is not a push to main", "PUSH TO MAIN" not in hook("Bash", {"command": "git push origin main-before-evacuation"})["additionalContext"])
+        check("a push to a session branch is not a push to main", "PUSH TO MAIN" not in hook("Bash", {"command": "git push -u origin claude/x"})["additionalContext"])
         check("observe.probe bad arguments", mx("observe.probe", "nope").returncode != 0)
         check("hook unmapped", "UNMAPPED" in hook("NoSuchTool")["additionalContext"])
         # gate modes

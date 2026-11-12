@@ -256,7 +256,7 @@
     },
     "bash": {
       "\\bgit\\s+push\\b": "push",
-      "\\bgit\\s+merge\\b": "merge"
+      "\\bgit\\s+merge(?![-\\w])": "merge"
     }
   }
 }
