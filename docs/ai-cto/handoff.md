@@ -62,9 +62,9 @@ The seven points in the archived handoff still hold. Added since, in his words o
 
 One item at a time, in order. Each has a done-test.
 
-- **Q-031 · See the hooks in a fresh session on `main`.** Look for a `cardinal:` line with `Matrix route` on the first `Read`. Done: recorded in DEBT-008. This is the proof the merge reached new sessions.
-- **Q-032 · See the trimmed setup script run in a fresh cloud container.** Done: nine `ok` lines in the setup log, recorded under DEC-014.
-- **Q-033 · See a live Stop-hook bounce and a live compaction.** Done: both recorded in DEBT-008, with the hook text that appeared.
+- **Q-031 · See the hooks in a fresh session on `main`.** · DONE (2026-11-12: a fresh second session showed the hook line on its first `Read`) · Look for a `cardinal:` line with `Matrix route` on the first `Read`. Done: recorded in DEBT-008. This is the proof the merge reached new sessions.
+- **Q-032 · See the trimmed setup script run in a fresh cloud container.** · DONE (same session: the setup script ran, nine gates ok at start) · Done: nine `ok` lines in the setup log, recorded under DEC-014.
+- **Q-033 · See a live compaction.** (The Stop-hook bounce was seen live on 2026-11-12.) Done: both recorded in DEBT-008, with the hook text that appeared.
 - **Q-034 · A quick probe for every mapped tool (INIT-006).** Add a `probe` field per tool in `.claude/cardinal-map.json` (the dry-run form of the call, or the reason none exists) and make `tools/check-cardinal.py` fail on a tool with neither. Done: gate green.
 - **Q-035 · Retrofit audits for the prose-only rules (INIT-007).** House style (newest first, Z to A), provenance, and the Jury doctrine have no audit in `orient.retrofit`. Add one each, or the stated reason none can exist. Done: `orient.retrofit` lists them.
 - **Q-036 · 1 + N in the Bifrost notation.** A proposal for the founder only: where lane 0 sits relative to `^`. Do not edit the spec. Done: a tile in `docs/ai-cto/blocked.md`.
@@ -72,7 +72,7 @@ One item at a time, in order. Each has a done-test.
 - **Q-038 · BLOCKED on DEC-005 · venv peering files.** Needs the two facts from the XPS listed in `docs/ai-cto/roadmap.md`.
 - **Q-040 · Sort the files between `leader` and `outer` (DEC-015).** Both start as full copies. Move the non-OODA tree off `leader` and the OODA tree off `outer`, repointing `tools/check-docs.py` and `tools/check-doctrine.py` first so the gates stay green on each. Done: gates pass on both branches, and `docs/ai-cto/branches.md` says so.
 - **Q-041 · Empty `main`.** · DONE 646c709 · The founder ran it himself (DEC-016).
-- **Q-042 · Confirm the default branch is `leader`.** Only the founder can set it (GitHub, Settings, General, Default branch). Until it is set, a new cloud session starts on the emptied `main` with no rules and no hooks. Done: a fresh session shows a `cardinal:` line on its first tool call.
+- **Q-042 · Confirm the default branch is `leader`.** · DONE (solved without the setting: the setup script moves a session cloned from the emptied `main` onto `leader`, under its own branch name) · Only the founder can set it (GitHub, Settings, General, Default branch). Until it is set, a new cloud session starts on the emptied `main` with no rules and no hooks. Done: a fresh session shows a `cardinal:` line on its first tool call.
 - **Q-039 · Shrink sections G and H of `CLAUDE.md`.** They are 17,000 of its 60,000 bytes. Each needs its checks repointed first. A proposal with measurements, then a tile.
 
 ## 6. Ending a session

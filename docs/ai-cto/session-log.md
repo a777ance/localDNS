@@ -37,6 +37,19 @@ move the reply rules out of prose and into a hook.
   a stand-in of the remote and worked on his laptop on the first try, which is the first recipe of
   the session to do so for a change of that size.
 
+**Then the founder set the goal "it must run properly" and the gaps were closed one by one:**
+
+- **A second session ran the loop alone.** Started from the emptied `main`, it came up with
+  `leader`'s files and hooks, probed, built `tools/check-statements.py`, and merged PR #50 into
+  `leader`: 25 tool calls, none over 10 seconds. Its gate found that Statement percentages could
+  sum to 97 or 103 (DEBT-013). That was fixed the same hour. This is the first product defect the
+  loop found and closed.
+- **Seen live for the first time:** a reply bounced by the Stop hook; the egress flag; the
+  slow-chain flag (in the second session); a fresh session loading the hooks.
+- **Mechanized:** a 60,000-byte budget on `CLAUDE.md`; a flag on chained slow steps; a warning on
+  any push to `main`.
+- **Written but not switched on:** the loop tick (`docs/ai-cto/loop-tick.md`), which waits on DEC-017.
+
 **What went wrong, and the root cause of each:**
 
 - **Three recipes failed on the founder's laptop.** One used the cloud container's path. One
