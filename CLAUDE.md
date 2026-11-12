@@ -295,11 +295,12 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `.claude/hooks/decide-act.py` | `Stop` hook: bounces a reply once if it breaks one of the seven reply rules | wired in `.claude/settings.json` |
 | `.claude/hooks/timing.py`, `.claude/hooks/resume.py`, `.claude/hooks/precompact.py` | `PostToolUse` timing of every tool call; wake-up after a compaction, resume, or fork; what a compaction summary must keep | wired in `.claude/settings.json` |
 | `tools/check-cardinal.py` | run directly (each tool in exactly one cardinal; every method documented in its skill; every repoint names a real Matrix method) | `python3 tools/check-cardinal.py` |
-| `tools/check-matrix.py` | run directly (end-to-end test of the Matrix in a throwaway sandbox: four cardinals, gate modes, cap, lease, stall) | `python3 tools/check-matrix.py` |
+| `tools/check-matrix.py` | run directly (end-to-end test of the Matrix in a sandbox: four cardinals, gate modes, cap, lease, stall) | `python3 tools/check-matrix.py` |
 | `tools/check-decisions.py` | run directly (every `DEC-NNN` in `docs/ai-cto/blocked.md` has a status, a unique id, newest first) | `python3 tools/check-decisions.py` |
 | `tools/check-stop-hook.py` | run directly (sample replies against the Stop hook's rules; every rule must be named in the output style and have a retrofit entry) | `python3 tools/check-stop-hook.py` |
+| `tools/check-statements.py` | run directly (Statement honesty: no category volume `compose.py` did not measure) | `python3 tools/check-statements.py` |
 | `tools/check-registers.py` | run directly (`INIT-`/`DEBT-` entries valid, unique, newest first; `CLAUDE.md` within its 60,000-byte budget) | `python3 tools/check-registers.py` |
-| `tools/check-telepathy.py` | run directly (end-to-end test of the telepathy mailbox in a throwaway directory: send, inbox, read, mark done, and the watcher must report an arrival within 2 s) | `python3 tools/check-telepathy.py` |
+| `tools/check-telepathy.py` | run directly (end-to-end test of the telepathy mailbox and its watcher) | `python3 tools/check-telepathy.py` |
 | `tools/laptop-sync.sh` | run on the founder's laptop: a systemd user timer that fast-forwards a clean checkout of `leader` every 15 minutes | `bash tools/laptop-sync.sh install` |
 | `tools/telepathy/telepathy_mcp.py` | stdio MCP mailbox for sessions on one machine (+ `tools/telepathy/watch.py`, the inotify watcher) | `claude mcp add --scope user telepathy -- python3 tools/telepathy/telepathy_mcp.py` |
 | `.claude/hooks/gate.sh` | `PreToolUse(Bash)` hook — runs the static checks above before any `git commit` and blocks on failure (bypass: `touch .claude/.gate-off`) | wired in `.claude/settings.json` |
