@@ -1,0 +1,46 @@
+name: superfleet
+
+# The OODA Haiku Swarm (DEC-020). Manual only: nothing here starts a model or spends money.
+# It runs the plan gate, and for a finished lane branch it runs the review that answers
+# "did this lane change anything outside its own write area?". The lanes themselves are
+# started by the founder, each from its own instructions.
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: "Scenario id, e.g. S01 (blank = plan check only)"
+        required: false
+        default: ""
+      lane:
+        description: "Lane id, e.g. L2 (needs scenario)"
+        required: false
+        default: ""
+      branch:
+        description: "Finished lane branch to review (needs scenario and lane)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  superfleet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check the plan
+        run: python3 tools/check-superfleet.py
+
+      - name: Review a finished lane
+        if: inputs.scenario != '' && inputs.lane != '' && inputs.branch != ''
+        env:
+          SCENARIO: ${{ inputs.scenario }}
+          LANE: ${{ inputs.lane }}
+          BRANCH: ${{ inputs.branch }}
+        run: |
+          git fetch origin "$BRANCH" || git fetch origin "refs/heads/$BRANCH"
+          python3 tools/check-superfleet.py --review "$SCENARIO" "$LANE" "origin/$BRANCH"
