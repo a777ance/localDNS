@@ -15,8 +15,14 @@ here (no files, no box, no real customer data):
      built from one, and no gigabyte figure anywhere in its output, even when the
      sidecar carries a forced archetype and a complete cohort.
 
-Not covered: compose.main() (file reading and writing) and the HTML that
-generate_client.py renders from this output.
+  4. generate_client.build(cfg), the HTML renderer, on the same no-volume output: no
+     "Traffic Allocation" or "Total Volume" section, and every gigabyte figure printed
+     in the page (outside the stylesheet) is a number the cfg itself carries. The control
+     renders a measured cfg and must print its allocation.
+
+Not covered: compose.main() (file reading and writing) and generate_client.render_all()
+(the file loop around build()). The QR codes are rendered as they are; the gate does not
+read them as figures.
 
 Known faults in compose.py are pinned in KNOWN below: each is reported on every run
 and does not fail the gate, but the gate fails if a pinned fault stops reproducing,
@@ -43,6 +49,35 @@ def load_compose():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+GC = ROOT / "docs/statements/tools/generate_client.py"
+STYLE_BLOCK = re.compile(r"<style\b.*?</style>", re.DOTALL | re.IGNORECASE)
+GB_FIGURE = re.compile(r"(\d+(?:\.\d+)?)\s*(?:GB|gigabytes?)\b", re.IGNORECASE)
+
+
+def load_client():
+    """generate_client.py, loaded by path. Needs the segno package for its QR codes."""
+    spec = importlib.util.spec_from_file_location("statement_client", GC)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def render_problems(client, cfg, label, carried_input):
+    """Faults in the rendered page for one cfg: a gigabyte figure the INPUT did not carry (the
+    stats and sidecar it was composed from, not the cfg, which could hold the invention), or a
+    volume section printed with no measured volume."""
+    out = []
+    html = client.build(cfg)
+    body = STYLE_BLOCK.sub("", html)
+    carried = {float(x) for x in re.findall(r"\d+(?:\.\d+)?", carried_input)}
+    for m in GB_FIGURE.finditer(body):
+        if float(m.group(1)) not in carried:
+            out.append(f"render, {label}: page prints {m.group(0)!r}, a figure the input did not carry")
+    if not cfg.get("alloc") and ("Traffic Allocation" in body or "Total Volume" in body):
+        out.append(f"render, {label}: page has a volume section with no measured volume")
+    return out
 
 
 def alloc_problems(mod, by_category):
@@ -183,6 +218,24 @@ def main() -> int:
     cfg, _ = mod.compose(measured, tempting_sidecar())
     if "alloc" not in cfg or not GIGABYTES.search(json.dumps(cfg)):
         problems.append("compose, control: measured volume produced no allocation; the no-volume cases prove nothing")
+
+    # 4. the HTML the renderer builds from the same output (see the header).
+    try:
+        client = load_client()
+    except ImportError as e:
+        problems.append(f"render: cannot import generate_client.py ({e}); install it with "
+                        f"'python3 -m pip install segno' and run the gate again")
+    else:
+        for label, stats in empties:
+            cfg, _ = mod.compose(stats, tempting_sidecar())
+            carried_input = json.dumps({"stats": stats, "sidecar": tempting_sidecar()}, ensure_ascii=False)
+            try:
+                problems.extend(render_problems(client, cfg, label, carried_input))
+            except Exception as e:
+                problems.append(f"render, {label}: raised {type(e).__name__}: {e}")
+        measured_cfg, _ = mod.compose(measured, tempting_sidecar())
+        if "Traffic Allocation" not in STYLE_BLOCK.sub("", client.build(measured_cfg)):
+            problems.append("render, control: measured volume rendered no allocation section")
 
     for p in problems:
         print("FAIL", p)
