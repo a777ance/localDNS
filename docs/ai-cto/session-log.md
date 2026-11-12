@@ -26,6 +26,17 @@ move the reply rules out of prose and into a hook.
 | A probe in every cardinal; lanes flagged without one; retrofit audit; scratchpad rule; laptop sync | PR #41 (`3514bda`) |
 | This log, a fresh handoff, a current checkpoint, DEBT-011 closed | the commit that added this entry |
 
+**After midnight, the branch model changed (DEC-015, DEC-016):**
+
+- Three canonical branches: `main` emptied as intent cold storage, `leader` for all OODA and Matrix
+  work, `outer` for the rest. `main-before-evacuation` is the frozen undo copy. Every other branch is
+  marked superfluous in `docs/ai-cto/branches.md`; none was deleted.
+- The founder's reference for it is the empty centre strategy, recorded with all six meanings as
+  parables after he corrected a first write-up that had kept only three.
+- `main` was emptied by the founder's own push (`646c709`). The command had been rehearsed against
+  a stand-in of the remote and worked on his laptop on the first try, which is the first recipe of
+  the session to do so for a change of that size.
+
 **What went wrong, and the root cause of each:**
 
 - **Three recipes failed on the founder's laptop.** One used the cloud container's path. One
