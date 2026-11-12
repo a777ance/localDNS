@@ -1,0 +1,299 @@
+{
+  "_comment": "The superfleet plan (DEC-020). Ten scenarios for improving how the loop bootstraps. Each is 1 + N: one look-first step, then N lanes whose write areas do not overlap. This file describes the work; it holds no instructions for any agent. The founder writes those. Gate: tools/check-superfleet.py",
+  "scenarios": [
+    {
+      "id": "S01",
+      "title": "Cold-start read-through",
+      "goal": "Find every place where the start-of-session documents lose a newcomer.",
+      "look_first": "python3 tools/matrix.py orient.probe",
+      "lanes": [
+        {
+          "id": "L1",
+          "covers": "CLAUDE.md, the reply-style section",
+          "write_area": "docs/ai-cto/fleet/S01/L1/",
+          "done_when": "one findings file per item examined, each finding with a file and line"
+        },
+        {
+          "id": "L2",
+          "covers": "docs/ai-cto/handoff.md and docs/ai-cto/checkpoint.md",
+          "write_area": "docs/ai-cto/fleet/S01/L2/",
+          "done_when": "one findings file per item examined, each finding with a file and line"
+        },
+        {
+          "id": "L3",
+          "covers": "docs/ai-cto/superqueue.md and docs/ai-cto/dependency-map.md",
+          "write_area": "docs/ai-cto/fleet/S01/L3/",
+          "done_when": "one findings file per item examined, each finding with a file and line"
+        },
+        {
+          "id": "L4",
+          "covers": "docs/ai-cto/branches.md and docs/ai-cto/loop-tick.md",
+          "write_area": "docs/ai-cto/fleet/S01/L4/",
+          "done_when": "one findings file per item examined, each finding with a file and line"
+        }
+      ],
+      "review": "A person reads the four findings files and decides which become queue items."
+    },
+    {
+      "id": "S02",
+      "title": "Sample replies for the reply rules",
+      "goal": "Widen the set of sample replies the Stop hook is tested against.",
+      "look_first": "python3 tools/check-stop-hook.py",
+      "lanes": [
+        {
+          "id": "L1",
+          "covers": "the state word and landing line rules",
+          "write_area": "docs/ai-cto/fleet/S02/L1/",
+          "done_when": "twenty sample replies with the expected verdict for each, as data"
+        },
+        {
+          "id": "L2",
+          "covers": "the Decide and Act, next action, and L rules",
+          "write_area": "docs/ai-cto/fleet/S02/L2/",
+          "done_when": "twenty sample replies with the expected verdict for each, as data"
+        },
+        {
+          "id": "L3",
+          "covers": "the command rules: cd first, rehearsed, no hedges",
+          "write_area": "docs/ai-cto/fleet/S02/L3/",
+          "done_when": "twenty sample replies with the expected verdict for each, as data"
+        },
+        {
+          "id": "L4",
+          "covers": "the tile and scratchpad rules",
+          "write_area": "docs/ai-cto/fleet/S02/L4/",
+          "done_when": "twenty sample replies with the expected verdict for each, as data"
+        }
+      ],
+      "review": "A session loads the data files into tools/check-stop-hook.py; a sample the hook judges differently is a finding."
+    },
+    {
+      "id": "S03",
+      "title": "Sample commands for the naming hook",
+      "goal": "Widen the set of shell commands the naming hook is tested against.",
+      "look_first": "python3 tools/check-matrix.py",
+      "lanes": [
+        {
+          "id": "L1",
+          "covers": "observe: read-only commands, including odd quoting",
+          "write_area": "docs/ai-cto/fleet/S03/L1/",
+          "done_when": "thirty commands with the expected label, as data"
+        },
+        {
+          "id": "L2",
+          "covers": "orient and decide: probes, gates, rehearsals",
+          "write_area": "docs/ai-cto/fleet/S03/L2/",
+          "done_when": "thirty commands with the expected label, as data"
+        },
+        {
+          "id": "L3",
+          "covers": "act: writes, ships, pushes, and commands that only quote those words",
+          "write_area": "docs/ai-cto/fleet/S03/L3/",
+          "done_when": "thirty commands with the expected label, as data"
+        }
+      ],
+      "review": "A session runs the hook on each command; a mismatch is a finding against the classifier or the sample."
+    },
+    {
+      "id": "S04",
+      "title": "Retrofit sweep of the prose rules",
+      "goal": "Apply the rules that live only in prose to what already exists.",
+      "look_first": "python3 tools/matrix.py orient.retrofit",
+      "lanes": [
+        {
+          "id": "L1",
+          "covers": "newest-first ordering in logs and registers",
+          "write_area": "docs/ai-cto/fleet/S04/L1/",
+          "done_when": "one findings file per item examined, each finding with a file and line"
+        },
+        {
+          "id": "L2",
+          "covers": "Z to A ordering in alphabetical lists",
+          "write_area": "docs/ai-cto/fleet/S04/L2/",
+          "done_when": "one findings file per item examined, each finding with a file and line"
+        },
+        {
+          "id": "L3",
+          "covers": "plain-English voice in docs/statements/",
+          "write_area": "docs/ai-cto/fleet/S04/L3/",
+          "done_when": "one findings file per item examined, each finding with a file and line"
+        },
+        {
+          "id": "L4",
+          "covers": "no secret values and no real customer data anywhere in the tree",
+          "write_area": "docs/ai-cto/fleet/S04/L4/",
+          "done_when": "one findings file per item examined, each finding with a file and line"
+        }
+      ],
+      "review": "Findings only; nothing is changed. A person decides which are real, and a session fixes those."
+    },
+    {
+      "id": "S05",
+      "title": "Review of the per-tool probes",
+      "goal": "Check that each of the 110 probe entries is sensible.",
+      "look_first": "python3 tools/check-cardinal.py",
+      "lanes": [
+        {
+          "id": "L1",
+          "covers": "the observe tools' entries",
+          "write_area": "docs/ai-cto/fleet/S05/L1/",
+          "done_when": "one findings file per item examined, each finding with a file and line"
+        },
+        {
+          "id": "L2",
+          "covers": "the orient and decide tools' entries",
+          "write_area": "docs/ai-cto/fleet/S05/L2/",
+          "done_when": "one findings file per item examined, each finding with a file and line"
+        },
+        {
+          "id": "L3",
+          "covers": "the act tools' entries",
+          "write_area": "docs/ai-cto/fleet/S05/L3/",
+          "done_when": "one findings file per item examined, each finding with a file and line"
+        }
+      ],
+      "review": "A session corrects the entries a person agrees are wrong."
+    },
+    {
+      "id": "S06",
+      "title": "Briefing diet proposals",
+      "goal": "Propose a shorter form of each large section of CLAUDE.md with nothing lost.",
+      "look_first": "python3 tools/check-registers.py",
+      "lanes": [
+        {
+          "id": "L1",
+          "covers": "section C, deploy paths",
+          "write_area": "docs/ai-cto/fleet/S06/L1/",
+          "done_when": "a proposed text and a list of what moved where"
+        },
+        {
+          "id": "L2",
+          "covers": "section G, the Jury doctrine",
+          "write_area": "docs/ai-cto/fleet/S06/L2/",
+          "done_when": "a proposed text and a list of what moved where"
+        },
+        {
+          "id": "L3",
+          "covers": "section H, Bifrost",
+          "write_area": "docs/ai-cto/fleet/S06/L3/",
+          "done_when": "a proposed text and a list of what moved where"
+        },
+        {
+          "id": "L4",
+          "covers": "sections 1 and 3, known issues and working philosophy",
+          "write_area": "docs/ai-cto/fleet/S06/L4/",
+          "done_when": "a proposed text and a list of what moved where"
+        }
+      ],
+      "review": "Proposals only. CLAUDE.md is not edited. The founder picks; sections G and H need his yes (lean 24)."
+    },
+    {
+      "id": "S07",
+      "title": "Work orders for the superqueue",
+      "goal": "Turn each open item in the loop's lane into a work order a session can pick up cold.",
+      "look_first": "python3 tools/matrix.py orient.probe",
+      "lanes": [
+        {
+          "id": "L1",
+          "covers": "SQ-001 to SQ-004",
+          "write_area": "docs/ai-cto/fleet/S07/L1/",
+          "done_when": "one work order per item: files, done-test, risks"
+        },
+        {
+          "id": "L2",
+          "covers": "SQ-005 to SQ-008",
+          "write_area": "docs/ai-cto/fleet/S07/L2/",
+          "done_when": "one work order per item: files, done-test, risks"
+        },
+        {
+          "id": "L3",
+          "covers": "SQ-009 to SQ-012",
+          "write_area": "docs/ai-cto/fleet/S07/L3/",
+          "done_when": "one work order per item: files, done-test, risks"
+        }
+      ],
+      "review": "A person reads the twelve work orders; a session then works them in queue order."
+    },
+    {
+      "id": "S08",
+      "title": "Edge inputs for the Statement gate",
+      "goal": "Widen the inputs the Statement gate is run on. This one is product work.",
+      "look_first": "python3 tools/check-statements.py",
+      "lanes": [
+        {
+          "id": "L1",
+          "covers": "traffic mixes: ties, one category, very many, very small",
+          "write_area": "docs/ai-cto/fleet/S08/L1/",
+          "done_when": "twenty inputs as data, each with what the output must satisfy"
+        },
+        {
+          "id": "L2",
+          "covers": "missing and partial measurements",
+          "write_area": "docs/ai-cto/fleet/S08/L2/",
+          "done_when": "twenty inputs as data, each with what the output must satisfy"
+        },
+        {
+          "id": "L3",
+          "covers": "sidecar settings that could tempt an unmeasured figure onto the page",
+          "write_area": "docs/ai-cto/fleet/S08/L3/",
+          "done_when": "twenty inputs as data, each with what the output must satisfy"
+        }
+      ],
+      "review": "A session loads the inputs into tools/check-statements.py; any figure not carried by the input is a product defect."
+    },
+    {
+      "id": "S09",
+      "title": "Summaries of the old branches",
+      "goal": "Say what each old branch holds that leader does not.",
+      "look_first": "python3 tools/matrix.py observe.probe merge Yggdrasil leader",
+      "lanes": [
+        {
+          "id": "L1",
+          "covers": "the branch Yggdrasil",
+          "write_area": "docs/ai-cto/fleet/S09/L1/",
+          "done_when": "a summary of at most thirty lines, with commit ids"
+        },
+        {
+          "id": "L2",
+          "covers": "the branch doom-drawer/2026-08-08",
+          "write_area": "docs/ai-cto/fleet/S09/L2/",
+          "done_when": "a summary of at most thirty lines, with commit ids"
+        },
+        {
+          "id": "L3",
+          "covers": "the branch cloudflare/workers-autoconfig",
+          "write_area": "docs/ai-cto/fleet/S09/L3/",
+          "done_when": "a summary of at most thirty lines, with commit ids"
+        }
+      ],
+      "review": "The founder reads the three summaries and decides what to keep (leans 17 and 18)."
+    },
+    {
+      "id": "S10",
+      "title": "Stress test of the rules",
+      "goal": "Find replies the hooks judge wrongly, in both directions.",
+      "look_first": "python3 tools/check-stop-hook.py",
+      "lanes": [
+        {
+          "id": "L1",
+          "covers": "replies that break a rule and may still pass",
+          "write_area": "docs/ai-cto/fleet/S10/L1/",
+          "done_when": "fifteen candidates as data, each naming the rule"
+        },
+        {
+          "id": "L2",
+          "covers": "replies that keep every rule and may still be bounced",
+          "write_area": "docs/ai-cto/fleet/S10/L2/",
+          "done_when": "fifteen candidates as data, each naming the rule"
+        },
+        {
+          "id": "L3",
+          "covers": "commands that are labelled wrongly, or flagged for no reason",
+          "write_area": "docs/ai-cto/fleet/S10/L3/",
+          "done_when": "fifteen candidates as data, each naming the flag"
+        }
+      ],
+      "review": "A session runs each candidate; every confirmed misjudgment becomes a test case and a fix."
+    }
+  ]
+}

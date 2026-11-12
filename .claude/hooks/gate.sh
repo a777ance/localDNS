@@ -70,7 +70,8 @@ fails=""
 for check in tools/check-docs.py tools/check-provenance.py tools/check-doctrine.py \
              tools/sync-briefings.py tools/check-decisions.py tools/check-cardinal.py \
              tools/check-matrix.py tools/check-stop-hook.py tools/check-registers.py \
-             tools/check-telepathy.py tools/check-statements.py; do
+             tools/check-telepathy.py tools/check-statements.py \
+             tools/check-superfleet.py; do
     [ -f "$check" ] || continue
     if ! out="$(python3 "$check" 2>&1)"; then
         fails="${fails}
