@@ -19,16 +19,21 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TRACK = ROOT / "docs/ai-cto/fleet/racetrack"
-CITE = re.compile(r"((?:[\w.-]+/)*[\w.-]+\.\w+):(\d+)(?:-(\d+))?")
+CITE = re.compile(r"((?:[\w.-]+/)*[\w.-]+\.\w+):(\d+)(?:-(\d+))?"
+                  r"|`?((?:[\w.-]+/)*[\w.-]+\.\w+)`?,? lines? (\d+)(?:-(\d+))?")  # file:N and `file` line N
 COUNT = re.compile(r"^Count:\s*(\d+)", re.MULTILINE)
 
 
 def citations(text):
     """Every file:line citation in the findings text, as (path, start, end)."""
     for m in CITE.finditer(text):
-        start = int(m.group(2))
-        end = int(m.group(3)) if m.group(3) else start
-        yield m.group(1), start, end
+        if m.group(1):
+            path, a, b = m.group(1), m.group(2), m.group(3)
+        else:
+            path, a, b = m.group(4), m.group(5), m.group(6)
+        start = int(a)
+        end = int(b) if b else start
+        yield path, start, end
 
 
 HARNESS = {"tools/racetrack.py"}  # the scorer's own file: never counted against a run

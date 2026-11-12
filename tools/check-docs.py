@@ -141,6 +141,8 @@ def candidate_tokens(text):
         for span in INLINE.findall(para):
             for t in span.split():
                 t = t.strip("`").rstrip(".,;:!?").strip("()[]<>\"'")
+                # `path:17` and `path:17-19` cite a line of a file: the file is what must resolve.
+                t = re.sub(r":\d+(?:-\d+)?$", "", t)
                 if t:
                     toks.append(t)
     return toks
