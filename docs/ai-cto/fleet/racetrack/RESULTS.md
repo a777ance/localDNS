@@ -43,3 +43,14 @@ Parallel-8 averages: about 777,800 tokens, 42 findings, 0.054 findings per 1k to
 Read: parallel-8 cost about 4.7 times the tokens for about 17 percent more findings, so sequential is
 about four times more efficient per finding. Wall time for parallel-8 was not timed exactly, so no
 speed winner is claimed. Next: hand-check quality for each run before naming a quality winner.
+
+## Course-30: the planner's single parallel stage, run for real (2026-11-12)
+
+Roadmap: thirty milestones from repo files (`roadmap-30.json`), one fixed question each. The planner
+chose one parallel stage of eight agents at a 2.4M-token budget (the $5 lease at the output-rate estimate).
+
+- Milestones finished: 30 of 30. Each written as a defects report, not yet scored.
+- Subagent tokens, summed from the eight agents: about 1,080,000 (about $2.27 at the output-rate estimate; $0.45 at the input rate).
+- Wall time: the slowest agent took about 230 s (chunk 1, the largest files). The planner predicted 80 s; the model underpredicts when lanes read large files.
+- Chained stages (a planner stage and a join stage): NOT run. The planner did not choose them, and the planner does not yet price them, so this course does not test chaining.
+- Quality: not yet hand-checked. Several reports cite line numbers that may be stale; they need a sample check.
