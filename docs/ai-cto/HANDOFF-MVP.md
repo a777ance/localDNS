@@ -37,6 +37,16 @@ Read it, then the superprompt below, then the thirty leans in docs/ai-cto/MVP-LE
 - Measured: a sequential run is cheapest per finding (about 0.21 findings per 1k tokens); parallel-8 costs about four times the tokens for about 17% more findings (docs/ai-cto/fleet/racetrack/RESULTS.md).
 - A $5 lease is about 2.4 million tokens at the output-rate estimate. The dollar rate is still unconfirmed.
 
+## GitHub state (checked 2026-11-12, before the handoff)
+
+- leader matches the local repo at 38ab5b1. The handoff, the leans and the factory files are on the remote.
+- No secrets in tracked files: the two vault files flagged by the scan are tooling and path maps only.
+- Eleven pull requests are open. Each needs a founder decision before any action:
+  - PR 67 (leader into main, not a draft): stale and against DEC-015; main is intent only. Close, or retarget to a draft intent PR.
+  - PR 68 (cloud-local-workflow) and PR 69 (claude/act-bash-file-routes): drafts. Decide, then close or keep.
+  - PR 11, 30, 31, 33, 34 and the cursor and promote drafts: old session branches. Close or keep on the founder's word.
+- Branches: the six branches marked safe to delete in branches.md are still on the remote. Deleting them is a founder call (lean 15).
+
 ## Superprompt (paste this into the new session)
 
 You are the working session for the MVP of localDNS: one real, measured Network Activity Statement for one
