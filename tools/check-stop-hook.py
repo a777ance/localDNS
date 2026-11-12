@@ -59,6 +59,7 @@ STYLE = {
     "REHEARSE": "decide.rehearse",
     "SCRATCHPAD": "scratchpad",
     "LANDING": "Landed · N =",
+    "NEXT ACTION": "Stopping because:",
 }
 
 
@@ -108,6 +109,15 @@ def main() -> int:
                             ("landing line with no count", "**Done.** Pushed.\n\n**Landed:** all done.")):
             if "LANDING" not in run(box, reply):
                 fails.append(f"{name}: expected a LANDING block")
+        queue = box / "docs/ai-cto/handoff.md"
+        queue.write_text("- **Q-900 · Done thing.** · DONE abc1234 · x\n- **Q-901 · BLOCKED on DEC-900 · Wait.** x\n"
+                         "- **Q-902 · The open thing.** do it\n", encoding="utf-8")
+        got = run(box, "**Done.** Pushed abc1234." + LAND)
+        if not (got.startswith("NEXT ACTION") and "Q-902" in got):
+            fails.append(f"a stop with an open queue item must name it: {got[:90] or 'allow'}")
+        if run(box, "**Waiting.** Pushed.\n\nStopping because: this needs the founder's answer on DEC-900." + LAND):
+            fails.append("a stop that says why must be allowed")
+        queue.unlink()
         if run(box, "no state word", active=True):
             fails.append("a second stop in the same turn must be allowed (stop_hook_active)")
         if subprocess.run([sys.executable, str(HOOK)], input="not json", capture_output=True, text=True).stdout.strip():
@@ -125,7 +135,7 @@ def main() -> int:
     for key in STYLE:
         if f'"{key}":' not in table:
             fails.append(f"rule {key} has no retrofit entry in tools/matrix.py (an audit, or why there is nothing to audit)")
-    tested = {want for _, _, want in CASES if want} | {"SCRATCHPAD", "LANDING"}
+    tested = {want for _, _, want in CASES if want} | {"SCRATCHPAD", "LANDING", "NEXT ACTION"}
     for key in STYLE:
         if key not in tested:
             fails.append(f"rule {key} has no blocking test case")

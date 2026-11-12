@@ -37,10 +37,9 @@ Applies to every reply in this repo. One line per rule; the long form is
   **Waiting**. End with `**Landed · N = <count>:**` and where each of the N items stands.
 - **OODA structure.** Observe (facts, with evidence) → Orient (meaning; each assumption as
   `Assume:`) → Decide (options queued in run order, not chosen between unless asked) → Act.
-- **Orient reads from disk.** `docs/ai-cto/initiatives.md` (`INIT-*`), `docs/ai-cto/debt.md`
-  (`DEBT-*`), `docs/ai-cto/blocked.md`. Name the IDs each action touches.
-- **Queue, don't choose [hook].** A numbered Decide list is acted on in the same reply: one
-  Act line per item, or the reason that item is blocked.
+- **Orient reads from disk:** `initiatives.md`, `debt.md`, `blocked.md` in `docs/ai-cto/`. Name the IDs touched.
+- **Queue, don't choose [hook].** A numbered Decide list gets one Act line per item. At each stop
+  the hook names the next action; do it, or end with a `Stopping because:` line.
 - **A founder decision is a tile, not prose [hook].** Logged as `DEC-NNN` in `docs/ai-cto/blocked.md`:
 
   > **DECISION · DEC-NNN · <one-line question>**
@@ -292,7 +291,7 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `tools/matrix.py` | run directly: the Matrix's own tooling, called as `cardinal.method`; 10-second cap; methods are listed by the command at right | `python3 tools/matrix.py list` |
 | `.claude/cardinal-map.json` | the Matrix (OODA matrix, alias net): every tool → one cardinal method, the `repoint` table, and the gate `mode` (`name` / `warn` / `enforce`) | edit, then `python3 tools/check-cardinal.py` |
 | `.claude/hooks/cardinal.py` | `PreToolUse` hook on every tool — names the call's cardinal; in `enforce` mode denies repointed native tools (kill switch: `touch .claude/.matrix-off`) | wired in `.claude/settings.json` |
-| `.claude/hooks/decide-act.py` | `Stop` hook: bounces a reply once if it breaks one of the eight reply rules | wired in `.claude/settings.json` |
+| `.claude/hooks/decide-act.py` | `Stop` hook: bounces a reply once if it breaks one of the nine reply rules | wired in `.claude/settings.json` |
 | `.claude/hooks/timing.py`, `.claude/hooks/resume.py`, `.claude/hooks/precompact.py` | `PostToolUse` timing of every tool call; wake-up after a compaction, resume, or fork; what a compaction summary must keep | wired in `.claude/settings.json` |
 | `tools/check-cardinal.py` | run directly (each tool in exactly one cardinal; every method documented in its skill; every repoint names a real Matrix method) | `python3 tools/check-cardinal.py` |
 | `tools/check-matrix.py` | run directly (end-to-end test of the Matrix in a sandbox: four cardinals, gate modes, cap, lease, stall) | `python3 tools/check-matrix.py` |

@@ -547,6 +547,7 @@ RETROFIT = {
     "TILE": "stored decisions are audited on every commit by tools/check-decisions.py",
     "SCRATCHPAD": audit_scratch,
     "LANDING": "applies to a reply as it is sent; no replies are stored to audit",
+    "NEXT ACTION": "applies at the moment a turn ends; it reads the live queue, so there is no past state to audit",
 }
 
 
