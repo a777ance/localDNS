@@ -52,14 +52,16 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
   - Measurement: every Matrix call and every native tool call is timed (`observe.log`,
     `observe.times`); a call over 10 seconds is named at once: **Done**, seen recording live.
   - Reply rules moved into the Stop hook (lead word, Decide and Act parity, `cd` first, hedges,
-    tile integrity), with `tools/check-stop-hook.py`: **Done**. Shortening the prose waits on DEC-013.
+    tile integrity, rehearsal, scratchpads), with `tools/check-stop-hook.py`: **Done**. The prose was
+    shortened to one line per rule under DEC-013.
   - Compaction: `PreCompact` instructions and wake on resume and fork: **Done**, not yet seen in a live compaction.
-  - Reach new sessions (merge PR #37 into `main`): **Blocked** on DEC-011.
-  - Gatekeeping, staged name → warn → enforce: **Blocked** on DEC-012. Mode is `name`.
-- **Handoff:** the next session's roadmap for a fresh 3-hour lease is `docs/ai-cto/handoff.md`.
-- **Founder lease:** 3 hours of unattended work granted 2026-11-11, from about 22:28 UTC to
-  01:28 UTC on 2026-11-12. It covers building and pushing to the branch. It does not cover
-  merging to `main` or switching the gate mode, which keep their own decisions.
+  - Reach new sessions (merge PR #37 into `main`): **Done**, merged as `60a53d7` (DEC-011). Not yet
+    seen in a fresh session (Q-031 in `docs/ai-cto/handoff.md`).
+  - Gatekeeping, staged name → warn → enforce: `warn` is **Done** (DEC-012, set by the founder,
+    `67da1b6`, and seen live: a `Read` call carried the `Matrix route` reminder). `enforce` is
+    not decided and is the founder's hand only.
+- **Handoff:** the next session starts from `docs/ai-cto/handoff.md`. The first lease's finished
+  queue is archived in `docs/ai-cto/handoff-2026-11-11.md`; the record is `docs/ai-cto/session-log.md`.
 
 ## INIT-004 · OODA loop as an ongoing goal (RSI) · Active
 

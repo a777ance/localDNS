@@ -481,6 +481,7 @@ def act_probe(kind="", *args):
 # nothing stored to audit. tools/check-stop-hook.py fails if a rule has no entry.
 FOUNDER_DOCS = ("CLAUDE.md", "README.md", "docs/ai-cto", ".claude/output-styles")
 RETROFIT_EXEMPT = {"docs/ai-cto/handoff.md": "written for a cloud session, where the container path is the right one",
+                   "docs/ai-cto/handoff-2026-11-11.md": "the archived first handoff, also written for a cloud session",
                    "docs/ai-cto/reply-style-full.md": "the archived long form of the rules; it quotes what they forbid"}
 HEDGES = ("should work", "probably works", "probably work", "may have worked", "might have worked", "should be fine")
 

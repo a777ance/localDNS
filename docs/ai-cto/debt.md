@@ -25,7 +25,7 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 - **Limit:** a rehearsal copies the repo, not the laptop. It cannot see his shell, his other
   folders, or uncommitted edits unless they are given with `--setup`.
 
-## DEBT-011 · Six lint findings predate the Matrix work · Open
+## DEBT-011 · Six lint findings predate the Matrix work · Done
 
 - **Observed:** `ruff check --select E9,F` (the cloud setup script's lint step) reports six
   findings outside this lease's files: unused imports in `jury/jury.py`, `collect_stats.py`,
@@ -33,9 +33,8 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 - **Cost:** the setup script prints `!! FAILED` on every fresh container, so a real failure
   on that line would not stand out.
 - **Done 2026-11-11:** the four unused imports are removed.
-- **Next action:** two unused variables remain in `build_alloc` in `compose.py` (`other`, `other_bytes`).
-  Read on 2026-11-11: the "Other" row is computed from `remainder`, so no figure is missing; they are
-  dead code. Left in place because it is the Statement composer; remove them with a test of its output.
+- **Done 2026-11-12:** the unused variables in `build_alloc` in `compose.py` are removed. Its output on
+  four sample inputs was captured before and compared after: identical. `ruff check --select E9,F` is clean.
 
 ## DEBT-010 · Fixed context cost per session is high · Open
 
@@ -70,14 +69,18 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
   hook line it received, word for word: `cardinal: observe.read · agent: juror`. The timing hook also
   wrote a row for that call. So hooks fire inside subagents in a checkout of this repo, and the hook
   knows which agent made the call. One agent, one call: `name` mode only.
-- **Next action:** after DEC-012, run `warn` in one live session, then `enforce` with the
-  kill switch ready.
+- **Seen live 2026-11-12:** `warn` mode. A native `Read` call carried `cardinal: observe.read — Matrix
+  route: python3 tools/matrix.py observe.read ...`. The wake-up hook `.claude/hooks/resume.py` also
+  fired live, twice, on session resumes.
+- **Still not seen live:** `enforce` (never run), a Stop-hook bounce from `.claude/hooks/decide-act.py`,
+  and a compaction using the `PreCompact` text.
+- **Next action:** Q-031 and Q-033 in `docs/ai-cto/handoff.md`. `enforce` needs its own founder decision.
 
-## DEBT-007 · The Matrix is not on `main` · Blocked
+## DEBT-007 · The Matrix is not on `main` · Done
 
 - **Observed:** the map, hook, `tools/matrix.py`, and gates sit on `decision-log-dec007` (PR #37).
 - **Cost:** new sessions start from `main` and get none of it.
-- **Next action:** DEC-011.
+- **Done 2026-11-11:** DEC-011 was GO; PR #37 merged as `60a53d7`.
 
 ## DEBT-006 · Gate and style checks pass only partially · Done
 

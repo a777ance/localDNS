@@ -73,14 +73,12 @@ def build_alloc(by_category):
     total = sum(by_category.values()) or 1
     items = sorted(by_category.items(), key=lambda kv: kv[1], reverse=True)
     # keep top (RAMP_MAX-1) named, fold the rest into Other
-    head, tail = items[:RAMP_MAX - 1], items[RAMP_MAX - 1:]
-    other = sum(v for _, v in tail) + dict(items).get("Other", 0) * 0
+    head = items[:RAMP_MAX - 1]
     rows = []
     for cat, b in head:
         if cat == "Other":
             continue
         rows.append([cat, round(100 * b / total), f"{b / GB:.1f} GB"])
-    other_bytes = sum(v for _, v in tail if _ != "Other") + dict(head).get("Other", 0)
     # ensure an Other row if any remainder
     accounted = sum(b for _, b in head if _ != "Other")
     remainder = total - accounted
