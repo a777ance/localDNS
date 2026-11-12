@@ -18,6 +18,13 @@ Claude to serve OUR UI." The first panel, `console`, is that.
 - Every later message resumes the same conversation. The cost so far is shown at the top.
 - `x` stops Claude mid-turn. Quitting the display stops it too.
 
+**The sandbox, on Ubuntu.** On the founder's XPS the first run printed: "Sandbox disabled ...
+Ubuntu's AppArmor restriction on user namespaces stops bubblewrap here ... Commands will run WITHOUT
+sandboxing." Until that is fixed, anything Claude runs behind the display has the same reach as the
+founder's own shell. Claude Code's documentation gives the fix: add an AppArmor profile for
+`/usr/bin/bwrap`, reload AppArmor, and restart. Do that before starting the console with any
+permission mode that lets Claude act without asking. The console shows such warnings in full, in red.
+
 **Permissions.** With no screen of its own, Claude cannot stop to ask you whether it may edit a
 file or run a command; a step that needs a yes is refused. The display passes no permission
 setting by itself. To give one, set `BRIDGE_CLAUDE_ARGS` before starting it, for example:
