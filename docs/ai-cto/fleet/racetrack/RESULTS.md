@@ -23,3 +23,23 @@ bullets. The agents' reports said the counts matched in races 3 and 4; the score
 
 What the spot checks found (v1 sequential run and race 1 only): one false claim, one overstated,
 one wrong count, four true of five checked. Races 2 to 4 are not yet spot-checked.
+
+## Race v3: sequential against parallel-8, two runs each (2026-11-12)
+
+Same fixed task (TASK-v3.md), with notes kept out of the bullets. Every Count line matched its
+bullets in all four runs, which the v2 races did not manage. Quality is NOT yet hand-checked for
+these runs; the numbers below are volume and cost only.
+
+| Run | Mode | Wall time | Subagent tokens | Findings | Citations | Bad citations | Findings per 1k tokens |
+| --- | ---- | --------- | --------------- | -------- | --------- | ------------- | ---------------------- |
+| S1 | sequential, 1 agent | 153 s | 176,885 | 37 | 40 | 0 | 0.21 |
+| S2 | sequential, 1 agent | 120 s | 156,939 | 35 | 39 | 0 | 0.22 |
+| P1 | parallel-8, 8 agents | not timed exactly (under about 2 min) | about 787,600 | 39 | 51 | 0 | 0.05 |
+| P2 | parallel-8, 8 agents | not timed exactly | about 767,998 | 45 | 54 | 0 | 0.06 |
+
+Sequential averages: 137 s, about 166,900 tokens, 36 findings, 0.215 findings per 1k tokens.
+Parallel-8 averages: about 777,800 tokens, 42 findings, 0.054 findings per 1k tokens.
+
+Read: parallel-8 cost about 4.7 times the tokens for about 17 percent more findings, so sequential is
+about four times more efficient per finding. Wall time for parallel-8 was not timed exactly, so no
+speed winner is claimed. Next: hand-check quality for each run before naming a quality winner.
