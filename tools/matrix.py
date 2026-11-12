@@ -329,6 +329,41 @@ def observe_agents(kind="status", *args):
     return 0
 
 
+FACTORY_STATE = ROOT / ".claude/.factory-state"
+FACTORY_QUEUE = ROOT / "docs/ai-cto/fleet/racetrack/factory-queue.tsv"
+
+
+def observe_factory(kind="next", *args):
+    """The factory's state: which milestones are done, and the tokens they cost.
+
+    observe.factory next            print the first queue id not done; print nothing when the queue is empty
+    observe.factory spent           print the tokens spent so far
+    observe.factory done ID TOKENS  record a finished milestone and its subagent tokens
+    """
+    done, spent = [], 0
+    if FACTORY_STATE.exists():
+        for ln in FACTORY_STATE.read_text(encoding="utf-8").splitlines():
+            parts = ln.split("\t")
+            if parts[0] == "done" and len(parts) == 3:
+                done.append(parts[1])
+                spent += int(parts[2])
+    if kind == "spent":
+        print(spent)
+        return 0
+    if kind == "done":
+        if len(args) != 2 or not args[1].isdigit():
+            sys.exit("FAILED: observe.factory done takes ID and a token count")
+        FACTORY_STATE.parent.mkdir(exist_ok=True)
+        with FACTORY_STATE.open("a", encoding="utf-8") as fh:
+            fh.write(f"done\t{args[0]}\t{args[1]}\n")
+        return 0
+    ids = [ln.split("\t")[0] for ln in FACTORY_QUEUE.read_text(encoding="utf-8").splitlines()
+           if ln and not ln.startswith("#")]
+    nxt = next((i for i in ids if i not in done), "")
+    print(nxt)
+    return 0
+
+
 def observe_status():
     cfg = json.loads((ROOT / ".claude/cardinal-map.json").read_text(encoding="utf-8"))
     off = (ROOT / ".claude/.matrix-off").exists()
@@ -763,7 +798,7 @@ def observe_hitrate():
     return 0
 
 
-METHODS = {"observe.hitrate": observe_hitrate, "observe.agents": observe_agents,"observe.status": observe_status,"decide.open": decide_open, "act.ship": act_ship,
+METHODS = {"observe.hitrate": observe_hitrate, "observe.agents": observe_agents, "observe.factory": observe_factory, "observe.status": observe_status,"decide.open": decide_open, "act.ship": act_ship,
            "orient.stall": orient_stall, "act.resolve": act_resolve,
            "observe.read": observe_read, "observe.find": observe_find, "observe.search": observe_search,
            "orient.ground": orient_ground, "decide.gate": decide_gate,

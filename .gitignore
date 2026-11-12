@@ -48,3 +48,5 @@ __pycache__/
 .claude/.matrix-hitrate
 .claude/.file-route-enforce
 .claude/.agent-ledger
+.claude/.factory-state
+.claude/factory-tasks
