@@ -49,8 +49,9 @@ move the reply rules out of prose and into a hook.
 
 **Measured:**
 
-- Native tool calls timed live in the session: 95. Calls over 10 seconds: four, each a
-  shell call that chained several ships or rehearsals.
+- Native tool calls timed live in the session: 95 by 00:40 UTC. Calls over 10 seconds: five. Four
+  chained several ships or rehearsals in one shell call. The fifth was a single `act.ship` (11.7 s):
+  nine gates in sequence plus the new push probe. Repair: `act.ship` now runs its gates side by side.
 - Gates: nine, slowest about 4 seconds (`tools/check-matrix.py`), on the cloud container and on the founder's XPS.
 
 **Left open:** the queue Q-031 to Q-039 in `docs/ai-cto/handoff.md`. Not seen live: a Stop-hook

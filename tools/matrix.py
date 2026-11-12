@@ -642,8 +642,12 @@ def act_ship(message, *rest):
     files = [f for f in rest if f != "--push"]
     if not files:
         sys.exit("FAILED: name the files to ship. Nothing is staged implicitly.")
-    for check in sorted((ROOT / "tools").glob("check-*.py")):
-        r = subprocess.run([sys.executable, str(check)], capture_output=True, text=True, cwd=ROOT)
+    # The gates run side by side: in sequence they took the ship past the 10-second cap (seen 2026-11-12).
+    from concurrent.futures import ThreadPoolExecutor
+    checks = sorted((ROOT / "tools").glob("check-*.py"))
+    with ThreadPoolExecutor(max_workers=len(checks) or 1) as pool:
+        results = list(pool.map(lambda c: subprocess.run([sys.executable, str(c)], capture_output=True, text=True, cwd=ROOT), checks))
+    for check, r in zip(checks, results):
         if r.returncode:
             sys.exit(f"FAILED: gate {check.name} is red; nothing committed.\n" + (r.stdout + r.stderr)[-600:])
     for f in files:
