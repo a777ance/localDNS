@@ -60,6 +60,10 @@ The seven points in the archived handoff still hold. Added since, in his words o
 
 ## 5. The queue
 
+**Superseded 2026-11-12: the queue is now `docs/ai-cto/superqueue.md`,** ordered by
+`docs/ai-cto/dependency-map.md` from the thirty leans in `docs/ai-cto/leans-e2e.md`. Every item
+still open below was carried into it. The list below is kept as the record of what was done.
+
 One item at a time, in order. Each has a done-test.
 
 - **Q-031 · See the hooks in a fresh session on `main`.** · DONE (2026-11-12: a fresh second session showed the hook line on its first `Read`) · Look for a `cardinal:` line with `Matrix route` on the first `Read`. Done: recorded in DEBT-008. This is the proof the merge reached new sessions.
