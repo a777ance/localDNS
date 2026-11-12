@@ -297,10 +297,11 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `tools/check-docs.py` | run directly (validate Markdown links + repo-path references across ALL docs; trips on legacy 1.x paths; asserts the Bifrost sweep string **and** the expansion template are byte-identical across their three surfaces and that the template reduces to the sweep; **and** that spec §1, `docs/bifrost.html`, and CLAUDE.md §H assign every glyph the same role) | `python3 tools/check-docs.py` |
 | `04-user-services/ai-orchestration/briefing-block.md` | canonical source for the Bifrost section in **every** sibling repo's `CLAUDE.md` — edit here, never in the rendered copies | `python3 tools/sync-briefings.py --write` |
 | `tools/sync-briefings.py` | run directly (renders the canonical briefing block into every sibling repo's `CLAUDE.md`; bare/`--check` reports drift, `--write` fixes it; also asserts the condensed block and §H agree on glyph roles) | `python3 tools/sync-briefings.py --write` |
-| `tools/matrix.py` | run directly — the Matrix's own tooling, called as `cardinal.method` (`observe.read/find/search/status`, `orient.ground/stall`, `decide.gate/open`, `act.write/edit/ship/resolve`); 10-second hard cap, one-time native-tool lease on timeout, stall incidents | `python3 tools/matrix.py list` |
+| `tools/matrix.py` | run directly — the Matrix's own tooling, called as `cardinal.method`: read, find, search, status, log, times, and a probe in each cardinal; `decide.gate`, `decide.rehearse`; `orient.checkpoint`, `orient.retrofit`; `act.write/edit/undo/ship/resolve`. 10-second hard cap, one-time native-tool lease on timeout, stall incidents | `python3 tools/matrix.py list` |
 | `.claude/cardinal-map.json` | the Matrix (OODA matrix, alias net): every tool → one cardinal method, the `repoint` table, and the gate `mode` (`name` / `warn` / `enforce`) | edit, then `python3 tools/check-cardinal.py` |
 | `.claude/hooks/cardinal.py` | `PreToolUse` hook on every tool — names the call's cardinal; in `enforce` mode denies repointed native tools (kill switch: `touch .claude/.matrix-off`) | wired in `.claude/settings.json` |
-| `.claude/hooks/decide-act.py` | `Stop` hook — a reply ending with a numbered Decide list is sent back once to act on it | wired in `.claude/settings.json` |
+| `.claude/hooks/decide-act.py` | `Stop` hook — bounces a reply once if it breaks a reply rule: lead state word, Decide and Act parity, `cd` first, rehearsed commands, no hedges, complete tiles, announced scratchpads | wired in `.claude/settings.json` |
+| `.claude/hooks/timing.py`, `.claude/hooks/resume.py`, `.claude/hooks/precompact.py` | `PostToolUse` timing of every tool call; wake-up after a compaction, resume, or fork; what a compaction summary must keep | wired in `.claude/settings.json` |
 | `tools/check-cardinal.py` | run directly (each tool in exactly one cardinal; every method documented in its skill; every repoint names a real Matrix method) | `python3 tools/check-cardinal.py` |
 | `tools/check-matrix.py` | run directly (end-to-end test of the Matrix in a throwaway sandbox: four cardinals, gate modes, cap, lease, stall) | `python3 tools/check-matrix.py` |
 | `tools/check-decisions.py` | run directly (every `DEC-NNN` in `docs/ai-cto/blocked.md` has a status, a unique id, newest first) | `python3 tools/check-decisions.py` |
@@ -783,6 +784,10 @@ One line per entry. The full notes on each are in `docs/architecture/further-rea
 ---
 
 ## 5. AI CTO state
+
+**Start of session:** `docs/ai-cto/handoff.md` (the queue), `docs/ai-cto/checkpoint.md` (where things
+stand), `docs/ai-cto/session-log.md` (what past sessions shipped and learned, newest first), and
+`docs/ai-cto/roadmap.md` (the founder's plain-English view).
 
 Read `docs/ai-cto/context.md` in this repo for current open items and component status.
 Its **"Default next actions"** block at the top is the pre-computed session-start

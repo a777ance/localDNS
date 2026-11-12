@@ -64,4 +64,5 @@ The vocabulary. If you see these, this is all they mean:
 - The 20 leans on these decisions: `docs/ai-cto/leans.md`
 - Decisions and their evidence: `docs/ai-cto/blocked.md`
 - Where the work stands: `docs/ai-cto/checkpoint.md`
-- The finished work queue: `docs/ai-cto/handoff.md`
+- The next session's queue: `docs/ai-cto/handoff.md` (the finished one: `docs/ai-cto/handoff-2026-11-11.md`)
+- The record of what happened and what was learned: `docs/ai-cto/session-log.md`
