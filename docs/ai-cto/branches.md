@@ -124,3 +124,11 @@ reading of each is the loop's and is not yet checked by a person.
   history). Holds the Cloudflare Workers configuration commit (2026-07-21). Its file diff against
   leader is 180 files, which is mostly leader's newer tree read backwards; the unique material is
   the Workers configuration alone, and needs a person to pull it out before anything is kept.
+
+## Session branches named by cardinal (SQ-010)
+
+A session's working branch is named `claude/<cardinal>-<slug>`, where `<cardinal>` is the cardinal
+the session's main work sits in (`observe`, `orient`, `decide` or `act`) and `<slug>` is a short
+word-form of the work. Example: `claude/act-sq-009-goal-probe`. A branch cut for a moved session
+takes the cardinal of the moved work. The session setup script, which lives in the cloud environment
+and not in this repo, must use the same pattern. Until it does, the names it gives stay as they are.
