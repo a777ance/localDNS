@@ -12,6 +12,20 @@ to `Done` or `Punted`, and it is removed only by the founder.
 
 ## Decision log (DEC)
 
+- **DEC-022 · Shrink CLAUDE.md sections G and H, and repoint the checks that read them · OPEN**
+  Measured 2026-11-12 (SQ-011). §G is 8,631 bytes and §H is 8,496 bytes: 17,127 of CLAUDE.md's
+  59,997 bytes, 28.5%. The file is 3 bytes under its 60,000-byte budget, so any growth fails the
+  registers check. The checks that read §G or §H, and would need repointing before anything moves:
+  `tools/check-doctrine.py` (parses §G's sampler values, `\n## G\.` regex), `tools/check-docs.py`
+  (the Bifrost sweep and the §H backbone table, lines near 412 to 426), and the canonical Bifrost
+  block in `04-user-services/ai-orchestration/briefing-block.md`, which `tools/sync-briefings.py` renders.
+  No section is moved in this entry.
+  **Action if GO:** the loop moves the long form of §G and §H to a file under `docs/architecture/`,
+  leaves a one-line pointer in CLAUDE.md, and repoints the three checks at the new file in the same commit.
+  **Action if NO GO:** CLAUDE.md stays as it is and the budget stays at 60,000 bytes.
+  **Decision needed:** **GO** or **NO GO**. Asked 2026-11-12.
+
+
 - **DEC-021 · Promote the one-page intent draft onto `main` · OPEN**
   **Action if GO:** the founder copies `docs/ai-cto/intent-draft.md` onto `main` after editing it, and tags the promotion.
   **Action if NO GO:** `main` stays empty and the draft stays on `leader`.
