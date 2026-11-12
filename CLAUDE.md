@@ -33,7 +33,8 @@ Applies to every reply in this repo. One line per rule; the long form is
 **[hook]** are enforced by the Stop hook `.claude/hooks/decide-act.py` (tested by
 `tools/check-stop-hook.py`): a reply that breaks one is bounced once, with the reason.
 
-- **Lead state word first [hook].** Open with **Done**, **Partial**, **Blocked**, or **Waiting**.
+- **State word first, landing line last [hook].** Open with **Done**, **Partial**, **Blocked**, or
+  **Waiting**. End with `**Landed · N = <count>:**` and where each of the N items stands.
 - **OODA structure.** Observe (facts, with evidence) → Orient (meaning; each assumption as
   `Assume:`) → Decide (options queued in run order, not chosen between unless asked) → Act.
 - **Orient reads from disk.** `docs/ai-cto/initiatives.md` (`INIT-*`), `docs/ai-cto/debt.md`
@@ -60,12 +61,11 @@ Applies to every reply in this repo. One line per rule; the long form is
   The naming hook flags a push, merge, or new agent or session with no fresh passing probe.
 - **Retrofit: a new rule reaches backward (INIT-007).** On adopting a rule, apply it to what already
   exists: `python3 tools/matrix.py orient.retrofit`. This binds rules not yet written.
-- **Announce every scratchpad [hook].** Name each scratchpad file by full path, or delete it.
+- **Announce every scratchpad [hook]:** by full path, or delete it.
 - **No vague hedges [hook]** ("should work", "probably works"). Name the check that confirms it.
-- **Successes are quiet; failures are loud.** One plain sentence with the evidence. A failure
-  opens with `FAILED:` or `BLOCKED:`, quotes the error, and gives a numbered **Fix** recipe or
-  the next diagnostic command.
-- No emoji. Headers no deeper than `###`.
+- **Successes are quiet; failures are loud.** A failure opens with `FAILED:` or `BLOCKED:`, quotes
+  the error, and gives a numbered **Fix** recipe or the next diagnostic.
+- No emoji. No header below `###`.
 - **The Matrix. Motto: "There is no way out."** Every tool call, workflow, and subagent call is named
   `cardinal.method` by `.claude/hooks/cardinal.py` and timed by `.claude/hooks/timing.py` (map:
   `.claude/cardinal-map.json`; tooling: `python3 tools/matrix.py list`). A session with no checkout
@@ -76,7 +76,7 @@ Applies to every reply in this repo. One line per rule; the long form is
   (ship, rehearse, gate, push) per call. A null result gets new work, not a repeat of the prompt.
 - **State lives on disk; ship each finished piece at once.** `docs/ai-cto/checkpoint.md` at each
   boundary; `python3 tools/matrix.py act.ship "MESSAGE" FILE... --push` once the gates pass.
-- **Stacked requests: newest first, none dropped.** **Carrot** is the 3-hour peer lease.
+- **Stacked requests: newest first, none dropped.** **Carrot**: the 3-hour peer lease.
 - **The OODA loop is an ongoing goal (INIT-004).** A rule that lives only in prose is not a
   rule: give it a hook, a check, or a file the next session reads.
 
@@ -292,7 +292,7 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `tools/matrix.py` | run directly: the Matrix's own tooling, called as `cardinal.method`; 10-second cap; methods are listed by the command at right | `python3 tools/matrix.py list` |
 | `.claude/cardinal-map.json` | the Matrix (OODA matrix, alias net): every tool → one cardinal method, the `repoint` table, and the gate `mode` (`name` / `warn` / `enforce`) | edit, then `python3 tools/check-cardinal.py` |
 | `.claude/hooks/cardinal.py` | `PreToolUse` hook on every tool — names the call's cardinal; in `enforce` mode denies repointed native tools (kill switch: `touch .claude/.matrix-off`) | wired in `.claude/settings.json` |
-| `.claude/hooks/decide-act.py` | `Stop` hook: bounces a reply once if it breaks one of the seven reply rules | wired in `.claude/settings.json` |
+| `.claude/hooks/decide-act.py` | `Stop` hook: bounces a reply once if it breaks one of the eight reply rules | wired in `.claude/settings.json` |
 | `.claude/hooks/timing.py`, `.claude/hooks/resume.py`, `.claude/hooks/precompact.py` | `PostToolUse` timing of every tool call; wake-up after a compaction, resume, or fork; what a compaction summary must keep | wired in `.claude/settings.json` |
 | `tools/check-cardinal.py` | run directly (each tool in exactly one cardinal; every method documented in its skill; every repoint names a real Matrix method) | `python3 tools/check-cardinal.py` |
 | `tools/check-matrix.py` | run directly (end-to-end test of the Matrix in a sandbox: four cardinals, gate modes, cap, lease, stall) | `python3 tools/check-matrix.py` |

@@ -65,3 +65,6 @@ Skip or punt is always the user's call. Mark a queued item `punt` only when the 
   what it is, or deleted. A scratchpad nobody was told about is lost.
 - 1 + N lanes. The probe is lane 0 of every piece of work and goes first: `observe.probe`, `orient.probe`,
   `decide.probe`, or `act.probe`, whichever fits the goal. The N lanes (parallel, sequential, or both) open after it.
+- The landing line. The last line of every reply answers "where did we land on N x": it reads
+  `**Landed · N = <count>:**` followed by one sentence saying where each of the N items in play stands.
+  N is the number of items the reply dealt with. Nothing comes after it.

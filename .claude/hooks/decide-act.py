@@ -11,6 +11,7 @@ requires .claude/output-styles/briefing.md to name):
   HEDGE    no vague hedge outside code and quotes
   REHEARSE a bash block handed to the founder was run first (decide.rehearse), or says why not
   SCRATCH  every new file in the session's scratchpad is announced by its full path
+  LANDING  the last line says where we landed on the N items: **Landed · N = <count>:** ...
   TILE     a DECISION tile has both action lines, the GO / NO GO line, and a logged DEC id
 
 Loop safety: when Claude Code re-enters the turn because of this hook, the
@@ -187,6 +188,13 @@ def review(text, session_id=""):
             missing.append("an entry for %s in docs/ai-cto/blocked.md" % dec)
         if missing:
             reasons.append("TILE: the tile for %s is missing: %s." % (dec, "; ".join(missing)))
+    # LANDING. The founder's rule, 2026-11-12: the last sentence always answers "where did we land on N x".
+    last = next((l for l in reversed(text.splitlines()) if l.strip()), "")
+    if not re.match(r"^\*\*Landed · N = \d+:\*\*\s+\S", last.strip()):
+        reasons.append(
+            "LANDING: the reply must end with one line that says where we landed, in this form: "
+            "**Landed · N = <count>:** then where each of the N items in play stands, in one sentence. "
+            "It ended with: %r" % last.strip()[:80])
     return reasons
 
 

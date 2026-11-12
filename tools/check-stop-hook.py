@@ -58,7 +58,11 @@ STYLE = {
     "TILE": "DECISION · DEC-NNN",
     "REHEARSE": "decide.rehearse",
     "SCRATCHPAD": "scratchpad",
+    "LANDING": "Landed · N =",
 }
+
+
+LAND = "\n\n**Landed · N = 1:** the one item is done.\n"  # appended to every case, so each tests one rule
 
 
 def run(box: Path, reply: str, active=False) -> str:
@@ -83,7 +87,7 @@ def main() -> int:
             "".join(f"{hashlib.sha256(c.encode()).hexdigest()}\t{code}\tabc1234\tt\n"
                     for c, code in (("git status", 0), ("false", 1))), encoding="utf-8")
         for name, reply, want in CASES:
-            got = run(box, reply)
+            got = run(box, reply + LAND)
             if want is None and got:
                 fails.append(f"{name}: expected allow, blocked with: {got[:90]}")
             elif want and not got.startswith(want):
@@ -92,13 +96,18 @@ def main() -> int:
         (box / "scratch").mkdir()
         note = box / "scratch" / "notes.txt"
         note.write_text("x")
-        if not run(box, "**Done.** Nothing to add.").startswith("SCRATCHPAD"):
+        if not run(box, "**Done.** Nothing to add." + LAND).startswith("SCRATCHPAD"):
             fails.append("an unannounced scratchpad file must block")
-        if run(box, f"**Done.** Scratch file: {note} (working notes)."):
+        if run(box, f"**Done.** Scratch file: {note} (working notes)." + LAND):
             fails.append("a scratchpad file named by full path must be allowed")
-        if run(box, "**Done.** Nothing to add."):
+        if run(box, "**Done.** Nothing to add." + LAND):
             fails.append("an announced scratchpad file must not block again")
         del os.environ["MATRIX_SCRATCH_DIR"]
+        for name, reply in (("no landing line", "**Done.** Pushed abc1234."),
+                            ("landing line not last", "**Landed · N = 1:** done.\n\n**Done.** Pushed."),
+                            ("landing line with no count", "**Done.** Pushed.\n\n**Landed:** all done.")):
+            if "LANDING" not in run(box, reply):
+                fails.append(f"{name}: expected a LANDING block")
         if run(box, "no state word", active=True):
             fails.append("a second stop in the same turn must be allowed (stop_hook_active)")
         if subprocess.run([sys.executable, str(HOOK)], input="not json", capture_output=True, text=True).stdout.strip():
@@ -116,7 +125,7 @@ def main() -> int:
     for key in STYLE:
         if f'"{key}":' not in table:
             fails.append(f"rule {key} has no retrofit entry in tools/matrix.py (an audit, or why there is nothing to audit)")
-    tested = {want for _, _, want in CASES if want} | {"SCRATCHPAD"}
+    tested = {want for _, _, want in CASES if want} | {"SCRATCHPAD", "LANDING"}
     for key in STYLE:
         if key not in tested:
             fails.append(f"rule {key} has no blocking test case")
