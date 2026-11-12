@@ -60,6 +60,8 @@ STYLE = {
     "SCRATCHPAD": "scratchpad",
     "LANDING": "Landed · N =",
     "NEXT ACTION": "Stopping because:",
+    "L ITEMS OPEN": "sub-OODA loop",
+    "L STEP": "`L · `",
 }
 
 
@@ -109,6 +111,13 @@ def main() -> int:
                             ("landing line with no count", "**Done.** Pushed.\n\n**Landed:** all done.")):
             if "LANDING" not in run(box, reply):
                 fails.append(f"{name}: expected a LANDING block")
+        got = run(box, "**Partial.** Shipped.\n\n### L · Left open\n\n- The probe does not adapt yet.\n- DEC-900: waits on the founder.\n" + LAND)
+        if not (got.startswith("L ITEMS OPEN: 1 item") and "adapt" in got and "DEC-900" not in got.split("\n\n")[-1]):
+            fails.append(f"a loop-owned L item must start a sub-loop, a DEC item must not: {got[:120] or 'allow'}")
+        if run(box, "**Waiting.** Shipped.\n\n### L · Left open\n\n- DEC-900: waits on the founder.\n" + LAND):
+            fails.append("an L step holding only the founder's DEC items must be allowed")
+        if not run(box, "**Partial.** Shipped.\n\n### Still open\n\n- DEC-900: waits.\n" + LAND).startswith("L STEP"):
+            fails.append("a 'Still open' heading must be sent back to be an L step")
         queue = box / "docs/ai-cto/handoff.md"
         queue.write_text("- **Q-900 · Done thing.** · DONE abc1234 · x\n- **Q-901 · BLOCKED on DEC-900 · Wait.** x\n"
                          "- **Q-902 · The open thing.** do it\n", encoding="utf-8")
@@ -135,7 +144,7 @@ def main() -> int:
     for key in STYLE:
         if f'"{key}":' not in table:
             fails.append(f"rule {key} has no retrofit entry in tools/matrix.py (an audit, or why there is nothing to audit)")
-    tested = {want for _, _, want in CASES if want} | {"SCRATCHPAD", "LANDING", "NEXT ACTION"}
+    tested = {want for _, _, want in CASES if want} | {"SCRATCHPAD", "LANDING", "NEXT ACTION", "L ITEMS OPEN", "L STEP"}
     for key in STYLE:
         if key not in tested:
             fails.append(f"rule {key} has no blocking test case")

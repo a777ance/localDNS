@@ -77,3 +77,9 @@ Skip or punt is always the user's call. Mark a queued item `punt` only when the 
   starts with its own letter, and a line that reports on three commands carries three letters in the order they
   ran (for example `A A O ·`). The wording after the letter stays as it was. The naming hook
   `.claude/hooks/cardinal.py` flags a shell call whose description has no letter or the wrong one.
+- The L step. After O, OO, D, and A comes `L · `: what is left open. Nothing open is reported under any other
+  heading. Each L item is one of two kinds. The founder's: it cites a `DEC-NNN` id and is a tile. The loop's:
+  everything else. When a reply ends with loop items under L, the Stop hook refuses the stop and starts a
+  sub-OODA loop for each one at once, in parallel where they do not touch the same files (one subagent per
+  item, each in its own worktree, each landing by pull request into `leader`), until every item is resolved
+  or has become a tile.
