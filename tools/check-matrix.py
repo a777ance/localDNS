@@ -152,7 +152,6 @@ def main() -> int:
             ("Read", ""): "observe.read", ("Edit", ""): "act.write", ("AskUserQuestion", ""): "decide.tile",
             ("Bash", "git status --short && ls"): "observe.read",
             ("Bash", "git commit -m x && git push"): "act.ship",
-            ("Bash", "rm -rf build"): "act.write",
             ("Bash", "python3 tools/matrix.py orient.ground"): "orient.ground",
             # text a command only quotes is not a call it makes (Q-008)
             ("Bash", "cat <<'EOF'\npython3 tools/matrix.py act.ship x\nEOF"): "observe.read",
@@ -162,7 +161,7 @@ def main() -> int:
             ("Bash", "git commit -m \"it's done\""): "act.ship",
         }
         for (tool, cmd), want in names.items():
-            got = hook(tool, {"command": cmd} if cmd else {})["additionalContext"]
+            got = hook(tool, {"command": cmd} if cmd else {}).get("additionalContext", "DENIED (no context line)")
             check(f"hook names {tool} {cmd}".strip(), got.startswith(f"cardinal: {want}"), got)
         check("hook names the subagent", hook("Read", agent_type="juror", agent_id="a1")["additionalContext"]
               == "cardinal: observe.read · agent: juror")
@@ -202,7 +201,7 @@ def main() -> int:
         check("a push to a session branch is not a push to main", "PUSH TO MAIN" not in hook("Bash", {"command": "git push -u origin claude/x"})["additionalContext"])
         check("a description with no letter is flagged", "LETTER" in hook("Bash", {"command": "ls", "description": "List files"})["additionalContext"])
         check("the right letter is quiet", "LETTER" not in hook("Bash", {"command": "ls", "description": "O · List files"})["additionalContext"])
-        check("the wrong letter is flagged", "must start with 'A · '" in hook("Bash", {"command": "rm -rf build", "description": "O · Remove the build"})["additionalContext"])
+        check("the wrong letter is flagged", "must start with 'A · '" in hook("Bash", {"command": "touch build.txt", "description": "O · Make the build file"}).get("additionalContext", ""))
         check("orient takes OO", "LETTER" not in hook("Bash", {"command": "python3 tools/matrix.py orient.probe", "description": "OO · Probe"})["additionalContext"])
         check("decide takes D", "LETTER" not in hook("Bash", {"command": "python3 tools/matrix.py decide.gate", "description": "D · Run the gates"})["additionalContext"])
         check("observe.probe bad arguments", mx("observe.probe", "nope").returncode != 0)
@@ -242,6 +241,14 @@ def main() -> int:
         hook("Read", {"file_path": "notes.txt"})
         after = hook("Write", {"file_path": "d.txt", "content": "x"})["additionalContext"]
         check("act run: an observe between acts clears it", "ACT RUN" not in after, after)
+        # Hard guards: destructive shell and PR/CI polling are denied in every mode.
+        banned = ["git push --force origin x", "rm -rf build", "git reset --hard HEAD~1"]
+        for cmd in banned:
+            d = hook("Bash", {"command": cmd, "description": "A · test"}, mode="name").get("permissionDecision")
+            check("hard guard denies a destructive command in name mode", d == "deny", cmd)
+        check("hard guard allows a plain read", hook("Bash", {"command": "ls -la", "description": "O · test"}, mode="name").get("permissionDecision") != "deny")
+        for tool in ("mcp__github__get_check_run", "ReadNotifications"):
+            check(f"hard guard denies polling {tool}", hook(tool, {}, mode="name").get("permissionDecision") == "deny")
     finally:
         shutil.rmtree(box, ignore_errors=True)
     for f in FAILS:

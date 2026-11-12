@@ -14,6 +14,14 @@ import time
 from pathlib import Path
 
 ROOT = Path(os.environ.get("CLAUDE_PROJECT_DIR") or Path(__file__).resolve().parents[2])
+
+# Hard guards: destructive shell and state polling are denied in every mode (see main()).
+HARD_BASH = re.compile(r"\brm\s+-[a-zA-Z]*[rRf]|\brm\s+--(recursive|force)|\bgit\s+push\b.*--force(?!-with-lease)|"
+                       r"\bgit\s+push\b.*\s-f\b|\bgit\s+reset\s+--hard\b|\bgit\s+clean\b.*-[a-zA-Z]*f|"
+                       r"\bmkfs(\.|\s)|\bdd\s+if=|\bshutdown\b|\breboot\b|\bdocker\s+(system\s+prune|rm\s+-f)")
+HARD_POLL_TOOLS = {"ReadNotifications", "mcp__github__pull_request_read", "mcp__github__get_check_run",
+                   "mcp__github__actions_get", "mcp__github__actions_list",
+                   "mcp__claude-code-remote__list_events", "mcp__claude-code-remote__get_event"}
 READ_ONLY = re.compile(
     r"^\s*(ls|cat|head|tail|grep|rg|find|wc|diff|stat|file|which|command|echo|printf|sort|uniq|cut|tr|test|true|pwd|date|env|"
     r"git\s+(status|log|diff|show|branch|fetch|remote|rev-parse)|python3?\s+tools/check-)\b")
@@ -77,6 +85,20 @@ def main() -> int:
             pass
         if data.get("agent_type"):  # set when a subagent made the call
             line += f" · agent: {data['agent_type']}"
+        # Hard guards (the safety goals of the alias routers, kept in the Matrix). They deny in EVERY
+        # mode, because they are bans, not routes. The break-glass is the documented kill switch.
+        if not (ROOT / ".claude/.matrix-off").exists():
+            poll = tool in HARD_POLL_TOOLS
+            cmd_ = str((data.get("tool_input") or {}).get("command", "")) if tool == "Bash" else ""
+            destructive = bool(cmd_) and bool(HARD_BASH.search(cmd_))
+            if poll or destructive:
+                why = (f"{tool} polls PR, CI or notification state. PR and CI events arrive on their own; polling is banned."
+                       if poll else
+                       "Destructive shell command banned in every mode (hard guard). Use a non-destructive form, or ask the user to run it.")
+                print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse",
+                                                         "permissionDecision": "deny",
+                                                         "permissionDecisionReason": why}}))
+                return 0
         out = {"hookEventName": "PreToolUse", "additionalContext": line}
         cfg = json.loads((ROOT / ".claude/cardinal-map.json").read_text(encoding="utf-8"))
         mode = os.environ.get("MATRIX_MODE") or cfg.get("mode", "name")
