@@ -13,7 +13,7 @@ name: Publish statement gallery + Bifrost + Provenance + field guides to Pages
 on:
   workflow_dispatch:
   push:
-    branches: ["main", "claude/meta-audit-priorities-MzByf", "claude/inspiring-fermi-FIdYr"]
+    branches: ["leader", "main", "claude/meta-audit-priorities-MzByf", "claude/inspiring-fermi-FIdYr"]
     paths:
       - "docs/statements/**"
       - "docs/bifrost.html"

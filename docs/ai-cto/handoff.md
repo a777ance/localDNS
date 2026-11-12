@@ -1,6 +1,6 @@
 # Handoff: where the next session starts
 
-Written 2026-11-12, about 00:40 UTC. Everything described here is on `main`. Read this once,
+Written 2026-11-12, about 00:40 UTC. Everything described here is on `leader` (see `docs/ai-cto/branches.md`: `main` is now intent cold storage). Read this once,
 then work the queue. The finished queue from the first lease (Q-001 to Q-030) is archived in
 `docs/ai-cto/handoff-2026-11-11.md`; the story of that session is in `docs/ai-cto/session-log.md`.
 
@@ -44,7 +44,7 @@ The seven points in the archived handoff still hold. Added since, in his words o
 
 ## 3. Rules of engagement
 
-- **Do without asking:** build, test, and ship to the session's branch; merge a docs or tooling change into `main` after a passing `observe.probe merge` (the founder's standing rule is "push to `main`", and DEC-010 scopes tiles to what a revert cannot undo).
+- **Do without asking:** build, test, and ship to the session's branch; merge a docs or tooling change into `leader` after a passing `observe.probe merge` (the founder's standing rule is "push to `main`", and DEC-010 scopes tiles to what a revert cannot undo).
 - **Never without the founder:** the gate mode (the permission system refuses a session that tries; it is his hand or nothing), `enforce`, anything on the live t630, the Bifrost spec, real customer data, spending money.
 - **Never at all:** watching a PR. Opening a PR subscribes the session automatically; it unsubscribes on merge. If a PR stays open, unsubscribe by hand.
 - **Before any command goes to the founder:** `python3 tools/matrix.py decide.rehearse --at HIS_COMMIT "COMMAND"`. His path is `~/localDNS`.
@@ -69,6 +69,8 @@ One item at a time, in order. Each has a done-test.
 - **Q-036 · 1 + N in the Bifrost notation.** A proposal for the founder only: where lane 0 sits relative to `^`. Do not edit the spec. Done: a tile in `docs/ai-cto/blocked.md`.
 - **Q-037 · Confirm the laptop timer.** Once the founder has run `bash tools/laptop-sync.sh install`, ask for the output of `bash tools/laptop-sync.sh status`. Done: recorded in the session log.
 - **Q-038 · BLOCKED on DEC-005 · venv peering files.** Needs the two facts from the XPS listed in `docs/ai-cto/roadmap.md`.
+- **Q-040 · Sort the files between `leader` and `outer` (DEC-015).** Both start as full copies. Move the non-OODA tree off `leader` and the OODA tree off `outer`, repointing `tools/check-docs.py` and `tools/check-doctrine.py` first so the gates stay green on each. Done: gates pass on both branches, and `docs/ai-cto/branches.md` says so.
+- **Q-041 · BLOCKED on DEC-016 · Empty `main`.** The pull request is prepared. Merge it only on the founder's GO.
 - **Q-039 · Shrink sections G and H of `CLAUDE.md`.** They are 17,000 of its 60,000 bytes. Each needs its checks repointed first. A proposal with measurements, then a tile.
 
 ## 6. Ending a session
@@ -77,4 +79,4 @@ One item at a time, in order. Each has a done-test.
 2. `python3 tools/matrix.py orient.checkpoint`, then update the prose in `docs/ai-cto/checkpoint.md`.
 3. Add an entry at the top of `docs/ai-cto/session-log.md`.
 4. Tick queue items here with `· DONE <commit>`.
-5. Everything is on `main`, and the session branch matches it.
+5. Everything is on `leader`, and the session branch matches it. Nothing is pushed to `main`.
