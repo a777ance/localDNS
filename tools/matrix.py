@@ -60,6 +60,7 @@ SKIP = {".git", "node_modules", "__pycache__", ".matrix-bak"}
 BIG = 1_000_000   # observe skips files over 1 MB
 PAGE = 200        # default lines for observe.read, default matches for observe.search
 CAP = 10          # seconds: the Holy Grail
+TRUNK = "leader"  # where work lands. main is intent cold storage and receives nothing (DEC-015).
 
 
 def inside(p: str) -> Path:
@@ -369,7 +370,7 @@ def observe_probe(kind="", *args):
         ok, note = probe_push()
         print(f"probe push {'ok' if ok else 'FAILED'} · {note}")
     elif kind == "merge" and args:
-        branch, base = args[0], (args[1] if len(args) > 1 else "main")
+        branch, base = args[0], (args[1] if len(args) > 1 else TRUNK)
         _git("fetch", "-q", "origin", branch, base)
         tip, onto = (_git("rev-parse", "--verify", f"origin/{x}^{{commit}}").stdout.strip() for x in (branch, base))
         if not tip or not onto:
@@ -581,7 +582,7 @@ def decide_rehearse(*rest):
     import hashlib
     import shutil
     import tempfile
-    rest, at, setup = list(rest), "origin/main", ""
+    rest, at, setup = list(rest), f"origin/{TRUNK}", ""
     for flag in ("--at", "--setup"):
         if flag in rest:
             i = rest.index(flag)
@@ -594,7 +595,7 @@ def decide_rehearse(*rest):
         sys.exit('FAILED: decide.rehearse takes one COMMAND string (plus optional --at REV, --setup "CMD")')
     command = norm_command(rest[0])
     rev = _git("rev-parse", "--verify", at + "^{commit}").stdout.strip()
-    tip = _git("rev-parse", "--verify", "origin/main^{commit}").stdout.strip() or rev
+    tip = _git("rev-parse", "--verify", f"origin/{TRUNK}^{{commit}}").stdout.strip() or rev
     if not rev:
         sys.exit(f"FAILED: {at} is not a commit here. Fetch first.")
     box = Path(tempfile.mkdtemp(prefix="rehearse-"))
@@ -605,16 +606,16 @@ def decide_rehearse(*rest):
         # --mirror, not --bare: the remote's main is usually known here only as origin/main, and a
         # bare clone copies local branches alone, so its "main" would be a stale one (found 2026-11-11).
         steps = [(("git", "clone", "-q", "--mirror", str(ROOT), str(box / "remote.git")), None),
-                 (("git", "--git-dir", str(box / "remote.git"), "update-ref", "refs/heads/main", tip), None),
-                 (("git", "clone", "-q", "-b", "main", str(box / "remote.git"), str(work)), None),
+                 (("git", "--git-dir", str(box / "remote.git"), "update-ref", f"refs/heads/{TRUNK}", tip), None),
+                 (("git", "clone", "-q", "-b", TRUNK, str(box / "remote.git"), str(work)), None),
                  (("git", "reset", "-q", "--hard", rev), work)]
         for cmd, cwd in steps:
             s = run(*cmd, cwd=cwd)
             if s.returncode:
                 sys.exit(f"FAILED: could not build the rehearsal copy ({' '.join(cmd[:3])}): {s.stderr.strip()[-200:]}")
-        seen = run("git", "rev-parse", "origin/main", cwd=work).stdout.strip()
+        seen = run("git", "rev-parse", f"origin/{TRUNK}", cwd=work).stdout.strip()
         if seen != tip:
-            sys.exit(f"FAILED: the rehearsal copy's origin/main is {seen[:7]}, not {tip[:7]}; refusing to rehearse a wrong state")
+            sys.exit(f"FAILED: the rehearsal copy's origin/{TRUNK} is {seen[:7]}, not {tip[:7]}; refusing to rehearse a wrong state")
         env = {**os.environ, "HOME": str(box), "GIT_AUTHOR_NAME": "rehearsal", "GIT_AUTHOR_EMAIL": "rehearsal@localhost",
                "GIT_COMMITTER_NAME": "rehearsal", "GIT_COMMITTER_EMAIL": "rehearsal@localhost"}
         if setup:
@@ -626,7 +627,7 @@ def decide_rehearse(*rest):
             code, out = r.returncode, (r.stdout + r.stderr).strip()
         except subprocess.TimeoutExpired:
             code, out = 124, "timed out after 90 s"
-        print(f"rehearsed at {rev[:7]} (remote main at {tip[:7]}){' after setup' if setup else ''}: exit {code}")
+        print(f"rehearsed at {rev[:7]} (remote {TRUNK} at {tip[:7]}){' after setup' if setup else ''}: exit {code}")
         print("\n".join("  " + l for l in out.split("\n")[-12:]))
         digest = hashlib.sha256(command.encode()).hexdigest()
         with open(ROOT / ".claude/.matrix-rehearsed", "a", encoding="utf-8") as fh:

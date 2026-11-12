@@ -17,6 +17,18 @@ A plain-English version of the open decisions, in the order to answer them, is i
 Every founder decision, newest first, with its result. Open tiles stay here until the
 founder decides.
 
+- **DEC-016 · Empty `main` now · OPEN**
+  Asked 2026-11-12. Waiting on GO or NO GO. The founder asked for `main` to be emptied. The change is
+  prepared as a pull request (one commit that removes every file and leaves a short signpost; history
+  is kept, so one revert undoes it). It is not merged, because three things break at that moment
+  unless moved first: new cloud sessions start on `main` and would load no rules and no hooks until the
+  default branch is changed to `leader`; a laptop checkout on `main` loses its working files at its
+  next pull; and the public Pages site stops publishing from `main` (the workflow on `leader` now
+  publishes from `leader`).
+- **DEC-015 · Three branches: emptied `main`, `leader`, `outer` · GO · executed in part.** Founder's
+  decision 2026-11-12. `leader`, `outer`, and the safety copy `main-before-evacuation` were created
+  from `main` at `cba76bb`. The tooling on `leader` now lands work on `leader`. Emptying `main` is
+  DEC-016; sorting files between `leader` and `outer` is Q-040. See `docs/ai-cto/branches.md`.
 - **DEC-014 · Trim the cloud environment setup script · GO · executed.** Founder deferred to the loop and approved the environment change 2026-11-11 (leans L-17, L-18). The new script was run once in a live container first; it takes effect on the next fresh container. Original evidence:
   Asked 2026-11-11. Waiting on GO or NO GO. Evidence (read from the Default environment, 2026-11-11):
   the script runs `apt-get install` for `shellcheck`, `wireguard-tools`, `nftables`, and `python3-yaml`

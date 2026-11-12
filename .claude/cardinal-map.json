@@ -178,7 +178,8 @@
           "mcp__github__create_pull_request",
           "mcp__github__update_pull_request",
           "mcp__github__merge_pull_request",
-          "Bash:tools/matrix.py act.ship"
+          "Bash:tools/matrix.py act.ship",
+          "mcp__github__create_branch"
         ],
         "message": [
           "mcp__claude-code-remote__send_message",
@@ -250,7 +251,8 @@
       "mcp__claude-code-remote__send_message": "any",
       "mcp__claude-code-remote__create_trigger": "any",
       "mcp__claude-code-remote__fire_trigger": "any",
-      "mcp__claude-code-remote__update_environment": "any"
+      "mcp__claude-code-remote__update_environment": "any",
+      "mcp__github__create_branch": "push"
     },
     "bash": {
       "\\bgit\\s+push\\b": "push",

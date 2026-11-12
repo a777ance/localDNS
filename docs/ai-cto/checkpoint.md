@@ -15,14 +15,14 @@ Live facts, rewritten by `python3 tools/matrix.py orient.checkpoint`:
 <!-- live:start -->
 - **Branch:** `claude/serene-tesla-yvl22m`
 - **Lease:** start: none · expiry: none (no lease is running; the founder is in the loop)
-- **Open decisions:** DEC-005
+- **Open decisions:** DEC-016, DEC-005
 - **Open stalls:** none
 - **Last five commits:**
+  - cba76bb Merge pull request #42 from a777ance/claude/serene-tesla-yvl22m
+  - 2deddf5 act.ship: run the gates side by side; a single ship had passed the 10-second cap
+  - e504415 Durability: fresh handoff and queue, session log, current checkpoint and registers; close DEBT-011 and DEBT-007
   - 3514bda Merge pull request #41 from a777ance/claude/serene-tesla-yvl22m
   - 0a066d1 Retrofit for all enforced rules: orient.retrofit audits existing state; a rule with no audit fails the gate
-  - adc7b5f INIT-007: name it retrofit (retro-compliance), the founder's term
-  - 6168e8e INIT-007: record the retro rule (a new rule reaches backward) and its first sweep
-  - 516a241 Enforce 1 + N lanes: a probe in every cardinal, lanes flagged without one; announce scratchpads; laptop auto-sync
 <!-- live:end -->
 
 In prose:

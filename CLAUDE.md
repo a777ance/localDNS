@@ -663,12 +663,15 @@ cat /sys/class/drm/card*/device/power_dpm_force_performance_level  # high
 
 ## 3. Working philosophy
 
-Every commit to `main` must leave README.md able to reproduce a working system on
-clean Ubuntu 24.04.
+Every commit to `outer` (and to `leader`, while it still carries the stack) must leave README.md
+able to reproduce a working system on clean Ubuntu 24.04.
 
-**Push to `main`, no branches** — founder's standing instruction (2026-06-05). Don't
-open PRs or park work on feature branches for these repos; land each change as a
-coherent, deployable commit straight on `main`.
+**Three branches** — founder's decision, 2026-11-12 (DEC-015); it replaces "push to `main`, no
+branches" (2026-06-05). `main` is intent cold storage and receives nothing but the founder's
+promotions. `leader` is where all OODA and Matrix work lands: each session cuts its own branch
+from it and merges back by pull request once the gates pass, with no approval needed. `outer` is
+the home for everything that is not OODA work. `main-before-evacuation` is the frozen undo copy.
+The full picture, and what is not yet sorted: `docs/ai-cto/branches.md`.
 
 **RCPS — how work gets done here** (adopted 2026-08-07). The acronym carries **two
 readings, and both are required, interleaved**:
