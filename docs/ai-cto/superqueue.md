@@ -21,7 +21,7 @@ after its bold title. Each line names its lean number in brackets.
 - **SQ-009 · One probe that picks the others from a stated goal. · DONE 92dcb24 ·** [lean 26] Done: one method takes a goal in plain words and runs the probes that fit it.
 - **SQ-010 · Name session branches by cardinal.** · DONE 0f16cc3 · [lean 19] Done: one line in `docs/ai-cto/branches.md`, and the setup script names a moved session accordingly.
 - **SQ-011 · Proposal: shrink sections G and H of `CLAUDE.md`.** · DONE 8b7292d · [lean 24, old Q-039] Measure, say which checks must be repointed, and write a DEC entry. Do not move anything.
-- **SQ-012 · Proposal: where lane 0 sits in the Bifrost notation.** [old Q-036] A DEC entry only. Do not edit the spec.
+- **SQ-012 · Proposal: where lane 0 sits in the Bifrost notation.** · DONE f0c161d · [old Q-036] A DEC entry only. Do not edit the spec.
 
 ## Your lane (only the founder can do these; ordered by what they unblock)
 
