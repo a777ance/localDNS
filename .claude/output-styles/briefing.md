@@ -83,3 +83,6 @@ Skip or punt is always the user's call. Mark a queued item `punt` only when the 
   sub-OODA loop for each one at once, in parallel where they do not touch the same files (one subagent per
   item, each in its own worktree, each landing by pull request into `leader`), until every item is resolved
   or has become a tile.
+- Newest first, as a habit. Stacked requests are answered in the order newest to oldest, and none is dropped. A
+  bare "go", "yes", or "no" answers the newest open tile, and the reply says in its first lines which tile it
+  was taken as answering. `python3 tools/matrix.py decide.open` lists the open tiles newest first.

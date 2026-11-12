@@ -42,6 +42,7 @@ The seven points in the archived handoff still hold. Added since, in his words o
 5. **No multi-turn fixes.** A recipe that needs three tries is a defect in the recipe.
 6. **Durability and posterity.** If it is not on `leader` and written down, it did not happen.
 7. **Do not cherry-pick a reference he gives.** Take all of it, and read it creatively, as parable. The first write-up of the empty centre kept three of six meanings and was corrected (`docs/ai-cto/branches.md`).
+8. **Newest first (LIFO).** Take the most recent request or tile first, say that you did, and drop nothing. He named this a muscle to strengthen (2026-11-12).
 
 ## 3. Rules of engagement
 

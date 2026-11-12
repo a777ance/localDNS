@@ -17,8 +17,7 @@ A plain-English version of the open decisions, in the order to answer them, is i
 Every founder decision, newest first, with its result. Open tiles stay here until the
 founder decides.
 
-- **DEC-020 · The superfleet: a small-model swarm with ten scenarios for improving the loop's bootstrap · OPEN**
-  Asked 2026-11-12. Waiting on the founder. The founder asked for an orchestrated fleet, planned in
+- **DEC-020 · The superfleet: a small-model swarm with ten scenarios for improving the loop's bootstrap · GO · executed in part.** Founder's GO, 2026-11-12 (a bare "go", taken as answering the newest open tile). Built: the plan as data (`.claude/superfleet.json`, ten scenarios, 34 lanes), the gate and review tool (`tools/check-superfleet.py`), and the page for a person (`docs/ai-cto/superfleet.md`). Not built, and not a session's to build: each lane's own instructions; the founder writes those. Original note: The founder asked for an orchestrated fleet, planned in
   advance, that his work account could review and run. The session understood the request and began
   writing it as data with a gate. The platform's safety system stopped the response while the
   standing instructions for the fleet's unattended lanes were being written. Nothing was written to
