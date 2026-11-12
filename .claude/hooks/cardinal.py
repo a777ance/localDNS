@@ -111,6 +111,14 @@ def main() -> int:
                     f"The probe is lane 0 of 1 + N. Run it first: cd {ROOT} && python3 tools/matrix.py "
                     + {"push": "observe.probe push", "merge": "observe.probe merge BRANCH"}.get(
                         kind, "orient.probe  (or observe.probe / decide.probe / act.probe, whichever fits the goal)"))
+        # The letter of the active cardinal leads each step (founder's rule, 2026-11-12): O, OO, D, A.
+        if tool == "Bash" and alias:
+            want = {"observe": "O", "orient": "OO", "decide": "D", "act": "A"}.get(alias.split(".")[0])
+            said = str((data.get("tool_input") or {}).get("description", ""))
+            if want and not re.match(r"^%s · \S" % want, said):
+                out["additionalContext"] += (
+                    f" — LETTER: this call is {alias}; its description must start with '{want} · ' "
+                    "(O observe, OO orient, D decide, A act). One command, one letter.")
         # main is intent cold storage (DEC-015): nothing is pushed to it but the founder's promotions.
         if cmd and re.search(r"\bgit\s+push\b[^|;&\n]*[\s:]main(?![-\w/])", cmd):
             out["additionalContext"] += (

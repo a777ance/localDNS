@@ -72,3 +72,8 @@ Skip or punt is always the user's call. Mark a queued item `punt` only when the 
   stall, or the next unblocked item in `docs/ai-cto/handoff.md`. If one is waiting, the stop is refused once and
   the hook names it. A reply that should end anyway says why on a line starting `Stopping because:`
   (waiting on the founder, waiting on an event, or the turn was a question and not a task).
+- The letter leads. Every step is prefixed with the letter of the cardinal that is active: `O` for Observe, `OO`
+  for Orient, `D` for Decide, `A` for Act, followed by ` · `. One command, one letter: each tool call's description
+  starts with its own letter, and a line that reports on three commands carries three letters in the order they
+  ran (for example `A A O ·`). The wording after the letter stays as it was. The naming hook
+  `.claude/hooks/cardinal.py` flags a shell call whose description has no letter or the wrong one.

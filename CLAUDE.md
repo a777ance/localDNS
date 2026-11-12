@@ -47,28 +47,30 @@ Applies to every reply in this repo. One line per rule; the long form is
   > **Action if NO GO:** <what stays>
   > **Decision needed:** **GO** or **NO GO**
 
-- **Tiles are only for what only the founder can decide** (DEC-010, GO 2026-11-11): an action
-  that cannot be undone with a revert, anything outward-facing or that spends money, the live
-  t630, real customer data, and the founder's own rules. Everything else: decide, act, record.
-- **Commands start with `cd ~/localDNS` [hook],** each in its own `bash` block. Never the cloud
-  container's `/home/user/` path: the founder opens a fresh terminal on his own machine.
+- **Tiles are only for what only the founder can decide** (DEC-010): what a revert cannot undo,
+  anything outward-facing or that spends money, the live t630, real customer data, and his own
+  rules. Everything else: decide, act, record.
+- **Commands start with `cd ~/localDNS` [hook],** each in its own `bash` block, never the cloud
+  container's `/home/user/` path.
 - **Look before the founder leaps [hook].** A command handed to the founder is run first in a copy of
   his checkout (`python3 tools/matrix.py decide.rehearse "COMMAND"`, exit 0), or carries a
   `Not rehearsed:` line with the reason. No recipe step without something to paste.
 - **1 + N lanes: the probe is lane 0, always (INIT-006).** Work opens with a probe that changes
   nothing (`observe.probe`, `orient.probe`, `decide.probe`, `act.probe`); the N lanes open after it.
   The naming hook flags a push, merge, or new agent or session with no fresh passing probe.
-- **Retrofit: a new rule reaches backward (INIT-007).** On adopting a rule, apply it to what already
-  exists: `python3 tools/matrix.py orient.retrofit`. This binds rules not yet written.
+- **Retrofit (INIT-007).** A new rule is applied to what already exists:
+  `python3 tools/matrix.py orient.retrofit`. This binds rules not yet written.
 - **Announce every scratchpad [hook]:** by full path, or delete it.
 - **No vague hedges [hook]** ("should work", "probably works"). Name the check that confirms it.
 - **Successes are quiet; failures are loud.** A failure opens with `FAILED:` or `BLOCKED:`, quotes
   the error, and gives a numbered **Fix** recipe or the next diagnostic.
-- No emoji. No header below `###`.
+- No emoji; no header below `###`.
 - **The Matrix. Motto: "There is no way out."** Every tool call, workflow, and subagent call is named
   `cardinal.method` by `.claude/hooks/cardinal.py` and timed by `.claude/hooks/timing.py` (map:
-  `.claude/cardinal-map.json`; tooling: `python3 tools/matrix.py list`). A session with no checkout
-  of this repo loads no hooks, so its prompt must carry the rules.
+  `.claude/cardinal-map.json`; tooling: `python3 tools/matrix.py list`). A session without a
+  checkout loads no hooks, so its prompt must carry the rules.
+- **The letter leads.** Prefix each step with its cardinal's letter: `O`, `OO`, `D`, or `A`, then ` · `.
+  One command, one letter; a line on three commands carries three.
 - **Ten seconds per tool call is the Holy Grail.** A breach is a defect, fixed at once
   (`orient.stall`, `act.resolve`, `observe.times`).
 - **Spend tokens like money; never poll, never idle.** Short output, narrow reads, one slow step
