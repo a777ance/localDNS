@@ -7,6 +7,7 @@
     python3 tools/matrix.py observe.probe push             (dry-run the push of this branch; changes nothing)
     python3 tools/matrix.py observe.probe merge BRANCH [BASE]   (would BRANCH merge into BASE cleanly?)
     python3 tools/matrix.py observe.probe path PATH        (size, lines, binary or text, before a read)
+    python3 tools/matrix.py observe.probe goal WORDS...   (one probe picks the others from a goal in plain words)
     python3 tools/matrix.py orient.retrofit                (audit what already exists against every enforced rule)
     python3 tools/matrix.py orient.probe                   (is the picture current? checkpoint, decisions, stalls)
     python3 tools/matrix.py decide.probe [FILE...]         (the fast gates only; with a command string: rehearse it)
@@ -364,8 +365,35 @@ def probe_push():
     return r.returncode == 0, f"{branch}: {note[:160]}"
 
 
+def probe_goal(words):
+    """SQ-009: one probe that picks the others from a goal in plain words. It names the probes it
+    chose and why, then runs them. Egress goals run the egress probes; anything else gets the
+    orient probe, which changes nothing and fits every other goal."""
+    text = " ".join(words).lower()
+    picks = []
+    if re.search(r"\b(push|ship|publish|deploy|send|upload)\b", text):
+        picks.append(("push", "the goal sends work outside the session"))
+    if re.search(r"\b(merge|pull request|\bpr\b|land)\b", text):
+        picks.append(("merge", "the goal merges a branch into leader"))
+    if not picks:
+        print(f"probe goal: no outward step named in {text!r}; the orient probe fits")
+        return observe_probe("orient-fallback")
+    for kind, why in picks:
+        print(f"probe goal picks {kind}: {why}")
+        if kind == "push":
+            observe_probe("push")
+        else:
+            branch = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True,
+                                    text=True, cwd=ROOT).stdout.strip()
+            observe_probe("merge", branch, "leader")
+
+
 def observe_probe(kind="", *args):
     """Dry-run an action that reaches outside the session, before doing it."""
+    if kind == "goal":
+        return probe_goal(args)
+    if kind == "orient-fallback":
+        return orient_probe()
     if kind == "push":
         ok, note = probe_push()
         print(f"probe push {'ok' if ok else 'FAILED'} · {note}")
