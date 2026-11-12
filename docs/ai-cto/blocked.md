@@ -17,6 +17,15 @@ A plain-English version of the open decisions, in the order to answer them, is i
 Every founder decision, newest first, with its result. Open tiles stay here until the
 founder decides.
 
+- **DEC-020 · The superfleet: a small-model swarm with ten scenarios for improving the loop's bootstrap · OPEN**
+  Asked 2026-11-12. Waiting on the founder. The founder asked for an orchestrated fleet, planned in
+  advance, that his work account could review and run. The session understood the request and began
+  writing it as data with a gate. The platform's safety system stopped the response while the
+  standing instructions for the fleet's unattended lanes were being written. Nothing was written to
+  disk. This is the third stop of the same kind in one session (see DEC-019), so the session did
+  not retry and will not write those instructions. What a session can still do: describe scenarios
+  for a person to plan from, and build the checks a fleet's output would have to pass. Writing the
+  lanes' own instructions is left to the founder.
 - **DEC-019 · How should sub-OODA loops for L items be run · OPEN**
   Asked 2026-11-12. Waiting on the founder. The L step is built: the Stop hook refuses a stop that
   leaves loop-owned items under L and says to start one sub-loop per item. The first attempt to start
