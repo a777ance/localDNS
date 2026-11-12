@@ -154,8 +154,31 @@ def main() -> int:
                 f" — OPEN MATRIX STALL ({len(stalls)}): a Matrix call breached the 10 s cap. Diagnose why the alias "
                 f"stalled and improve it before other work: cd {ROOT} && python3 tools/matrix.py orient.stall")
         print(json.dumps({"hookSpecificOutput": out}))
-    except Exception:
-        pass  # fail open: naming a call must never stop it
+    except Exception as exc:
+        # Fail closed where it matters, loud everywhere. An error is logged to .claude/.matrix-errors
+        # with its reason. In enforce mode a call the hook could not judge is denied, not allowed:
+        # a gated native tool must not slip through because the hook broke. In warn or name mode the
+        # call proceeds, as before, so this changes nothing until enforce is turned on.
+        try:
+            errs = ROOT / ".claude/.matrix-errors"
+            errs.parent.mkdir(exist_ok=True)
+            with errs.open("a", encoding="utf-8") as fh:
+                fh.write(f"{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}\t{type(exc).__name__}: {exc}\n")
+        except OSError:
+            pass
+        mode_now = os.environ.get("MATRIX_MODE") or ""
+        if not mode_now:
+            try:
+                mode_now = json.loads((ROOT / ".claude/cardinal-map.json").read_text(encoding="utf-8")).get("mode", "name")
+            except Exception:
+                mode_now = "name"
+        if mode_now == "enforce" and not (ROOT / ".claude/.matrix-off").exists():
+            print(json.dumps({"hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": f"The Matrix could not judge this call ({type(exc).__name__}). "
+                                            "Fail-closed in enforce mode. Check .claude/.matrix-errors; "
+                                            "kill switch: touch .claude/.matrix-off"}}))
     return 0
 
 

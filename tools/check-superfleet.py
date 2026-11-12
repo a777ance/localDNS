@@ -80,6 +80,9 @@ def review(scenarios, sid, lid, branch):
     if r.returncode:
         return [f"cannot compare {branch} with origin/leader: {r.stderr.strip()[-160:]}"], 0
     changed = [f for f in r.stdout.splitlines() if f.strip()]
+    if not str(lane.get("write_area", "")).strip():
+        # An empty write area would match every path (startswith("")), so it would pass every file.
+        return [f"lane {lane.get('id')} has no write area; the review cannot judge it"], 0
     outside = [f for f in changed if not f.startswith(lane["write_area"])]
     problems = [f"{branch} changed a file outside the write area of {sid} {lid}: {f}" for f in outside]
     if not changed:
