@@ -10,7 +10,7 @@ after its bold title. Each line names its lean number in brackets.
 
 ## The loop's lane (a session does these alone, in this order)
 
-- **SQ-001 · Extend the Statement gate to the rendered page.** [lean 8] `tools/check-statements.py` covers the composer only. Cover the HTML renderer and the file-reading entry point, or say exactly what cannot be covered. Done: the gate asserts on rendered output, and fails if a figure appears that the input did not carry.
+- **SQ-001 · Extend the Statement gate to the rendered page.** · DONE a93dfe9 · [lean 8] `tools/check-statements.py` covers the composer only. Cover the HTML renderer and the file-reading entry point, or say exactly what cannot be covered. Done: the gate asserts on rendered output, and fails if a figure appears that the input did not carry.
 - **SQ-002 · Write the product-ratio rule into the loop tick.** [lean 5] In `docs/ai-cto/loop-tick.md`: at most one tick in three may work on the loop itself; the session log's last three entries decide. Done: the rule is in the file and the tick's Decide step applies it.
 - **SQ-003 · Draft the one-page intent for `main`.** [lean 1] A draft on `leader` for the founder to edit and promote; the loop does not write to `main`. Done: a draft exists and a DEC entry asks for the promotion.
 - **SQ-004 · Draft the promotion paragraph.** [lean 16] What goes to `main`, who does it, and that each promotion is tagged. Done: one paragraph in `docs/ai-cto/branches.md`.
