@@ -14,7 +14,8 @@ cd ~/localDNS
 python3 tools/bridge.py
 ```
 
-One panel printed and done (`status`, `queue`, `decisions`, `timing`, `fleet`, `leans`, or `all`):
+One panel printed and done (`status`, `queue`, `decisions`, `activity`, `timing`, `branches`,
+`fleet`, `leans`, or `all`):
 
 ```bash
 cd ~/localDNS
@@ -25,22 +26,27 @@ python3 tools/bridge.py --once all
 | --- | ---- |
 | Tab, → | next panel |
 | Shift-Tab, ← | previous panel |
-| 1 to 6 | jump to a panel |
-| ↑ ↓, PgUp PgDn | scroll a long panel |
+| 1 to 8 | jump to a panel |
+| ↑ ↓ | pick an item (marked ▸); on a panel with none, scroll |
+| Enter | open or close the picked item: its full text appears beneath it |
+| PgUp, PgDn, Space | scroll a page |
 | g | run all the gates and show each with its time |
 | r | redraw now (it also redraws twice a minute) |
+| ? | the keys |
 | q | quit |
 
 ## The panels
 
-| Panel | Shows |
-| ----- | ----- |
-| status | branch, gate mode, unshipped files, both lanes' progress, open decisions, the next item for the loop and for the founder, and the gates |
-| queue | the superqueue: the loop's lane, the founder's lane, and what waits behind them |
-| decisions | how many are open, GO, NO GO, and moot, as bars; then each, newest first |
-| timing | each cardinal's call count, median and worst time against the 10-second cap, and the last 60 calls as a strip |
-| fleet | the ten superfleet scenarios and their lane counts |
-| leans | the thirty leans by tier, and how many are the founder's, the loop's, or both |
+| Panel | Shows | Opens to |
+| ----- | ----- | -------- |
+| status | four headline tiles; branch, gate mode, unshipped files; both lanes' progress; the next item for the loop and for the founder; the gates | the next item's full text; each gate's last line |
+| queue | the superqueue in three lanes, with a mark per item | the item's done-test |
+| decisions | open, GO, NO GO, and moot as bars; then each, newest first | the decision's full record |
+| activity | commits per hour over the last 24 hours as a column chart; the latest twelve commits | the files each commit changed |
+| timing | each cardinal's call count, median and worst time against the 10-second cap; the last 60 calls as a strip; the slowest calls | |
+| branches | the three canonical branches and the undo copy, with their tips; every other branch and whether it holds anything `leader` lacks | file count, and commits ahead and behind |
+| fleet | the ten superfleet scenarios and their lane counts | the goal, the look-first step, every lane, and the review |
+| leans | the thirty leans by tier, and whose each is | the lean's reason |
 
 The timing panel is empty on a machine where no Claude session has run in this checkout: the
 stopwatch's log is not in git.
