@@ -46,3 +46,4 @@ __pycache__/
 *.bak
 .claude/.matrix-recent
 .claude/.matrix-hitrate
+.claude/.file-route-enforce

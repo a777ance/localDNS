@@ -139,6 +139,16 @@ def main() -> int:
                         fh.write(f"{'routed' if routed else 'raw'}\t{file_verb.group(1) if file_verb else 'matrix'}\n")
                 except OSError:
                     pass
+                # File-route enforce: a separate switch, off by default. Turning it on denies raw file verbs
+                # in every mode; the hit rate should be high before it is turned on.
+                if not routed and (ROOT / ".claude/.file-route-enforce").exists():
+                    print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse",
+                                                             "permissionDecision": "deny",
+                                                             "permissionDecisionReason":
+                                                             f"{file_verb.group(1)} is a raw file read or write, and file-route enforce is on. "
+                                                             "Route it through the Matrix, e.g. python3 tools/matrix.py observe.read PATH. "
+                                                             "Kill switch: rm the .claude/.file-route-enforce file"}}))
+                    return 0
                 if not routed and mode == "warn":
                     out["additionalContext"] += (
                         f" — MATRIX ROUTE: {file_verb.group(1)} is a raw file read or write. Route it through the Matrix, "

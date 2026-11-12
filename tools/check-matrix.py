@@ -254,6 +254,13 @@ def main() -> int:
         hook("Bash", {"command": "python3 tools/matrix.py observe.probe push", "description": "O · probe"}, mode="warn")
         hr = mx("observe.hitrate").stdout
         check("hit rate counts one routed and one raw file call", "routed 1 · raw 1 · file-touching calls 2" in hr, hr)
+        # File-route enforce: off by default (warn names the route); on, it denies a raw file verb.
+        raw = {"command": "cat notes.txt", "description": "O · raw read"}
+        check("file-route enforce is off by default", hook("Bash", raw, mode="warn").get("permissionDecision") != "deny")
+        (box / ".claude/.file-route-enforce").write_text("on\n", encoding="utf-8")
+        check("file-route enforce denies a raw file verb when on", hook("Bash", raw, mode="warn").get("permissionDecision") == "deny")
+        check("file-route enforce allows the routed form when on", hook("Bash", {"command": "python3 tools/matrix.py observe.read notes.txt", "description": "O · routed"}, mode="warn").get("permissionDecision") != "deny")
+        (box / ".claude/.file-route-enforce").unlink()
         check("hard guard allows removing one file with -f",hook("Bash", {"command": "rm -f scratch.txt", "description": "A · test"}, mode="name").get("permissionDecision") != "deny")
         for tool in ("mcp__github__get_check_run", "ReadNotifications"):
             check(f"hard guard denies polling {tool}", hook(tool, {}, mode="name").get("permissionDecision") == "deny")
