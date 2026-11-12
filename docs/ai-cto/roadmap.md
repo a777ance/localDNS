@@ -61,6 +61,8 @@ The vocabulary. If you see these, this is all they mean:
 
 ## Where the detail lives
 
+- Everything at a glance, in the terminal: `python3 tools/bridge.py` (how to use it: `docs/ai-cto/bridge.md`)
+
 - The 20 leans on these decisions: `docs/ai-cto/leans.md`
 - Decisions and their evidence: `docs/ai-cto/blocked.md`
 - Where the work stands: `docs/ai-cto/checkpoint.md`

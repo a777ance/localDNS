@@ -73,7 +73,8 @@
           "/deep-research"
         ],
         "status": [
-          "Bash:tools/matrix.py observe.status"
+          "Bash:tools/matrix.py observe.status",
+          "Bash:tools/bridge.py"
         ],
         "log": [
           "Bash:tools/matrix.py observe.log"
@@ -369,7 +370,8 @@
     "/skill-creator": "python3 tools/matrix.py decide.probe",
     "Bash:tools/matrix.py act.resolve": "python3 tools/matrix.py act.probe ship FILE...",
     "Bash:tools/matrix.py act.undo": "python3 tools/matrix.py act.probe ship FILE...",
-    "Bash:tools/matrix.py act.probe": "none: it changes nothing; it is itself a probe"
+    "Bash:tools/matrix.py act.probe": "none: it changes nothing; it is itself a probe",
+    "Bash:tools/bridge.py": "none: it changes nothing; it only draws what is on disk"
   },
   "_probes_comment": "1 + N lanes (INIT-006): every mapped tool has a quick probe, or the reason none exists. tools/check-cardinal.py fails on a tool with neither."
 }
