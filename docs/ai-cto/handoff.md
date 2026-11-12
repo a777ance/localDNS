@@ -40,7 +40,8 @@ The seven points in the archived handoff still hold. Added since, in his words o
 3. **Retrofit.** A new rule applies to what already exists, including rules not yet written.
 4. **Announce every scratchpad.** Nothing gets lost in the woodwork.
 5. **No multi-turn fixes.** A recipe that needs three tries is a defect in the recipe.
-6. **Durability and posterity.** If it is not on `main` and written down, it did not happen.
+6. **Durability and posterity.** If it is not on `leader` and written down, it did not happen.
+7. **Do not cherry-pick a reference he gives.** Take all of it, and read it creatively, as parable. The first write-up of the empty centre kept three of six meanings and was corrected (`docs/ai-cto/branches.md`).
 
 ## 3. Rules of engagement
 

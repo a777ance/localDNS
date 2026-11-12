@@ -13,22 +13,41 @@ before any of this. It is the undo button. Do not write to it and do not delete 
 
 ## Why the centre is empty
 
-The founder gave "the empty centre strategy" as the reference for this model on 2026-11-12.
-The term has several meanings. These are the three that fit, as this session read them; the
-reading is the session's, not the founder's words:
+The founder gave "the empty centre strategy" as the reference for this model on 2026-11-12, and
+then corrected the first write-up of it: **do not cherry-pick. Every meaning of the term applies,
+read as a parable.** All of them are below. The meanings are from the founder's reference; the
+application of each to the branches is this session's reading.
 
-- **Control the centre from the flanks** (hypermodern chess; the opening lines in Go). The centre
-  is not occupied with pieces early. It is held by what stands around it. Here: `leader` and
-  `outer` do the work, and `main` is governed by not being built on.
-- **The empty chair.** A seat left empty at the table for the one who is not in the room, so that
-  decisions are made on their behalf. Here: `main` is the seat kept for the intent and the
-  original spec, which no working session gets to sit in.
-- **Reserve space in the middle.** Free room is kept together at the centre and not split along
-  the edges, so there is somewhere to grow into. Here: `main` stays clear so that what is
-  eventually promoted into it is chosen, not accumulated.
+- **The open centre (Human Design).** An undefined centre generates nothing of its own. It takes
+  in what surrounds it and amplifies it, and the teaching is not to decide from the pressure felt
+  there but from one's own strategy and authority; left unforced, it becomes the seat of an
+  objective observer. *Parable:* `main` does no work of its own. It receives what the other
+  branches have made and shows it back plainly. No session acts from the urge to "just fix it on
+  `main`"; decisions come from the strategy (the loop) and the authority (the founder). Because
+  it is never forced, it can be the one place that observes the work without being part of it.
+- **Hypermodern chess.** The centre is not occupied with pawns at the start. It is controlled from
+  the flanks, and the opponent who rushes in overextends. *Parable:* `leader` and `outer` hold
+  `main` from either side. Whatever rushes into the centre early is the thing that gets
+  overextended, so nothing is committed there until its ground is held.
+- **Go.** The early stones go on the third and fourth lines, where territory is secure; the centre
+  point is left open, and influence over it is built before anyone fights there. *Parable:* secure
+  the edges first. The gates, the checks, and the records are the third and fourth lines. The
+  centre is decided late, by the shape of everything around it.
+- **The empty fort.** A commander with too few soldiers opens the gates, sits calmly in view, and
+  the advancing army, suspecting an ambush, withdraws. *Parable:* an empty `main` with its gates
+  open is not a weakness on display. There is nothing in it to break, and nothing to capture. A
+  change that arrives in a hurry finds no ground to stand on, and the calm of the place is the
+  signal that it is watched.
+- **The empty chair.** One seat at the table is left empty for the customer, who is not in the
+  room, so that every decision is made on their behalf. *Parable:* `main` is the chair kept for the
+  intent and the original spec, and for the people the work is for. No working session sits in it.
+- **Growing toward the centre.** In a panel layout, the spare room is kept together in the middle
+  and not split along the edges, so that growth has somewhere to go. *Parable:* `main` is the
+  reserve. What is promoted into it is chosen, not accumulated, and there is always room left.
 
-What follows from it: `main` is empty of work, not empty of meaning. It is where the question
-"is this still what we meant?" gets answered, so nothing reaches it by default.
+What the six share: the centre has power because it is not filled. `main` is empty of work, not
+empty of meaning. It is where "is this still what we meant?" gets answered, so nothing reaches it
+by default.
 
 ## How work moves
 
