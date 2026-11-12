@@ -67,11 +67,11 @@ The delta between `main` and `leader` is the thing to study at promotion time:
   every path named in `CLAUDE.md`, and `tools/check-doctrine.py` reads the Jury code under
   `04-user-services/`. Removing the non-OODA files from `leader` turns those gates red until they
   are repointed. That work is Q-040 in `docs/ai-cto/handoff.md`.
-- **`main` is not emptied yet.** The change is prepared as a pull request and waits on DEC-016,
-  because three things break the moment it merges unless they are moved first (see DEC-016 in
-  `docs/ai-cto/blocked.md`).
+- **`main` was emptied on 2026-11-12** (DEC-016, commit `646c709`, pushed by the founder). It holds one
+  signpost file, `README.md`. One revert of that commit restores everything.
 - **The default branch is still `main`.** Only the founder can change it, in the repository's
-  settings on GitHub. Until then, new cloud sessions start on `main`.
+  settings on GitHub. Until then, new cloud sessions start on the
+  emptied `main` and load no rules and no hooks. This is the one loose end of the move.
 - Every other branch is listed and marked below. None was changed.
 
 ## Every other branch is superfluous

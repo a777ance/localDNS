@@ -71,7 +71,8 @@ One item at a time, in order. Each has a done-test.
 - **Q-037 · Confirm the laptop timer.** Once the founder has run `bash tools/laptop-sync.sh install`, ask for the output of `bash tools/laptop-sync.sh status`. Done: recorded in the session log.
 - **Q-038 · BLOCKED on DEC-005 · venv peering files.** Needs the two facts from the XPS listed in `docs/ai-cto/roadmap.md`.
 - **Q-040 · Sort the files between `leader` and `outer` (DEC-015).** Both start as full copies. Move the non-OODA tree off `leader` and the OODA tree off `outer`, repointing `tools/check-docs.py` and `tools/check-doctrine.py` first so the gates stay green on each. Done: gates pass on both branches, and `docs/ai-cto/branches.md` says so.
-- **Q-041 · BLOCKED on DEC-016 · Empty `main`.** The pull request is prepared. Merge it only on the founder's GO.
+- **Q-041 · Empty `main`.** · DONE 646c709 · The founder ran it himself (DEC-016).
+- **Q-042 · Confirm the default branch is `leader`.** Only the founder can set it (GitHub, Settings, General, Default branch). Until it is set, a new cloud session starts on the emptied `main` with no rules and no hooks. Done: a fresh session shows a `cardinal:` line on its first tool call.
 - **Q-039 · Shrink sections G and H of `CLAUDE.md`.** They are 17,000 of its 60,000 bytes. Each needs its checks repointed first. A proposal with measurements, then a tile.
 
 ## 6. Ending a session
