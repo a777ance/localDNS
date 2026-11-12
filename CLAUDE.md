@@ -665,6 +665,10 @@ branches". `main` is emptied: intent cold storage, the founder's promotions only
 all work lands: each session cuts its own branch from it and merges back by pull request once the
 gates pass. `outer` is the home for non-OODA files. Full picture: `docs/ai-cto/branches.md`.
 
+Never unsubscribe from PR activity. Once a PR subscription is set up, keep it until the PR is merged or closed. Only the user removes it.
+
+Never poll PR status, CI, or the notification queue. PR and CI events arrive on their own. The no-poll hook enforces this in the harness.
+
 **RCPS — how work gets done here** (adopted 2026-08-07). The acronym carries **two
 readings, and both are required, interleaved**:
 
