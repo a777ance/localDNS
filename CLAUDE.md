@@ -665,6 +665,10 @@ branches". `main` is emptied: intent cold storage, the founder's promotions only
 all work lands: each session cuts its own branch from it and merges back by pull request once the
 gates pass. `outer` is the home for non-OODA files. Full picture: `docs/ai-cto/branches.md`.
 
+Never unsubscribe from PR activity. Once a PR subscription is set up, keep it until the PR is merged or closed. Only the user removes it.
+
+Never poll PR status, CI, or the notification queue. PR and CI events arrive on their own. The no-poll hook enforces this in the harness.
+
 **RCPS — how work gets done here** (adopted 2026-08-07). The acronym carries **two
 readings, and both are required, interleaved**:
 
@@ -735,11 +739,6 @@ binding here:
 - **Validate before reload, back up before overwrite** — `unbound-checkconf` (etc.) first; a timestamped copy makes rollback one command.
 - **git pull ≠ deploy** — it moves checkout files only; the running system is untouched until you apply a change (staged backlog: [docs/DEPLOY-QUEUE.md](docs/DEPLOY-QUEUE.md)).
 - **Push:** fast-forward when the branch is just `main` + your commits; retry with backoff; `tools/check-docs.py` green before committing docs, and `tools/check-doctrine.py` green before committing anything under `ai-orchestration/` or §G.
-
-**Never use the PR "watch" feature** — founder's standing instruction (2026-08-03).
-Do not subscribe to PR activity (no `subscribe_pr_activity`), and don't offer to watch,
-monitor, babysit, or autofix a PR — it's too expensive. When a PR is up, say so and
-stop; the founder drives it from there.
 
 **Conform to the LLM sampling doctrine** ([section G](#g-llm-sampling-doctrine--the-jury)) —
 and when you *add* to it, **site the clause** where the run that could break it will read it
