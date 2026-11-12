@@ -45,3 +45,4 @@ __pycache__/
 .claude/.matrix-starts/
 *.bak
 .claude/.matrix-recent
+.claude/.matrix-hitrate

@@ -19,6 +19,11 @@ ROOT = Path(os.environ.get("CLAUDE_PROJECT_DIR") or Path(__file__).resolve().par
 HARD_BASH = re.compile(r"\brm\s+-[a-zA-Z]*[rR]|\brm\s+--recursive|\bgit\s+push\b.*--force(?!-with-lease)|"
                        r"\bgit\s+push\b.*\s-f\b|\bgit\s+reset\s+--hard\b|\bgit\s+clean\b.*-[a-zA-Z]*f|"
                        r"\bmkfs(\.|\s)|\bdd\s+if=|\bshutdown\b|\breboot\b|\bdocker\s+(system\s+prune|rm\s+-f)")
+# Bash file verbs: a call that reads or writes files. The hit rate counts these (see main()).
+FILE_VERB = re.compile(r"(?:^|[;&|(]\s*|\$\(\s*|`\s*)(cat|head|tail|less|more|bat|nl|tac|strings|xxd|od|hexdump|awk|sed|"
+                       r"tee|cp|mv|install|touch|truncate|chmod|chown|grep|rg|find|ls|tree|stat|wc|diff|cmp)\b")
+# A Matrix call that reads or writes files: the routed side of the hit rate.
+ROUTED_FILE_METHOD = re.compile(r"tools/matrix\.py\s+(observe\.(read|find|search)|act\.(write|edit)|observe\.probe\s+path)\b")
 HARD_POLL_TOOLS = {"ReadNotifications", "mcp__github__pull_request_read", "mcp__github__get_check_run",
                    "mcp__github__actions_get", "mcp__github__actions_list",
                    "mcp__claude-code-remote__list_events", "mcp__claude-code-remote__get_event"}
@@ -120,6 +125,24 @@ def main() -> int:
         # Probe before egress: a call that changes something outside the session wants a fresh dry run.
         eg = cfg.get("egress", {})
         cmd = strip_quoted(str((data.get("tool_input") or {}).get("command", ""))) if tool == "Bash" else ""
+        # Hit rate: every Bash call that touches files is counted as routed through the Matrix
+        # (a tools/matrix.py call) or raw (a plain file verb). Warn mode names the route; nothing is blocked.
+        if tool == "Bash" and cmd and not (ROOT / ".claude/.matrix-off").exists():
+            file_verb = FILE_VERB.search(cmd)
+            file_matrix = ROUTED_FILE_METHOD.search(cmd)
+            if file_verb or file_matrix:
+                routed = bool(file_matrix)
+                try:
+                    hr = ROOT / ".claude/.matrix-hitrate"
+                    hr.parent.mkdir(exist_ok=True)
+                    with hr.open("a", encoding="utf-8") as fh:
+                        fh.write(f"{'routed' if routed else 'raw'}\t{file_verb.group(1) if file_verb else 'matrix'}\n")
+                except OSError:
+                    pass
+                if not routed and mode == "warn":
+                    out["additionalContext"] += (
+                        f" — MATRIX ROUTE: {file_verb.group(1)} is a raw file read or write. Route it through the Matrix, "
+                        "e.g. python3 tools/matrix.py observe.read PATH (see observe.hitrate for the rate).")
         kind = eg.get("tools", {}).get(tool) or next(
             (k for pat, k in eg.get("bash", {}).items() if re.search(pat, cmd) and "tools/matrix.py" not in cmd), None)
         if kind:

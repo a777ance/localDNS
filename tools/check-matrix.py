@@ -247,7 +247,14 @@ def main() -> int:
             d = hook("Bash", {"command": cmd, "description": "A · test"}, mode="name").get("permissionDecision")
             check("hard guard denies a destructive command in name mode", d == "deny", cmd)
         check("hard guard allows a plain read", hook("Bash", {"command": "ls -la", "description": "O · test"}, mode="name").get("permissionDecision") != "deny")
-        check("hard guard allows removing one file with -f", hook("Bash", {"command": "rm -f scratch.txt", "description": "A · test"}, mode="name").get("permissionDecision") != "deny")
+        # Hit rate: a raw file verb counts as raw, a file method as routed, a non-file call not at all.
+        (box / ".claude/.matrix-hitrate").unlink(missing_ok=True)  # count only this test's calls
+        hook("Bash", {"command": "cat notes.txt", "description": "O · raw read"}, mode="warn")
+        hook("Bash", {"command": "python3 tools/matrix.py observe.read notes.txt", "description": "O · routed read"}, mode="warn")
+        hook("Bash", {"command": "python3 tools/matrix.py observe.probe push", "description": "O · probe"}, mode="warn")
+        hr = mx("observe.hitrate").stdout
+        check("hit rate counts one routed and one raw file call", "routed 1 · raw 1 · file-touching calls 2" in hr, hr)
+        check("hard guard allows removing one file with -f",hook("Bash", {"command": "rm -f scratch.txt", "description": "A · test"}, mode="name").get("permissionDecision") != "deny")
         for tool in ("mcp__github__get_check_run", "ReadNotifications"):
             check(f"hard guard denies polling {tool}", hook(tool, {}, mode="name").get("permissionDecision") == "deny")
     finally:

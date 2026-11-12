@@ -708,7 +708,30 @@ def act_ship(message, *rest):
         sys.exit("FAILED: git push after 5 tries: " + r.stderr.strip()[-300:])
 
 
-METHODS = {"observe.status": observe_status, "decide.open": decide_open, "act.ship": act_ship,
+def observe_hitrate():
+    """SQ-hitrate: the share of file-touching Bash calls routed through the Matrix this session.
+
+    Routed = a tools/matrix.py call. Raw = a plain file verb (cat, grep, sed, ...). The hook writes one
+    line per call to .claude/.matrix-hitrate; this prints the totals and the rate.
+    """
+    log = ROOT / ".claude/.matrix-hitrate"
+    lines = log.read_text(encoding="utf-8").splitlines() if log.exists() else []
+    routed = sum(1 for ln in lines if ln.startswith("routed"))
+    raw = sum(1 for ln in lines if ln.startswith("raw"))
+    total = routed + raw
+    rate = (100.0 * routed / total) if total else 0.0
+    verbs = {}
+    for ln in lines:
+        if ln.startswith("raw"):
+            verb = ln.split("\t", 1)[1] if "\t" in ln else "?"
+            verbs[verb] = verbs.get(verb, 0) + 1
+    print(f"hit rate {rate:.1f}% · routed {routed} · raw {raw} · file-touching calls {total}")
+    for verb, n in sorted(verbs.items(), key=lambda kv: -kv[1])[:8]:
+        print(f"  raw {verb}: {n}")
+    return 0
+
+
+METHODS = {"observe.hitrate": observe_hitrate, "observe.status": observe_status,"decide.open": decide_open, "act.ship": act_ship,
            "orient.stall": orient_stall, "act.resolve": act_resolve,
            "observe.read": observe_read, "observe.find": observe_find, "observe.search": observe_search,
            "orient.ground": orient_ground, "decide.gate": decide_gate,
