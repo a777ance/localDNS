@@ -17,6 +17,11 @@ A plain-English version of the open decisions, in the order to answer them, is i
 Every founder decision, newest first, with its result. Open tiles stay here until the
 founder decides.
 
+- **DEC-017 · Run the loop on a schedule, without the founder prompting it · OPEN**
+  Asked 2026-11-12. Waiting on GO or NO GO. Today the loop turns only when the founder sends a
+  message. The standing prompt for one unattended tick is written (`docs/ai-cto/loop-tick.md`): one
+  item, 30 minutes at most, a pull request into `leader`, a session-log entry, then stop. It is the
+  founder's decision because every firing starts a session and spends money. Proposed: once a day.
 - **DEC-016 · Empty `main` now · GO · executed.** The founder ran the push himself on 2026-11-12, from his laptop, after the block was rehearsed; it worked on the first try. `main` moved `cba76bb..646c709` as a fast-forward and now holds one file, `README.md`. Nothing was lost: the full content is on `leader`, `outer`, `main-before-evacuation`, and in `main`'s history. Original note: The founder asked for `main` to be emptied. The change is
   prepared as a pull request (one commit that removes every file and leaves a short signpost; history
   is kept, so one revert undoes it). It is not merged, because three things break at that moment

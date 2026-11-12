@@ -72,8 +72,12 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 - **Seen live 2026-11-12:** `warn` mode. A native `Read` call carried `cardinal: observe.read — Matrix
   route: python3 tools/matrix.py observe.read ...`. The wake-up hook `.claude/hooks/resume.py` also
   fired live, twice, on session resumes.
-- **Still not seen live:** `enforce` (never run), a Stop-hook bounce from `.claude/hooks/decide-act.py`,
-  and a compaction using the `PreCompact` text.
+- **Seen live 2026-11-12, about 01:10 UTC: a Stop-hook bounce.** A reply was sent on purpose with no
+  state word. `.claude/hooks/decide-act.py` blocked it and returned, word for word: "BRIEFING LEAD: the
+  reply must open with one bold state word". The turn carried on. Also seen live the same night: the
+  egress flag ("EGRESS WITHOUT A PROBE") on a push made with no fresh probe.
+- **Still not seen live:** `enforce` (never run; the founder's hand only) and a compaction using the
+  `PreCompact` text (a compaction cannot be forced from inside a session).
 - **Next action:** Q-031 and Q-033 in `docs/ai-cto/handoff.md`. `enforce` needs its own founder decision.
 
 ## DEBT-007 · The Matrix is not on `main` · Done
