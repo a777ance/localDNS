@@ -58,9 +58,9 @@ Applies to every reply in this repo. One line per rule; the long form is
 - **1 + N lanes: the probe is lane 0, always (INIT-006).** Work opens with a probe that changes
   nothing (`observe.probe`, `orient.probe`, `decide.probe`, `act.probe`); the N lanes open after it.
   The naming hook flags a push, merge, or new agent or session with no fresh passing probe.
-- **Retrofit (INIT-007).** A new rule is applied to what already exists:
+- **Retrofit (INIT-007).** A new rule applies to what already exists:
   `python3 tools/matrix.py orient.retrofit`. This binds rules not yet written.
-- **Announce every scratchpad [hook]:** by full path, or delete it.
+- **Announce every scratchpad [hook]** by full path, or delete it.
 - **No vague hedges [hook]** ("should work", "probably works"). Name the check that confirms it.
 - **Successes are quiet; failures are loud.** A failure opens with `FAILED:` or `BLOCKED:`, quotes
   the error, and gives a numbered **Fix** recipe or the next diagnostic.
@@ -69,15 +69,15 @@ Applies to every reply in this repo. One line per rule; the long form is
   `cardinal.method` by `.claude/hooks/cardinal.py` and timed by `.claude/hooks/timing.py` (map:
   `.claude/cardinal-map.json`; tooling: `python3 tools/matrix.py list`). A session without a
   checkout loads no hooks, so its prompt must carry the rules.
-- **The letter leads.** Prefix each step with its cardinal's letter: `O`, `OO`, `D`, or `A`, then ` · `.
-  One command, one letter; a line on three commands carries three.
+- **The letter leads [hook].** Each step starts with its letter and ` · `: `O`, `OO`, `D`, `A`, then `L`
+  for what is left open. One command, one letter. An L item cites a `DEC` id or gets a sub-OODA loop.
 - **Ten seconds per tool call is the Holy Grail.** A breach is a defect, fixed at once
   (`orient.stall`, `act.resolve`, `observe.times`).
 - **Spend tokens like money; never poll, never idle.** Short output, narrow reads, one slow step
   (ship, rehearse, gate, push) per call. A null result gets new work, not a repeat of the prompt.
 - **State lives on disk; ship each finished piece at once.** `docs/ai-cto/checkpoint.md` at each
   boundary; `python3 tools/matrix.py act.ship "MESSAGE" FILE... --push` once the gates pass.
-- **Stacked requests: newest first, none dropped.** **Carrot**: the 3-hour peer lease.
+- **Stacked requests:** newest first, none dropped.
 - **The OODA loop is an ongoing goal (INIT-004).** A rule that lives only in prose is not a
   rule: give it a hook, a check, or a file the next session reads.
 
@@ -293,7 +293,7 @@ that uses it** to land one change safely (sync the checkout → diff → back up
 | `tools/matrix.py` | run directly: the Matrix's own tooling, called as `cardinal.method`; 10-second cap; methods are listed by the command at right | `python3 tools/matrix.py list` |
 | `.claude/cardinal-map.json` | the Matrix (OODA matrix, alias net): every tool → one cardinal method, the `repoint` table, and the gate `mode` (`name` / `warn` / `enforce`) | edit, then `python3 tools/check-cardinal.py` |
 | `.claude/hooks/cardinal.py` | `PreToolUse` hook on every tool — names the call's cardinal; in `enforce` mode denies repointed native tools (kill switch: `touch .claude/.matrix-off`) | wired in `.claude/settings.json` |
-| `.claude/hooks/decide-act.py` | `Stop` hook: bounces a reply once if it breaks one of the nine reply rules | wired in `.claude/settings.json` |
+| `.claude/hooks/decide-act.py` | `Stop` hook: bounces a reply once if it breaks one of the eleven reply rules | wired in `.claude/settings.json` |
 | `.claude/hooks/timing.py`, `.claude/hooks/resume.py`, `.claude/hooks/precompact.py` | `PostToolUse` timing of every tool call; wake-up after a compaction, resume, or fork; what a compaction summary must keep | wired in `.claude/settings.json` |
 | `tools/check-cardinal.py` | run directly (each tool in exactly one cardinal; every method documented in its skill; every repoint names a real Matrix method) | `python3 tools/check-cardinal.py` |
 | `tools/check-matrix.py` | run directly (end-to-end test of the Matrix in a sandbox: four cardinals, gate modes, cap, lease, stall) | `python3 tools/check-matrix.py` |

@@ -12,6 +12,8 @@ requires .claude/output-styles/briefing.md to name):
   REHEARSE a bash block handed to the founder was run first (decide.rehearse), or says why not
   SCRATCH  every new file in the session's scratchpad is announced by its full path
   LANDING  the last line says where we landed on the N items: **Landed · N = <count>:** ...
+  L        what is left open goes under an L step; each L item is the founder's (it cites a DEC id)
+           or the loop's, and every loop item gets its own sub-OODA loop at once, in parallel
   NEXT     a stop names the next action (uncommitted work, an open stall, the next queue item)
            unless the reply says why it stops, on a line starting "Stopping because:"
   TILE     a DECISION tile has both action lines, the GO / NO GO line, and a logged DEC id
@@ -135,6 +137,20 @@ def next_action():
     return None
 
 
+def loop_items(text):
+    """Items under the L step (what is left open) that are the loop's to resolve: no DEC id on them."""
+    m = re.search(r"^\W*L · .*$", text, re.MULTILINE)
+    if not m:
+        return []
+    items = []
+    for line in text[m.end():].splitlines():
+        if re.match(r"^#{1,3}\s|^\*\*Landed|^Stopping because:", line):
+            break
+        if re.match(r"^\s*(\d+\.|[-*])\s+\S", line) and not re.search(r"DEC-\d{3}", line):
+            items.append(line.strip()[:160])
+    return items
+
+
 def review(text, session_id=""):
     """Return the list of reasons this reply may not end the turn. Empty means allow."""
     reasons = []
@@ -213,6 +229,19 @@ def review(text, session_id=""):
             missing.append("an entry for %s in docs/ai-cto/blocked.md" % dec)
         if missing:
             reasons.append("TILE: the tile for %s is missing: %s." % (dec, "; ".join(missing)))
+    # L. The founder's rule, 2026-11-12: what is still open is an L step, and the Stop hook starts a
+    # sub-OODA loop for each open item that is the loop's own, in parallel, until it is resolved.
+    if re.search(r"^#{1,3}\s*(Still open|Not yet|What is (still )?(not|left)|Open items|Limits)\b", text, re.MULTILINE | re.IGNORECASE):
+        reasons.append("L STEP: what is left open belongs under one heading that starts 'L · ', not under a "
+                       "heading of its own wording. Each L item either cites the founder's DEC id or is the loop's.")
+    mine = loop_items(text)
+    if mine:
+        reasons.append(
+            "L ITEMS OPEN: %d item(s) under L are the loop's own (no DEC id). Do not stop. Start a sub-OODA "
+            "loop for each one now, in parallel where they do not touch the same files: one Agent call per "
+            "item in a single message (isolation: worktree), each told to observe, orient, decide, act on "
+            "its item, land it by pull request into leader, and report. An item only the founder can close "
+            "becomes a DEC tile and leaves L.\n\n%s" % (len(mine), "\n".join(mine)))
     # NEXT. The founder's rule, 2026-11-12: the Stop hook starts the next action. A stop is allowed
     # only when nothing is waiting, or when the reply says why it stops.
     if "Stopping because:" not in text:
