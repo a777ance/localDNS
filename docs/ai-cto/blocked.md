@@ -17,6 +17,14 @@ A plain-English version of the open decisions, in the order to answer them, is i
 Every founder decision, newest first, with its result. Open tiles stay here until the
 founder decides.
 
+- **DEC-019 · How should sub-OODA loops for L items be run · OPEN**
+  Asked 2026-11-12. Waiting on the founder. The L step is built: the Stop hook refuses a stop that
+  leaves loop-owned items under L and says to start one sub-loop per item. The first attempt to start
+  two sub-loops as parallel subagents was stopped by the platform's safety system, twice in one
+  session, and neither subagent started. The session did not retry. Two items were to be handed out:
+  goal-adaptive probes (INIT-006), and retrofit audits for the prose-only rules (Q-035). The choice
+  is the founder's: run sub-loops one at a time inside the main session, run them as separate
+  sessions the founder starts, or drop the automatic hand-out and keep L as a list.
 - **DEC-018 · Give the scheduled loop the repository, so its ticks can push · OPEN**
   Asked 2026-11-12. Waiting on GO or NO GO. The proving run of the loop tick (01:15 UTC) did not
   reach the standing session: firing the task started a new session with no repository attached.

@@ -127,13 +127,16 @@ def next_action():
                 "\"MESSAGE\" FILE... --push" % (len(dirty), ", ".join(l.split()[-1] for l in dirty[:4])))
     if list((ROOT / ".claude/.matrix-stalls").glob("*.json")):
         return "a Matrix stall is open. Diagnose it: python3 tools/matrix.py orient.stall"
-    try:
-        queue = (ROOT / "docs/ai-cto/handoff.md").read_text(encoding="utf-8")
-    except OSError:
+    # The superqueue is the queue; the handoff's own list is read only where no superqueue exists.
+    for name in ("docs/ai-cto/superqueue.md", "docs/ai-cto/handoff.md"):
+        try:
+            queue = (ROOT / name).read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for m in re.finditer(r"^- \*\*(S?Q-\d{3}) · (.*?)\*\*.*$", queue, re.MULTILINE):
+            if not re.search(r"BLOCKED|DONE|SKIPPED", m.group(0)):
+                return "the next queue item is %s · %s (%s). Start it now." % (m.group(1), m.group(2)[:90], name)
         return None
-    for m in re.finditer(r"^- \*\*(Q-\d{3}) · (.*?)\*\*.*$", queue, re.MULTILINE):
-        if not re.search(r"BLOCKED|DONE|SKIPPED", m.group(0)):
-            return "the next queue item is %s · %s (docs/ai-cto/handoff.md). Start it now." % (m.group(1), m.group(2)[:90])
     return None
 
 
@@ -146,7 +149,8 @@ def loop_items(text):
     for line in text[m.end():].splitlines():
         if re.match(r"^#{1,3}\s|^\*\*Landed|^Stopping because:", line):
             break
-        if re.match(r"^\s*(\d+\.|[-*])\s+\S", line) and not re.search(r"DEC-\d{3}", line):
+        # An item already handed to a sub-loop says so, and is not handed out twice.
+        if re.match(r"^\s*(\d+\.|[-*])\s+\S", line) and not re.search(r"DEC-\d{3}|sub-loop running", line):
             items.append(line.strip()[:160])
     return items
 

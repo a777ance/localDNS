@@ -27,8 +27,9 @@ def read(rel: str) -> str:
 def main() -> int:
     try:
         handoff = read("docs/ai-cto/handoff.md")
+        queue = read("docs/ai-cto/superqueue.md") or handoff  # the superqueue is the queue, where it exists
         lease = re.search(r"`(start: [^`]*expiry: [^`]*)`", handoff)
-        item = next((m for m in re.finditer(r"^- \*\*(Q-\d{3}) · (.*?)\*\*.*$", handoff, re.MULTILINE)
+        item = next((m for m in re.finditer(r"^- \*\*(S?Q-\d{3}) · (.*?)\*\*.*$", queue, re.MULTILINE)
                      if not re.search("BLOCKED|DONE|SKIPPED", m.group(0))), None)
         opens = re.findall(r"^- \*\*(DEC-\d{3}) · .*? · OPEN\*\*", read("docs/ai-cto/blocked.md"), re.MULTILINE)
         dirty = git("status", "--short")
@@ -38,7 +39,7 @@ def main() -> int:
                f"- Open founder decisions: {', '.join(opens) or 'none'}\n"
                f"- Current queue item: {item.group(1) + ' · ' + item.group(2)[:80] if item else 'none left unblocked'}\n"
                f"- Last shipped commit: {git('log', '--format=%h %s', '-1')[:110]}\n"
-               "- All other state is on disk in docs/ai-cto/checkpoint.md and docs/ai-cto/handoff.md; "
+               "- All other state is on disk in docs/ai-cto/checkpoint.md and docs/ai-cto/superqueue.md; "
                "the summary should say to read them first and then resume the queue without waiting.\n")
         if dirty:
             out += (f"- UNCOMMITTED WORK in {len(dirty.splitlines())} file(s): {', '.join(l.split()[-1] for l in dirty.splitlines())[:300]}. "
