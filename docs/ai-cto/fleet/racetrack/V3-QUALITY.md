@@ -28,5 +28,5 @@ lane. Cap test (R2), the cardinal.py fail-open paths (R8) and the empty-log chec
 each run's bullets. Agreement does not prove correctness, but the repetition is consistent, and
 each repeated claim checked true.
 
-Not checked: the other findings in these runs. The sample is 13 claims of about 165 across the four
+Not checked: the other findings in these runs. The sample is 13 claims of 156 across the four
 runs, so the verdict covers the sample only.
