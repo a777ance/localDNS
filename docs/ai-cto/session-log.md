@@ -50,6 +50,18 @@ move the reply rules out of prose and into a hook.
   any push to `main`.
 - **Written but not switched on:** the loop tick (`docs/ai-cto/loop-tick.md`), which waits on DEC-017.
 
+**The last stretch, 01:20 to 02:10 UTC:**
+
+- **Five more reply rules and the letters.** The landing line, the next-action stop, the L step, and
+  the letter that leads each step (O, OO, D, A, L). The next-action stop was seen working live.
+- **The scheduled loop was switched on, proved broken, and paused within the hour.** A firing starts
+  a session with no repository attached; its work could not be pushed and was lost (DEC-018).
+- **Thirty leans, a dependency map, the superqueue, and the superfleet plan** were written and merged.
+- **The bridge display** went from nothing to ten panels with charts, openable items, and a console
+  that serves Claude through the display.
+- **Three hard stops by the platform** on writing unattended-agent instructions or launching
+  subagents, and two refusals on changing the session's own configuration. None was retried.
+
 **What went wrong, and the root cause of each:**
 
 - **Three recipes failed on the founder's laptop.** One used the cloud container's path. One
@@ -70,6 +82,9 @@ move the reply rules out of prose and into a hook.
 3. **A recipe step with nothing to paste gets skipped.** Either give the command or do the step.
 4. **Gates are retroactive by nature; reply rules are not.** That gap is what retrofit closes.
 5. **Rule inflation is real.** Every rule added to `CLAUDE.md` is paid for on every turn. A rule earns its line by having a hook or a check, and its prose shrinks to one line when it does.
+6. **A proving run is worth its cost.** The scheduled loop looked set up; one run showed it could not push.
+7. **Reading the drawn output finds what an exit code does not.** Four display faults and one tool fault were caught that way.
+8. **The founder's order of work is newest first.** A bare "go" answers the newest open tile.
 
 **Measured:**
 
