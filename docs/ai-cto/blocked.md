@@ -17,6 +17,15 @@ A plain-English version of the open decisions, in the order to answer them, is i
 Every founder decision, newest first, with its result. Open tiles stay here until the
 founder decides.
 
+- **DEC-018 · Give the scheduled loop the repository, so its ticks can push · OPEN**
+  Asked 2026-11-12. Waiting on GO or NO GO. The proving run of the loop tick (01:15 UTC) did not
+  reach the standing session: firing the task started a new session with no repository attached.
+  That session cloned the repo by itself and did the work (Q-034, one local commit), but every push
+  was refused: "a777ance/localDNS is not in this session's authorized repository set". Nothing
+  reached `leader`; the work was lost with the container; it cost about 1.75 dollars. The task is
+  **paused** so it cannot repeat that daily. A session cannot attach a repository to a scheduled
+  task; the founder does it in the Claude app (the task "localDNS loop tick", its repositories),
+  then the task is switched back on.
 - **DEC-017 · Run the loop on a schedule, without the founder prompting it · GO · executed.** Founder's GO, 2026-11-12. A scheduled task named "localDNS loop tick" fires once a day at 10:43 UTC into one standing loop session (the second session of 2026-11-12, which has the repository and the GitHub tools). A first design that started a fresh session on each firing was created and deleted within a minute: a fresh session gets no repository and no GitHub tools, so its ticks would have done nothing. To stop the loop: disable or delete the scheduled task in the Claude app. Original note: Today the loop turns only when the founder sends a
   message. The standing prompt for one unattended tick is written (`docs/ai-cto/loop-tick.md`): one
   item, 30 minutes at most, a pull request into `leader`, a session-log entry, then stop. It is the
