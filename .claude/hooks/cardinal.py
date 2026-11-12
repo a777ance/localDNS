@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(os.environ.get("CLAUDE_PROJECT_DIR") or Path(__file__).resolve().parents[2])
 
 # Hard guards: destructive shell and state polling are denied in every mode (see main()).
-HARD_BASH = re.compile(r"\brm\s+-[a-zA-Z]*[rRf]|\brm\s+--(recursive|force)|\bgit\s+push\b.*--force(?!-with-lease)|"
+HARD_BASH = re.compile(r"\brm\s+-[a-zA-Z]*[rR]|\brm\s+--recursive|\bgit\s+push\b.*--force(?!-with-lease)|"
                        r"\bgit\s+push\b.*\s-f\b|\bgit\s+reset\s+--hard\b|\bgit\s+clean\b.*-[a-zA-Z]*f|"
                        r"\bmkfs(\.|\s)|\bdd\s+if=|\bshutdown\b|\breboot\b|\bdocker\s+(system\s+prune|rm\s+-f)")
 HARD_POLL_TOOLS = {"ReadNotifications", "mcp__github__pull_request_read", "mcp__github__get_check_run",

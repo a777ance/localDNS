@@ -247,6 +247,7 @@ def main() -> int:
             d = hook("Bash", {"command": cmd, "description": "A · test"}, mode="name").get("permissionDecision")
             check("hard guard denies a destructive command in name mode", d == "deny", cmd)
         check("hard guard allows a plain read", hook("Bash", {"command": "ls -la", "description": "O · test"}, mode="name").get("permissionDecision") != "deny")
+        check("hard guard allows removing one file with -f", hook("Bash", {"command": "rm -f scratch.txt", "description": "A · test"}, mode="name").get("permissionDecision") != "deny")
         for tool in ("mcp__github__get_check_run", "ReadNotifications"):
             check(f"hard guard denies polling {tool}", hook(tool, {}, mode="name").get("permissionDecision") == "deny")
     finally:
