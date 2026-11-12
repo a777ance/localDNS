@@ -196,6 +196,11 @@ def main() -> int:
         check("a push to main is called out", "PUSH TO MAIN" in hook("Bash", {"command": "git push origin HEAD:main"})["additionalContext"])
         check("a push to main-before-evacuation is not a push to main", "PUSH TO MAIN" not in hook("Bash", {"command": "git push origin main-before-evacuation"})["additionalContext"])
         check("a push to a session branch is not a push to main", "PUSH TO MAIN" not in hook("Bash", {"command": "git push -u origin claude/x"})["additionalContext"])
+        check("a description with no letter is flagged", "LETTER" in hook("Bash", {"command": "ls", "description": "List files"})["additionalContext"])
+        check("the right letter is quiet", "LETTER" not in hook("Bash", {"command": "ls", "description": "O · List files"})["additionalContext"])
+        check("the wrong letter is flagged", "must start with 'A · '" in hook("Bash", {"command": "rm -rf build", "description": "O · Remove the build"})["additionalContext"])
+        check("orient takes OO", "LETTER" not in hook("Bash", {"command": "python3 tools/matrix.py orient.probe", "description": "OO · Probe"})["additionalContext"])
+        check("decide takes D", "LETTER" not in hook("Bash", {"command": "python3 tools/matrix.py decide.gate", "description": "D · Run the gates"})["additionalContext"])
         check("observe.probe bad arguments", mx("observe.probe", "nope").returncode != 0)
         check("hook unmapped", "UNMAPPED" in hook("NoSuchTool")["additionalContext"])
         # gate modes
