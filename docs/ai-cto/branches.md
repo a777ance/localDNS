@@ -11,6 +11,25 @@ Decided by the founder on 2026-11-12 (DEC-015). This replaces the older rule "pu
 A fourth branch, `main-before-evacuation`, is a frozen copy of `main` as it stood at `cba76bb`
 before any of this. It is the undo button. Do not write to it and do not delete it.
 
+## Why the centre is empty
+
+The founder gave "the empty centre strategy" as the reference for this model on 2026-11-12.
+The term has several meanings. These are the three that fit, as this session read them; the
+reading is the session's, not the founder's words:
+
+- **Control the centre from the flanks** (hypermodern chess; the opening lines in Go). The centre
+  is not occupied with pieces early. It is held by what stands around it. Here: `leader` and
+  `outer` do the work, and `main` is governed by not being built on.
+- **The empty chair.** A seat left empty at the table for the one who is not in the room, so that
+  decisions are made on their behalf. Here: `main` is the seat kept for the intent and the
+  original spec, which no working session gets to sit in.
+- **Reserve space in the middle.** Free room is kept together at the centre and not split along
+  the edges, so there is somewhere to grow into. Here: `main` stays clear so that what is
+  eventually promoted into it is chosen, not accumulated.
+
+What follows from it: `main` is empty of work, not empty of meaning. It is where the question
+"is this still what we meant?" gets answered, so nothing reaches it by default.
+
 ## How work moves
 
 1. A session cuts its own branch from `leader` (or from `outer` for non-OODA work).
