@@ -40,6 +40,7 @@ after its bold title. Each line names its lean number in brackets.
 - **SQ-113 · BLOCKED on you · Close DEC-005, or send the two facts from the XPS.** [lean 29, old Q-038]
 - **SQ-114 · BLOCKED on you · Decide "one rule in, one rule out".** [lean 22]
 - **SQ-115 · BLOCKED on you · Run `bash tools/laptop-sync.sh install` on the XPS and send the output of `status`.** [old Q-037]
+- **SQ-116 · BLOCKED on you · Decide what to do about the superfleet (DEC-020).** A session cannot write the standing instructions for an unattended swarm; the founder would write those, and a session can build the checks around them.
 
 ## After your lane moves
 
