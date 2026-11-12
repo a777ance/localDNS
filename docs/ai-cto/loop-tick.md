@@ -35,6 +35,14 @@ reply-style section), `docs/ai-cto/checkpoint.md`, and `docs/ai-cto/handoff.md`.
 4. If none of those exists: the first "no SSH, repo work possible" improvement on
    `docs/REMEDIATION-BOARD.md`.
 
+**The product ratio (SQ-002).** At most one tick in three may work on the loop itself: the
+tooling, the hooks, the gates, the docs about them. Before choosing, read the last three entries
+at the top of `docs/ai-cto/session-log.md`. If all three were about the loop, this tick must pick
+item 3 or 4 (product work) and may not pick a loop item, even one from item 1 or 2 that is not a
+red gate. If one of the three was product work, the rule does not bind this tick. Record the
+ratio decision in the session log's entry for this tick: "product ratio: loop-only in last three"
+or "product ratio: not binding".
+
 If nothing qualifies, write one line in `docs/ai-cto/session-log.md` saying so, ship it, and stop.
 A tick that finds nothing to do is a valid result. Do not invent work.
 
