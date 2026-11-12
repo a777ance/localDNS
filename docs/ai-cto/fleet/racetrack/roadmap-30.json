@@ -1,0 +1,152 @@
+[
+ {
+  "id": "M01",
+  "file": "CLAUDE.md",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M02",
+  "file": "tools/matrix.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M03",
+  "file": "tools/check-matrix.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M04",
+  "file": "tools/check-superfleet.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M05",
+  "file": "docs/ai-cto/loop-tick.md",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M06",
+  "file": "docs/ai-cto/prose-rules-audit.md",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M07",
+  "file": "tools/check-decisions.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M08",
+  "file": "docs/ai-cto/checkpoint.md",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M09",
+  "file": "tools/check-cardinal.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M10",
+  "file": "tools/check-docs.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M11",
+  "file": "tools/check-doctrine.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M12",
+  "file": "tools/check-provenance.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M13",
+  "file": "tools/check-registers.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M14",
+  "file": "tools/check-stop-hook.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M15",
+  "file": "tools/check-statements.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M16",
+  "file": "tools/check-telepathy.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M17",
+  "file": "tools/check-bridge.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M18",
+  "file": "tools/racetrack.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M19",
+  "file": "tools/racetrack_plan.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M20",
+  "file": ".claude/hooks/decide-act.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M21",
+  "file": ".claude/hooks/timing.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M22",
+  "file": ".claude/hooks/gate.sh",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M23",
+  "file": ".claude/hooks/resume.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M24",
+  "file": ".claude/hooks/precompact.py",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M25",
+  "file": "docs/ai-cto/superqueue.md",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M26",
+  "file": "docs/ai-cto/blocked.md",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M27",
+  "file": "docs/ai-cto/handoff.md",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M28",
+  "file": "docs/ai-cto/branches.md",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M29",
+  "file": "docs/ai-cto/intent-draft.md",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ },
+ {
+  "id": "M30",
+  "file": "docs/ai-cto/session-log.md",
+  "question": "List every defect in this file that could make a check or instruction silently fail or be read two ways. Quote each with file and line. Notes that are not defects go under ## Notes."
+ }
+]

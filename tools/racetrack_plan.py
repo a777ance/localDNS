@@ -40,29 +40,34 @@ def stage_cost(lanes, k):
 def plan(lanes, budget, max_k=8):
     """Best course over the roadmap within `budget` tokens.
 
-    Returns (distance, seconds, stages). A stage is (first_lane, last_lane, agents), lanes counted
-    from 1. Distance is the milestones finished in order before the budget runs out; a course is
-    never cut mid-stage. Ties on distance go to the shorter wall time.
+    Dynamic program over milestones. front[i] holds the Pareto set of courses that finish the first
+    i milestones, each as (tokens, seconds, stages): no course in the set is both cheaper and faster
+    than another. Returns (distance, seconds, stages) for the furthest milestone reached, at the
+    shortest wall time among its courses. A stage is (first_lane, last_lane, agents), from 1.
     """
-    best = {"dist": 0, "secs": 0, "stages": []}
-
-    def consider(dist, secs, stages):
-        if (dist, -secs) > (best["dist"], -best["secs"]):
-            best.update(dist=dist, secs=secs, stages=list(stages))
-
-    def walk(start, spent, secs, stages):
-        consider(start, secs, stages)
-        if start == lanes:
-            return
-        for end in range(start + 1, lanes + 1):
-            for k in range(1, min(max_k, end - start) + 1):
-                tokens, s = stage_cost(end - start, k)
-                if spent + tokens > budget:
-                    continue
-                walk(end, spent + tokens, secs + s, stages + [(start + 1, end, min(k, end - start))])
-
-    walk(0, 0, 0, [])
-    return best["dist"], best["secs"], best["stages"]
+    front = {0: [(0, 0, ())]}
+    for i in range(1, lanes + 1):
+        cands = []
+        for j in range(i):
+            if j not in front:
+                continue
+            for k in range(1, min(max_k, i - j) + 1):
+                t, s = stage_cost(i - j, k)
+                for tok, sec, stages in front[j]:
+                    if tok + t <= budget:
+                        cands.append((tok + t, sec + s, stages + ((j + 1, i, min(k, i - j)),)))
+        # Pareto filter on (tokens, seconds).
+        cands.sort(key=lambda c: (c[0], c[1]))
+        keep, best_sec = [], float("inf")
+        for c in cands:
+            if c[1] < best_sec:
+                keep.append(c)
+                best_sec = c[1]
+        if keep:
+            front[i] = keep
+    dist = max(front)
+    tok, sec, stages = min(front[dist], key=lambda c: c[1])
+    return dist, sec, list(stages)
 
 
 def main():
