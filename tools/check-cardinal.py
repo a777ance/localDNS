@@ -2,7 +2,8 @@
 """check-cardinal.py — gate for the cardinal alias map (.claude/cardinal-map.json).
 
 Fails if: a cardinal is missing, a method is empty, a tool appears under two
-cardinals, a cardinal has no SKILL.md, a SKILL.md omits one of its methods, a cardinal has no probe method, or a hook in
+cardinals, a cardinal has no SKILL.md, a SKILL.md omits one of its methods, a cardinal has no probe method, a mapped tool has neither
+a quick probe nor a stated reason for lacking one, or a hook in
 .claude/settings.json has no explicit timeout (the default is 600 seconds).
 Exit 0 when clean, 1 otherwise.
 """
@@ -56,6 +57,17 @@ def main() -> int:
                 if not isinstance(limit, int) or not 0 < limit <= 60:
                     problems.append(f"{event} hook has no timeout between 1 and 60 s (the default is 600 s): "
                                     f"{h.get('command', '')[-40:]}")
+    probes = cfg.get("probes", {})
+    for tool in sorted(mapped):
+        entry = str(probes.get(tool, "")).strip()
+        if not entry:
+            problems.append(f"tool '{tool}' has no quick probe and no reason for lacking one (map key 'probes')")
+        elif "matrix.py " in entry:
+            method = entry.split("matrix.py ")[1].split()[0]
+            if f'"{method}"' not in matrix:
+                problems.append(f"probe for '{tool}' names {method}, which tools/matrix.py does not implement")
+    for tool in sorted(set(probes) - mapped):
+        problems.append(f"probe listed for '{tool}', which is not a mapped tool")
     extra = set(data) - set(CARDINALS)
     if extra:
         problems.append(f"unknown cardinals: {sorted(extra)}")

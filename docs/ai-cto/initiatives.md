@@ -34,8 +34,11 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
 - **Line items:**
   - Probe for a command handed to the founder (`decide.rehearse`, enforced by the Stop hook): **Done**.
   - Probe before egress (`observe.probe push`, `observe.probe merge`, hook flag, `act.ship` self-probe): **Done**.
-  - A probe method in each of the four cardinal skills, adaptive to the goal: **Active**, design not yet agreed.
-  - A quick-probe option for every tool in `.claude/cardinal-map.json`: **Active**, not started.
+  - A probe method in each of the four cardinal skills: **Done** (`observe.probe`, `orient.probe`,
+    `decide.probe`, `act.probe`). They are fixed checks; none adapts to the goal yet.
+  - A quick-probe option for every tool in `.claude/cardinal-map.json`: **Done** 2026-11-12. All 110
+    mapped tools carry a probe (65) or the reason none exists (45); `tools/check-cardinal.py` fails on a
+    tool with neither.
   - 1 + N in the Bifrost notation (the probe as lane 0 ahead of `^`): **Active**, a proposal only;
     the notation is the founder's schema and its spec is not edited without him.
 
