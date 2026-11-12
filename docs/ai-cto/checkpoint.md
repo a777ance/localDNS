@@ -6,7 +6,7 @@ boundary (a ship, a decision, a lease start). Read this, then run
 
 ---
 
-**Written:** 2026-11-12, about 01:05 UTC · work lands on `leader` · `main` is emptied (`646c709`) · gate mode is `warn`
+**Written:** 2026-11-12, about 01:15 UTC · work lands on `leader` · `main` is emptied (`646c709`) · gate mode is `warn`
 
 ## Where things stand
 
@@ -15,14 +15,14 @@ Live facts, rewritten by `python3 tools/matrix.py orient.checkpoint`:
 <!-- live:start -->
 - **Branch:** `claude/serene-tesla-yvl22m`
 - **Lease:** start: none · expiry: none (no lease is running; the founder is in the loop)
-- **Open decisions:** DEC-005
+- **Open decisions:** DEC-017, DEC-005
 - **Open stalls:** none
 - **Last five commits:**
-  - fed4184 Merge pull request #47 from a777ance/claude/serene-tesla-yvl22m
-  - d0ff063 DEC-016 executed: main is emptied (646c709, by the founder); records brought current
-  - ff3c944 Merge pull request #46 from a777ance/claude/serene-tesla-yvl22m
-  - 6744310 branches.md: all six meanings of the empty centre, each as a parable; record the founder's correction
-  - 0266471 Merge pull request #45 from a777ance/claude/serene-tesla-yvl22m
+  - deb778e Fix Statement percentages to sum to exactly 100; call out any push to main; stop git merge-base counting as egress
+  - a1ebb4f Merge pull request #50 from a777ance/claude/statements-gate-9167a3
+  - cc5d056 Add check-statements.py: a commit gate for the Statement honesty rule (INIT-004); two build_alloc faults reported, not fixed
+  - 60dbdd2 Merge pull request #49 from a777ance/claude/serene-tesla-yvl22m
+  - 9053d7a DEBT-008: a Stop-hook bounce and the egress flag were both seen live
 <!-- live:end -->
 
 In prose:
@@ -40,12 +40,12 @@ In prose:
 
 ## Open founder decisions
 
-DEC-005 only (venv files: needs two facts from the XPS; the command is in `docs/ai-cto/roadmap.md`).
+DEC-017 (schedule the loop tick; it spends money) and DEC-005 (venv files: needs two facts from the XPS; the command is in `docs/ai-cto/roadmap.md`).
 `enforce` mode has no decision open and must not be turned on without one.
 
 ## Next work, in order
 
-**The queue is `docs/ai-cto/handoff.md`, Q-031 to Q-042.** Start at Q-042 (the default branch), then Q-031.
+**The queue is `docs/ai-cto/handoff.md`, Q-031 to Q-042.** Start at Q-034. Open for the founder: DEC-017 (schedule the loop tick) and DEC-005.
 
 - For the founder, in plain English: `docs/ai-cto/roadmap.md`.
 - What past sessions shipped, got wrong, and learned: `docs/ai-cto/session-log.md`.
@@ -53,5 +53,5 @@ DEC-005 only (venv files: needs two facts from the XPS; the command is in `docs/
 
 ## Not yet seen live
 
-A fresh session on `leader` showing a `cardinal:` line (it needs the default branch changed first); a fresh cloud container running the trimmed
-setup script; a Stop-hook bounce; a compaction that uses the `PreCompact` text; the laptop timer.
+A compaction that uses the `PreCompact` text; `enforce` mode (the founder's hand only); the laptop
+timer; the corrected setup script in a fresh container (its first version was seen working).

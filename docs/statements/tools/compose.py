@@ -70,21 +70,25 @@ def classify(shares, devices):
 
 
 def build_alloc(by_category):
-    total = sum(by_category.values()) or 1
+    total = sum(by_category.values())
     items = sorted(by_category.items(), key=lambda kv: kv[1], reverse=True)
     # keep top (RAMP_MAX-1) named, fold the rest into Other
     head = items[:RAMP_MAX - 1]
-    rows = []
-    for cat, b in head:
-        if cat == "Other":
-            continue
-        rows.append([cat, round(100 * b / total), f"{b / GB:.1f} GB"])
+    parts = [(cat, b) for cat, b in head if cat != "Other"]
     # ensure an Other row if any remainder
-    accounted = sum(b for _, b in head if _ != "Other")
-    remainder = total - accounted
-    if remainder > 0 and not any(r[0] == "Other" for r in rows):
-        rows.append(["Other", round(100 * remainder / total), f"{remainder / GB:.1f} GB"])
-    # normalise pct to sum ~100 (rounding)
+    remainder = total - sum(b for _, b in parts)
+    if remainder > 0:
+        parts.append(("Other", remainder))
+    if total <= 0:
+        return [], 0
+    # Whole percentages that sum to exactly 100 (largest-remainder method). Rounding each row on
+    # its own could print a column that added up to 97 or 103 on a customer's Statement.
+    exact = [100 * b / total for _, b in parts]
+    pcts = [int(x) for x in exact]
+    by_fraction = sorted(range(len(parts)), key=lambda i: (exact[i] - pcts[i], parts[i][1]), reverse=True)
+    for i in by_fraction[:100 - sum(pcts)]:
+        pcts[i] += 1
+    rows = [[cat, pct, f"{b / GB:.1f} GB"] for (cat, b), pct in zip(parts, pcts)]
     return rows, total
 
 

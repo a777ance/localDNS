@@ -9,6 +9,18 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 
 ---
 
+## DEBT-013 · Statement percentages could add up to 97 or 103 · Done
+
+- **Observed 2026-11-12:** a second session, given the job of writing a gate for the Statement
+  composer, found that `build_alloc` in `docs/statements/tools/compose.py` rounded each row on its
+  own. With exact half-percent ties the column summed to 97 or 103. It also reported a total of
+  1 byte for an empty input.
+- **Cost:** a customer could be handed a Statement whose percentages do not add up. That breaks the
+  honesty rule for a kept document.
+- **Fixed the same day:** the rows now use the largest-remainder method and always sum to exactly
+  100; an empty input returns no rows and a total of 0. `tools/check-statements.py` asserts both on
+  213 synthetic mixes. The ordinary sample outputs are unchanged.
+
 ## DEBT-012 · Commands were handed to the founder without being run first · Done
 
 - **Observed 2026-11-11:** three recipes in one session failed on the founder's laptop. One used
@@ -76,6 +88,12 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
   state word. `.claude/hooks/decide-act.py` blocked it and returned, word for word: "BRIEFING LEAD: the
   reply must open with one bold state word". The turn carried on. Also seen live the same night: the
   egress flag ("EGRESS WITHOUT A PROBE") on a push made with no fresh probe.
+- **Seen live 2026-11-12, 01:06 UTC: a fresh session.** A second session started from the emptied
+  `main`; the setup script had put `leader`'s 179 files and 8 hooks in place, and its first `Read`
+  carried `cardinal: observe.read — Matrix route: ...`. It ran the loop without a person: probe,
+  gates, a new product gate, a pull request into `leader` (PR #50), 25 tool calls, none over 10 s.
+  One fault: it came up on a local branch named `main`. The setup script now gives such a session
+  its own branch name, and the hook calls out any push to `main`.
 - **Still not seen live:** `enforce` (never run; the founder's hand only) and a compaction using the
   `PreCompact` text (a compaction cannot be forced from inside a session).
 - **Next action:** Q-031 and Q-033 in `docs/ai-cto/handoff.md`. `enforce` needs its own founder decision.
