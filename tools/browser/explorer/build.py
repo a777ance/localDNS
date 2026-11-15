@@ -27,6 +27,28 @@ def git(*args):
     return subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
 
 
+def header(path: str, text: str, cap: int = 4000) -> str:
+    """The part of a file a shot attaches (L-85): a Python file's module docstring, a shell file's leading comment
+    block, else the first 800 characters. Capped at 4,000; falls back to 800 when the header is under 40 characters."""
+    import ast
+    h = ""
+    if path.endswith(".py"):
+        try:
+            h = ast.get_docstring(ast.parse(text), clean=False) or ""
+        except (SyntaxError, ValueError):
+            h = ""
+    elif path.endswith(".sh"):
+        lines = text.splitlines()[1 if text.startswith("#!") else 0:]
+        block = []
+        for line in lines:
+            if line.startswith("#") or (block and not line.strip()):
+                block.append(line)
+            else:
+                break
+        h = "\n".join(block).strip()
+    return (h if len(h) >= 40 else text[:800])[:cap]
+
+
 def main() -> int:
     out = Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/localdns-explorer")
     out.mkdir(parents=True, exist_ok=True)
@@ -40,8 +62,8 @@ def main() -> int:
     if "@@HOOKS_JS@@" in page or "@@BROWSER_SHIM@@" in page:
         sys.exit("FAILED: a placeholder was not filled")
     files, bins = [], {}
-    # dist/ is this build's own output, committed for the record; the page does not embed itself
-    for p in [p for p in subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).decode().split("\0") if p and not p.startswith("tools/browser/explorer/dist/")]:
+    # dist/ is this build's own output and docs/ai-cto/rsi/ the record of the passes: both live in the repo, not in the page
+    for p in [p for p in subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).decode().split("\0") if p and not p.startswith(("tools/browser/explorer/dist/", "docs/ai-cto/rsi/"))]:
         fp = ROOT / p
         if fp.is_symlink() or not fp.is_file():
             files.append({"p": p, "s": 0, "t": "", "k": "link"})
@@ -61,7 +83,7 @@ def main() -> int:
     (out / "index.html").write_text(page, encoding="utf-8")
     (out / "repo.json").write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
     (out / "bin.json").write_text(json.dumps(bins, separators=(",", ":")), encoding="utf-8")
-    heads = {"repo": data["repo"], "commit": data["commit"].split(" ")[0], "heads": {f["p"]: f["t"][:800] for f in data["files"] if f.get("k") != "bin" and isinstance(f.get("t"), str)}}
+    heads = {"repo": data["repo"], "commit": data["commit"].split(" ")[0], "heads": {f["p"]: header(f["p"], f["t"]) for f in data["files"] if f.get("k") != "bin" and isinstance(f.get("t"), str)}}
     (out / "heads.json").write_text(json.dumps(heads, separators=(",", ":")), encoding="utf-8")
     dirty = git("status", "--porcelain")
     print(f"ok   explorer: {len(files)} files ({len(bins)} binary) at {data['commit'][:60]} -> {out}")

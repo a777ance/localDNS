@@ -1,0 +1,29 @@
+{
+ "pass": 1,
+ "shot": "20261115T121241-pass1shot",
+ "captured_by": "the shot's own result document (run records did not exist yet)",
+ "page_version": "1794744397-1650",
+ "page_commit": "715506c",
+ "result": {
+  "state": "answered",
+  "counts": {
+   "leaves": 23,
+   "answered": 23,
+   "flagged": 0,
+   "waves": 1
+  },
+  "prov": {
+   "calls": 2,
+   "chars_in": 25617,
+   "chars_out": 4145,
+   "ms": 16149,
+   "first_bundle_ms": 13907,
+   "tier": "quick (asked)",
+   "commit": "715506c"
+  }
+ },
+ "summary_line": null,
+ "trace": null,
+ "debug": null,
+ "trace_note": "neither the run's trace nor its debug log was captured; the founder's trace at 12:17:08 (after the restate) showed commit 4779e08, which closed the pass"
+}

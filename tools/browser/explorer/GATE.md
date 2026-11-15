@@ -27,6 +27,13 @@ What was dropped, and why, goes in the commit message.
 Only what passed. The usual route is a session branch and a pull request into `leader` (DEC-015); straight to
 `leader` when the founder says so.
 
+## Record (every pass)
+
+Read the page's run record (`db_get runs/<shot id>-run`: the turn's trace, timings, files read and debug log; the
+founder pastes nothing) and save it in `docs/ai-cto/rsi/runs/` as pass-N.json. Add the pass's row to
+`docs/ai-cto/rsi/LEDGER.md` with the target and trade named before firing and the numbers measured after. Both go
+in the pass's commit.
+
 ## 4 · Restate into the workbench
 
     bash tools/browser/explorer/restate.sh build            # build leader into build/explorer-out, filtered

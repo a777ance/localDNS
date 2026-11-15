@@ -11,7 +11,7 @@ SAMPLE=r"""window.__calls=0;window.__inflight=0;window.__maxin=0;window.__slots=
  var f=async function(input,opts){if(window.__slots<=0)await new Promise(function(z){window.__waitq.push(z)});window.__slots--;window.__calls++;window.__t1st=window.__t1st||performance.now();window.__inflight++;window.__maxin=Math.max(window.__maxin,window.__inflight);window.__tier=opts&&opts.modelTier;window.__plen=Math.max(window.__plen||0,String(input).length);
    var p=String(input),qs=[],re=/^(\d+)\. Round (\d+): (\S+)/gm,m;while((m=re.exec(p)))qs.push(m);
    await new Promise(function(z){setTimeout(z,400+300*qs.length)});
-   var lines=qs.map(function(m){var sec=p.split("=== "+m[3]+" (first")[1]||"";var h=sec.split("\n").filter(function(l){return l.indexOf("# ")===0})[0]||"?";return m[1]+": pong "+m[2]+(m[1]==="3"?"; ":" ")+h});
+   var lines=qs.map(function(m){var sec=p.split("=== "+m[3]+" (header")[1]||"";var h=sec.split("\n").filter(function(l){return l.indexOf("# ")===0})[0]||"?";return m[1]+": pong "+m[2]+(m[1]==="3"?"; ":" ")+h});
    window.__inflight--;window.__slots++;var nx=window.__waitq.shift();if(nx)nx();return {text:lines.join("\n"),truncated:false};}; f.json=null; return f;}};"""
 async def main():
     q=json.load(open(HERE/'data'/'run3.json'))
@@ -31,11 +31,11 @@ async def main():
         await pg.wait_for_function("document.getElementById('go').textContent==='Ask'",timeout=60000)
         t1=await pg.evaluate("performance.now()")
         st=await pg.evaluate("window.__store")
-        rep=[r for v in st.values() if v["from"]=="page" and v.get("replies") for r in v["replies"]]
+        rep=[r for v in st.values() if v.get("from")=="page" and v.get("replies") for r in v["replies"]]
         ok=sum(1 for r in rep if r["body"]=="pong %d # %s"%(r["n"],q[r["n"]-1]["answer"]))
         flagged=[r["n"] for r in rep if r.get("flag")]; print("flagged:",flagged)
         print("first model call started %.1f s after load; repo.json held back 2.5 s"%((await pg.evaluate("window.__t1st"))/1000))
-        print("30 questions in one doc: answered %d, exact %d/30, end to end %.1f s | bundles %d | db trips %d | model calls %d, max at once %d | tier %s | longest prompt %d chars"%(len(rep),ok,(t1-t0)/1000,sum(1 for v in st.values() if v['from']=='page'),await pg.evaluate("window.__rt"),await pg.evaluate("window.__calls"),await pg.evaluate("window.__maxin"),await pg.evaluate("window.__tier"),await pg.evaluate("window.__plen")))
+        print("30 questions in one doc: answered %d, exact %d/30, end to end %.1f s | bundles %d | db trips %d | model calls %d, max at once %d | tier %s | longest prompt %d chars"%(len(rep),ok,(t1-t0)/1000,sum(1 for v in st.values() if v.get('from')=='page'),await pg.evaluate("window.__rt"),await pg.evaluate("window.__calls"),await pg.evaluate("window.__maxin"),await pg.evaluate("window.__tier"),await pg.evaluate("window.__plen")))
         msgs=await pg.inner_text("#msgs"); print("page briefing Done:", "**Done" in msgs or "Done." in msgs, "| Stop hook passed:", "Stop hook passed" in msgs)
         await pg.click("#mailb"); fv=await pg.inner_text("#fv"); print("ask doc shows done:", "run 4" in fv and "· done" in fv, "| badge:", await pg.inner_text("#mailb"))
         # a plain single message still works through the same path

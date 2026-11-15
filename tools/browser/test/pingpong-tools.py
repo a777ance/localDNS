@@ -10,7 +10,7 @@ SAMPLE = r"""window.__calls=0;window.__reads=[];window.claude={use:async functio
  var f=async function(input,opts){window.__calls++;var p=String(input),tool=function(n){return (opts.tools||[]).find(function(t){return t.name===n})};
    var qs=p.split("=== ATTACHED")[0].split("\n").filter(function(l){return /^\d+\. tools\//.test(l)});
    var lines=[];for(var i=0;i<qs.length;i++){var file=qs[i].match(/^\d+\. (tools\/\S+?):/)[1],base=file.split("/").pop();
-     var att=(p.split("=== "+file+" (first")[1]||"").split("\n=== ")[0],re=new RegExp("(python3|bash) tools/"+base.replace(/\./g,"\\.")+"[^\\n]*"),m=att.match(re),via="head";
+     var att=(p.split("=== "+file+" (header")[1]||"").split("\n=== ")[0],re=new RegExp("(python3|bash) tools/"+base.replace(/\./g,"\\.")+"[^\\n]*"),m=att.match(re),via="head";
      if(!m&&tool("read_file")){var full=await tool("read_file").execute({path:file});window.__reads.push(file);m=full.match(re);via="read_file"}
      lines.push((i+1)+": "+base+" runs as "+(m?m[0].trim():"(not found)")+" ["+via+"]")}
    return {text:lines.join("\n"),truncated:false};}; f.json=null; return f;}};"""
@@ -33,6 +33,8 @@ async def main(BASE):
         note = [l for l in (await pg.inner_text("#msgs")).split("\n") if "hooks run:" in l][-1]
         print("%d tools: state %s | run line found %d/%d (%d of them only after read_file) | read_file calls %d | prov tool_calls %s | commit %s | %s"
               % (len(files), r["state"], found, len(ans), viaread, len(reads), r["prov"].get("tool_calls"), r["prov"].get("commit"), note[note.index("Stop hook"):]))
+        run = [v for k, v in st.items() if k.startswith("runs/")]
+        print("run record:", (run[0]["id"], len(run[0]["spans"]), "spans", len(run[0]["debug"]), "log lines", run[0]["results"][0]["state"]) if run else "MISSING")
         print("not found:", [a.split(" runs")[0] for a in ans if "(not found)" in a], "| js errors:", errs or "none")
         await b.close()
 with served() as BASE:

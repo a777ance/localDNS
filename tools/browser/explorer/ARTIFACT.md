@@ -16,8 +16,8 @@ provenance: O · read with the artifact tools (`read_declaration`, `list_files`)
 ## What it serves
 
 `build.py` writes all four files from a checkout. The build is deterministic in any clone, shallow or full.
-`dist/SHA256SUMS` names the live version, the commit it was built from, and the hash of every file; `dist/` is
-left out of the page's own snapshot, so the page shows `leader` exactly as it was at that commit.
+`dist/SHA256SUMS` names the live version, the commit it was built from, and the hash of every file; `dist/` and
+`docs/ai-cto/rsi/` (the ledger of the passes) are left out of the page's own snapshot, so the page shows `leader` exactly as it was at that commit.
 
 | File | What it is |
 | --- | --- |
