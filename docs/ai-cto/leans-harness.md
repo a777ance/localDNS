@@ -274,3 +274,9 @@ L-79 (skill verbs, waits on the founder saving the skill). Chromium, stand-in mo
 time: a flat 30 answered in 5.7 s, 30 of 30 exact, the planted slip fixed by the jury; a tree with a chain in
 two waves with parent 2 composed; a dangling `from` ends partial with its reason; a call failing twice ends the
 first load partial (2 of 4), and a reload fires only the 2 missing, with no duplicate bundles.
+
+Measured, run 6 (11:46 UTC, founder's phone, the shot engine's first real fire): one shot of 18 questions (13 flat,
+a parent of 4, one chained on the parent), state answered, 17 of 17 titles exact and the chain right
+("tools: none"), 2 waves, 3 model calls, 7.7 s, first bundle at 4.6 s, 19,690 characters in and 720 out, no
+flags so the jury had nothing to do. Fixed after it: the format check treats quoted phrases joined by "or" as
+alternatives, so a question offering two wordings no longer flags an answer that uses one.

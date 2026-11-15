@@ -579,7 +579,11 @@ function shardPrompt(units){
    units.map(function(u,i){return (i+1)+". "+String(u.text).replace(/\s*\n\s*/g," ")}).join("\n")+"\n\n=== ATTACHED REPO FILES ===\n"+attachFor(units).join("\n\n");
 }
 // a phrase the question quotes ('...') must appear in the answer followed by a space or the end, or the answer is flagged
-function formatMiss(q,a){var m,re=/(?:^|[\s(\[])'([^']{1,60})'(?=[\s,.;:)\]]|$)/g,miss=[];while((m=re.exec(String(q)))){var ph=m[1];if(/^# ?$/.test(ph))continue;var i=String(a).indexOf(ph);if(i<0||!/^(\s|$)/.test(String(a).slice(i+ph.length,i+ph.length+1)))miss.push(ph)}return miss}
+function formatMiss(q,a){q=String(q);a=String(a);var m,re=/(?:^|[\s(\[])'([^']{1,60})'(?=[\s,.;:)\]]|$)/g,groups=[];
+  // phrases offered as alternatives ("'x', or 'y'") form one group: any one of them is enough
+  while((m=re.exec(q))){var ph=m[1];if(/^# ?$/.test(ph))continue;var before=q.slice(0,m.index+m[0].indexOf("'"));if(groups.length&&/\bor\s*$/i.test(before))groups[groups.length-1].push(ph);else groups.push([ph])}
+  function ok(ph){var i=a.indexOf(ph);return i>=0&&/^(\s|$)/.test(a.slice(i+ph.length,i+ph.length+1))}
+  return groups.filter(function(g){return !g.some(ok)}).map(function(g){return g.join("' or '")})}
 function parseLines(text,k){var out={},cur=null;String(text||"").split("\n").forEach(function(l){var m=l.match(/^\s*(\d+)\s*[:.)]\s?(.*)$/);if(m&&+m[1]>=1&&+m[1]<=k){cur=+m[1];out[cur]=m[2]}else if(cur&&l.trim())out[cur]+="\n"+l});return out}
 /* ---------- the shot engine: a one-shot of one-shots (L-63 to L-82) ----------
    A shot is a message with asks; an ask may hold asks (a child shot, L-65) or say from: "<path>" (a chain, L-67).
