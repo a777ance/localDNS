@@ -61,7 +61,7 @@ def main() -> int:
     (out / "index.html").write_text(page, encoding="utf-8")
     (out / "repo.json").write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
     (out / "bin.json").write_text(json.dumps(bins, separators=(",", ":")), encoding="utf-8")
-    heads = {"repo": data["repo"], "heads": {f["p"]: f["t"][:800] for f in data["files"] if f.get("k") != "bin" and isinstance(f.get("t"), str)}}
+    heads = {"repo": data["repo"], "commit": data["commit"].split(" ")[0], "heads": {f["p"]: f["t"][:800] for f in data["files"] if f.get("k") != "bin" and isinstance(f.get("t"), str)}}
     (out / "heads.json").write_text(json.dumps(heads, separators=(",", ":")), encoding="utf-8")
     dirty = git("status", "--porcelain")
     print(f"ok   explorer: {len(files)} files ({len(bins)} binary) at {data['commit'][:60]} -> {out}")

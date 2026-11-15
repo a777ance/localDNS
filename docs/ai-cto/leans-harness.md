@@ -346,8 +346,17 @@ only for wording, and none of it is on `leader`. Ranked by what blocks real use 
   the founder's own pass would be.
 
 Gate pass 1 (12:12 to 12:17 UTC): shot 20261115T121241-pass1shot, 23 tools, answered in 16.1 s; evaluated 23 of 23
-accurate against the full headers; 10 lacked a run command because it sits past the 800 attached characters, filled
-by the session; `tools/README.md`, `GATE.md`, `restate.sh` landed as `4779e08`; restated, and the founder's trace showed
+accurate against the full headers; 12 said no run command was stated, plus migrate.sh with no header at all (first
+recorded as 10, a miscount found in pass 2); the session filled them from the headers, CLAUDE.md section C or a run; `tools/README.md`, `GATE.md`, `restate.sh` landed as `4779e08`; restated, and the founder's trace showed
 `4779e08`. Pass 2 builds L-84: a shot call may use read_file, search and list_files, through the PreToolUse and
 PostToolUse hooks, traced under the call. Chromium, stand-in model: 15 read_file calls, 15 PreToolUse and 15
 PostToolUse runs, Stop hook passed.
+
+Gate pass 2 measured (12:20 to 12:22 UTC, founder's phone): shot 20261115T121949-pass2shot, the same 23 questions with
+whole-file reads. Answered 23 of 23 in one turn of 92.0 s: 2 model calls, 35 reads through the hooks, first bundle at
+80.7 s. Of the 12 "not stated" answers in pass 1, 4 closed by reading (check-docs.py line 33, check-doctrine.py line
+44, check-provenance.py line 41 with its flags, sync-briefings.py lines 21 to 23), and the other 8 were confirmed
+correct: those files hold no run command (grep). No false "not stated". Cost: 5.7 times the time of pass 1 (16.1 s)
+for 4 answers, and the reads waited about 7 s for repo.json (10.4 s to load on the phone). The bundles' `commit` was
+null because the shot started before repo.json; fixed by putting the commit in heads.json. Lean for pass 3 (L-85):
+attach each named file's whole header, not a fixed 800 characters; every answer here would then need no read.

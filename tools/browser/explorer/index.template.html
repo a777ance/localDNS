@@ -626,7 +626,7 @@ async function callModel(prompt,label,turn,cost,harnessP){var s1=span("model",la
 async function runShot(m,turn,bubble,harnessP){
   var t0=performance.now(),tree=shotTree(m),ans=existingAnswers(m._id,m.to),skipped=Object.keys(ans).length;
   var cost={calls:0,tools:0,chars_in:0,chars_out:0,tier:"quick (asked)"},failed=[],jury={asked:0,fixed:0},wave=0,firstMs=null,deadline=m.deadline_ms||0,why=null;
-  var commit=(DATA&&DATA.commit||"").split(" ")[0]||null;
+  var commit=((DATA&&DATA.commit)||(HEADS&&HEADS.commit)||"").split(" ")[0]||null; // heads.json carries it, so a shot that starts before repo.json still names its commit
   while(true){
     var open=tree.leaves.filter(function(l){return ans[l.path]==null});if(!open.length)break;
     if(deadline&&performance.now()-t0>deadline){why="deadline ("+deadline+" ms) passed with "+open.length+" unanswered";break}

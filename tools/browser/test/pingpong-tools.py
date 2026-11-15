@@ -31,8 +31,8 @@ async def main(BASE):
         found = sum(1 for a in ans if "(not found)" not in a); viaread = sum(1 for a in ans if "[read_file]" in a and "(not found)" not in a)
         reads = await pg.evaluate("window.__reads")
         note = [l for l in (await pg.inner_text("#msgs")).split("\n") if "hooks run:" in l][-1]
-        print("%d tools: state %s | run line found %d/%d (%d of them only after read_file) | read_file calls %d | prov tool_calls %s | %s"
-              % (len(files), r["state"], found, len(ans), viaread, len(reads), r["prov"].get("tool_calls"), note[note.index("Stop hook"):]))
+        print("%d tools: state %s | run line found %d/%d (%d of them only after read_file) | read_file calls %d | prov tool_calls %s | commit %s | %s"
+              % (len(files), r["state"], found, len(ans), viaread, len(reads), r["prov"].get("tool_calls"), r["prov"].get("commit"), note[note.index("Stop hook"):]))
         print("not found:", [a.split(" runs")[0] for a in ans if "(not found)" in a], "| js errors:", errs or "none")
         await b.close()
 with served() as BASE:

@@ -1,4 +1,4 @@
-<!-- provenance: D · drafted by the explorer artifact's shot engine (gate pass 1, shot 20261115T121241-pass1shot) from each file's header, then checked line by line against the full header, CLAUDE.md §C and a test run by a cloud session · 2026-11-15 -->
+<!-- provenance: D · drafted by the explorer artifact's shot engine (gate passes 1 and 2, shots 20261115T121241-pass1shot and 20261115T121949-pass2shot) from each file's header, then checked line by line against the full header, CLAUDE.md §C and a test run by a cloud session · 2026-11-15 -->
 # tools/
 
 What each tool here does and how to run it, one line each, taken from the tool's own header. The header is the
@@ -21,7 +21,7 @@ Where a tool deploys to or reads the live t630, it says so.
 | `check-stop-hook.py` | Tests the Stop hook on sample replies, and that every rule it enforces is named in the Briefing style. | `python3 tools/check-stop-hook.py` |
 | `check-statements.py` | Gate for the honesty rule on Statements: no category volume shown that was not measured. | `python3 tools/check-statements.py` |
 | `check-registers.py` | Gate for the AI-CTO registers (`initiatives.md`, `debt.md`) and the `CLAUDE.md` byte budget. | `python3 tools/check-registers.py` |
-| `check-provenance.py` | Validates provenance tags across the repo: the enforcement half of the Provenance Ladder. | `python3 tools/check-provenance.py` |
+| `check-provenance.py` | Validates provenance tags across the repo: the enforcement half of the Provenance Ladder. | `python3 tools/check-provenance.py` (or `--strict`, `--stale-days N`) |
 | `check-matrix.py` | End-to-end test of the Matrix in a throwaway sandbox copy. | `python3 tools/check-matrix.py` |
 | `check-doctrine.py` | Asserts the mechanically decidable clauses of CLAUDE.md §G against the juror sampler code. | `python3 tools/check-doctrine.py` |
 | `check-docs.py` | Validates Markdown links and repo-path references in every doc. | `python3 tools/check-docs.py` |
