@@ -256,6 +256,22 @@
     if (!/^[^\p{L}\p{N}_]*L · /mu.test(text)) RM.skip("no 'L · ' step in the reply");
     if (mine.length)
       reasons.push("L ITEMS OPEN: " + mine.length + " item(s) under L are the loop's own (no DEC id). Do not stop. Start a sub-OODA loop for each one now, in parallel where they do not touch the same files: one Agent call per item in a single message (isolation: worktree), each told to observe, orient, decide, act on its item, land it by pull request into leader, and report. An item only the founder can close becomes a DEC tile and leaves L.\n\n" + mine.join("\n"));
+    RM("L DECS");
+    var lmm = /^[^\p{L}\p{N}_]*L · [^\n]*$/mu.exec(text);
+    if (!lmm) RM.skip("no 'L · ' step in the reply");
+    else if (log === null) RM.skip("docs/ai-cto/blocked.md could not be read");
+    if (lmm && log !== null) {
+      var openDecs = {}, om, ore = /\*\*(DEC-\d{3}) · [^\n]*· OPEN\*\*/g;
+      while ((om = ore.exec(log)) !== null) openDecs[om[1]] = 1;
+      var lEndRel = /^(#{1,3}\s|\*\*Landed|Stopping because:|For a Claude Code session:)/m.exec(text.slice(lmm.index + lmm[0].length));
+      var lEnd = lEndRel ? lmm.index + lmm[0].length + lEndRel.index : text.length;
+      var ids = function (s) { return s.match(/DEC-\d{3}/g) || []; };
+      var inL = {}; ids(text.slice(lmm.index, lEnd)).forEach(function (x) { inL[x] = 1; });
+      var tileIds = {}, tm, tre = /DECISION · (DEC-\d{3})/g; while ((tm = tre.exec(text)) !== null) tileIds[tm[1]] = 1;
+      var named = {}; ids(text.slice(0, lmm.index) + text.slice(lEnd)).forEach(function (x) { named[x] = 1; });
+      var missing = Object.keys(named).filter(function (x) { return openDecs[x] && !inL[x] && !tileIds[x]; }).sort().reverse();
+      if (missing.length) reasons.push("L DECS: the reply names open founder decision(s) " + missing.join(", ") + " outside the L step. Nothing open is reported under any other heading: list each under 'L · ' with its DEC id.");
+    }
     RM("NEXT");
     if (text.indexOf("Stopping because:") >= 0) RM.skip("a 'Stopping because:' line ends the turn, so the queue on disk was not consulted");
     if (text.indexOf("Stopping because:") < 0) {

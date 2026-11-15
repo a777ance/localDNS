@@ -251,6 +251,24 @@ def review(text, session_id=""):
             "item in a single message (isolation: worktree), each told to observe, orient, decide, act on "
             "its item, land it by pull request into leader, and report. An item only the founder can close "
             "becomes a DEC tile and leaves L.\n\n%s" % (len(mine), "\n".join(mine)))
+    # L DECS. An open founder decision named in the reply is still open, so it is reported under L
+    # ("Nothing open is reported under any other heading"). Only when the reply has an L step; a decision
+    # shown as a tile is the tile's, not L's.
+    lm = re.search(r"^\W*L · .*$", text, re.MULTILINE)
+    if lm and log is not None:
+        open_decs = set(re.findall(r"\*\*(DEC-\d{3}) · [^\n]*· OPEN\*\*", log))
+        end = len(text)
+        for m2 in re.finditer(r"^(#{1,3}\s|\*\*Landed|Stopping because:|For a Claude Code session:)", text[lm.end():], re.MULTILINE):
+            end = lm.end() + m2.start()
+            break
+        in_l = set(re.findall(r"DEC-\d{3}", text[lm.start():end]))
+        tiles = set(re.findall(r"DECISION · (DEC-\d{3})", text))
+        named = set(re.findall(r"DEC-\d{3}", text[:lm.start()] + text[end:]))
+        missing = sorted((named & open_decs) - in_l - tiles, reverse=True)
+        if missing:
+            reasons.append("L DECS: the reply names open founder decision(s) %s outside the L step. Nothing open is "
+                           "reported under any other heading: list each under 'L · ' with its DEC id."
+                           % ", ".join(missing))
     # NEXT. The founder's rule, 2026-11-12: the Stop hook starts the next action. A stop is allowed
     # only when nothing is waiting, or when the reply says why it stops.
     if "Stopping because:" not in text:

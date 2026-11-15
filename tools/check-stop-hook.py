@@ -50,6 +50,10 @@ CASES = [
     # The letter form the style asks for (D · , A · ) is checked like the word form (DEBT-014).
     ("letter-led decide list, nothing acted", "**Waiting.**\n\nD · Queued.\n1. Run A\n2. Run B\n\nA · Nothing run yet.\n", "OODA ACT"),
     ("letter-led decide list, acted in full", "**Done.**\n\nD · Queued.\n1. Run A\n2. Run B\n\nA · Ran the queue.\n1. A ran.\n2. B is blocked on DEC-900.\n", None),
+    ("open DEC named outside L, L says nothing open", "**Done.**\n\nA · DEC-900 is still open.\n\nL · Nothing open.\n", "L DECS"),
+    ("open DEC named outside L and listed under L", "**Done.**\n\nA · DEC-900 is still open.\n\nL · Open.\n- DEC-900 waits on the founder.\n", None),
+    ("open DEC as a tile, L names nothing", "**Waiting.**\n\n" + TILE + "\nL · Nothing else open.\n", None),
+    ("open DEC named, no L step at all", "**Done.** DEC-900 is still open.", None),
     ("letter-led act section ends at the L step", "**Partial.**\n\nD · Queued.\n1. Run A\n2. Run B\n\nA · Ran one.\n- A ran.\n\nL · Open.\n- DEC-900 waits on the founder.\n- DEC-900 again, still waiting.\n", "OODA ACT"),
 ]
 
@@ -66,6 +70,7 @@ STYLE = {
     "NEXT ACTION": "Stopping because:",
     "L ITEMS OPEN": "sub-OODA loop",
     "L STEP": "`L · `",
+    "L DECS": "Nothing open is reported under any other",
 }
 
 

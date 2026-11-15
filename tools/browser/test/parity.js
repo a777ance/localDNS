@@ -67,6 +67,10 @@ const replies = {
   letterActEndsAtL: "**Partial.**\n\nD · Queued.\n1. a\n2. b\n\nA · One.\n- a ran\n\nL · Open.\n- DEC-015 waits\n- DEC-015 again\n\nStopping because: x.\n\n" + L(2),
   letterBoldSteps: "**Done.**\n\n**D ·** Queued.\n1. a\n\n**A ·** Ran.\n- a ran\n\nStopping because: x.\n\n" + L(1),
   letterMultiReport: "**Done.**\n\nD · Queued.\n1. a\n2. b\n\nA A O · ran two then looked\n\nStopping because: x.\n\n" + L(2),
+  lDecsMissing: "**Done.**\n\nA · DEC-023 and DEC-015 are mentioned.\n\nL · Nothing open.\n\nStopping because: x.\n\n" + L(1),
+  lDecsListed: "**Done.**\n\nA · DEC-023 is open.\n\nL · Open.\n- DEC-023 waits\n\nStopping because: x.\n\n" + L(1),
+  lDecsAfterSession: "**Done.**\n\nL · Open.\n- DEC-022 waits\n\nFor a Claude Code session: DEC-021 and DEC-019.\n\nStopping because: x.\n\n" + L(1),
+  lDecsTile: "**Waiting.**\n\n> **DECISION · DEC-021 · x**\n> **Action if GO:** a\n> **Action if NO GO:** b\n> **Decision needed:** c\n\nL · nothing\n\nStopping because: x.\n\n" + L(1),
   decideInProse: "**Done.** We Decided things.\nDecide how\n1. only\n\nStopping because: x.\n\n" + L(1),
 };
 const mkTranscript = (t) => [{ type: "user", message: { role: "user", content: "q" } }, { type: "assistant", message: { role: "assistant", content: [{ type: "text", text: t }] } }];
