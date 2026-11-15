@@ -164,3 +164,39 @@ briefing. The founder said build both.
 Measured, run 3 (11:16 UTC, founder's phone): 30 questions answered in one turn of 17.3 s (model 13 s to its one
 mail_reply call, 4.2 s writing 30 replies, no briefing pass), 30 of 30 exact. The first batched run took 160.5 s.
 L-35, L-51 and L-52 hold: the quick tier lost no accuracy, and the page's briefing passed the Stop hook.
+
+## Ten more, for another 9x (2026-11-15, about 11:20 UTC)
+
+Target: run 3 took about 18.8 s from the questions landing to the last reply saved (1.5 s burst wait, 13 s of
+model time, 4.2 s writing 30 replies at about 140 ms each, the platform's pace however they are sent). 9x is
+about 2.1 s. Where it comes from, ranked by seconds saved. Not built yet.
+
+- **L-53 · Split the batch across parallel model calls.** Six calls of five questions each, all at once. Output
+  time dominates, so 13 s should drop to about 3 s. Wrong if: the calls come back `rate_limited`, or their
+  wall time is the sum and not the longest.
+- **L-54 · One reply document per turn, not one per message.** `mail/<id>` with `replies: [{re, body}]`. One
+  write, about 0.15 s, instead of 4.2 s; a reply in it marks its message handled. Wrong if: a peer cannot read
+  the bundle, or one document's size limit cuts a large batch.
+- **L-55 · One question document per send, too.** The session writes `asks: [...]` in one document; the page
+  sees one snapshot and needs no burst wait, saving 1.5 s. Wrong if: a sender cannot gather its questions first.
+- **L-56 · Drop the house-style preamble from automatic turns.** Since L-52 the page writes the briefing, so
+  the model no longer needs the Briefing rules or CLAUDE.md: about 18,000 characters out of every call. Keep the
+  mail rules and the repo tools. Wrong if: answers drift from the house's plain style.
+- **L-57 · Number the messages, not their ids.** The model answers "3: ..." and the page maps 3 to its id,
+  cutting about 25 characters of output per reply. Wrong if: the model mixes up the numbering.
+- **L-58 · Ask for the reply body only, as plain lines.** No tool call and no JSON: each parallel call returns
+  "N: answer" lines and the page parses them. Saves the tool round trip inside each call. Wrong if: a line fails
+  to parse; then that message falls back to the tool path.
+- **L-59 · Write each shard as it lands.** The first shard's replies are saved while the others still think.
+  Wrong if: L-54's one document per turn makes this moot (then one document per shard).
+- **L-60 · Attach less.** 800 characters per file instead of 1,500, and nothing for a file already attached in
+  this turn. Wrong if: a run 3 style check drops below 30 of 30 exact.
+- **L-61 · Measure end to end, not the turn.** From the session's write to the last reply saved, read from the
+  documents' own timestamps, so the burst wait and the page's load count. Wrong if: the turn time already
+  matches it.
+- **L-62 · Keep the benchmark honest.** "First heading of a file" is mechanical; page code could answer it in
+  milliseconds with no model at all. That would measure the pipe, not Claude, so the 9x target counts model-
+  answered runs only. Wrong if: the founder wants the pipe's speed, which is a separate, easy number.
+
+Projection: about 3 s of model time (L-53, L-56, L-57, L-58), 0.15 s writing (L-54), no burst wait (L-55):
+about 3.2 s end to end, 6x. The last stretch to 9x rests on L-53 running six calls truly in parallel.
