@@ -15,15 +15,15 @@ provenance: O · read with the artifact tools (`read_declaration`, `list_files`)
 
 ## What it serves
 
-`build.py` writes all four files from a checkout. The build is deterministic: the served copies on 2026-11-15
-(version `1794743936-f2c2`) are byte-identical to a build of commit `397e0dd` as branch `leader`
-(`EXPLORER_BRANCH=leader`), which `dist/SHA256SUMS` records:
+`build.py` writes all four files from a checkout. The build is deterministic in any clone, shallow or full:
+the served copies on 2026-11-15 (version `1794744057-be8a`) are byte-identical to a build of commit `b0cfdda` as
+branch `leader` (`EXPLORER_BRANCH=leader`), which `dist/SHA256SUMS` records:
 
 | File | Bytes | sha256 (first 16) | What it is |
 | --- | --- | --- | --- |
 | `index.html` | 137,164 | `b02f7345fff013f7` | the page: file browser, chat, the JS hook ports, trace, Mail, the shot engine |
-| `repo.json` | 2,093,260 | `cc11ad6cdb8fed8c` | every tracked text file, with branch, commit and the CLAUDE.md revision |
-| `heads.json` | 277,547 | `5f96cbb569049649` | the first 800 characters of each text file, so a mail turn starts before repo.json loads |
+| `repo.json` | 2,093,529 | `e4a0a58668429da6` | every tracked text file but `dist/`, with branch, commit and CLAUDE.md's content hash |
+| `heads.json` | 277,547 | `42b417feab3643f6` | the first 800 characters of each text file, so a mail turn starts before repo.json loads |
 | `bin.json` | 5,114,645 | `a502549807369bcd` | images, base64, loaded only when one is opened |
 
 A rebuild from a later commit differs only where the page shows the commit and in the files that changed.
