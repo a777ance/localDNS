@@ -7,7 +7,7 @@ ROOT = HERE.parents[2]
 mock = open(HERE / 'mockdb.js').read()
 SAMPLE = r"""window.__calls=0;window.__in=0;window.__max=0;window.__models=[];window.claude={use:async function(n){ if(n==="db")return window.__mockdb; if(n!=="sample")return null;
  var f=async function(input,opts){window.__calls++;window.__in++;window.__max=Math.max(window.__max,window.__in);window.__models.push(opts.model||"(none)");
-   if(String(input).indexOf("numbered slices")>0){var parts=String(input).split(/\n?=== slice (\d+) · [^\n]* ===\n/),ls=[];for(var i=1;i<parts.length;i+=2){var mm=parts[i+1].replace(/\n=== end of slices ===$/,"").match(/DEC-\d{3}/);if(mm)ls.push(parts[i]+": "+mm[0])}
+   if(String(input).indexOf("numbered slices")>0){var parts=String(input).split(/\n?=== slice (\d+) · [^\n]* ===\n/),ls=[];for(var i=1;i<parts.length;i+=2){var mm=parts[i+1].replace(/\n=== end of slices ===$/,"").match(/DEC-\d{3}/);if(mm)ls.push(parts[i]+": "+mm[0]);else if(String(input).indexOf("single hyphen")>0)ls.push(parts[i]+": -")}
      await new Promise(function(z){setTimeout(z,300)});window.__in--;return {text:ls.join("\n")+"\nEND",truncated:false,modelApplied:opts.model||"quick"};}
    var p=String(input),qs=p.split("=== ATTACHED")[0].split("\n").filter(function(l){return /^\d+\. Round /.test(l)});
    var lines=qs.map(function(l){var m=l.match(/^(\d+)\. Round (\d+): (\S+)/);var sec=p.split("=== "+m[3]+" (")[1]||"";var h=sec.split("\n").filter(function(x){return x.indexOf("# ")===0})[0]||"?";return / title$/.test(l)?m[1]+": "+h.slice(2).trim():m[1]+": pong "+m[2]+" "+h});
@@ -23,7 +23,7 @@ async def main(BASE):
     q = titles()
     async with async_playwright() as p:
         b = await p.chromium.launch(executable_path=CHROME, args=["--no-sandbox"]); ctx = await b.new_context(); await ctx.add_init_script(mock + SAMPLE)
-        pg = await ctx.new_page(); errs = []; pg.on("pageerror", lambda e: None if "lane mode" in str(e) else errs.append(str(e)))
+        pg = await ctx.new_page(); errs = []; pg.on("pageerror", lambda e: errs.append(str(e)))
         await pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith("http://127.0.0.1") else r.abort())
         await pg.goto(BASE + "/index.html"); await pg.wait_for_timeout(300)
         asks = [{"n": i + 1, "body": "Round %d: %s (reply 'pong %d' and that file's first line starting with '# ', copied exactly)" % (i + 1, f, i + 1)} for i, (f, _) in enumerate(q)]
@@ -53,11 +53,13 @@ async def main(BASE):
         st = await pg.evaluate("window.__store"); r3 = [v for v in st.values() if v.get("kind") == "shot-result" and v["re"] == "F3"][0]
         print("slices 1000: state %s | answered %d | check %s | calls %d, max at once %d | sha %s"
               % (r3["state"], r3["counts"]["answered"], {k: r3["check"][k] for k in ("slices", "slice_chars", "expected_hits", "exact", "missed")}, await pg.evaluate("window.__calls"), await pg.evaluate("window.__max"), r3["check"]["expected_sha256"][:16]))
-        # frame probe: two lane frames of this same page, two calls each
-        await pg.evaluate("d=>window.__mockdb.doc('mail/F4').set(d)", {"id": "F4", "from": "cloud", "to": "page", "subject": "frames", "body": "x", "model": "claude-haiku-5-5", "probe": {"frames": 2, "each": 2}, "sent_at": "2026-11-15T22:10:00Z", "ts": 4})
-        await pg.wait_for_function("Object.values(window.__store).some(function(v){return v.kind==='shot-result'&&v.re==='F4'})", timeout=60000)
-        st = await pg.evaluate("window.__store"); r4 = [v for v in st.values() if v.get("kind") == "shot-result" and v["re"] == "F4"][0]
-        print("frame probe: state %s | ready %s | calls %s" % (r4["state"], r4["check"]["ready"], [(c["frame"], c["call"], c["error"]) for c in r4["check"]["calls"]]))
+        # the same slices, a line for every slice, restricted to one folder at a different slice size
+        await pg.evaluate("d=>window.__mockdb.doc('mail/F5').set(d)", {"id": "F5", "from": "cloud", "to": "page", "subject": "dense", "body": "x", "model": "claude-haiku-5-5", "concurrency": 2,
+            "per_call": 50, "tools": False, "jury": False, "deadline_ms": 120000,
+            "fleet": {"slice": 600, "match": "^docs/ai-cto/", "ask": "copy the first decision id", "count": 5000, "check": {"first_match": "DEC-\\d{3}"}}, "sent_at": "2026-11-15T22:20:00Z", "ts": 5})
+        await pg.wait_for_function("Object.values(window.__store).some(function(v){return v.kind==='shot-result'&&v.re==='F5'})", timeout=120000)
+        st = await pg.evaluate("window.__store"); r5 = [v for v in st.values() if v.get("kind") == "shot-result" and v["re"] == "F5"][0]
+        print("dense, one folder: state %s | check %s | calls %d, each with stats %s" % (r5["state"], {k: r5["check"][k] for k in ("slices", "expected_hits", "found", "missed")}, len(r5["percall"]), sorted(r5["percall"][0].keys())))
         print("js errors:", errs or "none"); await b.close()
 with served() as BASE:
     asyncio.run(main(BASE))

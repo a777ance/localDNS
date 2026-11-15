@@ -10,13 +10,13 @@ Every entry says what it **Needs** before it can start, when it is **Ready**, an
 Status is one of `planned`, `ready`, `done` (with the commit or pass) or `dropped` (with the reason).
 `tools/check-rsi.py` fails on a repeated id, an entry out of order, or an entry missing one of those lines.
 
-## PLAN-003 · Count tokens in the page · planned
+## PLAN-003 · Count tokens in the page · ready
 
 - **Why:** every cost figure so far is characters turned into tokens by a guess of 3.5 to 4 characters each.
 - **Design:** the run record keeps the platform's usage figures for each call when it returns them, and the
   result document totals them. If the platform returns none, the record says so once and the estimate stays.
 - **Needs:** nothing from the founder; one engine change and a restatement.
-- **Ready when:** the next engine change is being made anyway (it can ride with L-158).
+- **Ready when:** the next engine change is being made anyway (it can ride with L-158). Half done with pass 9's engine change: the run record now keeps each call's usage figures if the platform returns any; the totals wait on seeing what comes back.
 - **Wrong if:** the platform gives the page no usage figures at all.
 
 ## PLAN-002 · The fair race: one Haiku call against the fleet · planned
