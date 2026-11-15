@@ -51,11 +51,12 @@ def main() -> int:
         except UnicodeDecodeError:
             files.append({"p": p, "s": len(b), "k": "bin"})
             bins[p] = base64.b64encode(b).decode()
+    # claude_md_rev is the content hash of CLAUDE.md: the same in a shallow or a full clone (git log -- CLAUDE.md is not)
     branch = os.environ.get("EXPLORER_BRANCH") or git("rev-parse", "--abbrev-ref", "HEAD")  # set it when building a detached checkout
     base = os.environ.get("EXPLORER_BASE", "leader 71e6ccc")
     data = {"repo": "a777ance/localDNS", "branch": branch if branch == "leader" else f"{branch} (on {base})",
             "commit": git("log", "-1", "--format=%h %cs %s"), "head": git("rev-parse", "HEAD"),
-            "claude_md_rev": git("log", "-1", "--format=%h %ci", "--", "CLAUDE.md"), "files": files}
+            "claude_md_rev": "blob " + git("rev-parse", "--short", "HEAD:CLAUDE.md"), "files": files}
     (out / "index.html").write_text(page, encoding="utf-8")
     (out / "repo.json").write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
     (out / "bin.json").write_text(json.dumps(bins, separators=(",", ":")), encoding="utf-8")
