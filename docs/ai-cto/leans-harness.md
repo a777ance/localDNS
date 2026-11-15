@@ -344,3 +344,10 @@ only for wording, and none of it is on `leader`. Ranked by what blocks real use 
   docs/ai-cto/blocked.md, the evidence for and against, cited", or "every Briefing rule in CLAUDE.md marked
   [hook], with the line of decide-act.py that enforces it, or 'none'". Wrong if: the judged result is worse than
   the founder's own pass would be.
+
+Gate pass 1 (12:12 to 12:17 UTC): shot 20261115T121241-pass1shot, 23 tools, answered in 16.1 s; evaluated 23 of 23
+accurate against the full headers; 10 lacked a run command because it sits past the 800 attached characters, filled
+by the session; `tools/README.md`, `GATE.md`, `restate.sh` landed as `4779e08`; restated, and the founder's trace showed
+`4779e08`. Pass 2 builds L-84: a shot call may use read_file, search and list_files, through the PreToolUse and
+PostToolUse hooks, traced under the call. Chromium, stand-in model: 15 read_file calls, 15 PreToolUse and 15
+PostToolUse runs, Stop hook passed.

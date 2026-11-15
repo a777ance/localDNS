@@ -32,6 +32,7 @@ a time) replace the platform:
 
     python3 tools/browser/test/pingpong-shots.py     # the shot engine: flat, tree + chain, dangling ref, re-fire
     python3 tools/browser/test/pingpong-parallel.py  # 30 questions in one message; early start before repo.json
+    python3 tools/browser/test/pingpong-tools.py     # a shot reads whole files through the hooks (L-84)
 
 `test/data/` holds the exact question sets sent in runs 1 to 6 on 2026-11-15, with the expected answers.
 
