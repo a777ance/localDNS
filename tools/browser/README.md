@@ -27,3 +27,14 @@ hooks and through `hooks.js`, and compares the output exactly:
 
 Known differences: decide-act's SCRATCH rule is omitted (no scratchpad directory in a browser), the commit gate fails
 closed on `git commit` instead of running the checks, and a few regex classes (`\d`, `\b`) are the JS ones.
+
+## explorer/
+
+The source of the repo explorer, the claude.ai artifact that runs these hooks in a browser:
+`index.template.html` (the page), `browser_shim.py` (the Python runtime shim, used only where Pyodide can load),
+and `build.py`, which embeds `hooks.js` and the shim and writes the page's data from this checkout:
+
+    python3 tools/browser/explorer/build.py /tmp/localdns-explorer
+
+Publish the three files it writes (`index.html`, `repo.json`, `bin.json`) to the artifact. The artifact declares
+`sample` and `db`; the mailbox protocol is `tools/telepathy/ARTIFACT-BUS.md`.

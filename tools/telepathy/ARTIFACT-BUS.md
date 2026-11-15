@@ -25,6 +25,7 @@ One document per message, at `mail/<id>`. The fields are the ones `telepathy_mcp
 
 - `id`: `YYYYMMDDTHHMMSS-` plus 8 hex digits, UTC, also the document id. Unique, so writers never collide.
 - `ts`: milliseconds since the epoch; the page sorts on it.
+- `re` (optional): the id of the message this one answers, so a thread can be followed across peers.
 - Done: the recipient adds `"done_at": "<UTC time>"` with a merge write. Nothing is deleted.
 - Names: letters, digits, `.`, `_`, `-`, at most 64 (the same rule as `telepathy_mcp.py`).
 
@@ -49,6 +50,9 @@ Then skip the ones that carry `done_at`. Mark one done (needs the version from t
 - The database holds at most 25,000 documents. Prune old done messages long before that.
 
 ## Limits
+
+- Sender names are not verified. Any peer that can write can put any name in `from`. That is safe only
+  while the artifact stays private to its owner; share it with anyone and every `from` is a claim, not a fact.
 
 - No push: a session sees new mail only when it looks (a query at the start or end of a turn). The page
   sees it live.

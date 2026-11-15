@@ -71,3 +71,30 @@ check that would show it wrong. Ranked by value for the risk, highest first.
 - **L-20 · No fact checker.** The trace caught two factual slips (the `gate.sh` check count, the DEC-022
   byte budget), and no hook checks facts. Building one is a project, not a lean. Wrong if: slips like these
   reach a kept document.
+
+## Ten more, after the mailbox (2026-11-15, about 04:00 UTC)
+
+The founder asked for ten more, ranked, and said to follow them. L-22, L-23 and L-24 are his to run;
+L-28 is his decision.
+
+- **L-21 · Put the page's source in the repo.** The page and its build lived only in one session's workspace
+  and in the published artifact. Now `tools/browser/explorer/`. Wrong if: a fresh clone does not rebuild a
+  byte-identical page with `build.py`.
+- **L-22 · Make the next test a reply to `cloud`, not more building.** Both directions are proven for marking
+  done; no message has yet gone from the page to a session. Wrong if: the reply does not arrive.
+- **L-23 · Save the `telepathy-mail` skill, then test Cowork and local.** The two peers not yet tried. Wrong if:
+  either has no artifact tools; then it keeps `telepathy_mcp.py` on its own machine.
+- **L-24 · Push the patches before relying on the fixes.** Real sessions still run the old Stop hook. Wrong if:
+  `git am` fails on `leader`.
+- **L-25 · Thread replies with an `re` field.** One optional field holding the id answered; nothing existing
+  changes. Wrong if: nobody ever replies to a reply.
+- **L-26 · Sender names are unverified; keep the artifact private.** Recorded as a limit in
+  `tools/telepathy/ARTIFACT-BUS.md`. Wrong if: the artifact is shared with anyone.
+- **L-27 · Sessions check mail when asked, never on a timer.** The house rule is never poll; the page is live.
+  Wrong if: a message waits unread over a day while a session was working.
+- **L-28 · The parity tests become a gate by the founder's decision.** Adding them to `check-all.sh` or
+  `gate.sh` changes what blocks a commit (SQ-104). Wrong if: the port drifts before he decides.
+- **L-29 · Fix the `gate.sh` header.** It said three checks, listed four, and ran thirteen; a live answer
+  repeated the error. Comment only. Wrong if: `check-docs` objects.
+- **L-30 · No wake-up for sessions yet.** How the page's live channel admits a session is not documented, so
+  building on it would be guessing. Wrong if: a trace shows mail waiting while a session sat open.

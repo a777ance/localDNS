@@ -15,7 +15,8 @@
 # thing the next session inherits — the last point at which "did this earn its
 # tier?" can still be answered cheaply.
 #
-# Runs the repo's three static checks before any `git commit`:
+# Runs the repo's static checks before any `git commit`: the thirteen in the loop below. The four
+# that guard the briefing and its schema are described here:
 #   tools/check-docs.py        links + repo-path references resolve; the Bifrost
 #                              sweep string is byte-identical across its surfaces
 #   tools/check-provenance.py  provenance tags valid; no unstaged R-tier deploy
@@ -30,6 +31,8 @@
 #                              portfolio self-contradictory. Siblings not checked out
 #                              are skipped, so a green run here is not proof the whole
 #                              portfolio is synced — only the part this session can see.
+# The other nine (decisions, cardinal, matrix, stop-hook, registers, telepathy, statements,
+# superfleet, bridge) each describe themselves in their own file under tools/.
 #
 # FAILURE POLICY, deliberately asymmetric:
 #   * A check that FAILS blocks the commit (exit 2 — stderr goes back to the model).
