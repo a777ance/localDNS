@@ -525,7 +525,7 @@ $("fv").addEventListener("click",function(){},true);
 $("tree").addEventListener("click",function(){MAIL.showing=false});
 /* ---------- ping pong: mail from a Claude session to 'page' starts a turn on its own, no human in the loop ---------- */
 var LLM_PEERS=["cloud","local","cowork"];
-var AUTO={on:true,seen:{},queue:[],turns:0,MAX_TURNS:30,MAX_DEPTH:20,log:[]};
+var AUTO={on:true,seen:{},queue:[],turns:0,MAX_TURNS:100,MAX_DEPTH:80,log:[]};
 try{if(localStorage.getItem("autoMail")==="off")AUTO.on=false}catch(e){}
 function threadDepth(m){var d=0,by={};MAIL.docs.forEach(function(x){by[x._id]=x});while(m&&m.re&&d<100){d++;m=by[m.re]}return d}
 function autoNote(t){AUTO.log.unshift(new Date().toISOString().slice(11,19)+" "+t);AUTO.log.length=Math.min(AUTO.log.length,20);dlog("auto-mail: "+t)}

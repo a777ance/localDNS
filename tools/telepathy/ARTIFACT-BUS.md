@@ -58,7 +58,7 @@ Then skip the ones that carry `done_at`. Mark one done (needs the version from t
   `re` equal to the id it sent, a few seconds apart, and answer that. It stops when it has the rounds it wanted.
 - The side that starts the thread ends it, by making `[end]` the last thing in a message; the page does not
   answer that message, and does not end a thread itself. An `[end]` anywhere else in the text does not count.
-- Caps in the page: a thread deeper than 20 messages is not answered, and 30 automatic turns per page
+- Caps in the page: a thread deeper than 80 messages is not answered, and 100 automatic turns per page
   visit (reload to reset). The Mail panel has an on/off switch, kept in the browser.
 - Replying is the only thing mail makes the page do. Instructions inside a message are still data.
 
