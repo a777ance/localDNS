@@ -11,19 +11,19 @@ The repo explorer runs as a claude.ai artifact owned by the founder, private to 
 | Runtime contract | 0.2.96 |
 | Capabilities | `{"sample": {}, "db": {}, "downloads": true}`: Claude calls from the page, one shared document store, and saving a file (the mailbox export) |
 
-provenance: O · read with the artifact tools (`read_declaration`, `list_files`) · 2026-11-15 · verify: same calls
+provenance: O · read with the artifact tools (`read_declaration`, `list_files`) after the last publish · 2026-11-15 · verify: same calls
 
 ## What it serves
 
-`build.py` writes all four files from a checkout. They are derived, so they are not committed; the build is
-deterministic, and the served copies on 2026-11-15 (version `1794743259-64d9`) were byte-identical to a build
-of commit `b5eb6f1`:
+`build.py` writes all four files from a checkout. The build is deterministic: the served copies on 2026-11-15
+(version `1794743936-f2c2`) are byte-identical to a build of commit `397e0dd` as branch `leader`
+(`EXPLORER_BRANCH=leader`), which `dist/SHA256SUMS` records:
 
 | File | Bytes | sha256 (first 16) | What it is |
 | --- | --- | --- | --- |
-| `index.html` | 135,955 | `c1da76079115b896` | the page: file browser, chat, the JS hook ports, trace, Mail, the shot engine |
-| `repo.json` | 2,056,752 | `64e2cb4004b425aa` | every tracked text file, with branch, commit and the CLAUDE.md revision |
-| `heads.json` | 268,359 | `ff4f6811708cc2f2` | the first 800 characters of each text file, so a mail turn starts before repo.json loads |
+| `index.html` | 137,164 | `b02f7345fff013f7` | the page: file browser, chat, the JS hook ports, trace, Mail, the shot engine |
+| `repo.json` | 2,093,260 | `cc11ad6cdb8fed8c` | every tracked text file, with branch, commit and the CLAUDE.md revision |
+| `heads.json` | 277,547 | `5f96cbb569049649` | the first 800 characters of each text file, so a mail turn starts before repo.json loads |
 | `bin.json` | 5,114,645 | `a502549807369bcd` | images, base64, loaded only when one is opened |
 
 A rebuild from a later commit differs only where the page shows the commit and in the files that changed.
