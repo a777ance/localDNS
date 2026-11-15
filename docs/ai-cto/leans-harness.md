@@ -98,3 +98,52 @@ L-28 is his decision.
   repeated the error. Comment only. Wrong if: `check-docs` objects.
 - **L-30 · No wake-up for sessions yet.** How the page's live channel admits a session is not documented, so
   building on it would be guessing. Wrong if: a trace shows mail waiting while a session sat open.
+
+## Twenty for speed, after the 30-round run (2026-11-15, about 11:10 UTC)
+
+The founder asked for twenty leans to make the ping pong faster, then said to follow them. The measured run:
+29 questions in one write, answered in one page turn of 160.5 s, of which 95.4 s was tool time, nearly all of
+it the 29 replies written one after another (three database round trips each). Ranked by time saved.
+Done means built and tested in Chromium against a mock database with 400 ms per round trip.
+
+- **L-31 · Write the replies in parallel, not in a row.** Done. Wrong if: the artifact database refuses
+  concurrent writes to different documents (a FAILED line in the mail_reply result).
+- **L-32 · Mark done without reading the message back.** The page's live copy already holds it. Done. Wrong
+  if: a done mark lands on a message the live copy had not yet seen.
+- **L-33 · Send the reply and the done mark together.** Done. Under 400 ms per trip, 29 replies went from
+  34.1 s and 86 trips to 0.4 s of writing. Wrong if: a reply exists whose original is not marked done.
+- **L-34 · Attach the files a message names.** The first 1,500 characters of up to 60 repo files named in the
+  mail go into the turn's prompt, so the model reads them without a read_file step each. Done. Wrong if:
+  answers get less exact than the 29 of 29 the run with read_file scored.
+- **L-35 · Use the quick model tier for automatic turns.** The page may set `modelTier: "quick"` on its own;
+  a founder's question still gets the default. Done. Wrong if: the next real run scores below 29 of 29, or
+  the trace's model time does not fall.
+- **L-36 · Ask for the shortest briefing the Stop hook accepts.** Output tokens cost time. Done. Wrong if: the
+  Stop hook blocks an automatic turn's reply (a revision call in the trace).
+- **L-37 · One write from the session, one read back.** Already the practice since the 30-round run; it is
+  also what ends the approval taps. Wrong if: a run needs the session to react to each answer.
+- **L-38 · The session does not poll.** It waits for the founder's word, then reads once. Wrong if: the
+  founder would rather watch rounds arrive than tap once at the end.
+- **L-39 · Keep automatic turns small in the chat history.** Only the first line of the prompt is kept, so
+  later turns do not carry 29 attached files. Done. Wrong if: a later turn needs those files and re-reads them.
+- **L-40 · Wait 1.5 s before answering a burst.** Mail arriving within that window lands in one turn. Done.
+  Wrong if: one write's documents arrive more than 1.5 s apart and split into two turns.
+- **L-41 · Show each automatic turn's time in Mail.** The log line gives the turn's seconds and the reply
+  write's milliseconds, so the next run reads its speed without a trace. Done. Wrong if: nobody looks.
+- **L-42 · Do not use `cache`.** It replays an identical call for 5 minutes; mail is never identical.
+  Wrong if: the platform adds prompt caching under that name.
+- **L-43 · Keep the full harness on automatic turns.** The preamble is about 20,000 characters; cutting it
+  would buy little and lose the house rules. Wrong if: the trace shows first output arriving after more than
+  half the model time.
+- **L-44 · Leave the hooks alone.** All hooks together took 30 ms of 160 s. Wrong if: they pass 1 % of a turn.
+- **L-45 · Leave tracing on.** Its steps cost microseconds. Wrong if: trace export gets slow on a phone.
+- **L-46 · One reply call, not one per message.** The prompt asks for a single mail_reply with every entry,
+  so the model makes one tool step for the writes. Done (prompt). Wrong if: the trace shows several.
+- **L-47 · Raise the batch above 40 only when a run needs it.** Forty fits one turn's tool input easily.
+  Wrong if: a run sends more than 40 at once and waits for a second turn.
+- **L-48 · Questions that name files answer fastest.** A session that wants speed names the path; the
+  attachment rule does the rest. Wrong if: real questions rarely name paths.
+- **L-49 · Next frontier: start the turn while the page loads.** The run lost about two minutes to the
+  founder reloading. Not built: a page cannot load itself. Wrong if: the page is already open when mail comes.
+- **L-50 · Measure the next real run before more building.** Mock latency is a guess at the real database.
+  Wrong if: the real run's reply write time is already under a second.

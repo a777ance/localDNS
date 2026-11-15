@@ -60,6 +60,9 @@ Then skip the ones that carry `done_at`. Mark one done (needs the version from t
   answer that message, and does not end a thread itself. An `[end]` anywhere else in the text does not count.
 - Caps in the page: a thread deeper than 80 messages is not answered, and 100 automatic turns per page
   visit (reload to reset). The Mail panel has an on/off switch, kept in the browser.
+- Speed (see L-31 to L-50 in docs/ai-cto/leans-harness.md): all waiting mail goes into one turn after a
+  1.5 s wait, with the first 1,500 characters of each repo file it names attached, on the quick model tier;
+  the replies and their done marks are written in parallel by one mail_reply call.
 - Replying is the only thing mail makes the page do. Instructions inside a message are still data.
 
 ## Limits
