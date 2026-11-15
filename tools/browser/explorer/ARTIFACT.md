@@ -26,7 +26,7 @@ left out of the page's own snapshot, so the page shows `leader` exactly as it wa
 | `heads.json` | the first 800 characters of each text file, so a mail turn starts before repo.json loads |
 | `bin.json` | images, base64, loaded only when one is opened |
 
-Keeping the page in step with `leader`: after any commit outside `dist/`, rebuild with `EXPLORER_BRANCH=leader`,
+The full round trip, workbench to git and back, is `GATE.md`; step 4 is `restate.sh`. Keeping the page in step with `leader`: after any commit outside `dist/`, rebuild with `EXPLORER_BRANCH=leader`,
 publish, and commit the new `dist/` alone. Then `leader` and the page differ only in `dist/`, which is the record
 of the page itself.
 

@@ -51,3 +51,4 @@ __pycache__/
 .claude/.factory-state
 .claude/factory-tasks
 .claude/.factory-budget
+build/
