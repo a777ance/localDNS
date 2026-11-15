@@ -198,5 +198,10 @@ about 2.1 s. Where it comes from, ranked by seconds saved. Not built yet.
   milliseconds with no model at all. That would measure the pipe, not Claude, so the 9x target counts model-
   answered runs only. Wrong if: the founder wants the pipe's speed, which is a separate, easy number.
 
+Built (11:30 UTC): L-53 to L-60 in the page, L-61 by reading the documents' timestamps, L-62 by keeping run 4
+model-answered. Chromium, with a stand-in model that spends 300 ms per answer line and 140 ms per database
+trip: 30 questions in one document answered in 2.2 s, 30 of 30 exact, 6 calls at once, 6 bundles. The run 3
+design under the same stand-in is about 15 s. Run 4 on the real model decides it.
+
 Projection: about 3 s of model time (L-53, L-56, L-57, L-58), 0.15 s writing (L-54), no burst wait (L-55):
 about 3.2 s end to end, 6x. The last stretch to 9x rests on L-53 running six calls truly in parallel.

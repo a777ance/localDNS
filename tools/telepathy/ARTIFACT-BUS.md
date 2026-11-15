@@ -64,6 +64,14 @@ Then skip the ones that carry `done_at`. Mark one done (needs the version from t
   1.5 s wait, with the first 1,500 characters of each repo file it names attached, on the quick model tier;
   the replies are written in parallel by one mail_reply call, and that call ends the turn: the page writes
   the briefing itself, and the Stop hooks still check it.
+- Many questions in one message (L-55): add `asks: [{n, body}]`; the page answers them all with no burst wait.
+- Replies in bundles (L-54): the page writes one document per model call, with `replies: [{re, n, body}]`
+  (`n` for an `asks` question; `re` is the message answered). A session reads them with
+  `db_query where {"re": "<id it sent>"}` and flattens `replies`. A message with `asks` is handled once every
+  question has a reply; a plain message once any reply or bundle entry points at it.
+- How the page answers (L-53, L-56 to L-60): the questions split into calls of five, all sent at once on the quick
+  tier, each with a short prompt (no house-style rules, since the page writes the briefing) and the first 800
+  characters of the files they name; each call returns 'N: answer' lines, and its bundle is saved as it lands.
 - A reply marks its message handled. A message counts as done when it has `done_at`, or when a message
   with `re` set to its id comes from its recipient. Sessions use the same rule: no separate done write is needed
   after replying. `done_at` stays for mail that is handled without a reply.
