@@ -1530,6 +1530,10 @@ function shotTools(s1,cost,harnessP){
    attached costs 1; one that will need a read (no complete header, or a chained input) costs READ_WEIGHT (12, from pass 4's run record).
    Pass 4's run record: the call holding the one read took 16.7 s, the other 8.9 s. Heaviest first, into the
    lightest call; each call keeps its questions in their original order. */
+/* A shot may say model (only because the founder named one: the platform allows a model by name) and concurrency
+   (calls at once, 1 to 8; the platform's measured limit was 2, and a shot may test more). */
+function shotModelOpts(m){var o={modelTier:"quick"};if(m&&typeof m.model==="string"&&/^claude-[a-z0-9.-]+$/.test(m.model))o.model=m.model;return o}
+function shotWidth(m){var c=m&&+m.concurrency;return c>=1&&c<=8?Math.floor(c):CONCURRENT}
 var READ_WEIGHT=12; // measured: pass 4, call 1 answered 12 in 8.9 s (0.74 s each); call 2, 11 plus one read, 16.7 s: a read is about 12 answers
 function unitWeight(u){var re=/[A-Za-z0-9_.\/-]+\.(?:md|py|sh|json|js|html|txt|ya?ml|toml|conf)\b/g,ps=(String(u.text).match(re)||[]).map(function(p){return p.replace(/^\.\//,"")});
   if(u.from)return READ_WEIGHT;if(!ps.length)return 1;
@@ -1539,29 +1543,29 @@ function splitByWork(units,k){var bins=[];for(var i=0;i<k;i++)bins.push({w:0,u:[
     var b=bins.reduce(function(m,c){return c.w<m.w?c:m});b.w+=x.w;b.u.push(x)});
   return bins.filter(function(b){return b.u.length}).map(function(b){return b.u.sort(function(a,c){return a.i-c.i}).map(function(x){return x.u})});
 }
-async function callModel(prompt,label,turn,cost,harnessP){var s1=span("model",label,turn,{messages:[{role:"user",content:prompt}],options:{modelTier:"quick",tools:SHOT_TOOLS}}),r=null,err=null;
-  for(var t=0;t<2&&!r;t++){try{r=await sample(prompt,{modelTier:"quick",tools:shotTools(s1,cost,harnessP)})}catch(e){err=e;s1.meta["try"+(t+1)]=(e&&e.code)||String(e);if(t===0)await new Promise(function(z){setTimeout(z,1500)})}}
+async function callModel(prompt,label,turn,cost,harnessP,m){var o=shotModelOpts(m),s1=span("model",label,turn,{messages:[{role:"user",content:prompt}],options:Object.assign({tools:SHOT_TOOLS},o)}),r=null,err=null;
+  for(var t=0;t<2&&!r;t++){try{r=await sample(prompt,Object.assign({tools:shotTools(s1,cost,harnessP)},o))}catch(e){err=e;s1.meta["try"+(t+1)]=(e&&e.code)||String(e);if(t===0)await new Promise(function(z){setTimeout(z,1500)})}}
   cost.calls++;cost.chars_in+=prompt.length;
   if(!r){endSpan(s1,undefined,"error",err);throw new Error((err&&err.code)||String(err))}
   ["modelApplied","model","usage"].forEach(function(x){if(r[x]!==undefined)s1.meta[x]=r[x]});if(r.modelApplied)cost.tier=r.modelApplied;cost.chars_out+=String(r.text||"").length;endSpan(s1,r.text);return r.text}
 async function runShot(m,turn,bubble,harnessP){
   var t0=performance.now(),tree=shotTree(m),ans=existingAnswers(m._id,m.to),skipped=Object.keys(ans).length;
-  var cost={calls:0,tools:0,chars_in:0,chars_out:0,tier:"quick (asked)"},failed=[],jury={asked:0,fixed:0},wave=0,firstMs=null,deadline=m.deadline_ms||0,why=null;
+  var cost={calls:0,tools:0,chars_in:0,chars_out:0,tier:(m.model?m.model+" (asked)":"quick (asked)")},failed=[],jury={asked:0,fixed:0},wave=0,firstMs=null,deadline=m.deadline_ms||0,why=null;
   var commit=((DATA&&DATA.commit)||(HEADS&&HEADS.commit)||"").split(" ")[0]||null; // heads.json carries it, so a shot that starts before repo.json still names its commit
   while(true){
     var open=tree.leaves.filter(function(l){return ans[l.path]==null});if(!open.length)break;
     if(deadline&&performance.now()-t0>deadline){why="deadline ("+deadline+" ms) passed with "+open.length+" unanswered";break}
     var ready=open.filter(function(l){return !l.from||ans[l.from]!=null||composed(l.from,ans,tree)!=null});
     if(!ready.length){why=open.length+" question(s) wait on answers that cannot arrive ("+open.map(function(l){return l.path+" from "+l.from}).join(", ")+")";break}
-    wave++;var calls=splitByWork(ready,Math.min(CONCURRENT,ready.length));
+    wave++;var calls=splitByWork(ready,Math.min(shotWidth(m),ready.length));
     await Promise.all(calls.map(async function(units,c){
       var withIn=units.map(function(u){if(!u.from)return u;var src=ans[u.from]?ans[u.from].body:composed(u.from,ans,tree);return {path:u.path,from:u.from,text:u.text+" (input, answer "+u.from+": "+src+")"}});
-      var text;try{text=await callModel(shardPrompt(withIn),"shot "+m._id.slice(-8)+" · wave "+wave+" · call "+(c+1)+"/"+calls.length,turn,cost,harnessP)}catch(e){failed.push("wave "+wave+" call "+(c+1)+": "+e.message);return}
+      var text;try{text=await callModel(shardPrompt(withIn),"shot "+m._id.slice(-8)+" · wave "+wave+" · call "+(c+1)+"/"+calls.length,turn,cost,harnessP,m)}catch(e){failed.push("wave "+wave+" call "+(c+1)+": "+e.message);return}
       var got=parseLines(text,units.length),entries=[],flagged=[];
       units.forEach(function(u,i){var a=got[i+1];if(a==null){failed.push(u.path+": no answer line");return}var e={re:m._id,body:a};if(u.path!=="")e.n=/^\d+$/.test(u.path)?+u.path:u.path;
         var fm=formatMiss(withIn[i].text,a);if(fm.length){e.flag="format: expected "+fm.map(function(x){return "'"+x+"' then a space"}).join(", ");flagged.push({u:withIn[i],e:e})}entries.push(e)});
       // L-71: a second juror for flagged answers only
-      if(flagged.length){jury.asked+=flagged.length;try{var jt=await callModel(juryPrompt(flagged.map(function(f){return f.u}),flagged.map(function(f){return f.e})),"jury · wave "+wave+" · call "+(c+1),turn,cost,harnessP),jg=parseLines(jt,flagged.length);
+      if(flagged.length){jury.asked+=flagged.length;try{var jt=await callModel(juryPrompt(flagged.map(function(f){return f.u}),flagged.map(function(f){return f.e})),"jury · wave "+wave+" · call "+(c+1),turn,cost,harnessP,m),jg=parseLines(jt,flagged.length);
         flagged.forEach(function(f,k){var a2=jg[k+1];if(a2!=null&&!formatMiss(f.u.text,a2).length){f.e.jury={first:f.e.body,first_flag:f.e.flag};f.e.body=a2;delete f.e.flag;jury.fixed++}else if(a2!=null)f.e.jury={second:a2}})}catch(e){failed.push("jury: "+e.message)}}
       try{await writeBundle(m,m._id+"-w"+wave+"c"+(c+1),entries,{commit:commit,tier:cost.tier,wave:wave,call:c+1});entries.forEach(function(e){ans[e.n==null?"":String(e.n)]=e});if(firstMs===null)firstMs=Math.round(performance.now()-t0)}
       catch(e){failed.push("wave "+wave+" call "+(c+1)+" write: "+(e.message||e))}
@@ -1577,7 +1581,7 @@ async function runShot(m,turn,bubble,harnessP){
   var result={id:m._id+"-result",kind:"shot-result",from:"page",to:m.from,re:m._id,subject:"result: "+(m.subject||""),state:state,reason:why,
     body:state+": "+answered+" of "+leaves+" answered"+(flags?", "+flags+" flagged":"")+(why?" ("+why+")":""),
     counts:{leaves:leaves,answered:answered,flagged:flags,reused:skipped,waves:wave,jury_asked:jury.asked,jury_fixed:jury.fixed},parents:parents,
-    prov:{commit:commit,tier:cost.tier,calls:cost.calls,tool_calls:cost.tools,chars_in:cost.chars_in,chars_out:cost.chars_out,ms:ms,first_bundle_ms:firstMs},
+    prov:{commit:commit,tier:cost.tier,width:shotWidth(m),calls:cost.calls,tool_calls:cost.tools,chars_in:cost.chars_in,chars_out:cost.chars_out,ms:ms,first_bundle_ms:firstMs},
     sent_at:now.toISOString().replace(/\.\d+Z$/,"Z"),ts:now.getTime(),via:"artifact-page"};
   await MAIL.db.doc("mail/"+result.id).set(result);
   return result;
