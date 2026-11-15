@@ -1,0 +1,100 @@
+{
+ "pass": 3,
+ "shot": "20261115T123355-pass3shot",
+ "captured_by": "the page's run record runs/20261115T123355-pass3shot-run, read by the session with db_get (condensed: hook spans folded into the read list)",
+ "page_commit": "a271ba4",
+ "user_agent": "Android 16, moto g stylus 2026, Claude app 1.261104.19",
+ "result": {
+  "state": "answered",
+  "counts": {
+   "leaves": 23,
+   "answered": 23,
+   "flagged": 0,
+   "waves": 1
+  },
+  "prov": {
+   "calls": 2,
+   "tool_calls": 12,
+   "chars_in": 34436,
+   "chars_out": 5023,
+   "ms": 37874,
+   "first_bundle_ms": 27818,
+   "tier": "quick (asked)",
+   "commit": "a271ba4"
+  }
+ },
+ "summary_line": "38.2 s = model 37.1 s (12 tool calls, 42 ms in tools) + Stop 9 ms + page 1124 ms · no rule fired",
+ "calls": [
+  {
+   "call": "1/2",
+   "ms": 37107,
+   "reads": [
+    "tools/check-bridge.py",
+    "tools/check-cardinal.py",
+    "tools/check-decisions.py",
+    "tools/check-matrix.py",
+    "tools/check-registers.py",
+    "tools/check-statements.py",
+    "tools/check-stop-hook.py",
+    "tools/check-matrix.py@10000",
+    "tools/check-statements.py@10000",
+    "tools/check-stop-hook.py@10000"
+   ],
+   "first_read_at": "12:40:10.753"
+  },
+  {
+   "call": "2/2",
+   "ms": 24039,
+   "reads": [
+    "tools/migrate.sh",
+    "tools/check-telepathy.py"
+   ],
+   "first_read_at": "12:40:14.535"
+  }
+ ],
+ "hooks": {
+  "PreToolUse": 12,
+  "PostToolUse": 12,
+  "Stop": 2,
+  "rules_fired": []
+ },
+ "debug": [
+  "12:39:58  loading repo.json",
+  "12:39:58  mail: subscribed to mail/",
+  "12:39:59  auto-mail: queued 20261115T123355-pass3shot from cloud (thread depth 0)",
+  "12:40:00  heads.json loaded in 1908 ms (344 files)",
+  "12:40:01  Python: not available in this view (the page's security policy blocks the runtime download); run_check stays hidden",
+  "12:40:09  repo.json loaded in 11151 ms (353 files)",
+  "12:40:09  hooks runtime: JavaScript ports (344 repo files in memory)",
+  "12:40:09  Python runtime download blocked by this page's policy: run_check is hidden",
+  "12:40:09  SessionStart(startup) → refeed.sh (JS port) ran exit 0",
+  "12:40:09  harness on; preamble 18114 chars; SessionStart hooks: 1",
+  "12:40:10  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "12:40:10  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "12:40:10  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "12:40:10  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "12:40:10  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "12:40:10  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "12:40:10  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "12:40:10  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "12:40:10  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "12:40:10  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "12:40:10  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "12:40:10  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "12:40:10  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "12:40:10  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "12:40:14  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "12:40:14  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "12:40:14  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "12:40:14  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "12:40:17  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "12:40:17  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "12:40:17  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "12:40:17  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "12:40:17  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "12:40:17  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "12:40:38  Stop → momentum.sh (JS port) ran exit 0",
+  "12:40:38  Stop → decide-act.py (JS port) ran exit 0",
+  "12:40:38  turn summary: 38.2 s = model 37.1 s (12 tool calls, 42 ms in tools) + Stop 9 ms + page 1124 ms · no rule fired"
+ ]
+}

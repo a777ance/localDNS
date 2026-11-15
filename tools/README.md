@@ -1,4 +1,4 @@
-<!-- provenance: D · drafted by the explorer artifact's shot engine (gate passes 1 and 2, shots 20261115T121241-pass1shot and 20261115T121949-pass2shot) from each file's header, then checked line by line against the full header, CLAUDE.md §C and a test run by a cloud session · 2026-11-15 -->
+<!-- provenance: D · drafted by the explorer artifact's shot engine (gate passes 1 to 3, shots 20261115T121241-pass1shot, 20261115T121949-pass2shot, 20261115T123355-pass3shot) from each file's header, then checked line by line against the full header, CLAUDE.md §C and a test run by a cloud session · 2026-11-15 -->
 # tools/
 
 What each tool here does and how to run it, one line each, taken from the tool's own header. The header is the
@@ -11,7 +11,7 @@ Where a tool deploys to or reads the live t630, it says so.
 | `sync-briefings.py` | Renders the canonical Bifrost briefing block into every A777ance repo's `CLAUDE.md`. | `python3 tools/sync-briefings.py` (report drift), `--write` (fix it) |
 | `racetrack_plan.py` | Plans a hybrid course over a fixed roadmap under a token budget; no model is called. | `python3 tools/racetrack_plan.py --budget 500000 --lanes 8` |
 | `racetrack.py` | Scores one racetrack mode folder by checking its citations and counts. | `python3 tools/racetrack.py MODE` (or `--selftest`) |
-| `migrate.sh` | The one-time 1.x to 2.0 folder migration, already applied; it has no header, only a banner, and must run from the repo root. | not to be run again |
+| `migrate.sh` | The one-time 1.x to 2.0 folder migration, already applied: backs up the repo, moves files to the 2.0 layout, rewrites path references and prunes the legacy folders. It has no header, only a banner, and must run from the repo root. | not to be run again |
 | `matrix.py` | The Matrix's own tooling: one entry point, called as `cardinal.method`. | `python3 tools/matrix.py list` |
 | `laptop-sync.sh` | Keeps a checkout of `leader` current by fast-forward-only pulls, on a systemd user timer. | `bash tools/laptop-sync.sh run` (or `install`, `status`, `uninstall`) |
 | `factory.sh` | The bounded software-factory loop over the racetrack queue; hands off one milestone at a time. | `bash tools/factory.sh`; after an agent: `bash tools/factory.sh --finish ID TOKENS` |
