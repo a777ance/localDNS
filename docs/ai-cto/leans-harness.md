@@ -216,3 +216,54 @@ Built after run 4 (11:30 UTC): two calls, not six (one wave); a stricter wording
 first 800 characters of every text file, 267 KB) so a mail turn starts without waiting for repo.json (2 MB).
 Chromium, stand-in model limited to two calls at a time, repo.json held back 2.5 s: first call 0.5 s after
 load, 5.2 s end to end, the two planted format slips flagged and no others.
+
+## Twenty for a one-shot of one-shots (2026-11-15, about 11:40 UTC)
+
+The founder named it: the page is a one-shot engine (systemd's `Type=oneshot`: start, finish, exit; nothing idles).
+He asked for twenty leans to make it a one-shot of one-shots: every unit of work is itself a one-shot, units
+compose, and one fire runs the whole tree to completion. Ranked by how much each makes that true. Not built yet.
+
+- **L-63 · One envelope for every shot.** A shot is a document with `asks` and an id; its answer is a bundle with
+  `replies`. Today's run 5 document already is one. Everything below composes because the shape never changes.
+  Wrong if: a real use needs a shape the envelope cannot carry.
+- **L-64 · A shot ends in exactly one state.** `answered`, `partial` or `failed`, written once with the reason;
+  never a half-state a reader has to guess about. Wrong if: a reader still has to count bundles to know.
+- **L-65 · An ask may itself be a shot.** An ask with its own `asks` becomes a child shot; the parent ends when its
+  children end. This is the "of one-shots". Wrong if: no real question ever needs to split.
+- **L-66 · One fire runs the whole tree.** The page walks the tree in waves as wide as the platform allows (two,
+  measured), deepest first, inside one load. Wrong if: a tree outgrows one load; then it resumes on the next (L-69).
+- **L-67 · Chains by reference.** An ask may say `from: <shot>.replies[n]`; it runs once that answer exists, with
+  it attached. Pipelines in one fire. Wrong if: every real chain needs a human look in the middle.
+- **L-68 · The manifest carries everything.** Files named, wording, tier, deadline: the executor needs no context,
+  as `sample` itself is memoryless. Wrong if: answers need the page's chat history.
+- **L-69 · Re-firing is safe.** Bundle ids come from the shot id and the call number, so a reload after a crash
+  overwrites, never duplicates, and skips what is done. Wrong if: two pages fire the same shot at once.
+- **L-70 · A deadline per shot.** Past it, the shot ends `failed: deadline`, so nothing hangs. Wrong if: deadlines
+  fire on shots that would have finished.
+- **L-71 · The jury as a child shot.** A flagged answer spawns a second-juror shot for that answer only; agreement
+  ends it, disagreement goes to a third. Costs nothing on a clean run (your `jury/` README's rule). Wrong if: the
+  second juror repeats the first one's slip.
+- **L-72 · Deterministic checks are shots with no model.** The format flag, "is this line in the file", counts:
+  page code answers them in milliseconds and stands in the tree like any other shot. Wrong if: their verdicts
+  disagree with a model checker's on real answers.
+- **L-73 · Memo by content.** Same ask, same file heads, same tier: reuse the stored answer, zero model time. Only
+  for asks marked deterministic. Wrong if: a reused answer was wrong and gets copied forward.
+- **L-74 · Named shot templates.** "titles", "summarise", "check claim": the sender writes one line and the
+  template supplies the wording and the check. Wrong if: templates multiply faster than they are used.
+- **L-75 · Provenance on every bundle.** Model tier applied, the repo commit the files came from, timings, calls.
+  A shot is its own evidence. Wrong if: nobody ever reads it.
+- **L-76 · Trace per shot.** The trace export groups spans by shot id, so one tap gives the whole tree's timing.
+  Wrong if: the tree is too big to read on a phone.
+- **L-77 · Cost per shot.** Calls, characters in and out, recorded with the provenance. Wrong if: the platform's own
+  counts disagree.
+- **L-78 · Any peer can execute.** A session (cloud, local, cowork) runs a shot addressed to it in its own turn,
+  same envelope, same bundle. The page is one executor, not the only one. Wrong if: sessions cannot meet the
+  latency the page does.
+- **L-79 · A shot runner for senders.** The `telepathy-mail` skill gains two verbs: fire (one write) and collect
+  (one read, flattened). Wrong if: senders still hand-write documents.
+- **L-80 · One human act, named.** Opening the page is the only tap; everything else fires from it. Say so on
+  the page. Wrong if: a platform wake-up appears, then L-49 is solved and this goes.
+- **L-81 · Measure shots, not turns.** End to end per shot from document timestamps, and shots per minute.
+  Wrong if: turn time already tells the same story.
+- **L-82 · Keep it honest under composition.** A parent is `answered` only if every child is; a flagged child
+  makes the parent `partial`, never hidden. Wrong if: a parent ever reads `answered` with a flag underneath.
