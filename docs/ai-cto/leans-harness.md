@@ -289,7 +289,7 @@ only for wording, and none of it is on `leader`. Ranked by what blocks real use 
 
 ### What blocks real use
 
-- **L-83 · Land it on `leader` first.** Eleven local commits (patches 0001 to 0011) hold the hooks fix, the page,
+- **L-83 · Land it on `leader` first.** Eighteen local commits on top of 71e6ccc hold the hooks fix, the page,
   the protocol and every lean. A real shot must run on code the repo has. Wrong if: `git am` fails on `leader`.
 - **L-84 · Read the whole repo, not 800 characters.** Each call gets the tools `read_file` and `search` (the same
   ones the chat Claude has, through the same PreToolUse hooks), plus the heads as a head start. Wrong if:
