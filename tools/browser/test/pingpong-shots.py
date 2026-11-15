@@ -1,6 +1,9 @@
-import asyncio,json
+import asyncio, sys, pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from _serve import served, CHROME, HERE
+import json
 from playwright.async_api import async_playwright
-mock=open('/home/claude/build/mockdb.js').read()
+mock=open(HERE/'mockdb.js').read()
 slow="""(function(){var d=window.__mockdb.doc;window.__rt=0;window.__mockdb.doc=function(p){var r=d(p);['get','set','update'].forEach(function(k){var f=r[k];r[k]=async function(x){window.__rt++;await new Promise(function(z){setTimeout(z,140)});return f.call(r,x)}});return r}})();"""
 # stand-in: two calls at a time; 300 ms per answer line; slips the separator on every 'Round 3' question the first time;
 # the jury prompt gets it right; 'fail me' makes the call reject once per page load
@@ -20,16 +23,16 @@ async def page(p):
     ctx=await p.new_context(viewport={"width":412,"height":900});await ctx.add_init_script(mock+slow+SAMPLE)
     pg=await ctx.new_page();errs=[];pg.on("pageerror",lambda e:errs.append(str(e)))
     await pg.route("**/*",lambda r: r.continue_() if r.request.url.startswith("http://127.0.0.1") else r.abort())
-    await pg.goto("http://127.0.0.1:8766/index.html");await pg.wait_for_timeout(300);return ctx,pg,errs
+    await pg.goto(BASE+"/index.html");await pg.wait_for_timeout(300);return ctx,pg,errs
 async def fire(pg,doc):
     await pg.evaluate("d=>window.__mockdb.doc('mail/'+d.id).set(d)",doc)
     await pg.wait_for_function("id=>Object.values(window.__store).some(function(v){return v.kind==='shot-result'&&v.re===id})",arg=doc["id"],timeout=60000)
     await pg.wait_for_function("document.getElementById('go').textContent==='Ask'",timeout=30000)
     st=await pg.evaluate("window.__store");return st,[v for v in st.values() if v.get("kind")=="shot-result" and v["re"]==doc["id"]][0]
 async def main():
-    q=json.load(open('/home/claude/build/pp30e.json'))
+    q=json.load(open(HERE/'data'/'run5.json'))
     async with async_playwright() as p:
-        b=await p.chromium.launch(executable_path="/usr/bin/google-chrome",args=["--no-sandbox"])
+        b=await p.chromium.launch(executable_path=CHROME,args=["--no-sandbox"])
         ctx,pg,errs=await page(b)
         # 1. flat shot like run 5, with one planted slip that the jury must fix
         t0=await pg.evaluate("performance.now()");st,r=await fire(pg,{"id":"S1","from":"cloud","to":"page","subject":"flat","body":"x","asks":asks_for(q,1,30),"sent_at":"x","ts":1})
@@ -59,4 +62,5 @@ async def main():
         print("4b after reload: state %s | reused %d | model calls this load %d | duplicate bundles: %s"%(r["state"],r["counts"]["reused"],await pg.evaluate("window.__calls"),len([k for k in st if k.startswith('mail/S4-w1c')])!=len(set(k for k in st if k.startswith('mail/S4-w1c')))))
         print("js errors:", (errs+errs2) or "none")
         await b.close()
-asyncio.run(main())
+with served() as BASE:
+    asyncio.run(main())

@@ -1,6 +1,9 @@
-import asyncio,sys,json
+import asyncio, sys, pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from _serve import served, CHROME, HERE
+import json
 from playwright.async_api import async_playwright
-mock=open('/home/claude/build/mockdb.js').read()
+mock=open(HERE/'mockdb.js').read()
 LAT=140
 slow="""(function(){var d=window.__mockdb.doc;window.__rt=0;window.__mockdb.doc=function(p){var r=d(p);['get','set','update'].forEach(function(k){var f=r[k];r[k]=async function(x){window.__rt++;await new Promise(function(z){setTimeout(z,%d)});return f.call(r,x)}});return r}})();"""%LAT
 # stand-in model: 400 ms to start, 300 ms per answer line it writes (output time dominates), answers from the attached text only
@@ -11,16 +14,16 @@ SAMPLE=r"""window.__calls=0;window.__inflight=0;window.__maxin=0;window.__slots=
    var lines=qs.map(function(m){var sec=p.split("=== "+m[3]+" (first")[1]||"";var h=sec.split("\n").filter(function(l){return l.indexOf("# ")===0})[0]||"?";return m[1]+": pong "+m[2]+(m[1]==="3"?"; ":" ")+h});
    window.__inflight--;window.__slots++;var nx=window.__waitq.shift();if(nx)nx();return {text:lines.join("\n"),truncated:false};}; f.json=null; return f;}};"""
 async def main():
-    q=json.load(open('/home/claude/build/pp30c.json'))
+    q=json.load(open(HERE/'data'/'run3.json'))
     async with async_playwright() as p:
-        b=await p.chromium.launch(executable_path="/usr/bin/google-chrome",args=["--no-sandbox"])
+        b=await p.chromium.launch(executable_path=CHROME,args=["--no-sandbox"])
         ctx=await b.new_context(viewport={"width":412,"height":900}); await ctx.add_init_script(mock+slow+SAMPLE)
         pg=await ctx.new_page(); errs=[]; pg.on("pageerror",lambda e: errs.append(str(e)))
         async def rt(r):
             if "repo.json" in r.request.url: await asyncio.sleep(2.5)
             await (r.continue_() if r.request.url.startswith("http://127.0.0.1") else r.abort())
         await pg.route("**/*",rt)
-        await pg.goto("http://127.0.0.1:8766/index.html"); await pg.wait_for_timeout(300)
+        await pg.goto(BASE+"/index.html"); await pg.wait_for_timeout(300)
         asks=[{"n":i+1,"body":"Round %d: %s (reply 'pong %d' and that file's first line starting with '# ', copied exactly)"%(i+1,x["file"],i+1)} for i,x in enumerate(q)]
         t0=await pg.evaluate("performance.now()")
         await pg.evaluate("a=>window.__mockdb.doc('mail/AQ').set({id:'AQ',from:'cloud',to:'page',subject:'run 4',body:'30 questions in asks',asks:a,sent_at:'x',ts:1})",asks)
@@ -41,4 +44,5 @@ async def main():
         r=[v for v in (await pg.evaluate("window.__store")).values() if v.get("re")=="P1"][0]
         print("single message from local answered:", r["to"]=="local", "|", r["replies"][0]["body"][:40])
         print("js errors:", errs or "none"); await b.close()
-asyncio.run(main())
+with served() as BASE:
+    asyncio.run(main())

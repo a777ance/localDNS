@@ -25,6 +25,16 @@ hooks and through `hooks.js`, and compares the output exactly:
     node tools/browser/test/fuzz-stop.js      # 400 random replies through decide-act
     node tools/browser/test/fuzz-cardinal.js  # 300 random shell commands through cardinal
 
+The page itself is tested in headless Chromium with Playwright (`pip install playwright`; set `CHROME` to a Chrome
+binary or let Playwright use its own). Each test builds the page into a temp folder and serves it locally; a mock
+database (`test/mockdb.js`) and a scripted stand-in for Claude (which honours the platform's limit of two calls at
+a time) replace the platform:
+
+    python3 tools/browser/test/pingpong-shots.py     # the shot engine: flat, tree + chain, dangling ref, re-fire
+    python3 tools/browser/test/pingpong-parallel.py  # 30 questions in one message; early start before repo.json
+
+`test/data/` holds the exact question sets sent in runs 1 to 6 on 2026-11-15, with the expected answers.
+
 Known differences: decide-act's SCRATCH rule is omitted (no scratchpad directory in a browser), the commit gate fails
 closed on `git commit` instead of running the checks, and a few regex classes (`\d`, `\b`) are the JS ones.
 
@@ -36,5 +46,6 @@ and `build.py`, which embeds `hooks.js` and the shim and writes the page's data 
 
     python3 tools/browser/explorer/build.py /tmp/localdns-explorer
 
-Publish the three files it writes (`index.html`, `repo.json`, `bin.json`) to the artifact. The artifact declares
-`sample` and `db`; the mailbox protocol is `tools/telepathy/ARTIFACT-BUS.md`.
+Publish the four files it writes (`index.html`, `repo.json`, `heads.json`, `bin.json`) to the artifact. The
+artifact declares `sample` and `db`; the mailbox protocol is `tools/telepathy/ARTIFACT-BUS.md`. Where the artifact
+lives, what it serves, and how to republish it: `explorer/ARTIFACT.md`.

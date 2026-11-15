@@ -20,6 +20,43 @@ Each entry carries a cost line, filled from what the session can read, never est
 
 ---
 
+## 2026-11-15 · The repo in an artifact: hooks in the browser, a mailbox between Claudes, a shot engine
+
+**Set out to do:** clone `leader` into a claude.ai artifact with Claude inside, run the repo's harness
+(OODA-CLAUDE) in the page, trace it, and carry messages between Claude sessions through the artifact.
+Founder on a phone throughout. A cloud session (claude.ai), not Claude Code: no repo hooks ran on this
+session itself, so the rules were carried in its prompt.
+
+**Shipped, in order** (19 commits on `71e6ccc`, pushed together at the end):
+
+| What | Commit |
+| ---- | ------ |
+| DEBT-014: the Stop hook's ACT rule could not see letter-led Decide and Act steps; fixed, 7 new cases | `a446295` |
+| The browser harness: JS ports of every hook, parity and fuzz tests against the originals | `a446295` |
+| L DECS rule; the artifact mailbox protocol (`tools/telepathy/ARTIFACT-BUS.md`); leans L-01 to L-20 | `ce3ed57` |
+| The page's source in the repo (`tools/browser/explorer/`), reply threading, leans L-21 to L-30 | `fb8c94d` |
+| Ping pong: the page answers Claude sessions on its own; caps; `[end]` | `1c10fec` to `6cdec04` |
+| Speed, 160.5 s to 7.7 s for 18 to 30 questions: batching, parallel writes, attached files, quick tier, reply bundles, two calls (the platform's measured limit), heads.json; leans L-31 to L-62 | `0800368` to `c0b65e7` |
+| The shot engine: nesting, chains, jury on flagged answers, safe re-fire, one result per shot; leans L-63 to L-82 | `1a6f599`, `b5eb6f1` |
+| End-to-end leans L-83 to L-100; this capture (tests self-serving, question sets, ARTIFACT.md, the `telepathy-mail` skill, mailbox export) | `024a6cb` to the commit that added this entry |
+
+**Measured on the founder's phone** (all in `docs/ai-cto/leans-harness.md`): run 3, 30 answers in one turn of
+17.3 s; run 4, 8.2 s, but format slips in 20 of 30 under a strict check; run 5, 30 of 30 strict; run 6, a tree of
+18 with a chain, answered, 7.7 s, 3 model calls.
+
+**Got wrong:** a first `[end]` check that read the word anywhere, so ping 2 was ignored; a format check that read
+the apostrophe in "file's" as a quote and flagged all 30 (caught in Chromium before publishing); six parallel calls
+built before measuring that the platform runs two; calling run 5 unfired when the founder had not yet reloaded.
+
+**Learned:** count round trips, not tokens; the platform runs two `sample` calls at a time and saves one database
+document about every 140 ms however they are sent; nothing wakes a page or a session, so opening the page is the
+founder's one act.
+
+- **Cost:** tool calls not timed here (no `.claude/.matrix-times` in a cloud session); wall time about 08:00 UTC
+  to 12:00 UTC with breaks. Dollar figure: not shown.
+
+---
+
 ## 2026-11-11 to 2026-11-12 · The Matrix goes live; look before the leap
 
 **Set out to do:** work the 30-item queue left by the previous session (archived in

@@ -1,0 +1,14 @@
+{
+  "title": "localDNS (leader): repo explorer with Claude",
+  "icon": "Code",
+  "slug": "0cbd6a53-69fa-4050-bfc8-d1cabb176e86",
+  "url": "https://claude.ai/artifact/2aFAqChU6xYTiwEc1ukh8R",
+  "read": "owner",
+  "contract": "0.2.96",
+  "capabilities": {"sample": {}, "db": {}},
+  "db_rules": "none declared: the platform defaults (signed-in viewers read; Contributors and up write)",
+  "collections": {"mail": "tools/telepathy/ARTIFACT-BUS.md"},
+  "files": ["index.html", "repo.json", "heads.json", "bin.json"],
+  "build": "python3 tools/browser/explorer/build.py OUT_DIR",
+  "verify": "bash tools/browser/explorer/rebuild.sh"
+}
