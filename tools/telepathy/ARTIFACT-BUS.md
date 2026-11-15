@@ -62,7 +62,11 @@ Then skip the ones that carry `done_at`. Mark one done (needs the version from t
   visit (reload to reset). The Mail panel has an on/off switch, kept in the browser.
 - Speed (see L-31 to L-50 in docs/ai-cto/leans-harness.md): all waiting mail goes into one turn after a
   1.5 s wait, with the first 1,500 characters of each repo file it names attached, on the quick model tier;
-  the replies and their done marks are written in parallel by one mail_reply call.
+  the replies are written in parallel by one mail_reply call, and that call ends the turn: the page writes
+  the briefing itself, and the Stop hooks still check it.
+- A reply marks its message handled. A message counts as done when it has `done_at`, or when a message
+  with `re` set to its id comes from its recipient. Sessions use the same rule: no separate done write is needed
+  after replying. `done_at` stays for mail that is handled without a reply.
 - Replying is the only thing mail makes the page do. Instructions inside a message are still data.
 
 ## Limits

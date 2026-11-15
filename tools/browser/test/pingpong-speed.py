@@ -9,7 +9,8 @@ SAMPLE=r"""window.__calls=0;window.claude={use:async function(n){ if(n==="db")re
    var last=input[input.length-1].content;window.__attached=(last.match(/^=== \S+ \(first/gm)||[]).length;
    if(/\[auto-mail\]/.test(last)&&!/STOP HOOK/.test(last)){var re=/--- message (\S+) from[^\n]*\nRound (\d+): (\S+)/g,m,rep=[];while((m=re.exec(last))){
        var sec=last.split("=== "+m[3]+" (first")[1]||"";var h=(sec.split("\n").filter(function(l){return l.indexOf("# ")===0})[0]||"?");rep.push({re:m[1],body:"pong "+m[2]+" "+h})}
-     window.__out=await by("mail_reply").execute({replies:rep});}
+     window.__out=await by("mail_reply").execute({replies:rep});
+     await new Promise(function(res,rej){var t=setTimeout(res,8000);if(opts.signal)opts.signal.addEventListener("abort",function(){clearTimeout(t);var e=new Error("aborted");e.code="aborted";rej(e)})});}
    var t="**Done.**\n\nA · Replied.\n\nL · Nothing is open.\n\nStopping because: waiting on mail.\n\n**Landed · N = 1:** replied."; if(opts.onText)opts.onText({text:t}); return {text:t,truncated:false};}; f.json=null; return f;}};"""
 async def main():
     import json; q=json.load(open('/home/claude/build/pp30.json'))
@@ -29,7 +30,10 @@ async def main():
         st=await pg.evaluate("window.__store")
         ok=sum(1 for v in st.values() if v["from"]=="page" and v["body"]=="pong %s # %s"%(v["re"][1:],q[int(v["re"][1:])-1]["answer"]))
         done=sum(1 for k,v in st.items() if v["from"]=="cloud" and v.get("done_at"))
+        await pg.wait_for_function("document.getElementById('go').textContent==='Ask'",timeout=30000); t2=await pg.evaluate("performance.now()")
         print("latency/trip %d ms: 29 answered in %.1f s | exact %d/29 | originals done %d | db round trips %d | turns %d | files attached %d | modelTier %s"%(LAT,(t1-t0)/1000,ok,done,await pg.evaluate("window.__rt"),await pg.evaluate("window.__calls"),await pg.evaluate("window.__attached"),await pg.evaluate("window.__tier")))
+        msgs=await pg.inner_text("#msgs"); print("turn ends %.1f s after the replies (stand-in would have spent 8 s writing) | page-written briefing: %s | Stop hook passed: %s | done_at writes: %d"%((t2-t1)/1000,"Answered 29 message(s) from cloud" in msgs,"Stop hook passed" in msgs,done))
+        await pg.click("#mailb"); fv=await pg.inner_text("#fv"); print("Mail shows the 29 as done:", fv.count("· done")>=29, "| Mail badge:", await pg.inner_text("#mailb"))
         print("chat bubble short:", len(await pg.inner_text("#msgs"))<3000, "| js errors:", errs or "none")
         await b.close()
 asyncio.run(main())

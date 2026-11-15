@@ -147,3 +147,16 @@ Done means built and tested in Chromium against a mock database with 400 ms per 
   founder reloading. Not built: a page cannot load itself. Wrong if: the page is already open when mail comes.
 - **L-50 · Measure the next real run before more building.** Mock latency is a guess at the real database.
   Wrong if: the real run's reply write time is already under a second.
+
+### Two more, from the first fast run's trace (11:12 UTC)
+
+The trace showed: 19 s of model time to the one mail_reply call (no file reads), 9.9 s writing 60 documents
+(the platform takes them about 165 ms apart, however they are sent), then at least 11 s of model time for the
+briefing. The founder said build both.
+
+- **L-51 · A reply marks its message handled.** No done write after replying, so 30 writes instead of 60.
+  Done; the protocol in tools/telepathy/ARTIFACT-BUS.md says so. Wrong if: a peer reads only `done_at` and
+  shows answered mail as new.
+- **L-52 · A successful mail_reply ends an automatic turn.** The page stops the model and writes the
+  briefing itself; the Stop hooks still check it. Done. Wrong if: the hook blocks the page's briefing, or the
+  model's later text carried something the replies did not.
