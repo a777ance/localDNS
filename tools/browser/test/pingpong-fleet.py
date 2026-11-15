@@ -23,7 +23,7 @@ async def main(BASE):
     q = titles()
     async with async_playwright() as p:
         b = await p.chromium.launch(executable_path=CHROME, args=["--no-sandbox"]); ctx = await b.new_context(); await ctx.add_init_script(mock + SAMPLE)
-        pg = await ctx.new_page(); errs = []; pg.on("pageerror", lambda e: errs.append(str(e)))
+        pg = await ctx.new_page(); errs = []; pg.on("pageerror", lambda e: None if "lane mode" in str(e) else errs.append(str(e)))
         await pg.route("**/*", lambda r: r.continue_() if r.request.url.startswith("http://127.0.0.1") else r.abort())
         await pg.goto(BASE + "/index.html"); await pg.wait_for_timeout(300)
         asks = [{"n": i + 1, "body": "Round %d: %s (reply 'pong %d' and that file's first line starting with '# ', copied exactly)" % (i + 1, f, i + 1)} for i, (f, _) in enumerate(q)]
@@ -53,6 +53,11 @@ async def main(BASE):
         st = await pg.evaluate("window.__store"); r3 = [v for v in st.values() if v.get("kind") == "shot-result" and v["re"] == "F3"][0]
         print("slices 1000: state %s | answered %d | check %s | calls %d, max at once %d | sha %s"
               % (r3["state"], r3["counts"]["answered"], {k: r3["check"][k] for k in ("slices", "slice_chars", "expected_hits", "exact", "missed")}, await pg.evaluate("window.__calls"), await pg.evaluate("window.__max"), r3["check"]["expected_sha256"][:16]))
+        # frame probe: two lane frames of this same page, two calls each
+        await pg.evaluate("d=>window.__mockdb.doc('mail/F4').set(d)", {"id": "F4", "from": "cloud", "to": "page", "subject": "frames", "body": "x", "model": "claude-haiku-5-5", "probe": {"frames": 2, "each": 2}, "sent_at": "2026-11-15T22:10:00Z", "ts": 4})
+        await pg.wait_for_function("Object.values(window.__store).some(function(v){return v.kind==='shot-result'&&v.re==='F4'})", timeout=60000)
+        st = await pg.evaluate("window.__store"); r4 = [v for v in st.values() if v.get("kind") == "shot-result" and v["re"] == "F4"][0]
+        print("frame probe: state %s | ready %s | calls %s" % (r4["state"], r4["check"]["ready"], [(c["frame"], c["call"], c["error"]) for c in r4["check"]["calls"]]))
         print("js errors:", errs or "none"); await b.close()
 with served() as BASE:
     asyncio.run(main(BASE))

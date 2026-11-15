@@ -86,11 +86,23 @@ img.pv{max-width:100%;padding:12px}
     <div class="send"><textarea id="in" placeholder="Ask about this repo…"></textarea><button id="go">Ask</button></div>
   </section>
 </main>
+<script>
+/* Lane mode (L-137): this same page, loaded in a frame as index.html#lane, runs nothing but model calls its parent
+   sends it. It exists to answer one question by measurement: does a second document of the artifact get its own
+   running calls, or does it share the first document's two? */
+window.__LANE=(window.parent!==window&&location.hash==="#lane");
+if(window.__LANE){(async function(){var s=null;try{s=await window.claude.use("sample")}catch(e){}
+  parent.postMessage({lane:"ready",ok:!!s},"*");
+  addEventListener("message",async function(ev){var d=ev.data;if(!d||d.lane!=="run"||!s)return;var t0=performance.now();
+    try{var r=await s(d.prompt,d.opts||{});parent.postMessage({lane:"done",id:d.id,ms:Math.round(performance.now()-t0),chars:String(r.text||"").length,model:r.modelApplied||null},"*")}
+    catch(e){parent.postMessage({lane:"done",id:d.id,ms:Math.round(performance.now()-t0),error:(e&&e.code)||String(e&&e.message||e)},"*")}});})();}
+</script>
 <script id="hooks-js">
 /*@@HOOKS_JS@@*/
 </script>
 <script type="text/plain" id="shim-src">#@@BROWSER_SHIM@@</script>
 <script>
+if(window.__LANE)throw new Error("lane mode: the page proper does not run in a lane frame");
 (function(){
 "use strict";
 var $=function(i){return document.getElementById(i)};
@@ -570,7 +582,7 @@ function autoPump(){
   if(!AUTO.on||busy||!AUTO.queue.length||!sample)return;
   if(AUTO.timer)return;
   // L-40: wait a moment so a burst of mail lands in one turn
-  var hasAsks=AUTO.queue.some(function(id){var m=MAIL.docs.filter(function(x){return x._id===id})[0];return m&&(m.fleet||(m.asks&&m.asks.length))});
+  var hasAsks=AUTO.queue.some(function(id){var m=MAIL.docs.filter(function(x){return x._id===id})[0];return m&&(m.fleet||m.probe||(m.asks&&m.asks.length))});
   AUTO.timer=setTimeout(function(){AUTO.timer=null;autoRun()},hasAsks?0:AUTO.DEBOUNCE);
 }
 /* L-53..L-60: answer in parallel shards, plain "N: answer" lines, no tools, slim prompt; one reply bundle per shard, written as it lands */
@@ -672,7 +684,28 @@ async function callModel(prompt,label,turn,cost,harnessP,m){var o=shotModelOpts(
   cost.calls++;cost.chars_in+=prompt.length;
   if(!r){endSpan(s1,undefined,"error",err);throw new Error((err&&err.code)||String(err))}
   ["modelApplied","model","usage"].forEach(function(x){if(r[x]!==undefined)s1.meta[x]=r[x]});if(r.modelApplied)cost.tier=r.modelApplied;if(r.truncated)s1.meta.truncated=true;cost.chars_out+=String(r.text||"").length;endSpan(s1,r.text);return r.text}
+/* The frame probe: N lane frames, each asked for K equal calls at the same moment. If every call takes about as long
+   as one alone, frames have their own lanes; a staircase or refusals mean they share this page's. */
+async function runFrameProbe(m,turn){var P=m.probe,N=Math.max(1,Math.min(8,Math.floor(+P.frames||2))),K=Math.max(1,Math.min(6,Math.floor(+P.each||2))),t0=performance.now(),frames=[],out=[],now;
+  var opts=shotModelOpts(m),prompt=String(P.prompt||"Count from 1 to 200, space-separated, and nothing else.");
+  var ready=await Promise.all(Array.apply(null,{length:N}).map(function(_,i){return new Promise(function(res){var f=document.createElement("iframe");f.style.cssText="width:0;height:0;border:0;position:absolute";
+    var done=false,h=function(ev){if(ev.source===f.contentWindow&&ev.data&&ev.data.lane==="ready"){done=true;removeEventListener("message",h);res(ev.data.ok?"ready":"no sample capability in the frame")}};
+    addEventListener("message",h);setTimeout(function(){if(!done){removeEventListener("message",h);res("no answer from the frame in 20 s")}},20000);f.src="index.html#lane";document.body.appendChild(f);frames.push(f)})}));
+  var live=frames.filter(function(f,i){return ready[i]==="ready"}),tRun=performance.now();
+  // the baseline in the same turn: K calls from this page itself would share lanes with the frames, so the frames run alone
+  await Promise.all(live.map(function(f,fi){return Promise.all(Array.apply(null,{length:K}).map(function(_,k){return new Promise(function(res){var id=fi+"-"+k,sp=span("model","frame "+(fi+1)+" · call "+(k+1)+"/"+K,turn,{frame:fi+1});
+    var h=function(ev){if(ev.source===f.contentWindow&&ev.data&&ev.data.lane==="done"&&ev.data.id===id){removeEventListener("message",h);var d=ev.data;out.push({frame:fi+1,call:k+1,ms:d.ms,chars:d.chars||0,model:d.model||null,error:d.error||null});
+      if(d.model)sp.meta.modelApplied=d.model;if(d.error)endSpan(sp,undefined,"error",new Error(d.error));else endSpan(sp,d.chars+" chars");res()}};
+    addEventListener("message",h);f.contentWindow.postMessage({lane:"run",id:id,prompt:prompt,opts:opts},"*")})}))}));
+  var wall=Math.round(performance.now()-tRun);frames.forEach(function(f){f.remove()});out.sort(function(a,b){return a.frame-b.frame||a.call-b.call});now=new Date();
+  var okc=out.filter(function(o){return !o.error}),result={id:m._id+"-result",kind:"shot-result",from:"page",to:m.from,re:m._id,subject:"result: "+(m.subject||""),state:live.length===N&&okc.length===N*K?"answered":"partial",
+    reason:live.length<N?"frames: "+ready.join("; "):(okc.length<out.length?out.filter(function(o){return o.error}).length+" call(s) refused":null),body:"frame probe: "+live.length+" of "+N+" frames ready, "+okc.length+" of "+N*K+" calls answered in "+wall+" ms",
+    counts:{leaves:N*K,answered:okc.length,flagged:0,reused:0,waves:1,jury_asked:0,jury_fixed:0},parents:{},check:{rule:"frame probe",frames:N,each:K,ready:ready,wall_ms:wall,calls:out},
+    prov:{commit:((DATA&&DATA.commit)||(HEADS&&HEADS.commit)||"").split(" ")[0]||null,tier:(okc[0]&&okc[0].model)||(m.model||"quick")+" (asked)",width:N*K,calls:out.length,tool_calls:0,chars_in:prompt.length*out.length,chars_out:okc.reduce(function(a,o){return a+o.chars},0),ms:Math.round(performance.now()-t0),first_bundle_ms:null},
+    sent_at:now.toISOString().replace(/\.\d+Z$/,"Z"),ts:now.getTime(),via:"artifact-page"};
+  await MAIL.db.doc("mail/"+result.id).set(result);return result}
 async function runShot(m,turn,bubble,harnessP){
+  if(m.probe&&m.probe.frames)return await runFrameProbe(m,turn);
   if(m.fleet&&!DATA){try{await READY}catch(e){}}
   var sliced=!!(m.fleet&&m.fleet.slice),sparse=!!(sliced&&m.fleet.sparse);
   var cap=+m.attach_max>0?Math.floor(+m.attach_max):0,per=+m.per_call>0?Math.floor(+m.per_call):0;
