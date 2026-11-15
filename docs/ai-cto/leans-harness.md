@@ -160,3 +160,7 @@ briefing. The founder said build both.
 - **L-52 · A successful mail_reply ends an automatic turn.** The page stops the model and writes the
   briefing itself; the Stop hooks still check it. Done. Wrong if: the hook blocks the page's briefing, or the
   model's later text carried something the replies did not.
+
+Measured, run 3 (11:16 UTC, founder's phone): 30 questions answered in one turn of 17.3 s (model 13 s to its one
+mail_reply call, 4.2 s writing 30 replies, no briefing pass), 30 of 30 exact. The first batched run took 160.5 s.
+L-35, L-51 and L-52 hold: the quick tier lost no accuracy, and the page's briefing passed the Stop hook.
