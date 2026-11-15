@@ -12,9 +12,13 @@ pass 4's "complete headers" (the ledger). The second is L-86b from here on; L-13
 
 ## Refill 1 · 2026-11-15, 12:58 UTC (2 left: pass 5 and the harder shot, so 30 more)
 
-- [ ] **L-101 · Even out the calls (pass 5).** Split questions by expected work, not count; pass 4's calls took
+- [x] **L-101 · Even out the calls (pass 5).** Done: pass 5, fastest yet (15.4 s), but the weight overshot; see L-133. Split questions by expected work, not count; pass 4's calls took
   8.9 s and 16.7 s. Target: pass 4's accuracy in 10 to 12 s. Wrong if: the slower call is slow for a reason the
   split cannot see.
+- [ ] **L-133 · Tune the read weight from every run record.** Pass 4 measured a read at 12 answers, pass 5 at
+  4.3; one fixed number swings the split. Fit time = per-answer cost + per-read cost over every recorded call
+  (four so far), use the fit, and record it in the ledger each pass. Target: pass 4's accuracy in 10 to 12 s.
+  Wrong if: per-call overhead, not reads, drives the difference.
 - [ ] **L-102 · A harder shot (L-100).** Every `[hook]` rule in CLAUDE.md with the line of `decide-act.py` that
   enforces it, or "none". Mechanically checkable. Wrong if: the answer cannot be cited line by line.
 - [ ] **L-103 · Number the attached lines.** Attachments carry line numbers, so an answer can cite `path:line`.

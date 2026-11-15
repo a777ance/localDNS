@@ -1,0 +1,72 @@
+{
+ "pass": 5,
+ "shot": "20261115T130220-pass5shot",
+ "captured_by": "the page's run record runs/20261115T130220-pass5shot-run, read by the session with db_get",
+ "page_commit": "99330c3",
+ "user_agent": "Android 16, moto g stylus 2026, Claude app 1.261104.19",
+ "result": {
+  "state": "answered",
+  "counts": {
+   "leaves": 23,
+   "answered": 23,
+   "flagged": 0,
+   "waves": 1
+  },
+  "prov": {
+   "calls": 2,
+   "tool_calls": 1,
+   "chars_in": 34963,
+   "chars_out": 4996,
+   "ms": 15441,
+   "first_bundle_ms": 8580,
+   "tier": "quick (asked)",
+   "commit": "99330c3"
+  }
+ },
+ "summary_line": "15.7 s = model 15.1 s (1 tool calls, 17 ms in tools) + Stop 15 ms + page 641 ms · no rule fired",
+ "calls": [
+  {
+   "call": "1/2",
+   "ms": 8196,
+   "answers": 6,
+   "reads": [
+    "tools/migrate.sh"
+   ]
+  },
+  {
+   "call": "2/2",
+   "ms": 15078,
+   "answers": 17,
+   "reads": []
+  }
+ ],
+ "read_weight": {
+  "used": 12,
+  "measured_this_pass": 4.3,
+  "how": "call 2: 17 answers in 15.1 s (0.89 s each); call 1: 5 answers and one read in 8.2 s, so the read cost about 3.8 s, 4.3 answers",
+  "pass_4_measured": 12
+ },
+ "hooks": {
+  "PreToolUse": 1,
+  "PostToolUse": 1,
+  "Stop": 2,
+  "rules_fired": []
+ },
+ "debug": [
+  "13:02:56  loading repo.json",
+  "13:02:56  mail: subscribed to mail/",
+  "13:02:56  auto-mail: queued 20261115T130220-pass5shot from cloud (thread depth 0)",
+  "13:02:56  heads.json loaded in 629 ms (345 files)",
+  "13:02:57  repo.json loaded in 819 ms (354 files)",
+  "13:02:57  hooks runtime: JavaScript ports (345 repo files in memory)",
+  "13:02:57  Python runtime download blocked by this page's policy: run_check is hidden",
+  "13:02:57  SessionStart(startup) → refeed.sh (JS port) ran exit 0",
+  "13:02:57  harness on; preamble 18098 chars; SessionStart hooks: 1",
+  "13:02:59  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "13:02:59  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "13:03:09  Python: not available in this view (the page's security policy blocks the runtime download); run_check stays hidden",
+  "13:03:12  Stop → momentum.sh (JS port) ran exit 0",
+  "13:03:12  Stop → decide-act.py (JS port) ran exit 0",
+  "13:03:12  turn summary: 15.7 s = model 15.1 s (1 tool calls, 17 ms in tools) + Stop 15 ms + page 641 ms · no rule fired"
+ ]
+}
