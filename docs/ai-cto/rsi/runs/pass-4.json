@@ -1,0 +1,65 @@
+{
+ "pass": 4,
+ "shot": "20261115T125146-pass4shot",
+ "captured_by": "the page's run record runs/20261115T125146-pass4shot-run, read by the session with db_get",
+ "page_commit": "adcb9e6",
+ "user_agent": "Android 16, moto g stylus 2026, Claude app 1.261104.19",
+ "result": {
+  "state": "answered",
+  "counts": {
+   "leaves": 23,
+   "answered": 23,
+   "flagged": 0,
+   "waves": 1
+  },
+  "prov": {
+   "calls": 2,
+   "tool_calls": 1,
+   "chars_in": 34960,
+   "chars_out": 5167,
+   "ms": 17675,
+   "first_bundle_ms": 13699,
+   "tier": "quick (asked)",
+   "commit": "adcb9e6"
+  }
+ },
+ "summary_line": "18.4 s = model 16.7 s (1 tool calls, 10 ms in tools) + Stop 16 ms + page 1734 ms · no rule fired",
+ "calls": [
+  {
+   "call": "1/2",
+   "ms": 8946,
+   "reads": []
+  },
+  {
+   "call": "2/2",
+   "ms": 16687,
+   "reads": [
+    "tools/migrate.sh"
+   ],
+   "first_read_at": "12:53:42.492"
+  }
+ ],
+ "hooks": {
+  "PreToolUse": 1,
+  "PostToolUse": 1,
+  "Stop": 2,
+  "rules_fired": []
+ },
+ "debug": [
+  "12:53:34  loading repo.json",
+  "12:53:34  mail: subscribed to mail/",
+  "12:53:35  auto-mail: queued 20261115T125146-pass4shot from cloud (thread depth 0)",
+  "12:53:35  heads.json loaded in 1292 ms (344 files)",
+  "12:53:37  Python: not available in this view (the page's security policy blocks the runtime download); run_check stays hidden",
+  "12:53:37  repo.json loaded in 3278 ms (353 files)",
+  "12:53:37  hooks runtime: JavaScript ports (344 repo files in memory)",
+  "12:53:37  Python runtime download blocked by this page's policy: run_check is hidden",
+  "12:53:37  SessionStart(startup) → refeed.sh (JS port) ran exit 0",
+  "12:53:37  harness on; preamble 18118 chars; SessionStart hooks: 1",
+  "12:53:42  PreToolUse(Read) → cardinal.py (JS port) ran exit 0",
+  "12:53:42  PostToolUse(Read) → timing.py (JS port) ran exit 0",
+  "12:53:54  Stop → momentum.sh (JS port) ran exit 0",
+  "12:53:54  Stop → decide-act.py (JS port) ran exit 0",
+  "12:53:54  turn summary: 18.4 s = model 16.7 s (1 tool calls, 10 ms in tools) + Stop 16 ms + page 1734 ms · no rule fired"
+ ]
+}
