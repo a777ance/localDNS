@@ -66,7 +66,7 @@ Status values: `Active` · `Blocked` (also in `blocked.md`) · `Queued` · `Done
 - **Handoff:** the next session starts from `docs/ai-cto/handoff.md`. The first lease's finished
   queue is archived in `docs/ai-cto/handoff-2026-11-11.md`; the record is `docs/ai-cto/session-log.md`.
 
-## INIT-004 · OODA loop as an ongoing goal (RSI) · Active
+## INIT-004 · OODA loop as an ongoing goal (RSI-OODA) · Active
 
 - **Goal:** the OODA loop never finishes. Each cycle re-evaluates the rules, raises the quality bar, and adds tooling, so the recursive self-improvement loop keeps running.
 - **Line items:**

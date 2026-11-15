@@ -49,6 +49,12 @@ def header(path: str, text: str, cap: int = 4000) -> str:
     return (h if len(h) >= 40 else text[:800])[:cap]
 
 
+def header_complete(path: str, text: str, cap: int = 4000) -> bool:
+    """True when header() returned the file's whole header: a real docstring or comment block, under the cap."""
+    h = header(path, text, cap)
+    return (path.endswith((".py", ".sh"))) and h != text[:800][:cap] and len(h) < cap
+
+
 def main() -> int:
     out = Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/localdns-explorer")
     out.mkdir(parents=True, exist_ok=True)
@@ -83,7 +89,8 @@ def main() -> int:
     (out / "index.html").write_text(page, encoding="utf-8")
     (out / "repo.json").write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
     (out / "bin.json").write_text(json.dumps(bins, separators=(",", ":")), encoding="utf-8")
-    heads = {"repo": data["repo"], "commit": data["commit"].split(" ")[0], "heads": {f["p"]: header(f["p"], f["t"]) for f in data["files"] if f.get("k") != "bin" and isinstance(f.get("t"), str)}}
+    heads = {"repo": data["repo"], "commit": data["commit"].split(" ")[0], "heads": {f["p"]: header(f["p"], f["t"]) for f in data["files"] if f.get("k") != "bin" and isinstance(f.get("t"), str)},
+             "complete": sorted(f["p"] for f in data["files"] if f.get("k") != "bin" and isinstance(f.get("t"), str) and header_complete(f["p"], f["t"]))}
     (out / "heads.json").write_text(json.dumps(heads, separators=(",", ":")), encoding="utf-8")
     dirty = git("status", "--porcelain")
     print(f"ok   explorer: {len(files)} files ({len(bins)} binary) at {data['commit'][:60]} -> {out}")

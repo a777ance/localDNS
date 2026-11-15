@@ -13,7 +13,7 @@ SAMPLE=r"""window.__calls=0;window.__slots=2;window.__waitq=[];window.__failed=f
    await new Promise(function(z){setTimeout(z,400+300*qs.length)});
    if(/fail me/.test(p)&&!window.__failed){window.__fails=(window.__fails||0)+1;if(window.__fails>=2)window.__failed=true;var e=new Error("x");e.code="rate_limited";throw e}
    var lines=qs.map(function(l){var m=l.match(/^(\d+)\. (.*)$/),t=m[2],r=t.match(/Round (\d+): (\S+)/);
-     if(r){var sec=p.split("=== "+r[2]+" (header")[1]||"";var h=sec.split("\n").filter(function(x){return x.indexOf("# ")===0})[0]||"?";return m[1]+": pong "+r[1]+(r[1]==="3"&&!jury?"; ":" ")+h}
+     if(r){var sec=p.split("=== "+r[2]+" (")[1]||"";var h=sec.split("\n").filter(function(x){return x.indexOf("# ")===0})[0]||"?";return m[1]+": pong "+r[1]+(r[1]==="3"&&!jury?"; ":" ")+h}
      var inp=t.match(/\(input, answer ([\d.]+): ([\s\S]*)\)$/);if(inp)return m[1]+": got "+inp[2].split("\n").length+" line(s) from "+inp[1];
      return m[1]+": ok "+t.slice(0,20)});
    return {text:lines.join("\n"),truncated:false,modelApplied:"stand-in-quick"}}

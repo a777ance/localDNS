@@ -10,8 +10,8 @@ SAMPLE = r"""window.__calls=0;window.__reads=[];window.claude={use:async functio
  var f=async function(input,opts){window.__calls++;var p=String(input),tool=function(n){return (opts.tools||[]).find(function(t){return t.name===n})};
    var qs=p.split("=== ATTACHED")[0].split("\n").filter(function(l){return /^\d+\. tools\//.test(l)});
    var lines=[];for(var i=0;i<qs.length;i++){var file=qs[i].match(/^\d+\. (tools\/\S+?):/)[1],base=file.split("/").pop();
-     var att=(p.split("=== "+file+" (header")[1]||"").split("\n=== ")[0],re=new RegExp("(python3|bash) tools/"+base.replace(/\./g,"\\.")+"[^\\n]*"),m=att.match(re),via="head";
-     if(!m&&tool("read_file")){var full=await tool("read_file").execute({path:file});window.__reads.push(file);m=full.match(re);via="read_file"}
+     var whole=p.indexOf("=== "+file+" (complete header")>=0,att=(p.split("=== "+file+(whole?" (complete header":" (header"))[1]||"").split("\n=== ")[0],re=new RegExp("(python3|bash) tools/"+base.replace(/\./g,"\\.")+"[^\\n]*"),m=att.match(re),via=whole?"complete header":"head";
+     if(!m&&!whole&&tool("read_file")){var full=await tool("read_file").execute({path:file});window.__reads.push(file);m=full.match(re);via="read_file"}
      lines.push((i+1)+": "+base+" runs as "+(m?m[0].trim():"(not found)")+" ["+via+"]")}
    return {text:lines.join("\n"),truncated:false};}; f.json=null; return f;}};"""
 async def main(BASE):

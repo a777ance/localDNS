@@ -11,7 +11,7 @@ SAMPLE=r"""window.__calls=0;window.__inflight=0;window.__maxin=0;window.__slots=
  var f=async function(input,opts){if(window.__slots<=0)await new Promise(function(z){window.__waitq.push(z)});window.__slots--;window.__calls++;window.__t1st=window.__t1st||performance.now();window.__inflight++;window.__maxin=Math.max(window.__maxin,window.__inflight);window.__tier=opts&&opts.modelTier;window.__plen=Math.max(window.__plen||0,String(input).length);
    var p=String(input),qs=[],re=/^(\d+)\. Round (\d+): (\S+)/gm,m;while((m=re.exec(p)))qs.push(m);
    await new Promise(function(z){setTimeout(z,400+300*qs.length)});
-   var lines=qs.map(function(m){var sec=p.split("=== "+m[3]+" (header")[1]||"";var h=sec.split("\n").filter(function(l){return l.indexOf("# ")===0})[0]||"?";return m[1]+": pong "+m[2]+(m[1]==="3"?"; ":" ")+h});
+   var lines=qs.map(function(m){var sec=p.split("=== "+m[3]+" (")[1]||"";var h=sec.split("\n").filter(function(l){return l.indexOf("# ")===0})[0]||"?";return m[1]+": pong "+m[2]+(m[1]==="3"?"; ":" ")+h});
    window.__inflight--;window.__slots++;var nx=window.__waitq.shift();if(nx)nx();return {text:lines.join("\n"),truncated:false};}; f.json=null; return f;}};"""
 async def main():
     q=json.load(open(HERE/'data'/'run3.json'))
