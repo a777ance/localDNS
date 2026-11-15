@@ -781,7 +781,8 @@ One line per entry. The full notes on each are in `docs/architecture/further-rea
 ## 5. AI CTO state
 
 **Start of session:** `docs/ai-cto/handoff.md` (queue), `docs/ai-cto/checkpoint.md` (state),
-`docs/ai-cto/session-log.md` (history), `docs/ai-cto/roadmap.md` (the founder's view).
+`docs/ai-cto/session-log.md` (history), `docs/ai-cto/roadmap.md` (the founder's view),
+`docs/ai-cto/planned.md` (designed, not started).
 
 Read `docs/ai-cto/context.md` in this repo for current open items and component status.
 Its **"Default next actions"** block at the top is the pre-computed session-start
