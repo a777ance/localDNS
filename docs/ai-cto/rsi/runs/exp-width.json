@@ -1,0 +1,45 @@
+{
+ "experiment": "width probe",
+ "run_record": "runs/20261115T201300-expw1-run, read by the session with db_query",
+ "page_commit": "cc2b438",
+ "model_applied": "claude-haiku-5-5",
+ "fired": "2026-11-15T20:18:43Z",
+ "work_per_call": "one ask: reply 'pong N' then count 1 to 200; no reads; about 700 chars out",
+ "call_ms": {
+  "width1": [
+   3251
+  ],
+  "width2": [
+   2146,
+   3315
+  ],
+  "width4": [
+   2217,
+   3894,
+   4517,
+   6694
+  ],
+  "width8": [
+   3153,
+   2873,
+   5540,
+   6580,
+   7830,
+   9104,
+   "rate_limited",
+   "rate_limited"
+  ]
+ },
+ "platform_error_at_width8": "too many sample calls at once from this page — let some finish (calls 7 and 8, both tries)",
+ "facts": [
+  "The platform runs 2 sample calls at a time per page: durations at width 4 and 8 finish in pairs about 3 s apart.",
+  "It holds up to 6 calls from one page (2 running, 4 waiting) and rejects the 7th and 8th.",
+  "Throughput at any width from 2 to 6 is about 0.66 calls per second for this work; width 1 is about 0.31.",
+  "Output ran at about 215 chars per second per call (701 chars in 3.25 s)."
+ ],
+ "not_measured": [
+  "whether a second open page gets its own 2 lanes (the error says 'from this page')",
+  "how call time grows with answers per call beyond 44",
+  "why 1 answer at width 4 and 1 at width 8 were flagged by the wording check; the bundles were not read"
+ ]
+}

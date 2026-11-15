@@ -1,0 +1,41 @@
+{
+ "pass": 6,
+ "shot": "20261115T130840-pass6fleet",
+ "captured_by": "the page's run record runs/20261115T130840-pass6fleet-run and bundles mail/20261115T130840-pass6fleet-w1c1..c4, read by the session with db_get and db_query",
+ "page_commit": "cc2b438",
+ "user_agent": "Android 16, moto g stylus 2026, Claude app 1.261104.19",
+ "model_applied": "claude-haiku-5-5 (all 4 calls)",
+ "result": {
+  "state": "answered",
+  "counts": {
+   "leaves": 177,
+   "answered": 177,
+   "flagged": 0,
+   "waves": 1
+  },
+  "prov": {
+   "calls": 4,
+   "tool_calls": 45,
+   "chars_in": 182575,
+   "chars_out": 8484,
+   "ms": 32236,
+   "first_bundle_ms": 10625,
+   "tier": "claude-haiku-5-5",
+   "width": 4,
+   "commit": "cc2b438"
+  }
+ },
+ "session_evaluation": "177 of 177 replies match the expected heading for their file (build/pass6.json), exact after whitespace and case folding; 0 flagged. The session transcribed the replies from the bundles before comparing, so this check is a transcription-checked comparison, not a machine diff of the stored bundles.",
+ "summary_line": "32.6 s = model 32.0 s (45 tool calls, 33 ms in tools) + Stop 5 ms + page 584 ms · no rule fired",
+ "target_met": {
+  "speed_under_60s": true,
+  "accuracy_at_least_95pct": true
+ },
+ "call_ms": [
+  21458,
+  10244,
+  23492,
+  31956
+ ],
+ "width_note": "The page asked for 4 calls at once; the durations are a staircase, and the width probe (exp-width.json) shows the platform runs 2 at a time. Width 4 was requested, not achieved."
+}

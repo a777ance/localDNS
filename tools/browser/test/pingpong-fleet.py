@@ -8,7 +8,7 @@ mock = open(HERE / 'mockdb.js').read()
 SAMPLE = r"""window.__calls=0;window.__in=0;window.__max=0;window.__models=[];window.claude={use:async function(n){ if(n==="db")return window.__mockdb; if(n!=="sample")return null;
  var f=async function(input,opts){window.__calls++;window.__in++;window.__max=Math.max(window.__max,window.__in);window.__models.push(opts.model||"(none)");
    var p=String(input),qs=p.split("=== ATTACHED")[0].split("\n").filter(function(l){return /^\d+\. Round /.test(l)});
-   var lines=qs.map(function(l){var m=l.match(/^(\d+)\. Round (\d+): (\S+)/);var sec=p.split("=== "+m[3]+" (")[1]||"";var h=sec.split("\n").filter(function(x){return x.indexOf("# ")===0})[0]||"?";return m[1]+": pong "+m[2]+" "+h});
+   var lines=qs.map(function(l){var m=l.match(/^(\d+)\. Round (\d+): (\S+)/);var sec=p.split("=== "+m[3]+" (")[1]||"";var h=sec.split("\n").filter(function(x){return x.indexOf("# ")===0})[0]||"?";return / title$/.test(l)?m[1]+": "+h.slice(2).trim():m[1]+": pong "+m[2]+" "+h});
    await new Promise(function(z){setTimeout(z,400+40*lines.length)});window.__in--;return {text:lines.join("\n"),truncated:false,modelApplied:opts.model||"quick"};}; f.json=null; return f;}};"""
 def titles():
     out = []
@@ -33,6 +33,15 @@ async def main(BASE):
         print("%d questions: state %s | exact %d | shot %.1f s | calls %d, max at once %d | models %s | width %s | tier %s"
               % (len(q), r["state"], exact, r["prov"]["ms"] / 1000, await pg.evaluate("window.__calls"), await pg.evaluate("window.__max"),
                  sorted(set(await pg.evaluate("window.__models"))), r["prov"].get("width"), r["prov"]["tier"]))
+        # fleet shot: the page expands 1000 asks itself, 250 answers a call, 2 lanes as a pipeline, no tools, page-side check
+        await pg.evaluate("window.__calls=0;window.__max=0")
+        await pg.evaluate("d=>window.__mockdb.doc('mail/F2').set(d)", {"id": "F2", "from": "cloud", "to": "page", "subject": "fleet2", "body": "x", "model": "claude-haiku-5-5", "concurrency": 2,
+            "per_call": 250, "attach_max": 600, "tools": False, "jury": False, "deadline_ms": 120000,
+            "fleet": {"match": "\\.md$", "ask": "Round 0: {file} title", "count": 1000, "check": "first_heading"}, "sent_at": "2026-11-15T21:00:00Z", "ts": 2})
+        await pg.wait_for_function("Object.values(window.__store).some(function(v){return v.kind==='shot-result'&&v.re==='F2'})", timeout=120000)
+        st = await pg.evaluate("window.__store"); r2 = [v for v in st.values() if v.get("kind") == "shot-result" and v["re"] == "F2"][0]
+        print("fleet 1000: state %s | answered %d | check %s | calls %d, max at once %d | files %s"
+              % (r2["state"], r2["counts"]["answered"], {k: r2["check"][k] for k in ("exact", "missed")}, await pg.evaluate("window.__calls"), await pg.evaluate("window.__max"), r2["check"]["files"]))
         print("js errors:", errs or "none"); await b.close()
 with served() as BASE:
     asyncio.run(main(BASE))

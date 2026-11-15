@@ -103,3 +103,20 @@ Then skip the ones that carry `done_at`. Mark one done (needs the version from t
   live and answers while it is open; closed, nothing answers until it is opened again.
 - Claude Code on the laptop has the artifact tools only if its claude.ai connectors are available to it;
   not verified. Without them, `local` can still use `telepathy_mcp.py` on its own machine.
+
+## Limits measured, and fleet shots (2026-11-15)
+
+Measured by the width probe (`docs/ai-cto/rsi/runs/exp-width.json`): one page runs 2 model calls at a time and holds
+4 more; a 7th is refused ("too many sample calls at once from this page"). That is about 40 calls a minute a page,
+whatever `concurrency` a shot asks for, so the engine caps `concurrency` at 6. No plan promises more without a new
+measurement.
+
+A fleet shot gets more out of each lane by answering many asks per call. Its fields, all optional but `fleet`:
+
+- `fleet: {match, ask, count, check}`: the page expands `count` asks over the repo files whose path matches the
+  regular expression `match` and that have a `# ` line, in path order, repeating. `{file}` in `ask` is the path.
+  `check: "first_heading"` has the page compare each answer with the file's first `# ` line and write the misses,
+  and a SHA-256 of what it expected, into the result document, so a session can verify the rule without reading
+  every answer.
+- `per_call`: answers per call. Calls run as a pipeline: the next starts when one finishes.
+- `attach_max`: characters of each named file to attach. `tools: false`: no read tools. `jury: false`: no second juror.
