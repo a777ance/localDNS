@@ -47,6 +47,10 @@ CASES = [
     ("complete tile, logged", "**Waiting.**\n\n" + TILE, None),
     ("tile missing a line", "**Waiting.**\n\n" + TILE.replace("> **Action if NO GO:** hold\n", ""), "TILE"),
     ("tile id not in the log", "**Waiting.**\n\n" + TILE.replace("DEC-900", "DEC-901"), "TILE"),
+    # The letter form the style asks for (D · , A · ) is checked like the word form (DEBT-014).
+    ("letter-led decide list, nothing acted", "**Waiting.**\n\nD · Queued.\n1. Run A\n2. Run B\n\nA · Nothing run yet.\n", "OODA ACT"),
+    ("letter-led decide list, acted in full", "**Done.**\n\nD · Queued.\n1. Run A\n2. Run B\n\nA · Ran the queue.\n1. A ran.\n2. B is blocked on DEC-900.\n", None),
+    ("letter-led act section ends at the L step", "**Partial.**\n\nD · Queued.\n1. Run A\n2. Run B\n\nA · Ran one.\n- A ran.\n\nL · Open.\n- DEC-900 waits on the founder.\n- DEC-900 again, still waiting.\n", "OODA ACT"),
 ]
 
 # Rule key -> a phrase .claude/output-styles/briefing.md must contain (Q-022: one source).

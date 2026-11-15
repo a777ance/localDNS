@@ -9,6 +9,20 @@ Status values: `Open` · `Blocked` (also listed in `blocked.md`) · `Punted` · 
 
 ---
 
+## DEBT-014 · The ACT rule could not see the letter-led Decide and Act steps · Done
+
+- **Observed 2026-11-15:** a live trace from the in-browser explorer showed a reply that queued four options
+  under `D · ` and wrote `A · Nothing has been run`, and the Stop hook passed it without checking the queue.
+  `decide_items` in `.claude/hooks/decide-act.py` matched only the word `Decide`, and `act_lines` only `Act`,
+  so the letter form that the Briefing style asks for (the letter leads) turned the ACT rule off.
+- **Cost:** "queue, don't choose" was not enforced on any reply written in the house style.
+- **Fixed the same day:** both now match the letter form as well, and an Act section ends at the next letter
+  step, so lines under `L · ` are not counted as acted. `tools/check-stop-hook.py` has three new cases; two of
+  them fail with the fix reverted. The JavaScript port (`tools/browser/hooks.js`) carries the same change.
+- **Limit:** the rule counts list lines under Act; it cannot tell whether a line reports a run. The live reply
+  that exposed this passes under the fix, because its four numbered command blocks sit under `A · `.
+  Leans: `docs/ai-cto/leans-harness.md`.
+
 ## DEBT-013 · Statement percentages could add up to 97 or 103 · Done
 
 - **Observed 2026-11-12:** a second session, given the job of writing a gate for the Statement

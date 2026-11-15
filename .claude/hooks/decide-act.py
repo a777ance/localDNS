@@ -31,6 +31,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(os.environ.get("CLAUDE_PROJECT_DIR") or Path(__file__).resolve().parents[2])
+# A step heading in either form the Briefing style allows: the word ("Decide", "**Act**") or the
+# letter that leads ("D · ", "A · "). The letter form is what the style asks for, so both must count.
+DECIDE_HEAD = r"^\W*(?:Decide[ds]?\b|D · ).*$"
+ACT_HEAD = r"^\W*(?:Act(?:ed)?\b|A · ).*$"
+STEP_LETTER = r"^\W*(?:O|OO|D|A|L) · "  # the next letter step ends the one before it
 HEDGES = ("should work", "probably works", "probably work", "may have worked", "might have worked", "should be fine")
 
 
@@ -61,7 +66,7 @@ def last_assistant_text(path):
 
 def decide_items(text):
     """Return numbered items under a **Decide** heading (or 'Decide' line)."""
-    m = re.search(r"^\W*Decide[ds]?\b.*$", text, re.MULTILINE)
+    m = re.search(DECIDE_HEAD, text, re.MULTILINE)
     if not m:
         return []
     items = []
@@ -79,13 +84,13 @@ def decide_items(text):
 
 def act_lines(text):
     """Count list lines in the Act section that follows the Decide list."""
-    d = re.search(r"^\W*Decide[ds]?\b.*$", text, re.MULTILINE)
-    m = re.search(r"^\W*Act(ed)?\b.*$", text[d.end():] if d else "", re.MULTILINE)
+    d = re.search(DECIDE_HEAD, text, re.MULTILINE)
+    m = re.search(ACT_HEAD, text[d.end():] if d else "", re.MULTILINE)
     if not m:
         return 0
     n = 0
     for line in text[d.end() + m.end():].splitlines():
-        if re.match(r"^#{1,3}\s|^\*\*[A-Z]\w+\.?\*\*\.?\s*$", line):
+        if re.match(r"^#{1,3}\s|^\*\*[A-Z]\w+\.?\*\*\.?\s*$", line) or re.match(STEP_LETTER, line):
             break  # the next section
         if re.match(r"^\s*(\d+\.|[-*])\s+\S", line):
             n += 1
