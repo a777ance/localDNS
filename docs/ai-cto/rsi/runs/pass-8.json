@@ -1,0 +1,52 @@
+{
+ "pass": 8,
+ "shot": "20261115T215000-pass8slices",
+ "captured_by": "the page's run record runs/20261115T215000-pass8slices-run, read by the session with db_get",
+ "page_commit": "8491581",
+ "user_agent": "Android 16, moto g stylus 2026, Claude app 1.261104.19",
+ "model_applied": "claude-haiku-5-5 (all 8 calls)",
+ "result": {
+  "state": "answered",
+  "slices": 1000,
+  "slice_chars": 1002942,
+  "calls": 8,
+  "per_call": 125,
+  "lanes": 2,
+  "ms": 51739,
+  "turn_ms": 52211,
+  "first_bundle_ms": 2556,
+  "chars_in": 1065585,
+  "chars_out": 996,
+  "call_ms": [
+   5153,
+   2200,
+   3323,
+   20605,
+   13763,
+   14715,
+   19924,
+   16028
+  ]
+ },
+ "check": {
+  "rule": "first_match DEC-\\d{3}",
+  "expected_hits": 97,
+  "exact": 975,
+  "missed": 25,
+  "overlooked": 19,
+  "wrong_id": 5,
+  "false_alarms": 1
+ },
+ "session_evaluation": "The session's SHA-256 of the expected list (number, file, start, end, expected) equals the page's, so the rule graded against the right slices. 975 of 1000 shards exact (97.5%). Of the 97 slices holding a decision id the model reported 73 correctly (75%), overlooked 19 and gave a later id than the first in 5; of 79 lines written, 73 were right (92%). Silence hid a fifth of the hits: the trade named before firing came due.",
+ "prediction": {
+  "cost_model_s": 53,
+  "measured_s": 51.7,
+  "note": "The total matched within 3%, but the per-call times do not follow the model: three calls of about 125,000 characters in took 2.2 to 5.2 s and five took 13.8 to 20.6 s. Input size alone does not set a call's time; what does is unmeasured."
+ },
+ "target_met": {
+  "under_60s": true,
+  "shards_exact_at_least_95pct": true,
+  "recall_on_hits": "75%, not a target named before firing, and too low for a sweep"
+ },
+ "summary_line": "52.2 s = model 51.5 s (0 tool calls, 0 ms in tools) + Stop 5 ms + page 743 ms · no rule fired"
+}
