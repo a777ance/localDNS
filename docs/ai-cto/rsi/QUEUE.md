@@ -15,6 +15,9 @@ pass 4's "complete headers" (the ledger). The second is L-86b from here on; L-13
 - [x] **L-101 · Even out the calls (pass 5).** Done: pass 5, fastest yet (15.4 s), but the weight overshot; see L-133. Split questions by expected work, not count; pass 4's calls took
   8.9 s and 16.7 s. Target: pass 4's accuracy in 10 to 12 s. Wrong if: the slower call is slow for a reason the
   split cannot see.
+- [ ] **L-134 · Throughput: the haiku superfleet (pass 6).** One shot of every doc title (177), Claude Haiku by name
+  (the founder named it), four calls at once. Target: the turn under 60 s with at least 95% exact. Wrong if: the
+  platform still runs two at a time, so width buys nothing.
 - [ ] **L-133 · Tune the read weight from every run record.** Pass 4 measured a read at 12 answers, pass 5 at
   4.3; one fixed number swings the split. Fit time = per-answer cost + per-read cost over every recorded call
   (four so far), use the fit, and record it in the ledger each pass. Target: pass 4's accuracy in 10 to 12 s.
