@@ -1,0 +1,119 @@
+{
+ "pass": 9,
+ "shots": [
+  "20261115T221100-p9a",
+  "20261115T221101-p9b",
+  "20261115T221102-p9c",
+  "20261115T221103-p9d",
+  "20261115T221104-p9e",
+  "20261115T221105-p9f",
+  "20261115T221106-p9g"
+ ],
+ "captured_by": "the seven shot-result documents (each carries the rule's check and per-call figures), read by the session with db_query; no run record was read for this pass",
+ "page_commit": "d715f68",
+ "model_applied": "claude-haiku-5-5",
+ "corpus": "docs/ai-cto/, 477,980 characters, 146 files",
+ "settings": [
+  {
+   "shot": "9a",
+   "answers": "sparse",
+   "slices_per_call": 125,
+   "slice_chars": 1200,
+   "slices": 496,
+   "hits": 90,
+   "found": 69,
+   "recall_pct": 77,
+   "overlooked": 18,
+   "shot_ms": null,
+   "note": "resumed after the page left the screen; time not comparable"
+  },
+  {
+   "shot": "9b",
+   "answers": "every slice",
+   "slices_per_call": 125,
+   "slice_chars": 1200,
+   "slices": 496,
+   "hits": 90,
+   "found": 68,
+   "recall_pct": 76,
+   "overlooked": 18,
+   "shot_ms": null,
+   "note": "resumed; time not comparable"
+  },
+  {
+   "shot": "9c",
+   "answers": "sparse",
+   "slices_per_call": 62,
+   "slice_chars": 1200,
+   "slices": 496,
+   "hits": 90,
+   "found": 80,
+   "recall_pct": 89,
+   "overlooked": 7,
+   "shot_ms": 49344,
+   "note": ""
+  },
+  {
+   "shot": "9d",
+   "answers": "sparse",
+   "slices_per_call": 25,
+   "slice_chars": 1200,
+   "slices": 496,
+   "hits": 90,
+   "found": 80,
+   "recall_pct": 89,
+   "overlooked": 5,
+   "shot_ms": 50774,
+   "note": ""
+  },
+  {
+   "shot": "9e",
+   "answers": "every slice",
+   "slices_per_call": 62,
+   "slice_chars": 1200,
+   "slices": 496,
+   "hits": 90,
+   "found": 72,
+   "recall_pct": 80,
+   "overlooked": 11,
+   "shot_ms": 44052,
+   "note": ""
+  },
+  {
+   "shot": "9f",
+   "answers": "sparse",
+   "slices_per_call": 250,
+   "slice_chars": 600,
+   "slices": 1017,
+   "hits": 107,
+   "found": 85,
+   "recall_pct": 79,
+   "overlooked": 21,
+   "shot_ms": 49491,
+   "note": ""
+  },
+  {
+   "shot": "9g",
+   "answers": "sparse",
+   "slices_per_call": 62,
+   "slice_chars": 2400,
+   "slices": 275,
+   "hits": 72,
+   "found": 61,
+   "recall_pct": 85,
+   "overlooked": 10,
+   "shot_ms": 54139,
+   "note": ""
+  }
+ ],
+ "session_evaluation": "The session's SHA-256 of the expected list equals the page's for all three slice sizes. Recall on hits follows the number of slices a call must watch: 250 a call 79%, 125 a call 77% and 76%, 62 a call 89% (85% with 2,400-character slices), 25 a call 89%. A line for every slice did not help (76% against 77% at 125; 80% against 89% at 62). One run per setting: differences under about 5 points are noise. No setting reached 95%.",
+ "what_repeats": "Four slices were missed by both 9c and 9d (course-30/M07.md and v2-parallel8/R6.md, where the first id is DEC-100; course-30/M13.md; superqueue.md). The other misses differ between the two runs: taking a hit found by either gives 86 of 90 (96%).",
+ "speed": "Settings moved shot time little (44 to 54 s for 478,000 characters, about 9,000 to 10,800 characters a second). That is half pass 8's rate over the wider repo: this folder is slower to read under every setting. In 9d, calls that found nothing took 2.1 to 3.0 s and calls with hits 3.3 to 8.0 s for the same input size.",
+ "target_met": {
+  "recall_at_least_95pct": false,
+  "best": "89% (9c, 9d)",
+  "no_slower_than_pass_8_rate": false,
+  "note": "the rate target compared different text and was not a fair bar"
+ },
+ "defect": "the turn needs about five minutes of the page on screen; it stopped twice when the founder left the page, and resumed without loss each time (375 and 125 answers reused)"
+}
