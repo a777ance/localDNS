@@ -1,0 +1,29 @@
+{
+ "experiment": "frame probe (L-137)",
+ "read_from": "mail/20261115T220100-frames2-result and mail/20261115T220101-frames4-result, read by the session with db_query",
+ "page_commit": "d4dee47",
+ "fired": "2026-11-15T22:01:01Z",
+ "asked": "2 lane frames with 2 calls each, then 4 frames with 2 calls each; each frame is index.html#lane, a copy of the page inside the page",
+ "result": {
+  "frames2": {
+   "ready": 0,
+   "of": 2,
+   "ms": 10332
+  },
+  "frames4": {
+   "ready": 0,
+   "of": 4,
+   "ms": 10610
+  },
+  "every_frame_said": "no sample capability in the frame"
+ },
+ "facts": [
+  "A frame of the artifact's own page loads and runs its script: every frame answered its parent.",
+  "Inside a frame, claude.use('sample') resolves to nothing after about 10 s, the wait the platform documents for 'no viewer answers'. The viewer hands capabilities to the artifact's top document only.",
+  "So one open view of the artifact has 2 running calls and no way to add lanes from inside itself."
+ ],
+ "not_measured": [
+  "whether two separate views (two devices, or the app and a browser) each get 2 lanes",
+  "whether two separate artifacts open at once each get 2 lanes"
+ ]
+}
