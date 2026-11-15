@@ -1,5 +1,5 @@
-# built from commit a09f725eff2174ea5d2e8ee44b8f9a3db1180490 on branch leader by tools/browser/explorer/build.py; published to the artifact as version 1794745173-0358 on 2026-11-15
-385c91ee6fe74c394d5be931ef97eb8588969337ea344835d32097913d4dba67  index.html
-083750e7b9dbb23c574bce38a16d4ca80a6d78bbb1115bab9f8335ba0a440a53  repo.json
-38665119e802fa306c4af28810ce489b06b97095be95e9a553ac2dbb8a0739ca  heads.json
+# built from commit b69a948aab881ec5613de68f36138fbb7835bca8 on branch leader by tools/browser/explorer/build.py; published to the artifact as version 1794745447-a367 on 2026-11-15
+700d8016cfc34788eca241d34efb08baf989b41443638a8a8ac3e6683c5b7619  index.html
+c6ea0d265f0a20e5f9d25babeac3c43e824c67440f1f04f29be86273b678d037  repo.json
+0d1423f9559dc918e7616ceb67ed0004f09ddf0b787a3559ffb98b78c9625514  heads.json
 a502549807369bcd3aae88749bb2665a5016b713b4c359059e4292a7a3783307  bin.json
