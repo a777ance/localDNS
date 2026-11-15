@@ -11,9 +11,9 @@ SAMPLE = r"""window.__calls=0;window.__reads=[];window.claude={use:async functio
    var qs=p.split("=== ATTACHED")[0].split("\n").filter(function(l){return /^\d+\. tools\//.test(l)});
    var lines=[];for(var i=0;i<qs.length;i++){var file=qs[i].match(/^\d+\. (tools\/\S+?):/)[1],base=file.split("/").pop();
      var whole=p.indexOf("=== "+file+" (complete header")>=0,att=(p.split("=== "+file+(whole?" (complete header":" (header"))[1]||"").split("\n=== ")[0],re=new RegExp("(python3|bash) tools/"+base.replace(/\./g,"\\.")+"[^\\n]*"),m=att.match(re),via=whole?"complete header":"head";
-     if(!m&&!whole&&tool("read_file")){var full=await tool("read_file").execute({path:file});window.__reads.push(file);m=full.match(re);via="read_file"}
+     if(!m&&!whole&&tool("read_file")){var full=await tool("read_file").execute({path:file});await new Promise(function(z){setTimeout(z,3600)});window.__reads.push(file);m=full.match(re);via="read_file"}
      lines.push((i+1)+": "+base+" runs as "+(m?m[0].trim():"(not found)")+" ["+via+"]")}
-   return {text:lines.join("\n"),truncated:false};}; f.json=null; return f;}};"""
+   await new Promise(function(z){setTimeout(z,300*lines.length)});return {text:lines.join("\n"),truncated:false};}; f.json=null; return f;}};"""
 async def main(BASE):
     files = sorted(p.replace(str(ROOT) + "/", "") for p in glob.glob(str(ROOT / "tools/*.py")) + glob.glob(str(ROOT / "tools/*.sh")))
     async with async_playwright() as p:
@@ -35,6 +35,8 @@ async def main(BASE):
               % (len(files), r["state"], found, len(ans), viaread, len(reads), r["prov"].get("tool_calls"), r["prov"].get("commit"), note[note.index("Stop hook"):]))
         run = [v for k, v in st.items() if k.startswith("runs/")]
         print("run record:", (run[0]["id"], len(run[0]["spans"]), "spans", len(run[0]["debug"]), "log lines", run[0]["results"][0]["state"]) if run else "MISSING")
+        calls = [(x["name"].split("· ")[-1], x["ms"]) for x in run[0]["spans"] if x["kind"] == "model"]
+        print("calls:", calls)
         print("not found:", [a.split(" runs")[0] for a in ans if "(not found)" in a], "| js errors:", errs or "none")
         await b.close()
 with served() as BASE:
