@@ -205,3 +205,9 @@ design under the same stand-in is about 15 s. Run 4 on the real model decides it
 
 Projection: about 3 s of model time (L-53, L-56, L-57, L-58), 0.15 s writing (L-54), no burst wait (L-55):
 about 3.2 s end to end, 6x. The last stretch to 9x rests on L-53 running six calls truly in parallel.
+
+Measured, run 4 (11:22 UTC, founder's phone): one turn of 8.2 s for 30 questions (run 3: 17.3 s), so 2.1x, not 9x.
+Titles 30 of 30 exact, but the reply format drifted in 4 of 6 calls ("pong 11; # ...", "pong 16 | # ..."), so a
+strict "pong N # title" check scores 10 of 30. The bundles landed in pairs (11:23:01.0/01.4, 03.5/03.7, 05.9/06.1):
+the platform ran two calls at a time, not six. L-53 is wrong as built; its fix is as many calls as run at once
+(two), so each waits once. Also seen: repo.json took 2.8 s to load on the phone before any answering began.
