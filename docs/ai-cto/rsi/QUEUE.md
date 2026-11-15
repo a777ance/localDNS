@@ -16,6 +16,7 @@ Ranked. The probe (`runs/exp-width.json`) measured 2 calls running and 6 held pe
 
 - [x] **L-135 · Many answers per call.** Done: pass 7, 250 answers a call at about 300 characters a second a lane. Two lanes make about 430 characters a second; the lever is how much each call answers. One call of 177 titles, then 500. Wrong if: characters per second fall as the call grows.
 - [x] **L-136 · Shorter answers.** Done: pass 7, 39 characters an answer (pass 6: 48). Drop the `pong N #` prefix: reply `N<tab>title`. Pass 6's 48 characters an answer becomes about 35. Wrong if: accuracy falls or the saving is under 20%.
+- [ ] **L-155 · Read much, write little (pass 8).** Reading costs about 0.086 s per 1,000 characters and writing about 2 s (fitted from the probe and pass 7). Give each shard its own slice and have the model write only where it matters. Wrong if: the turn misses the cost model's prediction by more than 20%, or silence hides overlooked slices.
 - [ ] **L-137 · Two pages, four lanes.** The refusal says "from this page". Run the width probe with the page open twice. Wrong if: both pages still share 2 running calls.
 - [ ] **L-138 · Shard a shot across pages.** Each open page claims a slice of the asks with a versioned write, so pages never double-run. Needs L-137 true. Wrong if: two pages answer the same ask.
 - [x] **L-139 · A repeat field.** Done: pass 7, `fleet` expands in the page. A shot names a corpus and a count; the page expands it, so 1000 asks are not typed by hand. Wrong if: expanded ids collide on re-fire.

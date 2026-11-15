@@ -7,6 +7,8 @@ ROOT = HERE.parents[2]
 mock = open(HERE / 'mockdb.js').read()
 SAMPLE = r"""window.__calls=0;window.__in=0;window.__max=0;window.__models=[];window.claude={use:async function(n){ if(n==="db")return window.__mockdb; if(n!=="sample")return null;
  var f=async function(input,opts){window.__calls++;window.__in++;window.__max=Math.max(window.__max,window.__in);window.__models.push(opts.model||"(none)");
+   if(String(input).indexOf("numbered slices")>0){var parts=String(input).split(/\n?=== slice (\d+) · [^\n]* ===\n/),ls=[];for(var i=1;i<parts.length;i+=2){var mm=parts[i+1].replace(/\n=== end of slices ===$/,"").match(/DEC-\d{3}/);if(mm)ls.push(parts[i]+": "+mm[0])}
+     await new Promise(function(z){setTimeout(z,300)});window.__in--;return {text:ls.join("\n")+"\nEND",truncated:false,modelApplied:opts.model||"quick"};}
    var p=String(input),qs=p.split("=== ATTACHED")[0].split("\n").filter(function(l){return /^\d+\. Round /.test(l)});
    var lines=qs.map(function(l){var m=l.match(/^(\d+)\. Round (\d+): (\S+)/);var sec=p.split("=== "+m[3]+" (")[1]||"";var h=sec.split("\n").filter(function(x){return x.indexOf("# ")===0})[0]||"?";return / title$/.test(l)?m[1]+": "+h.slice(2).trim():m[1]+": pong "+m[2]+" "+h});
    await new Promise(function(z){setTimeout(z,400+40*lines.length)});window.__in--;return {text:lines.join("\n"),truncated:false,modelApplied:opts.model||"quick"};}; f.json=null; return f;}};"""
@@ -42,6 +44,15 @@ async def main(BASE):
         st = await pg.evaluate("window.__store"); r2 = [v for v in st.values() if v.get("kind") == "shot-result" and v["re"] == "F2"][0]
         print("fleet 1000: state %s | answered %d | check %s | calls %d, max at once %d | files %s"
               % (r2["state"], r2["counts"]["answered"], {k: r2["check"][k] for k in ("exact", "missed")}, await pg.evaluate("window.__calls"), await pg.evaluate("window.__max"), r2["check"]["files"]))
+        # slice shot: 1000 shards of 1000 characters, sparse answers, graded by the page against a regex
+        await pg.evaluate("window.__calls=0;window.__max=0")
+        await pg.evaluate("d=>window.__mockdb.doc('mail/F3').set(d)", {"id": "F3", "from": "cloud", "to": "page", "subject": "slices", "body": "x", "model": "claude-haiku-5-5", "concurrency": 2,
+            "per_call": 125, "tools": False, "jury": False, "deadline_ms": 120000,
+            "fleet": {"slice": 1000, "ask": "copy the first decision id", "count": 1000, "sparse": True, "check": {"first_match": "DEC-\\d{3}"}}, "sent_at": "2026-11-15T22:00:00Z", "ts": 3})
+        await pg.wait_for_function("Object.values(window.__store).some(function(v){return v.kind==='shot-result'&&v.re==='F3'})", timeout=120000)
+        st = await pg.evaluate("window.__store"); r3 = [v for v in st.values() if v.get("kind") == "shot-result" and v["re"] == "F3"][0]
+        print("slices 1000: state %s | answered %d | check %s | calls %d, max at once %d | sha %s"
+              % (r3["state"], r3["counts"]["answered"], {k: r3["check"][k] for k in ("slices", "slice_chars", "expected_hits", "exact", "missed")}, await pg.evaluate("window.__calls"), await pg.evaluate("window.__max"), r3["check"]["expected_sha256"][:16]))
         print("js errors:", errs or "none"); await b.close()
 with served() as BASE:
     asyncio.run(main(BASE))
