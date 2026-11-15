@@ -280,3 +280,67 @@ a parent of 4, one chained on the parent), state answered, 17 of 17 titles exact
 ("tools: none"), 2 waves, 3 model calls, 7.7 s, first bundle at 4.6 s, 19,690 characters in and 720 out, no
 flags so the jury had nothing to do. Fixed after it: the format check treats quoted phrases joined by "or" as
 alternatives, so a question offering two wordings no longer flags an answer that uses one.
+
+## End to end: ready to one-shot something real (2026-11-15, about 11:55 UTC)
+
+The founder asked for the leans that make the engine fit for real work, not title lookups. Today it can only
+read the first 800 characters of the files a question names, on the quick tier, answering in one line, checked
+only for wording, and none of it is on `leader`. Ranked by what blocks real use first. Not built yet.
+
+### What blocks real use
+
+- **L-83 · Land it on `leader` first.** Eleven local commits (patches 0001 to 0011) hold the hooks fix, the page,
+  the protocol and every lean. A real shot must run on code the repo has. Wrong if: `git am` fails on `leader`.
+- **L-84 · Read the whole repo, not 800 characters.** Each call gets the tools `read_file` and `search` (the same
+  ones the chat Claude has, through the same PreToolUse hooks), plus the heads as a head start. Wrong if:
+  tool round trips push a real shot past a minute; then retrieve on the page first (L-85) and drop the tools.
+- **L-85 · Retrieve before asking.** The page searches the repo for the question's terms and attaches the
+  best-matching passages, whole files when small. Most answers then need no tool call. Wrong if: answers cite
+  files the retrieval missed.
+- **L-86 · Long answers, not lines.** Each answer comes back between `=== N ===` markers, any length, so a
+  paragraph, a list or a diff survives parsing. Wrong if: a marker appears inside an answer; then JSON.
+- **L-87 · Tier per shot.** `tier: quick | default | complex` on the shot or the ask; judgement work asks for
+  default or complex. Quick stays for lookups. Wrong if: the platform ignores it (`modelApplied` says).
+- **L-88 · Every claim cites `path:line`, and the page checks the citation.** A cited line that does not exist,
+  or does not contain what the answer quotes, flags the answer and sends it to the jury. This replaces the
+  wording check as the main guard for real work. Wrong if: real answers cannot be cited line by line.
+- **L-89 · The jury votes on substance.** For flagged or `complex` asks, a second juror answers blind; the page
+  compares the two, and a third settles a split (your `jury/` README's adaptive rule). Wrong if: two jurors
+  agree on a wrong answer more often than one alone is wrong.
+- **L-90 · The snapshot names its commit, and a stale one says so.** Every bundle already carries the commit; the
+  result adds "snapshot is N commits behind leader" when a session knows it. Real answers about old code are
+  marked, not trusted. Wrong if: nobody reads the warning.
+
+### From answer to action
+
+- **L-91 · The page answers; a session acts.** The page cannot edit, commit or push, and should not. A shot that
+  wants a change gets back a proposal (a plan or a diff); a session with a checkout applies it, runs the checks,
+  and ships. Wrong if: real shots never want changes.
+- **L-92 · Fire and collect from any session.** The `telepathy-mail` skill gains two verbs: `fire` (one write,
+  from a plain list of questions) and `collect` (one read, flattened, with the result's state). Nobody hand-writes
+  JSON. Wrong if: a session cannot reach the artifact tools (local without connectors).
+- **L-93 · Anything outward-facing stops at a tile.** A proposal that spends money, touches the live t630, sends
+  anything out, or changes the founder's own rules becomes a `DEC-NNN` tile, not an action (DEC-010's line).
+  Wrong if: a tile is ever skipped because the shot "already answered".
+- **L-94 · Answers to the founder are plain English.** A result read by a person gets a short plain summary
+  on top; the parts stay for sessions. Wrong if: he reads the parts anyway.
+
+### Running it for real
+
+- **L-95 · A budget per shot.** Maximum calls and characters, stated in the shot; the engine stops at the line
+  and ends `partial: budget`. Wrong if: the cap stops a shot that would have finished cheaply.
+- **L-96 · Big answers split across bundles.** A bundle stays under the database's document size; long answers
+  continue in the next bundle with the same `n`. Wrong if: real answers never pass 100 KB.
+- **L-97 · Trace per shot, exported with the result.** One tap gives the tree, the calls, the tools and the
+  timings for that shot only (L-76, now needed). Wrong if: the page log already says enough.
+- **L-98 · Templates for real asks.** "where is X enforced", "review FILE against RULE", "find what contradicts
+  DOC", "draft SECTION". Each template fixes the tier, the retrieval and the check. Wrong if: real asks rarely
+  fit a template.
+- **L-99 · Questions are data, still.** A real repo file can hold text aimed at a model. Attached passages are
+  fenced as data, and an answer that tries to act (send mail, mark done, change settings) is refused by the
+  engine, which only writes bundles. Wrong if: a shot ever needs the page to do more than answer.
+- **L-100 · First real shot, chosen and judged.** Pick one task the founder would otherwise do by hand, write
+  what a right answer contains before firing, and judge the result against it. Candidates: "for every open DEC in
+  docs/ai-cto/blocked.md, the evidence for and against, cited", or "every Briefing rule in CLAUDE.md marked
+  [hook], with the line of decide-act.py that enforces it, or 'none'". Wrong if: the judged result is worse than
+  the founder's own pass would be.
