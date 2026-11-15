@@ -1526,6 +1526,19 @@ function shotTools(s1,cost,harnessP){
     try{await harnessP;if(!DATA)await READY;var h=harnessTools().filter(function(x){return x.name===name})[0];var r=h?await h.execute(a,ts):await t.execute(a);endSpan(ts,String(r));return r}
     catch(e){endSpan(ts,undefined,"error",e);throw e}}}});
 }
+/* L-101: split a wave by expected work, not by count. A question whose named files all have a complete header
+   attached costs 1; one that will need a read (no complete header, or a chained input) costs READ_WEIGHT (12, from pass 4's run record).
+   Pass 4's run record: the call holding the one read took 16.7 s, the other 8.9 s. Heaviest first, into the
+   lightest call; each call keeps its questions in their original order. */
+var READ_WEIGHT=12; // measured: pass 4, call 1 answered 12 in 8.9 s (0.74 s each); call 2, 11 plus one read, 16.7 s: a read is about 12 answers
+function unitWeight(u){var re=/[A-Za-z0-9_.\/-]+\.(?:md|py|sh|json|js|html|txt|ya?ml|toml|conf)\b/g,ps=(String(u.text).match(re)||[]).map(function(p){return p.replace(/^\.\//,"")});
+  if(u.from)return READ_WEIGHT;if(!ps.length)return 1;
+  return ps.every(function(p){return HEADS&&HEADS.complete&&HEADS.complete.indexOf(p)>=0})?1:READ_WEIGHT}
+function splitByWork(units,k){var bins=[];for(var i=0;i<k;i++)bins.push({w:0,u:[]});
+  units.map(function(u,i){return {u:u,i:i,w:unitWeight(u)}}).sort(function(a,b){return b.w-a.w||a.i-b.i}).forEach(function(x){
+    var b=bins.reduce(function(m,c){return c.w<m.w?c:m});b.w+=x.w;b.u.push(x)});
+  return bins.filter(function(b){return b.u.length}).map(function(b){return b.u.sort(function(a,c){return a.i-c.i}).map(function(x){return x.u})});
+}
 async function callModel(prompt,label,turn,cost,harnessP){var s1=span("model",label,turn,{messages:[{role:"user",content:prompt}],options:{modelTier:"quick",tools:SHOT_TOOLS}}),r=null,err=null;
   for(var t=0;t<2&&!r;t++){try{r=await sample(prompt,{modelTier:"quick",tools:shotTools(s1,cost,harnessP)})}catch(e){err=e;s1.meta["try"+(t+1)]=(e&&e.code)||String(e);if(t===0)await new Promise(function(z){setTimeout(z,1500)})}}
   cost.calls++;cost.chars_in+=prompt.length;
@@ -1540,7 +1553,7 @@ async function runShot(m,turn,bubble,harnessP){
     if(deadline&&performance.now()-t0>deadline){why="deadline ("+deadline+" ms) passed with "+open.length+" unanswered";break}
     var ready=open.filter(function(l){return !l.from||ans[l.from]!=null||composed(l.from,ans,tree)!=null});
     if(!ready.length){why=open.length+" question(s) wait on answers that cannot arrive ("+open.map(function(l){return l.path+" from "+l.from}).join(", ")+")";break}
-    wave++;var per=Math.ceil(ready.length/Math.min(CONCURRENT,ready.length)),calls=[];for(var i=0;i<ready.length;i+=per)calls.push(ready.slice(i,i+per));
+    wave++;var calls=splitByWork(ready,Math.min(CONCURRENT,ready.length));
     await Promise.all(calls.map(async function(units,c){
       var withIn=units.map(function(u){if(!u.from)return u;var src=ans[u.from]?ans[u.from].body:composed(u.from,ans,tree);return {path:u.path,from:u.from,text:u.text+" (input, answer "+u.from+": "+src+")"}});
       var text;try{text=await callModel(shardPrompt(withIn),"shot "+m._id.slice(-8)+" · wave "+wave+" · call "+(c+1)+"/"+calls.length,turn,cost,harnessP)}catch(e){failed.push("wave "+wave+" call "+(c+1)+": "+e.message);return}
