@@ -9,7 +9,7 @@ The repo explorer runs as a claude.ai artifact owned by the founder, private to 
 | Link | <https://claude.ai/artifact/2aFAqChU6xYTiwEc1ukh8R> (opens only for its owner) |
 | Shared with | owner only (`read: owner`) |
 | Runtime contract | 0.2.96 |
-| Capabilities | `{"sample": {}, "db": {}}`: Claude calls from the page, and one shared document store |
+| Capabilities | `{"sample": {}, "db": {}, "downloads": true}`: Claude calls from the page, one shared document store, and saving a file (the mailbox export) |
 
 provenance: O · read with the artifact tools (`read_declaration`, `list_files`) · 2026-11-15 · verify: same calls
 
@@ -53,7 +53,7 @@ and `bin.json` are not committed: they are this repo's own files repacked (2 MB 
 
     bash tools/browser/explorer/rebuild.sh OUT_DIR
 
-The back end is the platform: the artifact's `sample` and `db` capabilities, declared in `artifact.json`. The
+The back end is the platform: the artifact's `sample`, `db` and `downloads` capabilities, declared in `artifact.json`. The
 database holds only the mailbox (`tools/telepathy/ARTIFACT-BUS.md`); there is no other server.
 
 ## Reconstruct in a fresh Claude profile

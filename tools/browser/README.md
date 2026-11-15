@@ -47,5 +47,5 @@ and `build.py`, which embeds `hooks.js` and the shim and writes the page's data 
     python3 tools/browser/explorer/build.py /tmp/localdns-explorer
 
 Publish the four files it writes (`index.html`, `repo.json`, `heads.json`, `bin.json`) to the artifact. The
-artifact declares `sample` and `db`; the mailbox protocol is `tools/telepathy/ARTIFACT-BUS.md`. Where the artifact
+artifact declares `sample`, `db` and `downloads`; the mailbox protocol is `tools/telepathy/ARTIFACT-BUS.md`. Where the artifact
 lives, what it serves, and how to republish it: `explorer/ARTIFACT.md`.

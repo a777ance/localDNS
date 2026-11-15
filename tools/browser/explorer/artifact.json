@@ -5,7 +5,7 @@
   "url": "https://claude.ai/artifact/2aFAqChU6xYTiwEc1ukh8R",
   "read": "owner",
   "contract": "0.2.96",
-  "capabilities": {"sample": {}, "db": {}},
+  "capabilities": {"sample": {}, "db": {}, "downloads": true},
   "db_rules": "none declared: the platform defaults (signed-in viewers read; Contributors and up write)",
   "collections": {"mail": "tools/telepathy/ARTIFACT-BUS.md"},
   "files": ["index.html", "repo.json", "heads.json", "bin.json"],
