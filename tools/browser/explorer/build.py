@@ -40,7 +40,8 @@ def main() -> int:
     if "@@HOOKS_JS@@" in page or "@@BROWSER_SHIM@@" in page:
         sys.exit("FAILED: a placeholder was not filled")
     files, bins = [], {}
-    for p in [p for p in subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).decode().split("\0") if p]:
+    # dist/ is this build's own output, committed for the record; the page does not embed itself
+    for p in [p for p in subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).decode().split("\0") if p and not p.startswith("tools/browser/explorer/dist/")]:
         fp = ROOT / p
         if fp.is_symlink() or not fp.is_file():
             files.append({"p": p, "s": 0, "t": "", "k": "link"})
