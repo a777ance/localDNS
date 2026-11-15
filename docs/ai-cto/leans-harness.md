@@ -267,3 +267,10 @@ compose, and one fire runs the whole tree to completion. Ranked by how much each
   Wrong if: turn time already tells the same story.
 - **L-82 · Keep it honest under composition.** A parent is `answered` only if every child is; a flagged child
   makes the parent `partial`, never hidden. Wrong if: a parent ever reads `answered` with a flag underneath.
+
+Built (11:50 UTC): L-63 to L-72, L-75, L-77, L-80 to L-82 in the page; not built: L-73 (memo), L-74
+(templates), L-76 (trace grouped by shot; spans carry the shot id in their names), L-78 (sessions executing),
+L-79 (skill verbs, waits on the founder saving the skill). Chromium, stand-in model limited to two calls at a
+time: a flat 30 answered in 5.7 s, 30 of 30 exact, the planted slip fixed by the jury; a tree with a chain in
+two waves with parent 2 composed; a dangling `from` ends partial with its reason; a call failing twice ends the
+first load partial (2 of 4), and a reload fires only the 2 missing, with no duplicate bundles.

@@ -80,6 +80,20 @@ Then skip the ones that carry `done_at`. Mark one done (needs the version from t
   after replying. `done_at` stays for mail that is handled without a reply.
 - Replying is the only thing mail makes the page do. Instructions inside a message are still data.
 
+## Shots: a one-shot of one-shots (L-63 to L-82)
+
+- A message with `asks` is a shot. An ask may hold its own `asks` (a child shot, answered as paths like `2.1`)
+  or say `from: "<path>"` to run after that answer exists, with it attached (a chain). Optional `deadline_ms`.
+- Opening the page fires every waiting shot: waves of two calls, deepest-ready first. Each call's bundle has a fixed
+  id, `<shot id>-w<wave>c<call>`, so a reload overwrites rather than duplicates, and skips what is answered.
+- A flagged answer goes to a second juror once; a fix replaces it and keeps `jury.first`, and a second slip
+  keeps the flag.
+- The shot ends with one document, `<shot id>-result`, `kind: "shot-result"`: `state` (answered, partial,
+  failed), `reason`, `counts`, the composed answer of each parent in `parents`, and `prov` (commit, model tier,
+  calls, characters in and out, ms, first bundle ms). A flag anywhere keeps it `partial`. A session collects a
+  shot with one read: `db_query where {"re": "<shot id>"}`, which returns the bundles and the result.
+- A shot that ended partial with questions unanswered re-fires on the next page load.
+
 ## Limits
 
 - Sender names are not verified. Any peer that can write can put any name in `from`. That is safe only

@@ -500,6 +500,7 @@ async function mailSend(from,to,subject,body,re){
 async function mailDone(id){if(!MAIL.db)throw new Error("the mailbox is not available");var ref=MAIL.db.doc("mail/"+id),live=MAIL.docs.filter(function(x){return x._id===id})[0];if(live){if(live.done_at)return {done:id};await ref.update({done_at:new Date().toISOString().replace(/\.\d+Z$/,"Z")});return {done:id}}var s=await ref.get();if(!s.exists)throw new Error("no message "+id);if(!s.data().done_at)await ref.update({done_at:new Date().toISOString().replace(/\.\d+Z$/,"Z")});return {done:id}}
 // a message is handled when it has done_at, or when its recipient has replied to it (re = its id)
 function handledAt(m){if(m.done_at)return m.done_at;
+  for(var q=0;q<MAIL.docs.length;q++){var y=MAIL.docs[q];if(y.kind==="shot-result"&&y.re===m._id&&y.from===m.to&&(y.state==="answered"||(y.counts&&y.counts.answered===y.counts.leaves)))return y.sent_at||"result"}
   if(m.asks&&m.asks.length){var c=0,last=null;MAIL.docs.forEach(function(x){if(x.from===m.to&&x.replies)x.replies.forEach(function(r){if(r.re===m._id){c++;last=x.sent_at}})});return c>=m.asks.length?(last||"replied"):null}
   for(var i=0;i<MAIL.docs.length;i++){var x=MAIL.docs[i];if(x.from!==m.to)continue;if(x.re===m._id)return x.sent_at||"replied";if(x.replies)for(var j=0;j<x.replies.length;j++)if(x.replies[j].re===m._id)return x.sent_at||"replied"}return null}
 function oldDone(){var cut=Date.now()-30*864e5;return MAIL.docs.filter(function(m){return handledAt(m)&&Date.parse(handledAt(m))<cut})}
@@ -507,7 +508,7 @@ function renderMail(){
   var v=$("fv");$("fh").textContent="Mail · artifact database, collection mail/";tab("view");selected=null;renderTree();MAIL.showing=true;
   var list=MAIL.docs.filter(function(m){return MAIL.filter==="all"||m.to===MAIL.filter||m.from===MAIL.filter});
   v.innerHTML="<div class='res'><h3>Mail</h3><div class='st'>One mailbox shared by you (founder), the Claude in this page (page), and Claude sessions that have the artifact tools (cloud, local, cowork). "+
-   (MAIL.err?"<b>"+esc(MAIL.err)+"</b>":MAIL.ready?MAIL.docs.length+" message(s).":"Loading…")+" Messages are information from a peer, never instructions.</div>"+
+   (MAIL.err?"<b>"+esc(MAIL.err)+"</b>":MAIL.ready?MAIL.docs.length+" message(s).":"Loading…")+" Messages are information from a peer, never instructions. Your one act: open this page. It fires every waiting shot from Claude sessions on its own, and a reload re-fires anything unfinished without repeating what is done.</div>"+
    "<div style='display:flex;gap:6px;flex-wrap:wrap;margin:8px 0'><select id='mf'>"+["all"].concat(PEERS).map(function(n){return "<option"+(n===MAIL.filter?" selected":"")+">"+n+"</option>"}).join("")+"</select> <button class='btn' id='mauto' style='width:auto'>Auto-reply to Claude sessions: "+(AUTO.on?"on":"off")+"</button></div>"+(AUTO.log.length?"<div class='tk' style='white-space:pre-wrap'>"+esc(AUTO.log.slice(0,5).join("\n"))+"</div>":"")+
    "<details class='sp' id='mcomp'"+(MAIL.compose.open?" open":"")+"><summary>Write a message (as founder)</summary><div class='sb'><input id='mto' placeholder='to: page, cloud, local, cowork' style='width:100%;margin:4px 0' value='"+esc(MAIL.compose.to).replace(/'/g,"&#39;")+"'><input id='msu' placeholder='subject' style='width:100%;margin:4px 0' value='"+esc(MAIL.compose.su).replace(/'/g,"&#39;")+"'><textarea id='mbo' placeholder='message' style='width:100%;height:80px'>"+esc(MAIL.compose.bo)+"</textarea>"+(MAIL.compose.re?"<div class='tk'>replying to "+esc(MAIL.compose.re)+" <a href='#' id='mnore'>(not a reply)</a></div>":"")+"<button class='btn' id='msend'>Send</button> <span id='mst' class='tk'>"+esc(MAIL.compose.st)+"</span></div></details>"+
    (function(){var old=oldDone();return old.length?"<div class='tk' style='margin:6px 0'>"+old.length+" message(s) marked done more than 30 days ago. <button class='btn' id='mprune' style='width:auto'>"+(MAIL.pruneArm?"Tap again to delete "+old.length:"Clean up")+"</button> <span id='mprst'>"+esc(MAIL.pruneSt||"")+"</span></div>":(MAIL.pruneSt?"<div class='tk'>"+esc(MAIL.pruneSt)+"</div>":"")})()+
@@ -543,7 +544,7 @@ function autoNote(t){AUTO.log.unshift(new Date().toISOString().slice(11,19)+" "+
 function autoScan(){
   if(!AUTO.on||!sample)return;
   MAIL.docs.slice().reverse().forEach(function(m){
-    if(m.to!=="page"||handledAt(m)||LLM_PEERS.indexOf(m.from)<0||AUTO.seen[m._id])return;
+    if(m.to!=="page"||m.kind==="shot-result"||handledAt(m)||LLM_PEERS.indexOf(m.from)<0||AUTO.seen[m._id])return;
     AUTO.seen[m._id]=1;
     var d=threadDepth(m);
     if(/\[end\]\s*$/i.test(m.subject||"")||/\[end\]\s*$/i.test(m.body||"")){autoNote("not answering "+m._id+": the message ends with [end]");return}
@@ -580,12 +581,66 @@ function shardPrompt(units){
 // a phrase the question quotes ('...') must appear in the answer followed by a space or the end, or the answer is flagged
 function formatMiss(q,a){var m,re=/(?:^|[\s(\[])'([^']{1,60})'(?=[\s,.;:)\]]|$)/g,miss=[];while((m=re.exec(String(q)))){var ph=m[1];if(/^# ?$/.test(ph))continue;var i=String(a).indexOf(ph);if(i<0||!/^(\s|$)/.test(String(a).slice(i+ph.length,i+ph.length+1)))miss.push(ph)}return miss}
 function parseLines(text,k){var out={},cur=null;String(text||"").split("\n").forEach(function(l){var m=l.match(/^\s*(\d+)\s*[:.)]\s?(.*)$/);if(m&&+m[1]>=1&&+m[1]<=k){cur=+m[1];out[cur]=m[2]}else if(cur&&l.trim())out[cur]+="\n"+l});return out}
-async function writeBundles(units,answers){
-  var bySrc={},n=0;units.forEach(function(u,i){var a=answers[i+1];if(a==null)return;var e=u.n!=null?{re:u.src._id,n:u.n,body:a}:{re:u.src._id,body:a},fm=formatMiss(u.text,a);if(fm.length){e.flag="format: expected "+fm.map(function(x){return "'"+x+"' then a space"}).join(", ");AUTO.flagged=(AUTO.flagged||0)+1}(bySrc[u.src._id]=bySrc[u.src._id]||{m:u.src,r:[]}).r.push(e)});
-  await Promise.all(Object.keys(bySrc).map(async function(k){var b=bySrc[k],id=mailId(),now=new Date();
-    var doc={id:id,from:"page",to:b.m.from,subject:"re: "+(b.m.subject||""),re:b.m._id,body:b.r.length+" answer(s) in replies",replies:b.r,sent_at:now.toISOString().replace(/\.\d+Z$/,"Z"),ts:now.getTime(),via:"artifact-page"};
-    await MAIL.db.doc("mail/"+id).set(doc);n+=b.r.length}));
-  return n;
+/* ---------- the shot engine: a one-shot of one-shots (L-63 to L-82) ----------
+   A shot is a message with asks; an ask may hold asks (a child shot, L-65) or say from: "<path>" (a chain, L-67).
+   One fire walks the tree in waves of CONCURRENT calls (L-66). Bundles have fixed ids, so a re-fire overwrites and
+   skips what is answered (L-69). Flagged answers go to a second juror (L-71). The shot ends in one state, written
+   once, with provenance and cost (L-64, L-75, L-77, L-81); a flag anywhere keeps it partial (L-82). */
+function shotTree(m){var leaves=[],parents={};
+  function walk(asks,prefix){asks.forEach(function(a,i){var p=prefix+String(a.n!=null?a.n:i+1);
+    if(a.asks&&a.asks.length){parents[p]=a;walk(a.asks,p+".")}else leaves.push({path:p,text:a.body||a.q||"",from:a.from!=null?String(a.from):null})})}
+  if(m.asks&&m.asks.length)walk(m.asks,"");else leaves.push({path:"",text:m.body||"",from:null});
+  return {leaves:leaves,parents:parents};
+}
+function composed(path,ans,tree){var kids=tree.leaves.filter(function(l){return l.path.indexOf(path+".")===0});if(!kids.length||kids.some(function(l){return ans[l.path]==null}))return null;
+  return kids.map(function(l){return l.path+": "+ans[l.path].body}).join("\n")}
+function existingAnswers(shotId,from){var a={};MAIL.docs.forEach(function(x){if(x.from===from&&x.replies)x.replies.forEach(function(r){if(r.re===shotId)a[r.n==null?"":String(r.n)]=r})});return a}
+function juryPrompt(units,prev){return shardPrompt(units)+"\n\n=== YOUR FIRST ANSWERS, WHICH BROKE THE REQUIRED WORDING ===\n"+units.map(function(u,i){return (i+1)+": "+prev[i].body+"   <- "+prev[i].flag}).join("\n")+"\nAnswer these again, keeping exactly to the wording each question asks for."}
+async function writeBundle(m,bid,entries,prov){var now=new Date();
+  var doc={id:bid,from:"page",to:m.from,subject:"re: "+(m.subject||""),re:m._id,body:entries.length+" answer(s) in replies",replies:entries,prov:prov,sent_at:now.toISOString().replace(/\.\d+Z$/,"Z"),ts:now.getTime(),via:"artifact-page"};
+  await MAIL.db.doc("mail/"+bid).set(doc);return entries.length}
+async function callModel(prompt,label,turn,cost){var s1=span("model",label,turn,{messages:[{role:"user",content:prompt}],options:{modelTier:"quick"}}),r=null,err=null;
+  for(var t=0;t<2&&!r;t++){try{r=await sample(prompt,{modelTier:"quick"})}catch(e){err=e;s1.meta["try"+(t+1)]=(e&&e.code)||String(e);if(t===0)await new Promise(function(z){setTimeout(z,1500)})}}
+  cost.calls++;cost.chars_in+=prompt.length;
+  if(!r){endSpan(s1,undefined,"error",err);throw new Error((err&&err.code)||String(err))}
+  ["modelApplied","model","usage"].forEach(function(x){if(r[x]!==undefined)s1.meta[x]=r[x]});if(r.modelApplied)cost.tier=r.modelApplied;cost.chars_out+=String(r.text||"").length;endSpan(s1,r.text);return r.text}
+async function runShot(m,turn,bubble){
+  var t0=performance.now(),tree=shotTree(m),ans=existingAnswers(m._id,m.to),skipped=Object.keys(ans).length;
+  var cost={calls:0,chars_in:0,chars_out:0,tier:"quick (asked)"},failed=[],jury={asked:0,fixed:0},wave=0,firstMs=null,deadline=m.deadline_ms||0,why=null;
+  var commit=(DATA&&DATA.commit||"").split(" ")[0]||null;
+  while(true){
+    var open=tree.leaves.filter(function(l){return ans[l.path]==null});if(!open.length)break;
+    if(deadline&&performance.now()-t0>deadline){why="deadline ("+deadline+" ms) passed with "+open.length+" unanswered";break}
+    var ready=open.filter(function(l){return !l.from||ans[l.from]!=null||composed(l.from,ans,tree)!=null});
+    if(!ready.length){why=open.length+" question(s) wait on answers that cannot arrive ("+open.map(function(l){return l.path+" from "+l.from}).join(", ")+")";break}
+    wave++;var per=Math.ceil(ready.length/Math.min(CONCURRENT,ready.length)),calls=[];for(var i=0;i<ready.length;i+=per)calls.push(ready.slice(i,i+per));
+    await Promise.all(calls.map(async function(units,c){
+      var withIn=units.map(function(u){if(!u.from)return u;var src=ans[u.from]?ans[u.from].body:composed(u.from,ans,tree);return {path:u.path,from:u.from,text:u.text+" (input, answer "+u.from+": "+src+")"}});
+      var text;try{text=await callModel(shardPrompt(withIn),"shot "+m._id.slice(-8)+" · wave "+wave+" · call "+(c+1)+"/"+calls.length,turn,cost)}catch(e){failed.push("wave "+wave+" call "+(c+1)+": "+e.message);return}
+      var got=parseLines(text,units.length),entries=[],flagged=[];
+      units.forEach(function(u,i){var a=got[i+1];if(a==null){failed.push(u.path+": no answer line");return}var e={re:m._id,body:a};if(u.path!=="")e.n=/^\d+$/.test(u.path)?+u.path:u.path;
+        var fm=formatMiss(withIn[i].text,a);if(fm.length){e.flag="format: expected "+fm.map(function(x){return "'"+x+"' then a space"}).join(", ");flagged.push({u:withIn[i],e:e})}entries.push(e)});
+      // L-71: a second juror for flagged answers only
+      if(flagged.length){jury.asked+=flagged.length;try{var jt=await callModel(juryPrompt(flagged.map(function(f){return f.u}),flagged.map(function(f){return f.e})),"jury · wave "+wave+" · call "+(c+1),turn,cost),jg=parseLines(jt,flagged.length);
+        flagged.forEach(function(f,k){var a2=jg[k+1];if(a2!=null&&!formatMiss(f.u.text,a2).length){f.e.jury={first:f.e.body,first_flag:f.e.flag};f.e.body=a2;delete f.e.flag;jury.fixed++}else if(a2!=null)f.e.jury={second:a2}})}catch(e){failed.push("jury: "+e.message)}}
+      try{await writeBundle(m,m._id+"-w"+wave+"c"+(c+1),entries,{commit:commit,tier:cost.tier,wave:wave,call:c+1});entries.forEach(function(e){ans[e.n==null?"":String(e.n)]=e});if(firstMs===null)firstMs=Math.round(performance.now()-t0)}
+      catch(e){failed.push("wave "+wave+" call "+(c+1)+" write: "+(e.message||e))}
+      bubble.innerHTML="<span style='color:var(--mute)'>"+Object.keys(ans).length+" of "+tree.leaves.length+" answered…</span>";
+    }));
+    if(failed.length){why=failed.join("; ");break}
+  }
+  var leaves=tree.leaves.length,answered=tree.leaves.filter(function(l){return ans[l.path]!=null}).length,flags=tree.leaves.filter(function(l){return ans[l.path]&&ans[l.path].flag}).length;
+  var state=answered===leaves&&!flags?"answered":answered?"partial":"failed";
+  if(!why&&flags)why=flags+" answer(s) still break the wording after the jury";
+  var parents={};Object.keys(tree.parents).forEach(function(p){var c=composed(p,ans,tree);if(c!=null)parents[p]=c});
+  var ms=Math.round(performance.now()-t0),now=new Date();
+  var result={id:m._id+"-result",kind:"shot-result",from:"page",to:m.from,re:m._id,subject:"result: "+(m.subject||""),state:state,reason:why,
+    body:state+": "+answered+" of "+leaves+" answered"+(flags?", "+flags+" flagged":"")+(why?" ("+why+")":""),
+    counts:{leaves:leaves,answered:answered,flagged:flags,reused:skipped,waves:wave,jury_asked:jury.asked,jury_fixed:jury.fixed},parents:parents,
+    prov:{commit:commit,tier:cost.tier,calls:cost.calls,chars_in:cost.chars_in,chars_out:cost.chars_out,ms:ms,first_bundle_ms:firstMs},
+    sent_at:now.toISOString().replace(/\.\d+Z$/,"Z"),ts:now.getTime(),via:"artifact-page"};
+  await MAIL.db.doc("mail/"+result.id).set(result);
+  return result;
 }
 async function autoRun(){
   if(!AUTO.on||busy||!AUTO.queue.length||!sample)return;
@@ -596,34 +651,22 @@ async function autoRun(){
   try{
     if(!DATA){var hd=await HEADS_READY;if(!hd){try{await READY}catch(e){}}}
     var harnessP=ensureHarness();
-    var units=[];msgs.forEach(function(m){if(m.asks&&m.asks.length)m.asks.forEach(function(a,i){units.push({src:m,n:a.n!=null?a.n:i+1,text:a.body||a.q||""})});else units.push({src:m,n:null,text:m.body||""})});
-    var per=Math.ceil(units.length/Math.min(CONCURRENT,units.length)),shards=[];for(var i=0;i<units.length;i+=per)shards.push(units.slice(i,i+per));
-    var head="[auto-mail] "+units.length+" question(s) in "+msgs.length+" message(s) from "+msgs.map(function(m){return m.from}).filter(function(x,i,a){return a.indexOf(x)===i}).join(", ")+", answered in "+shards.length+" parallel call(s)";
-    addMsg("u",esc(head));var bubble=addMsg("a","<span style='color:var(--mute)'>Answering "+units.length+" question(s) in "+shards.length+" parallel calls…</span>");
-    var turn=span("turn","auto-mail (parallel)",null,{question:head});turn.meta.harness=H.on?"on":"off";CUR.turn=turn;
-    var t0=performance.now();autoNote("one turn: "+units.length+" question(s), "+shards.length+" parallel call(s)");
-    var done=0,failed=[],firstSaved=null;AUTO.flagged=0;
-    await Promise.all(shards.map(async function(sh,k){
-      var prompt=shardPrompt(sh),s1=span("model","model call: shard "+(k+1)+"/"+shards.length,turn,{messages:[{role:"user",content:prompt}],options:{modelTier:"quick"}}),r=null,err=null;
-      for(var tries=0;tries<2&&!r;tries++){try{r=await sample(prompt,{modelTier:"quick"})}catch(e){err=e;s1.meta["try"+(tries+1)]=(e&&e.code)||String(e);if(tries===0)await new Promise(function(z){setTimeout(z,1500)})}}
-      if(!r){endSpan(s1,undefined,"error",err);failed.push("shard "+(k+1)+": "+((err&&err.code)||err));return}
-      ["modelApplied","model","usage"].forEach(function(x){if(r[x]!==undefined)s1.meta[x]=r[x]});endSpan(s1,r.text);
-      var ans=parseLines(r.text,sh.length),miss=[];for(var j=1;j<=sh.length;j++)if(ans[j]==null)miss.push(j);
-      if(miss.length)failed.push("shard "+(k+1)+": no line for "+miss.join(","));
-      var w=span("tool","write reply bundle (shard "+(k+1)+")",turn,{answers:Object.keys(ans).length});
-      try{var c=await writeBundles(sh,ans);done+=c;if(firstSaved===null)firstSaved=performance.now()-t0;endSpan(w,c+" saved")}catch(e){endSpan(w,undefined,"error",e);failed.push("shard "+(k+1)+" write: "+(e.message||e))}
-      bubble.innerHTML="<span style='color:var(--mute)'>"+done+" of "+units.length+" answered…</span>";
-    }));
-    var secs=Math.round((performance.now()-t0)/100)/10;
-    var txt=failed.length?"**Partial.**\n\nA · Answered "+done+" of "+units.length+" question(s) in "+shards.length+" parallel calls ("+secs+" s).\n\n**FAILED:** "+failed.join("; ")+".\n\nL · Nothing is open.\n\nStopping because: the turn was automatic mail, not a task; the unanswered questions stay in the mailbox for the next load.\n\n**Landed · N = "+units.length+":** "+done+" answered, "+(units.length-done)+" not."
-      :"**Done.**\n\nA · Answered "+units.length+" question(s) from "+msgs.map(function(m){return m.from}).filter(function(x,i,a){return a.indexOf(x)===i}).join(", ")+" in "+shards.length+" parallel calls, one reply bundle per call ("+secs+" s).\n\nL · Nothing is open.\n\nStopping because: the turn was automatic mail, not a task.\n\n**Landed · N = "+units.length+":** all "+units.length+" question(s) are answered, and each bundle marks its questions handled.";
+    var head="[auto-mail] "+msgs.length+" shot(s) from "+msgs.map(function(m){return m.from}).filter(function(x,i,a){return a.indexOf(x)===i}).join(", ");
+    addMsg("u",esc(head));var bubble=addMsg("a","<span style='color:var(--mute)'>Firing "+msgs.length+" shot(s)…</span>");
+    var turn=span("turn","auto-mail: "+msgs.length+" shot(s)",null,{question:head});turn.meta.harness=H.on?"on":"off";CUR.turn=turn;
+    var t0=performance.now(),results=[];
+    for(var i=0;i<msgs.length;i++){try{results.push(await runShot(msgs[i],turn,bubble))}catch(e){results.push({state:"failed",re:msgs[i]._id,reason:e.message||String(e),counts:{leaves:0,answered:0,flagged:0},prov:{calls:0,ms:0}})}}
+    var secs=Math.round((performance.now()-t0)/100)/10,all=results.every(function(r){return r.state==="answered"});
+    var tot=results.reduce(function(a,r){return a+(r.counts.leaves||0)},0),okN=results.reduce(function(a,r){return a+(r.counts.answered||0)},0);
+    var lines=results.map(function(r){return "A · Shot "+String(r.re).slice(-12)+": **"+r.state+"**, "+r.counts.answered+" of "+r.counts.leaves+" answered in "+(r.prov.ms/1000).toFixed(1)+" s, "+r.prov.calls+" model call(s)"+(r.counts.jury_asked?", jury fixed "+r.counts.jury_fixed+" of "+r.counts.jury_asked:"")+(r.reason?" ("+r.reason+")":"")+"."});
+    var txt=(all?"**Done.**":"**Partial.**")+"\n\n"+lines.join("\n")+"\n\nL · Nothing is open.\n\nStopping because: the turn was automatic mail, not a task"+(all?"":"; what did not finish stays in the mailbox, and a reload re-fires it without repeating what is done")+".\n\n**Landed · N = "+results.length+":** "+results.map(function(r){return String(r.re).slice(-12)+" "+r.state}).join(", ")+".";
     await harnessP;
     var chk=await stopHooks(head,txt,false,turn);
     bubble.innerHTML=md(txt);var nn=document.createElement("div");nn.className="m note";nn.textContent=(chk.block?"Stop hook blocked the page's briefing: "+chk.block.split("\n")[0]:"Stop hook passed.")+" · "+H.stat();$("msgs").appendChild(nn);
     history.push({role:"user",content:head});history.push({role:"assistant",content:txt});
     H.transcript.push({type:"user",message:{role:"user",content:head}},{type:"assistant",message:{role:"assistant",content:[{type:"text",text:txt}]}});
     turnSummary(turn,false);endSpan(turn,txt);
-    autoNote("turn took "+secs+" s"+(AUTO.flagged?"; "+AUTO.flagged+" answer(s) flagged for format":"")+"; first bundle saved at "+(firstSaved==null?"-":Math.round(firstSaved)+" ms")+(failed.length?"; FAILED: "+failed.join("; "):""));
+    autoNote("turn took "+secs+" s: "+results.map(function(r){return r.state+" "+r.counts.answered+"/"+r.counts.leaves+(r.counts.flagged?" ("+r.counts.flagged+" flagged)":"")+", first bundle "+(r.prov.first_bundle_ms==null?"-":r.prov.first_bundle_ms+" ms")}).join("; "));
   }catch(e){autoNote("FAILED: "+(e.message||e));dlog("auto-mail failed: "+(e&&e.stack||e))}
   finally{CUR.turn=null;setBusy(false);setTimeout(autoPump,0)}
 }
