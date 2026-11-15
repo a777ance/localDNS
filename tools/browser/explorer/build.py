@@ -51,7 +51,7 @@ def main() -> int:
         except UnicodeDecodeError:
             files.append({"p": p, "s": len(b), "k": "bin"})
             bins[p] = base64.b64encode(b).decode()
-    branch = git("rev-parse", "--abbrev-ref", "HEAD")
+    branch = os.environ.get("EXPLORER_BRANCH") or git("rev-parse", "--abbrev-ref", "HEAD")  # set it when building a detached checkout
     base = os.environ.get("EXPLORER_BASE", "leader 71e6ccc")
     data = {"repo": "a777ance/localDNS", "branch": branch if branch == "leader" else f"{branch} (on {base})",
             "commit": git("log", "-1", "--format=%h %cs %s"), "head": git("rev-parse", "HEAD"),
