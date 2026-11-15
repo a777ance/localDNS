@@ -211,3 +211,8 @@ Titles 30 of 30 exact, but the reply format drifted in 4 of 6 calls ("pong 11; #
 strict "pong N # title" check scores 10 of 30. The bundles landed in pairs (11:23:01.0/01.4, 03.5/03.7, 05.9/06.1):
 the platform ran two calls at a time, not six. L-53 is wrong as built; its fix is as many calls as run at once
 (two), so each waits once. Also seen: repo.json took 2.8 s to load on the phone before any answering began.
+Built after run 4 (11:30 UTC): two calls, not six (one wave); a stricter wording rule in the prompt and a
+`flag` on any answer whose quoted phrase is missing or followed by anything but a space; heads.json (the
+first 800 characters of every text file, 267 KB) so a mail turn starts without waiting for repo.json (2 MB).
+Chromium, stand-in model limited to two calls at a time, repo.json held back 2.5 s: first call 0.5 s after
+load, 5.2 s end to end, the two planted format slips flagged and no others.

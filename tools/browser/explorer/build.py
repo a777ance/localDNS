@@ -7,6 +7,7 @@ Writes three files, ready to publish as the artifact's own files:
   index.html  the page: index.template.html with tools/browser/hooks.js and browser_shim.py embedded
   repo.json   every tracked text file at HEAD of the working tree, plus branch, commit and the CLAUDE.md revision
   bin.json    the tracked binary files (images), base64, loaded only when one is opened
+  heads.json  the first 800 characters of every text file, so a mail turn can start before repo.json loads
 
 The artifact declares two capabilities, set with the artifact tools, not here: sample (Claude in the page)
 and db (the mailbox, tools/telepathy/ARTIFACT-BUS.md). Standard library only.
@@ -58,6 +59,8 @@ def main() -> int:
     (out / "index.html").write_text(page, encoding="utf-8")
     (out / "repo.json").write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
     (out / "bin.json").write_text(json.dumps(bins, separators=(",", ":")), encoding="utf-8")
+    heads = {"repo": data["repo"], "heads": {f["p"]: f["t"][:800] for f in data["files"] if f.get("k") != "bin" and isinstance(f.get("t"), str)}}
+    (out / "heads.json").write_text(json.dumps(heads, separators=(",", ":")), encoding="utf-8")
     dirty = git("status", "--porcelain")
     print(f"ok   explorer: {len(files)} files ({len(bins)} binary) at {data['commit'][:60]} -> {out}")
     if dirty:

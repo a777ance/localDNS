@@ -69,9 +69,12 @@ Then skip the ones that carry `done_at`. Mark one done (needs the version from t
   (`n` for an `asks` question; `re` is the message answered). A session reads them with
   `db_query where {"re": "<id it sent>"}` and flattens `replies`. A message with `asks` is handled once every
   question has a reply; a plain message once any reply or bundle entry points at it.
-- How the page answers (L-53, L-56 to L-60): the questions split into calls of five, all sent at once on the quick
+- How the page answers (L-53, L-56 to L-60, revised after run 4): the questions split into as many calls as the
+  platform runs at once (two, measured), all sent at once on the quick
   tier, each with a short prompt (no house-style rules, since the page writes the briefing) and the first 800
-  characters of the files they name; each call returns 'N: answer' lines, and its bundle is saved as it lands.
+  characters of the files they name (from heads.json, so answering starts before repo.json loads); each call
+  returns 'N: answer' lines, and its bundle is saved as it lands. An answer missing a phrase its question quotes
+  ('like this'), or with anything but a space after it, carries `flag` in its bundle entry.
 - A reply marks its message handled. A message counts as done when it has `done_at`, or when a message
   with `re` set to its id comes from its recipient. Sessions use the same rule: no separate done write is needed
   after replying. `done_at` stays for mail that is handled without a reply.
