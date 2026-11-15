@@ -14,33 +14,33 @@ pass 4's "complete headers" (the ledger). The second is L-86b from here on; L-13
 
 Ranked. The probe (`runs/exp-width.json`) measured 2 calls running and 6 held per page; these leans work inside or around that.
 
-- [ ] **L-135 · Many answers per call.** Two lanes make about 430 characters a second; the lever is how much each call answers. One call of 177 titles, then 500. Wrong if: characters per second fall as the call grows.
-- [ ] **L-136 · Shorter answers.** Drop the `pong N #` prefix: reply `N<tab>title`. Pass 6's 48 characters an answer becomes about 35. Wrong if: accuracy falls or the saving is under 20%.
+- [x] **L-135 · Many answers per call.** Done: pass 7, 250 answers a call at about 300 characters a second a lane. Two lanes make about 430 characters a second; the lever is how much each call answers. One call of 177 titles, then 500. Wrong if: characters per second fall as the call grows.
+- [x] **L-136 · Shorter answers.** Done: pass 7, 39 characters an answer (pass 6: 48). Drop the `pong N #` prefix: reply `N<tab>title`. Pass 6's 48 characters an answer becomes about 35. Wrong if: accuracy falls or the saving is under 20%.
 - [ ] **L-137 · Two pages, four lanes.** The refusal says "from this page". Run the width probe with the page open twice. Wrong if: both pages still share 2 running calls.
 - [ ] **L-138 · Shard a shot across pages.** Each open page claims a slice of the asks with a versioned write, so pages never double-run. Needs L-137 true. Wrong if: two pages answer the same ask.
-- [ ] **L-139 · A repeat field.** A shot names a corpus and a count; the page expands it, so 1000 asks are not typed by hand. Wrong if: expanded ids collide on re-fire.
-- [ ] **L-140 · Never ask for more than 6.** Width 8 lost 2 calls to `rate_limited`. Cap at 6 and queue the rest in the page. Wrong if: a refusal still appears in a run record.
-- [ ] **L-141 · No reads when the header is complete.** Pass 6's call 1 made 45 reads the other calls did without. Withhold the read tool when every ask in a call has a complete header. Wrong if: accuracy falls.
+- [x] **L-139 · A repeat field.** Done: pass 7, `fleet` expands in the page. A shot names a corpus and a count; the page expands it, so 1000 asks are not typed by hand. Wrong if: expanded ids collide on re-fire.
+- [x] **L-140 · Never ask for more than 6.** Done: `e2dc197`, capped at 6. Width 8 lost 2 calls to `rate_limited`. Cap at 6 and queue the rest in the page. Wrong if: a refusal still appears in a run record.
+- [x] **L-141 · No reads when the header is complete.** Done: pass 7, `tools: false`, 0 reads, 998 of 1000. Pass 6's call 1 made 45 reads the other calls did without. Withhold the read tool when every ask in a call has a complete header. Wrong if: accuracy falls.
 - [ ] **L-142 · Trim the input.** Pass 6 sent about 45,000 characters a call. Send only the first heading line for title asks, not the whole header. Wrong if: time to first character does not fall.
 - [ ] **L-143 · Measure time to first character.** Split each call's time into wait-before-output and output, so input and output costs are separate facts. Wrong if: the platform gives no streaming signal.
 - [ ] **L-144 · Skip the preamble for fleet calls.** The 18,112-character harness preamble rides on every call; a fleet ask may not need it. Wrong if: the Stop hook or format check starts failing.
 - [ ] **L-145 · Answer without the model.** A title is the file's first `# ` line: the page can read it from `repo.json` in milliseconds. The model is only needed where judgment is. Wrong if: the founder wants the model's throughput itself measured.
 - [ ] **L-146 · Model only for the hard tenth.** The page answers what a rule can (L-145) and sends the rest to the two lanes. Wrong if: the rule's answers disagree with the model's on a sample.
-- [ ] **L-147 · Jury off for fleet shots.** Jury calls took lanes during the width-8 probe. A fleet shot checks by exact match afterwards instead. Wrong if: flagged answers go unfixed and accuracy falls under 95%.
+- [x] **L-147 · Jury off for fleet shots.** Done: pass 7, `jury: false`. Jury calls took lanes during the width-8 probe. A fleet shot checks by exact match afterwards instead. Wrong if: flagged answers go unfixed and accuracy falls under 95%.
 - [ ] **L-148 · Why two answers were flagged.** Read the width-4 and width-8 bundles; the wording check or the count was wrong. Wrong if: neither is at fault.
-- [ ] **L-149 · Pipeline, not waves.** Keep exactly 2 running and 4 waiting at all times, refilling as each finishes, so no lane idles between waves. Wrong if: the gain over waves of 2 is under 5%.
+- [x] **L-149 · Pipeline, not waves.** Done: pass 7, lanes refill as calls finish. Keep exactly 2 running and 4 waiting at all times, refilling as each finishes, so no lane idles between waves. Wrong if: the gain over waves of 2 is under 5%.
 - [ ] **L-150 · Batch checkpoints.** Every 200 answers the page writes a result, so a dropped phone loses one batch. Wrong if: the writes cost more than 2% of the turn.
 - [ ] **L-151 · Faster writes.** A database write is about 140 ms; 1000 answers in bundles of 50 is 20 writes, in ones is 1000. Fix the bundle size from that. Wrong if: bundle size shows no effect on the turn.
 - [ ] **L-152 · Does a bigger model go faster per answer?** Same 177 titles on the quick tier and on Haiku by name, characters per second compared. Wrong if: they are within 10%.
 - [ ] **L-153 · A session-side fleet.** This session can start its own agents, outside the page's limit of 2. Measure how many run at once here. Wrong if: it is also capped low, or costs far more per answer.
-- [ ] **L-154 · The honest ceiling.** Write the measured limit into `ARTIFACT-BUS.md`: 2 running, 6 held, about 40 calls a minute a page, so no plan promises more without a new measurement. Wrong if: a later probe moves the numbers and the file is not updated.
+- [x] **L-154 · The honest ceiling.** Done: `e2dc197`, in `tools/telepathy/ARTIFACT-BUS.md`. Write the measured limit into `ARTIFACT-BUS.md`: 2 running, 6 held, about 40 calls a minute a page, so no plan promises more without a new measurement. Wrong if: a later probe moves the numbers and the file is not updated.
 
 ## Refill 1 · 2026-11-15, 12:58 UTC (2 left: pass 5 and the harder shot, so 30 more)
 
 - [x] **L-101 · Even out the calls (pass 5).** Done: pass 5, fastest yet (15.4 s), but the weight overshot; see L-133. Split questions by expected work, not count; pass 4's calls took
   8.9 s and 16.7 s. Target: pass 4's accuracy in 10 to 12 s. Wrong if: the slower call is slow for a reason the
   split cannot see.
-- [ ] **L-134 · Throughput: the haiku superfleet (pass 6).** One shot of every doc title (177), Claude Haiku by name
+- [x] **L-134 · Throughput: the haiku superfleet (pass 6).** Done: pass 6, 177 of 177 in 32.6 s; width 4 bought nothing (the platform runs 2). One shot of every doc title (177), Claude Haiku by name
   (the founder named it), four calls at once. Target: the turn under 60 s with at least 95% exact. Wrong if: the
   platform still runs two at a time, so width buys nothing.
 - [ ] **L-133 · Tune the read weight from every run record.** Pass 4 measured a read at 12 answers, pass 5 at

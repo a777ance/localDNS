@@ -1,0 +1,75 @@
+{
+ "pass": 7,
+ "shots": [
+  "20261115T212600-pass7one",
+  "20261115T212601-pass7k"
+ ],
+ "captured_by": "the page's run record runs/20261115T201303-expw8-run (named for the first shot in the turn) and the two result documents, read by the session with db_query",
+ "page_commit": "e2dc197",
+ "user_agent": "Android 16, moto g stylus 2026, Claude app 1.261104.19",
+ "model_applied": "claude-haiku-5-5 (all calls)",
+ "a_one_call": {
+  "answers": 177,
+  "calls": 1,
+  "ms": 25617,
+  "call_ms": [
+   25302
+  ],
+  "chars_in": 117080,
+  "chars_out": 6753,
+  "check": {
+   "exact": 177,
+   "missed": 0
+  }
+ },
+ "b_thousand": {
+  "answers": 1000,
+  "calls": 4,
+  "per_call": 250,
+  "lanes": 2,
+  "ms": 65766,
+  "call_ms": [
+   31501,
+   31576,
+   33266,
+   33041
+  ],
+  "first_bundle_ms": 31840,
+  "chars_in": 518539,
+  "chars_out": 38971,
+  "check": {
+   "exact": 998,
+   "missed": 2,
+   "misses": [
+    {
+     "n": 782,
+     "file": "docs/ai-cto/fleet/racetrack/sequential/R1.md",
+     "got": "…\"Reply style: Briefing\" rules with no gate",
+     "expected": "…\"Reply style: Briefing\" with no gate"
+    },
+    {
+     "n": 959,
+     "file": "docs/ai-cto/fleet/racetrack/sequential/R1.md",
+     "got": "same as 782",
+     "expected": "same as 782"
+    }
+   ]
+  }
+ },
+ "session_evaluation": "The page's rule compared every answer with the file's first '# ' line. The session computed the SHA-256 of the expected list (number, file, heading) from the same commit's repo.json and it equals the page's for both shots, so the rule graded against the right answers. 998 of 1000 exact (99.8%); both misses are the same file, answered with the heading of a near-identical sibling (v2-parallel8/R1.md or v2-sequential/R1.md, which add the word 'rules').",
+ "derived": {
+  "chars_per_second_per_lane": {
+   "one_call_177": 267,
+   "calls_of_250": "293 to 309"
+  },
+  "chars_per_answer": 39,
+  "answers_per_second": 15.2
+ },
+ "also_in_turn": "the width-8 probe re-fired its two refused asks (2 calls, 4.6 s); not part of pass 7",
+ "target_met": {
+  "accuracy_at_least_95pct": true,
+  "under_60s": false,
+  "over_by_ms": 5766
+ },
+ "summary_line": "96.8 s = model 94.5 s (0 tool calls, 0 ms in tools) + Stop 6 ms + page 2268 ms · no rule fired (three shots in the turn)"
+}
