@@ -20,6 +20,7 @@ Where a tool deploys to or reads the live t630, it says so.
 | `check-superfleet.py` | Gate for the superfleet plan (`.claude/superfleet.json`). | `python3 tools/check-superfleet.py` (or `--list`, `--review S01 L2 BRANCH`) |
 | `check-stop-hook.py` | Tests the Stop hook on sample replies, and that every rule it enforces is named in the Briefing style. | `python3 tools/check-stop-hook.py` |
 | `check-statements.py` | Gate for the honesty rule on Statements: no category volume shown that was not measured. | `python3 tools/check-statements.py` |
+| `check-rsi.py` | Gate for RSI-OODA: the lean queue never drops to 2 open (ongoing-OODA, ∆§), lean ids are unique, every ledger pass has its run file, and the name is always RSI-OODA. | `python3 tools/check-rsi.py` |
 | `check-registers.py` | Gate for the AI-CTO registers (`initiatives.md`, `debt.md`) and the `CLAUDE.md` byte budget. | `python3 tools/check-registers.py` |
 | `check-provenance.py` | Validates provenance tags across the repo: the enforcement half of the Provenance Ladder. | `python3 tools/check-provenance.py` (or `--strict`, `--stale-days N`) |
 | `check-matrix.py` | End-to-end test of the Matrix in a throwaway sandbox copy. | `python3 tools/check-matrix.py` |

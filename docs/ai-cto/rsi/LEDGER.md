@@ -7,6 +7,8 @@ shot engine produces work, a session converts and evaluates it, commits what pas
 page. OODA builds a better OODA. Speed and accuracy may trade against each other for a pass; the health of the
 loop must point one way over the passes, and the numbers here are how anyone can see that it does.
 
+The queue the passes draw from is `QUEUE.md`; its refill rule is ongoing-OODA (∆§), so there is always a next pass.
+
 Rules for every pass:
 
 - **Measure.** Fill every column from a measurement: the shot's result document, the run record

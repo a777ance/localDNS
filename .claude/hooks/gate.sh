@@ -15,7 +15,7 @@
 # thing the next session inherits — the last point at which "did this earn its
 # tier?" can still be answered cheaply.
 #
-# Runs the repo's static checks before any `git commit`: the thirteen in the loop below. The four
+# Runs the repo's static checks before any `git commit`: the fourteen in the loop below. The four
 # that guard the briefing and its schema are described here:
 #   tools/check-docs.py        links + repo-path references resolve; the Bifrost
 #                              sweep string is byte-identical across its surfaces
@@ -31,8 +31,8 @@
 #                              portfolio self-contradictory. Siblings not checked out
 #                              are skipped, so a green run here is not proof the whole
 #                              portfolio is synced — only the part this session can see.
-# The other nine (decisions, cardinal, matrix, stop-hook, registers, telepathy, statements,
-# superfleet, bridge) each describe themselves in their own file under tools/.
+# The other ten (decisions, cardinal, matrix, stop-hook, registers, telepathy, statements,
+# superfleet, bridge, rsi) each describe themselves in their own file under tools/.
 #
 # FAILURE POLICY, deliberately asymmetric:
 #   * A check that FAILS blocks the commit (exit 2 — stderr goes back to the model).
@@ -74,7 +74,7 @@ for check in tools/check-docs.py tools/check-provenance.py tools/check-doctrine.
              tools/sync-briefings.py tools/check-decisions.py tools/check-cardinal.py \
              tools/check-matrix.py tools/check-stop-hook.py tools/check-registers.py \
              tools/check-telepathy.py tools/check-statements.py \
-             tools/check-superfleet.py tools/check-bridge.py; do
+             tools/check-superfleet.py tools/check-bridge.py tools/check-rsi.py; do
     [ -f "$check" ] || continue
     if ! out="$(python3 "$check" 2>&1)"; then
         fails="${fails}

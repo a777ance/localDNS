@@ -69,6 +69,7 @@ step "check-decisions" python3 tools/check-decisions.py
 step "check-docs" python3 tools/check-docs.py
 step "check-provenance" python3 tools/check-provenance.py
 step "check-registers" python3 tools/check-registers.py
+step "check-rsi" python3 tools/check-rsi.py
 step "racetrack arena self-test" python3 tools/racetrack.py --selftest
 step "no agent running (agent ledger)" python3 tools/matrix.py observe.agents check
 
