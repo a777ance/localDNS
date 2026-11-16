@@ -73,7 +73,8 @@ The slug belongs to the founder's account; a new profile gets a new one. From a 
 
 ## Moving the whole thing to another Claude account
 
-Everything needed is on `leader`; nothing has to be carried by hand. What crosses and what does not:
+Everything needed is on `leader`; nothing has to be carried by hand. `HANDOVER.md`, beside this file, is the kit:
+the prompt to paste, who does which step, and what must be re-measured. What crosses and what does not:
 
 | Crosses with the repo | Does not cross |
 | --- | --- |

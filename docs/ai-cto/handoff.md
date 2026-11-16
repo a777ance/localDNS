@@ -3,6 +3,7 @@
 Written 2026-11-12, about 00:40 UTC. Everything described here is on `leader` (see `docs/ai-cto/branches.md`: `main` is now intent cold storage). Read this once,
 then work the queue. The finished queue from the first lease (Q-001 to Q-030) is archived in
 `docs/ai-cto/handoff-2026-11-11.md`; the story of that session is in `docs/ai-cto/session-log.md`.
+To stand the explorer up on another Claude account, start from `tools/browser/explorer/HANDOVER.md` (the kit, with the prompt to paste).
 Work that is designed and deliberately not started lives in `docs/ai-cto/planned.md` (since 2026-11-15): read it before designing a test, in case it is already there.
 
 Start here, in a cloud session (the path is the cloud container's; on the founder's laptop
