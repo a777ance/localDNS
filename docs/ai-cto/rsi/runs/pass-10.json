@@ -80,5 +80,11 @@
   "a_tenth_of_the_characters": true,
   "no_slower_than_pass_9": true
  },
- "limit_of_the_result": "the screen is a rule that cannot miss for this question (every id contains DEC). A question no keyword can screen for gets no saving from this design."
+ "limit_of_the_result": "the screen is a rule that cannot miss for this question (every id contains DEC). A question no keyword can screen for gets no saving from this design.",
+ "rescored_2026-11-16": {
+  "finding": "All three misses were the rule's, not the model's. The check's pattern DEC-\\d{3} has no boundary, so it matched the first seven characters of a longer token: DEC-100 inside DEC-1000 (M07.md, v2-parallel8/R6.md) and DEC-012 inside DEC-0123 (M13.md). In M07 the first true three-digit id is DEC-012, which is what the model answered; in the other two windows there is none, and the model said so.",
+  "corrected_rule": "DEC-\\d{3}(?!\\d)",
+  "effect": "exactly these three of the 162 windows change their expected answer; under the corrected rule the stored answers score 110 of 110 ids and 162 of 162 windows",
+  "tier": "derived: the same stored answers re-graded by the session against a corrected rule, not a new run and not graded by the page"
+ }
 }
