@@ -1,0 +1,84 @@
+{
+ "pass": 10,
+ "shot": "20261115T224200-pass10",
+ "captured_by": "the shot-result document (the rule's check and per-call figures), read by the session with db_get",
+ "page_commit": "2182059",
+ "model_applied": "claude-haiku-5-5 (all 10 calls)",
+ "corpus": "docs/ai-cto/, 477,980 characters",
+ "result": {
+  "state": "answered",
+  "windows": 162,
+  "window_chars": 40265,
+  "calls": 10,
+  "per_call": 17,
+  "lanes": 2,
+  "ms": 21391,
+  "first_bundle_ms": 2689,
+  "chars_in": 49580,
+  "chars_out": 1284,
+  "call_ms": [
+   2423,
+   3795,
+   6127,
+   4958,
+   4404,
+   5585,
+   3519,
+   3495,
+   3079,
+   1920
+  ]
+ },
+ "check": {
+  "rule": "first_match DEC-\\d{3}",
+  "screen": "DEC",
+  "expected_hits": 112,
+  "found": 109,
+  "recall_pct": 97.3,
+  "missed": 3,
+  "overlooked": 2,
+  "wrong_id": 1,
+  "false_alarms": 0,
+  "exact_windows": 159,
+  "misses": [
+   {
+    "n": 45,
+    "file": "docs/ai-cto/fleet/racetrack/course-30/M07.md",
+    "expected": "DEC-100",
+    "got": "DEC-012"
+   },
+   {
+    "n": 50,
+    "file": "docs/ai-cto/fleet/racetrack/course-30/M13.md",
+    "expected": "DEC-012",
+    "got": "-"
+   },
+   {
+    "n": 87,
+    "file": "docs/ai-cto/fleet/racetrack/v2-parallel8/R6.md",
+    "expected": "DEC-100",
+    "got": "-"
+   }
+  ]
+ },
+ "session_evaluation": "The session's SHA-256 of the expected list (number, file, start, end, expected) equals the page's, so the screen built the windows the session expected and the rule graded against the right answers. 109 of the 112 windows holding an id were answered with it (97.3%), none of the 50 windows without one raised a false alarm. The three misses are among the four slices pass 9 missed under every setting (L-160).",
+ "against_pass_9": {
+  "chars_in": "49,580 against about 512,000 a setting (9.7%)",
+  "calls": "10 against 8 to 20",
+  "shot_ms": "21,391 against 44,052 to 54,139",
+  "recall": "97.3% against 89% at best"
+ },
+ "first_attempt": {
+  "at": "2026-11-15T23:31:39Z",
+  "state": "failed",
+  "reason": "wave 1 call 1: rate_limited; wave 1 call 2: rate_limited",
+  "note": "only 2 calls were in flight, so this was not the two-at-a-time limit. It came 56 minutes after pass 9 sent about 3.5 million characters in twelve minutes, and had cleared by 12:58 UTC the next day. What triggers it and how long it lasts are not measured."
+ },
+ "target_met": {
+  "recall_at_least_95pct": true,
+  "ten_calls": true,
+  "a_tenth_of_the_characters": true,
+  "no_slower_than_pass_9": true
+ },
+ "limit_of_the_result": "the screen is a rule that cannot miss for this question (every id contains DEC). A question no keyword can screen for gets no saving from this design."
+}
