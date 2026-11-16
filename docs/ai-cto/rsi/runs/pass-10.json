@@ -86,5 +86,25 @@
   "corrected_rule": "DEC-\\d{3}(?!\\d)",
   "effect": "exactly these three of the 162 windows change their expected answer; under the corrected rule the stored answers score 110 of 110 ids and 162 of 162 windows",
   "tier": "derived: the same stored answers re-graded by the session against a corrected rule, not a new run and not graded by the page"
+ },
+ "confirming_run_2026-11-16": {
+  "shot": "20261116T131300-pass10b",
+  "captured_by": "runs/20261116T131300-pass10b-run and the result document, read by the session",
+  "page_commit": "44703b4",
+  "rule": "first_match DEC-\\d{3}(?!\\d)",
+  "result": {
+   "ids_found": "110 of 110",
+   "windows_exact": "161 of 162",
+   "false_alarms": 1,
+   "overlooked": 0,
+   "ms": 23695,
+   "turn_ms": 25352,
+   "calls": 10,
+   "chars_in": 49580,
+   "chars_out": 1296
+  },
+  "the_one_miss": "window 87 (v2-parallel8/R6.md) holds no three-digit id; the model answered DEC-1000, the four-digit token in the text. In pass 10 it answered '-' for the same window. So the re-grade's 162 of 162 was not reproduced: the model's answer on that window varies run to run.",
+  "session_evaluation": "The session's SHA-256 of the expected list under the corrected rule equals the page's. Measured by the page: every id found, one false alarm.",
+  "step_table": "the run record logs queued → claimed → running → answered, and one claim document was written (page id pmwjaaq1z1p307u). A second view opened after the shot was answered and, correctly, did nothing; contention between two views is still untested."
  }
 }
