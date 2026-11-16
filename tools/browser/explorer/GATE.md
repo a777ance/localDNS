@@ -29,7 +29,7 @@ Only what passed. The usual route is a session branch and a pull request into `l
 
 ## Record (every pass)
 
-Read the page's run record (`db_get runs/<shot id>-run`: the turn's trace, timings, files read and debug log; the
+Read the page's run record (`db_query` on `runs` where `ts` is after the shot was sent; each page load writes its own, `runs/<shot id>-run-<page id>`: the turn's trace, timings, files read and debug log; the
 founder pastes nothing) and save it in `docs/ai-cto/rsi/runs/` as pass-N.json. Add the pass's row to
 `docs/ai-cto/rsi/LEDGER.md` with the target and trade named before firing and the numbers measured after. Both go
 in the pass's commit.

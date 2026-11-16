@@ -128,3 +128,6 @@ A shot is `queued`, then `claimed`, then `running`, then `answered`, `partial` o
 move"). Before running a shot a page writes a claim, `mail/<shot>-claim-<page id>` with `kind: "claim"` and
 `claim_of: <shot>`, so two open views do not run the same shot. A claim is not a reply: it carries no `re`.
 A claim older than five minutes with no result is treated as abandoned.
+
+A shot is answered by the shot engine only: the page's `mail_reply` refuses a message that is a shot. Each page
+load writes its own run record, `runs/<first shot of the turn>-run-<page id>`; find it by `ts`, not by name.

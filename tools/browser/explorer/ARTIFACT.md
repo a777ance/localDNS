@@ -71,6 +71,41 @@ The slug belongs to the founder's account; a new profile gets a new one. From a 
 5. Open the page once and grant Claude access when it asks. The mailbox starts empty; to carry old mail over, write
    an export's documents back with `db_write`.
 
+## Moving the whole thing to another Claude account
+
+Everything needed is on `leader`; nothing has to be carried by hand. What crosses and what does not:
+
+| Crosses with the repo | Does not cross |
+| --- | --- |
+| the page's source and its built copy (`dist/`), the hook ports, the shot engine, every test | the artifact itself: the new account publishes its own and gets its own slug and link |
+| the measured record: `docs/ai-cto/rsi/LEDGER.md`, `runs/`, `QUEUE.md`, `docs/ai-cto/planned.md` | the mailbox: the database starts empty |
+| the skills in `.claude/skills/` and the briefing (`CLAUDE.md`) | the old account's conversation and memory: the record above is what a new session reads |
+
+The platform's limits were measured on the founder's account (2 calls running and 4 held per view; a limit on
+use over time). Another account or plan may differ: re-measure before relying on them (`runs/exp-width.json`
+says how).
+
+Steps, in a session on the new account that has the artifact tools and this repo cloned at `leader`:
+
+1. Follow "Reconstruct in a fresh Claude profile" above (rebuild, publish with no slug, declare capabilities,
+   replace the slug in the three files it names).
+2. Commit the new slug and a fresh `dist/` with `restate.sh record`, on a branch of the new account's own.
+3. Open the page, grant Claude access, and send the acceptance series below. ACCEPTANCE-PENDING: the series is fired on the founder's account first; its record is named here once it has run.
+
+The acceptance series, four shots written with `db_write` to `mail/<id>` (shapes in
+`tools/telepathy/ARTIFACT-BUS.md`):
+
+| Shot | What it proves | Passes when |
+| --- | --- | --- |
+| four title asks, default settings | mail in, answers out, the hooks ran | 4 of 4 answered |
+| `fleet` over `\.md$`, `check: first_heading`, one call | the page expands a shot and grades it | at least 95% exact |
+| `fleet` with `screen: DEC`, `window: 200`, 17 a call | screen, then read closely | every id found |
+| `fleet` with `slice: 1200` over one folder, 62 a call | a full-text sweep | at least 85% of ids found |
+
+Grade by rule and verify the rule: compute the SHA-256 of the expected list in the session and compare it with
+`check.expected_sha256` in the result. End an id pattern with a boundary (`DEC-\d{3}(?!\d)`), and read the misses
+before quoting the score.
+
 ## Republish after a change
 
 From a session with the artifact tools (claude.ai cloud, Cowork):

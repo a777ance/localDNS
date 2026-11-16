@@ -744,8 +744,8 @@ async function writeRunRecord(msgs,turn,results){
   var spans=[turn].concat(descendants(turn)).map(function(s){var o={id:s.id,parent:s.parent,kind:s.kind,name:s.name,status:s.status,ms:s.end!=null?Math.round(s.end-s.start):null,wall:s.wall};
     if(s.kind==="tool"&&s.input)o.input=JSON.stringify(s.input).slice(0,160);if(s.error)o.error=String(s.error).slice(0,300);
     if(s.meta){["summary_line","modelApplied","model","usage","try1","try2","code","truncated"].forEach(function(k){if(s.meta[k]!==undefined)o[k]=s.meta[k]})}return o});
-  var id=msgs[0]._id+"-run",now=new Date();
-  await MAIL.db.doc("runs/"+id).set({id:id,kind:"run",shots:msgs.map(function(m){return m._id}),page_commit:((DATA&&DATA.commit)||(HEADS&&HEADS.commit)||"").split(" ")[0]||null,
+  var id=msgs[0]._id+"-run-"+PAGE_ID,now=new Date(); // L-166: one record per page load, so a second load cannot erase the first
+  await MAIL.db.doc("runs/"+id).set({id:id,kind:"run",page_id:PAGE_ID,shots:msgs.map(function(m){return m._id}),page_commit:((DATA&&DATA.commit)||(HEADS&&HEADS.commit)||"").split(" ")[0]||null,
     summary_line:turn.meta.summary_line||null,results:results.map(function(r){return {re:r.re,state:r.state,reason:r.reason||null,counts:r.counts,prov:r.prov,check:r.check||null,percall:r.percall||null}}),
     spans:spans.slice(0,800),debug:DLOG.slice(),user_agent:navigator.userAgent,saved_at:now.toISOString(),ts:now.getTime()});
   autoNote("run record saved: runs/"+id+" ("+spans.length+" spans, "+DLOG.length+" log lines)");
@@ -813,6 +813,8 @@ var MAIL_TOOLS=[
   inputSchema:{type:"object",properties:{replies:{type:"array",items:{type:"object",properties:{re:{type:"string"},body:{type:"string"}},required:["re","body"]}}},required:["replies"]},
   execute:async function(a){var t0=performance.now();var out=await Promise.all((a.replies||[]).map(async function(r){var m=MAIL.docs.filter(function(x){return x._id===r.re})[0];
     if(!m)return r.re+": no such message";
+    // L-165: a shot is answered by the shot engine and by nothing else, whoever holds its claim
+    if(m.fleet||(m.asks&&m.asks.length))return r.re+": FAILED this message is a shot; the shot engine answers shots, a reply does not";
     try{var res=await mailSend("page",m.from,"re: "+(m.subject||""),r.body,r.re);return r.re+": sent "+res.sent+" to "+res.to+" (the reply marks it handled)"}catch(e){return r.re+": FAILED "+(e.message||e)}}));
     AUTO.lastReplyMs=Math.round(performance.now()-t0);autoNote((a.replies||[]).length+" replies written in "+AUTO.lastReplyMs+" ms");
     if(AUTO.active&&AUTO.ctl&&out.every(function(x){return x.indexOf("FAILED")<0&&x.indexOf("no such")<0})){AUTO.replied={n:out.length,ms:AUTO.lastReplyMs,to:(a.replies||[]).map(function(r){var m=MAIL.docs.filter(function(x){return x._id===r.re})[0];return m?m.from:"?"})};setTimeout(function(){AUTO.ctl.abort()},0)}
