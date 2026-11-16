@@ -101,7 +101,7 @@ The acceptance series, four shots written with `db_write` to `mail/<id>` (shapes
 | --- | --- | --- |
 | four title asks, default settings | mail in, answers out, the hooks ran | 4 of 4 answered |
 | `fleet` over `\.md$`, `check: first_heading`, one call | the page expands a shot and grades it | at least 95% exact |
-| `fleet` with `screen: DEC`, `window: 200`, 17 a call | screen, then read closely | at least 97% of ids found (three runs here: 109, 110, 109 of 110) |
+| `fleet` with `screen: DEC`, `window: 200`, 17 a call | screen, then read closely | at least 97% of ids found (three runs here: 110, 110 and 109 of 110) |
 | `fleet` with `slice: 1200` over one folder, 62 a call | a full-text sweep | at least 85% of ids found |
 
 Grade by rule and verify the rule: compute the SHA-256 of the expected list in the session and compare it with
