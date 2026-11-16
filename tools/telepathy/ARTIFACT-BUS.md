@@ -120,3 +120,11 @@ A fleet shot gets more out of each lane by answering many asks per call. Its fie
   every answer.
 - `per_call`: answers per call. Calls run as a pipeline: the next starts when one finishes.
 - `attach_max`: characters of each named file to attach. `tools: false`: no read tools. `jury: false`: no second juror.
+
+## Shot states and claims (2026-11-16)
+
+A shot is `queued`, then `claimed`, then `running`, then `answered`, `partial` or `failed`. Only `partial` and
+`failed` may be claimed again; an `answered` shot is finished. The page refuses any other move ("illegal shot
+move"). Before running a shot a page writes a claim, `mail/<shot>-claim-<page id>` with `kind: "claim"` and
+`claim_of: <shot>`, so two open views do not run the same shot. A claim is not a reply: it carries no `re`.
+A claim older than five minutes with no result is treated as abandoned.

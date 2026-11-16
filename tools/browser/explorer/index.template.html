@@ -750,6 +750,23 @@ async function writeRunRecord(msgs,turn,results){
     spans:spans.slice(0,800),debug:DLOG.slice(),user_agent:navigator.userAgent,saved_at:now.toISOString(),ts:now.getTime()});
   autoNote("run record saved: runs/"+id+" ("+spans.length+" spans, "+DLOG.length+" log lines)");
 }
+/* Shot states and the only moves allowed between them. A move not in this table throws: an out-of-order step is
+   refused, not merely unusual. Only partial and failed shots may be claimed again; an answered shot is finished.
+   Claiming (PLAN-001): the page's db has no compare-and-set, so a claim is a document of its own. A page yields
+   if another page's fresh claim is already there; if two arrive together, both wait, read the same claims and
+   agree on the lowest (ts, page id). A claim names its shot in claim_of, not re, so nothing that reads replies by re mistakes it for one. A claim older than CLAIM_MS with no result is treated as abandoned. */
+var SHOT_MOVES={queued:["claimed"],claimed:["running","queued"],running:["answered","partial","failed"],partial:["claimed"],failed:["claimed"],answered:[]};
+var SHOT_STATE={},PAGE_ID="p"+Date.now().toString(36)+Math.random().toString(36).slice(2,8),CLAIM_MS=300000,CLAIM_WAIT=1200;
+function shotStateOf(m){if(SHOT_STATE[m._id]==="claimed"||SHOT_STATE[m._id]==="running")return SHOT_STATE[m._id];
+  var r=MAIL.docs.filter(function(x){return x.kind==="shot-result"&&x.re===m._id})[0];return r&&SHOT_MOVES[r.state]?r.state:(SHOT_STATE[m._id]||"queued")}
+function shotMove(m,to){var from=shotStateOf(m);if((SHOT_MOVES[from]||[]).indexOf(to)<0)throw new Error("illegal shot move: "+from+" → "+to+" ("+m._id+")");SHOT_STATE[m._id]=to;dlog("shot "+String(m._id).slice(-12)+": "+from+" → "+to);return to}
+function freshClaims(m){var now=Date.now();return MAIL.docs.filter(function(x){return x.kind==="claim"&&x.claim_of===m._id&&now-(+x.ts||0)<CLAIM_MS})}
+window.__shotMove=shotMove; // for the test of the table
+async function claimShot(m){
+  if(freshClaims(m).some(function(c){return c.by!==PAGE_ID}))return false;
+  await MAIL.db.doc("mail/"+m._id+"-claim-"+PAGE_ID).set({id:m._id+"-claim-"+PAGE_ID,kind:"claim",claim_of:m._id,by:PAGE_ID,from:"page",to:"claims",ts:Date.now(),via:"artifact-page"});
+  await new Promise(function(z){setTimeout(z,CLAIM_WAIT)});
+  var cs=freshClaims(m).sort(function(a,b){return (a.ts-b.ts)||(a.by<b.by?-1:1)});return !cs.length||cs[0].by===PAGE_ID}
 async function autoRun(){
   if(!AUTO.on||busy||!AUTO.queue.length||!sample)return;
   if(AUTO.turns>=AUTO.MAX_TURNS){autoNote("stopped: "+AUTO.MAX_TURNS+" automatic turns this visit (reload the page to reset)");AUTO.queue=[];return}
@@ -763,7 +780,10 @@ async function autoRun(){
     addMsg("u",esc(head));var bubble=addMsg("a","<span style='color:var(--mute)'>Firing "+msgs.length+" shot(s)…</span>");
     var turn=span("turn","auto-mail: "+msgs.length+" shot(s)",null,{question:head});turn.meta.harness=H.on?"on":"off";CUR.turn=turn;
     var t0=performance.now(),results=[];
-    for(var i=0;i<msgs.length;i++){try{results.push(await runShot(msgs[i],turn,bubble,harnessP))}catch(e){results.push({state:"failed",re:msgs[i]._id,reason:e.message||String(e),counts:{leaves:0,answered:0,flagged:0},prov:{calls:0,ms:0}})}}
+    for(var i=0;i<msgs.length;i++){try{
+        shotMove(msgs[i],"claimed");
+        if(!(await claimShot(msgs[i]))){shotMove(msgs[i],"queued");dlog("shot "+String(msgs[i]._id).slice(-12)+": another page holds the claim; skipped");continue}
+        shotMove(msgs[i],"running");var rr=await runShot(msgs[i],turn,bubble,harnessP);shotMove(msgs[i],SHOT_MOVES[rr.state]?rr.state:"failed");results.push(rr)}catch(e){if(SHOT_STATE[msgs[i]._id]==="running")SHOT_STATE[msgs[i]._id]="failed";results.push({state:"failed",re:msgs[i]._id,reason:e.message||String(e),counts:{leaves:0,answered:0,flagged:0},prov:{calls:0,ms:0}})}}
     var secs=Math.round((performance.now()-t0)/100)/10,all=results.every(function(r){return r.state==="answered"});
     var tot=results.reduce(function(a,r){return a+(r.counts.leaves||0)},0),okN=results.reduce(function(a,r){return a+(r.counts.answered||0)},0);
     var lines=results.map(function(r){return "A · Shot "+String(r.re).slice(-12)+": **"+r.state+"**, "+r.counts.answered+" of "+r.counts.leaves+" answered in "+(r.prov.ms/1000).toFixed(1)+" s, "+r.prov.calls+" model call(s)"+(r.counts.jury_asked?", jury fixed "+r.counts.jury_fixed+" of "+r.counts.jury_asked:"")+(r.reason?" ("+r.reason+")":"")+"."});

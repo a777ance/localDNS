@@ -30,7 +30,7 @@ Status is one of `planned`, `ready`, `done` (with the commit or pass) or `droppe
 - **Ready when:** a sparse sweep has scored 95% recall or better.
 - **Wrong if:** the single call is cut off or refused for size, which is itself the answer.
 
-## PLAN-001 · Two views, four lanes · planned
+## PLAN-001 · Two views, four lanes · ready
 
 - **Why:** one view of the artifact runs 2 model calls at a time (`docs/ai-cto/rsi/runs/exp-width.json`), and frames
   inside the page get none (`runs/exp-frames.json`). The platform's refusal says "from this page", so a second
@@ -48,8 +48,12 @@ Status is one of `planned`, `ready`, `done` (with the commit or pass) or `droppe
      means shared.
   4. *If lanes add.* The sweep splits into one shot per view (`fleet.offset` and `fleet.count`), each view claims
      one, and the session joins the result documents.
-- **Needs:** the founder holding the artifact open in two places at once for about a minute; the claiming change
-  in the engine, with a test of two pages against one mock mailbox.
+- **Needs:** the founder holding the artifact open in two places at once for about a minute. The claiming change
+  is built (2026-11-16), though not as first designed: the page's database offers no guarded write, so a claim is a
+  document of its own (`kind: claim`, `claim_of`), a page yields to a fresh claim already there, and two that arrive
+  together agree on the lowest (ts, page id). It is tested against a rival claim in one page; two real pages are
+  what this test is for. The shot states and allowed moves (`SHOT_MOVES`) came with it: the one idea taken from
+  the tensor-harness script reviewed that day, built here with a test that an illegal move is refused.
 - **Ready when:** the founder says he has two views to hand.
 - **Wrong if:** both views claim the same shot (claiming is broken), or the second view cannot call the model
   at all.

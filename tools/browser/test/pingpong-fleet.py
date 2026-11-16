@@ -68,6 +68,15 @@ async def main(BASE):
         await pg.wait_for_function("Object.values(window.__store).some(function(v){return v.kind==='shot-result'&&v.re==='F6'})", timeout=120000)
         st = await pg.evaluate("window.__store"); r6 = [v for v in st.values() if v.get("kind") == "shot-result" and v["re"] == "F6"][0]
         print("screened: state %s | check %s | calls %d | chars in %d" % (r6["state"], {k: r6["check"][k] for k in ("slices", "slice_chars", "corpus_chars", "expected_hits", "found", "missed")}, await pg.evaluate("window.__calls"), r6["prov"]["chars_in"]))
+        # the step table: an answered shot cannot be claimed again, and a shot another page has claimed is skipped
+        bad = await pg.evaluate("(function(){try{__shotMove({_id:'F6'},'claimed');return 'allowed'}catch(e){return e.message}})()")
+        skip = await pg.evaluate("(function(){try{__shotMove({_id:'none'},'running');return 'allowed'}catch(e){return e.message}})()")
+        await pg.evaluate("d=>window.__mockdb.doc('mail/F7-claim-p000rival').set(d)", {"id": "F7-claim-p000rival", "kind": "claim", "claim_of": "F7", "by": "p000rival", "from": "page", "to": "claims", "ts": int(__import__("time").time() * 1000)})
+        await pg.evaluate("d=>window.__mockdb.doc('mail/F7').set(d)", {"id": "F7", "from": "cloud", "to": "page", "subject": "claimed elsewhere", "body": "x", "asks": [{"n": 1, "body": "Round 1: README.md (reply 'pong 1' and that file's first line starting with '# ', copied exactly)"}], "sent_at": "2026-11-16T13:10:00Z", "ts": 7})
+        await pg.wait_for_timeout(6000)
+        st = await pg.evaluate("window.__store"); ran7 = any(v.get("re") == "F7" for v in st.values())
+        print("step table: answered→claimed: %s | queued→running: %s | shot claimed by another page ran here: %s" % (bad.split(" (")[0], skip.split(" (")[0], ran7))
+        assert "illegal shot move" in bad and "illegal shot move" in skip and not ran7
         print("js errors:", errs or "none"); await b.close()
 with served() as BASE:
     asyncio.run(main(BASE))
