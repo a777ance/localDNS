@@ -54,6 +54,8 @@ Status is one of `planned`, `ready`, `done` (with the commit or pass) or `droppe
   together agree on the lowest (ts, page id). It is tested against a rival claim in one page; two real pages are
   what this test is for. The shot states and allowed moves (`SHOT_MOVES`) came with it: the one idea taken from
   the tensor-harness script reviewed that day, built here with a test that an illegal move is refused.
+  Claiming half run 2026-11-16 with the session standing in as the rival page (`docs/ai-cto/rsi/runs/exp-claim.json`):
+  the held shot was skipped and the free one run. Still open: two real pages at the same moment, and the lanes.
 - **Ready when:** the founder says he has two views to hand.
 - **Wrong if:** both views claim the same shot (claiming is broken), or the second view cannot call the model
   at all.

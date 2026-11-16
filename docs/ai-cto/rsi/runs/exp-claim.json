@@ -1,0 +1,25 @@
+{
+ "experiment": "claim test with the session as the rival (PLAN-001, the claiming half)",
+ "page_commit": "44703b4",
+ "fired": "2026-11-16T13:17Z",
+ "read_from": "mail documents with ts after 1794835021000 and runs/20261116T131700-rivalheld-run, read by the session with db_query",
+ "setup": "two one-ask shots; the first already carried a fresh claim written by the session as page 'p000session', the second carried none",
+ "observed": {
+  "free_shot": "claimed by page pmwjafyujbgoqpd at 13:17:26 and answered at 13:17:29 (pong 1)",
+  "held_shot": "no claim, bundle or result written by the page; the run record of 13:18:08 logs queued → claimed, claimed → queued, 'another page holds the claim; skipped'",
+  "stray_reply": "at 13:17:51 the page wrote an ordinary mail reply to the held shot ('Read. I took no action on the shot…'). The shot engine did not write it; which path did is not known. It has no replies array, so it does not mark the shot handled."
+ },
+ "facts": [
+  "On the real page against the real database, a shot with another page's fresh claim is skipped and a shot without one is claimed and run.",
+  "The state moves were logged as the table allows, including the release back to queued."
+ ],
+ "defects": [
+  "Something outside the shot engine answered the held shot in prose. A claimed shot should be left alone by every path.",
+  "The run record is named for the first shot in the turn, so the 13:18 load overwrote the 13:17 load's record (version 3): the first load's log is gone."
+ ],
+ "not_measured": [
+  "two real pages claiming at the same moment (the tie-break)",
+  "the five-minute stale-claim rule",
+  "whether lanes add across views"
+ ]
+}
